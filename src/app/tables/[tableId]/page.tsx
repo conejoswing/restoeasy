@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-  CardFooter, // Import CardFooter
+  CardFooter,
 } from '@/components/ui/card';
 import {ScrollArea} from '@/components/ui/scroll-area';
 import {Separator} from '@/components/ui/separator';
@@ -35,58 +35,59 @@ const mockMenu: MenuItem[] = [
     id: 1,
     name: 'Hamburguesa',
     price: 8.99,
-    category: 'Platos Principales',
+    category: 'Fajitas', // Changed from 'Platos Principales'
   },
   {
     id: 2,
     name: 'Pizza',
     price: 12.5,
-    category: 'Platos Principales',
+    category: 'Fajitas', // Changed from 'Platos Principales'
   },
   {
     id: 3,
     name: 'Ensalada',
     price: 6.5,
-    category: 'Entrantes',
+    category: 'Café', // Changed from 'Entrantes'
   },
   {
     id: 4,
     name: 'Patatas Fritas',
     price: 3.0,
-    category: 'Acompañamientos',
+    category: 'Colaciones', // Changed from 'Acompañamientos'
   },
   {
     id: 5,
     name: 'Refresco',
     price: 2.0,
-    category: 'Bebidas',
+    category: 'Bebidas', // Kept as 'Bebidas'
   },
   {
     id: 6,
     name: 'Helado',
     price: 4.5,
-    category: 'Postres',
+    category: 'Promociones', // Changed from 'Postres'
   },
   {
     id: 7,
     name: 'Alitas de Pollo',
     price: 9.5,
-    category: 'Entrantes',
+    category: 'Café', // Changed from 'Entrantes'
   },
    {
     id: 8,
     name: 'Filete',
     price: 18.0,
-    category: 'Platos Principales',
+    category: 'Fajitas', // Changed from 'Platos Principales'
   },
    {
     id: 9,
     name: 'Agua',
     price: 1.0,
-    category: 'Bebidas',
+    category: 'Bebidas', // Kept as 'Bebidas'
   },
 ];
 
+// Dynamically generate categories from the updated mockMenu
 const categories = [
   ...new Set(mockMenu.map((item) => item.category)),
 ];
@@ -103,7 +104,7 @@ export default function TableDetailPage() {
   const tableIdParam = params.tableId as string; // Get the raw param (can be number or string)
   const [order, setOrder] = useState<OrderItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>(
-    categories[0] || 'Todos'
+    'Completos' // Changed initial state from 'Todos'
   );
 
   // Simulate fetching existing order (replace with real logic)
@@ -135,7 +136,7 @@ export default function TableDetailPage() {
     });
       toast({
         title: `${item.name} añadido`,
-        description: `Total: ${calculateTotal(order) + item.price}`,
+        description: `Total: $${(calculateTotal(order) + item.price).toFixed(2)}`, // Format total in toast
         variant: "default",
         className: "bg-secondary text-secondary-foreground"
       })
@@ -161,9 +162,10 @@ export default function TableDetailPage() {
   };
 
    const removeCompletely = (itemId: number) => {
+     const itemToRemove = order.find(item => item.id === itemId);
      setOrder((prevOrder) => prevOrder.filter((orderItem) => orderItem.id !== itemId));
       toast({
-        title: `Artículo eliminado del pedido`,
+        title: `${itemToRemove?.name} eliminado del pedido`, // Show item name in toast
         variant: "destructive",
       })
    }
@@ -182,7 +184,7 @@ export default function TableDetailPage() {
       title: "¡Pedido Realizado!",
       description: `Total: $${calculateTotal(order).toFixed(2)} para ${getPageTitle()}`,
       variant: "default",
-       className: "bg-green-200 text-green-800 border-green-400" // Using direct colors temporarily for success
+      className: "bg-green-200 text-green-800 border-green-400" // Using direct colors temporarily for success
     });
     // Maybe clear order and navigate back or update table status visually
      setOrder([]); // Option to clear order
@@ -190,7 +192,7 @@ export default function TableDetailPage() {
   };
 
   const filteredMenu =
-    selectedCategory === 'Todos'
+    selectedCategory === 'Completos' // Check against 'Completos'
       ? mockMenu
       : mockMenu.filter((item) => item.category === selectedCategory);
 
@@ -218,11 +220,11 @@ export default function TableDetailPage() {
             <CardTitle>Menú</CardTitle>
             <div className="flex space-x-2 pt-2 overflow-x-auto pb-2">
                <Button
-                variant={selectedCategory === 'Todos' ? 'default' : 'secondary'}
-                onClick={() => setSelectedCategory('Todos')}
+                variant={selectedCategory === 'Completos' ? 'default' : 'secondary'}
+                onClick={() => setSelectedCategory('Completos')} // Set category to 'Completos'
                 className="shrink-0"
               >
-                Todos
+                Completos {/* Changed button text from 'Todos' */}
               </Button>
               {categories.map((category) => (
                 <Button
@@ -231,7 +233,7 @@ export default function TableDetailPage() {
                   onClick={() => setSelectedCategory(category)}
                   className="shrink-0"
                 >
-                  {category}
+                  {category} {/* Button text now uses updated categories */}
                 </Button>
               ))}
             </div>
