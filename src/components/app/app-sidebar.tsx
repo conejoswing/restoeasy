@@ -19,15 +19,15 @@ import {
 const RestoFacilLogo = () => (
     <svg
         xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
+        width="32" // Increased size slightly
+        height="32" // Increased size slightly
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
         strokeWidth="2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        className="h-6 w-6 shrink-0" // Use Tailwind classes for size
+        className="h-8 w-8 shrink-0 text-sidebar-foreground" // Ensure color and size
     >
         <path d="M16 2v20"></path>
         <path d="M11 2v11a5 5 0 0 0 10 0V2"></path>
@@ -44,10 +44,12 @@ export default function AppSidebar() {
 
   return (
     <>
-      <SidebarHeader className="flex items-center gap-2">
+      {/* Changed flex direction to column, added padding, centered items */}
+      <SidebarHeader className="flex flex-col items-center p-4 gap-2">
          <RestoFacilLogo />
-        <h2 className="text-xl font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden">
-          El Bajón de la Cami {/* Changed from RestoFácil */}
+        {/* Added text-center */}
+        <h2 className="text-lg font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden text-center">
+          El Bajón de la Cami
         </h2>
       </SidebarHeader>
       <SidebarContent>
@@ -90,4 +92,3 @@ export default function AppSidebar() {
     </>
   );
 }
-
