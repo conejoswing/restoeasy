@@ -8,7 +8,6 @@ import {Button} from '@/components/ui/button';
 import {
   Card,
   CardContent,
-  CardFooter,
   CardHeader,
   CardTitle,
   CardDescription,
@@ -23,7 +22,6 @@ interface MenuItem {
   name: string;
   price: number;
   category: string;
-  imageUrl: string;
 }
 
 interface OrderItem extends MenuItem {
@@ -37,63 +35,54 @@ const mockMenu: MenuItem[] = [
     name: 'Hamburguesa',
     price: 8.99,
     category: 'Platos Principales',
-    imageUrl: 'https://picsum.photos/seed/burger/200/150',
   },
   {
     id: 2,
     name: 'Pizza',
     price: 12.5,
     category: 'Platos Principales',
-    imageUrl: 'https://picsum.photos/seed/pizza/200/150',
   },
   {
     id: 3,
     name: 'Ensalada',
     price: 6.5,
     category: 'Entrantes',
-    imageUrl: 'https://picsum.photos/seed/salad/200/150',
   },
   {
     id: 4,
     name: 'Patatas Fritas',
     price: 3.0,
     category: 'Acompañamientos',
-    imageUrl: 'https://picsum.photos/seed/fries/200/150',
   },
   {
     id: 5,
     name: 'Refresco',
     price: 2.0,
     category: 'Bebidas',
-    imageUrl: 'https://picsum.photos/seed/soda/200/150',
   },
   {
     id: 6,
     name: 'Helado',
     price: 4.5,
     category: 'Postres',
-    imageUrl: 'https://picsum.photos/seed/icecream/200/150',
   },
   {
     id: 7,
     name: 'Alitas de Pollo',
     price: 9.5,
     category: 'Entrantes',
-    imageUrl: 'https://picsum.photos/seed/wings/200/150',
   },
    {
     id: 8,
     name: 'Filete',
     price: 18.0,
     category: 'Platos Principales',
-    imageUrl: 'https://picsum.photos/seed/steak/200/150',
   },
    {
     id: 9,
     name: 'Agua',
     price: 1.0,
     category: 'Bebidas',
-    imageUrl: 'https://picsum.photos/seed/water/200/150',
   },
 ];
 
@@ -255,18 +244,9 @@ export default function TableDetailPage() {
                     className="cursor-pointer hover:shadow-md transition-shadow"
                     onClick={() => addToOrder(item)}
                   >
-                    <CardContent className="p-0">
-                      <Image
-                        src={item.imageUrl}
-                        alt={item.name}
-                        width={200}
-                        height={150}
-                        className="w-full h-auto object-cover rounded-t-lg"
-                      />
-                      <div className="p-3">
-                        <h3 className="font-semibold text-sm truncate">{item.name}</h3>
-                        <p className="text-xs text-muted-foreground">${item.price.toFixed(2)}</p>
-                      </div>
+                    <CardContent className="p-3">
+                      <h3 className="font-semibold text-sm truncate">{item.name}</h3>
+                      <p className="text-xs text-muted-foreground">${item.price.toFixed(2)}</p>
                     </CardContent>
                   </Card>
                 ))}
@@ -290,7 +270,6 @@ export default function TableDetailPage() {
                   {order.map((item) => (
                     <li key={item.id} className="flex items-center justify-between">
                      <div className='flex items-center gap-2'>
-                        <Image src={item.imageUrl} alt={item.name} width={40} height={30} className="rounded"/>
                         <div>
                           <span className="font-medium text-sm">{item.name}</span>
                           <p className='text-xs text-muted-foreground'>${item.price.toFixed(2)}</p>
@@ -330,3 +309,4 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
