@@ -107,7 +107,7 @@ export default function InventoryPage() {
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Gestión de Inventario</h1> {/* Inventory Management */}
+        <h1 className="text-3xl font-bold">Gestión del Inventario</h1> {/* Inventory Management */}
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -266,7 +266,7 @@ export default function InventoryPage() {
              {inventory.length === 0 && (
                 <TableRow>
                     <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
-                    No se encontraron artículos en el inventario. ¡Añade algunos! {/* No inventory items found. Add some! */}
+                    No se encontraron artículos en el inventario. ¡Añada algunos! {/* No inventory items found. Add some! */}
                     </TableCell>
                 </TableRow>
              )}

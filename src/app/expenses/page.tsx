@@ -163,7 +163,7 @@ export default function ExpensesPage() {
                 </Label>
                  <Select onValueChange={(value) => handleSelectChange(value, 'category')} value={newExpense.category}>
                     <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Selecciona categoría" /> {/* Select category */}
+                      <SelectValue placeholder="Selecciona una categoría" /> {/* Select category */}
                     </SelectTrigger>
                     <SelectContent>
                       {expenseCategories.map((cat) => (
@@ -242,7 +242,7 @@ export default function ExpensesPage() {
                  {expenses.length === 0 && (
                     <TableRow>
                         <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                        Aún no se han registrado gastos. ¡Añade algunos! {/* No expenses recorded yet. Add some! */}
+                        Aún no se han registrado gastos. ¡Añada algunos! {/* No expenses recorded yet. Add some! */}
                         </TableCell>
                     </TableRow>
                  )}
