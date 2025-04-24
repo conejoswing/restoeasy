@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'RestoFácil', // Changed from RestoEasy
+  title: 'El Bajón de la Cami', // Changed from RestoFácil
   description: 'Aplicación de Gestión de Restaurantes', // Changed from Restaurant Management App
 };
 

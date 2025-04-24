@@ -47,7 +47,7 @@ export default function AppSidebar() {
       <SidebarHeader className="flex items-center gap-2">
          <RestoFacilLogo />
         <h2 className="text-xl font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden">
-          RestoFácil {/* Changed from RestoEasy */}
+          El Bajón de la Cami {/* Changed from RestoFácil */}
         </h2>
       </SidebarHeader>
       <SidebarContent>
@@ -90,3 +90,4 @@ export default function AppSidebar() {
     </>
   );
 }
+
