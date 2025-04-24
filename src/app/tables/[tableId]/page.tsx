@@ -34,65 +34,65 @@ interface OrderItem extends MenuItem {
 const mockMenu: MenuItem[] = [
   {
     id: 1,
-    name: 'Hamburguesa', // Changed from Burger
+    name: 'Hamburguesa',
     price: 8.99,
-    category: 'Platos Principales', // Changed from Main Dishes
+    category: 'Platos Principales',
     imageUrl: 'https://picsum.photos/seed/burger/200/150',
   },
   {
     id: 2,
     name: 'Pizza',
     price: 12.5,
-    category: 'Platos Principales', // Changed from Main Dishes
+    category: 'Platos Principales',
     imageUrl: 'https://picsum.photos/seed/pizza/200/150',
   },
   {
     id: 3,
-    name: 'Ensalada', // Changed from Salad
+    name: 'Ensalada',
     price: 6.5,
-    category: 'Entrantes', // Changed from Appetizers
+    category: 'Entrantes',
     imageUrl: 'https://picsum.photos/seed/salad/200/150',
   },
   {
     id: 4,
-    name: 'Patatas Fritas', // Changed from Fries
+    name: 'Patatas Fritas',
     price: 3.0,
-    category: 'Acompañamientos', // Changed from Sides
+    category: 'Acompañamientos',
     imageUrl: 'https://picsum.photos/seed/fries/200/150',
   },
   {
     id: 5,
-    name: 'Refresco', // Changed from Soda
+    name: 'Refresco',
     price: 2.0,
-    category: 'Bebidas', // Changed from Drinks
+    category: 'Bebidas',
     imageUrl: 'https://picsum.photos/seed/soda/200/150',
   },
   {
     id: 6,
-    name: 'Helado', // Changed from Ice Cream
+    name: 'Helado',
     price: 4.5,
-    category: 'Postres', // Changed from Desserts
+    category: 'Postres',
     imageUrl: 'https://picsum.photos/seed/icecream/200/150',
   },
   {
     id: 7,
-    name: 'Alitas de Pollo', // Changed from Chicken Wings
+    name: 'Alitas de Pollo',
     price: 9.5,
-    category: 'Entrantes', // Changed from Appetizers
+    category: 'Entrantes',
     imageUrl: 'https://picsum.photos/seed/wings/200/150',
   },
    {
     id: 8,
-    name: 'Filete', // Changed from Steak
+    name: 'Filete',
     price: 18.0,
-    category: 'Platos Principales', // Changed from Main Dishes
+    category: 'Platos Principales',
     imageUrl: 'https://picsum.photos/seed/steak/200/150',
   },
    {
     id: 9,
-    name: 'Agua', // Changed from Water
+    name: 'Agua',
     price: 1.0,
-    category: 'Bebidas', // Changed from Drinks
+    category: 'Bebidas',
     imageUrl: 'https://picsum.photos/seed/water/200/150',
   },
 ];
@@ -101,27 +101,33 @@ const categories = [
   ...new Set(mockMenu.map((item) => item.category)),
 ];
 
+// Helper function to capitalize first letter
+const capitalizeFirstLetter = (string: string) => {
+  return string.charAt(0).toUpperCase() + string.slice(1);
+}
+
 export default function TableDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
-  const tableId = params.tableId;
+  const tableIdParam = params.tableId as string; // Get the raw param (can be number or string)
   const [order, setOrder] = useState<OrderItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>(
-    categories[0] || 'Todos' // Changed default category to 'Todos'
+    categories[0] || 'Todos'
   );
 
-  // Simulate fetching existing order if table is occupied (replace with real logic)
+  // Simulate fetching existing order (replace with real logic)
+  // Note: This mock logic might not make sense for "Mezón" or "Delivery"
+  // In a real app, you'd fetch based on the specific ID/type.
   useEffect(() => {
-    // If table status was passed or fetched and is 'occupied', load mock order
-    if (Math.random() > 0.5) { // Simulate 50% chance of existing order
+    if (!['mezon', 'delivery'].includes(tableIdParam) && Math.random() > 0.5) { // Only simulate for tables
       const mockExistingOrder = mockMenu.slice(0, Math.floor(Math.random() * 3) + 1).map(item => ({
         ...item,
         quantity: Math.floor(Math.random() * 2) + 1
       }));
       setOrder(mockExistingOrder);
     }
-  }, [tableId]);
+  }, [tableIdParam]);
 
 
   const addToOrder = (item: MenuItem) => {
@@ -138,7 +144,7 @@ export default function TableDetailPage() {
       }
     });
       toast({
-        title: `${item.name} añadido`, // Changed from added
+        title: `${item.name} añadido`,
         description: `Total: ${calculateTotal(order) + item.price}`,
         variant: "default",
         className: "bg-secondary text-secondary-foreground"
@@ -159,7 +165,7 @@ export default function TableDetailPage() {
       }
     });
      toast({
-        title: `Cantidad reducida / eliminada`, // Changed from Item quantity reduced / removed
+        title: `Cantidad reducida / eliminada`,
         variant: "default",
      })
   };
@@ -167,7 +173,7 @@ export default function TableDetailPage() {
    const removeCompletely = (itemId: number) => {
      setOrder((prevOrder) => prevOrder.filter((orderItem) => orderItem.id !== itemId));
       toast({
-        title: `Artículo eliminado del pedido`, // Changed from Item removed from order
+        title: `Artículo eliminado del pedido`,
         variant: "destructive",
       })
    }
@@ -181,40 +187,52 @@ export default function TableDetailPage() {
 
   const handleFinalizeOrder = () => {
     // In a real app: send order to backend, update table status, navigate or show success
-    console.log('Finalizando pedido:', order); // Changed from Finalizing order
+    console.log('Finalizando pedido:', order);
     toast({
-      title: "¡Pedido Realizado!", // Changed from Order Placed!
-      description: `Total: $${calculateTotal(order).toFixed(2)} para Mesa ${tableId}`, // Changed from for Table
+      title: "¡Pedido Realizado!",
+      description: `Total: $${calculateTotal(order).toFixed(2)} para ${getPageTitle()}`,
       variant: "default",
-       className: "bg-green-200 text-green-800 border-green-400"
+       className: "bg-green-200 text-green-800 border-green-400" // Using direct colors temporarily for success
     });
     // Maybe clear order and navigate back or update table status visually
-     // setOrder([]); // Option to clear order
+     setOrder([]); // Option to clear order
      // router.push('/tables'); // Option to navigate back
   };
 
   const filteredMenu =
-    selectedCategory === 'Todos' // Changed from 'All'
+    selectedCategory === 'Todos'
       ? mockMenu
       : mockMenu.filter((item) => item.category === selectedCategory);
 
   const total = calculateTotal(order);
 
+  // Determine the title based on the tableIdParam
+  const getPageTitle = () => {
+      if (tableIdParam === 'mezon') {
+          return 'Mezón';
+      } else if (tableIdParam === 'delivery') {
+          return 'Delivery';
+      } else {
+          return `Mesa ${tableIdParam}`;
+      }
+  }
+
+
   return (
     <div className="container mx-auto p-4 h-[calc(100vh-theme(spacing.16))] flex flex-col">
-      <h1 className="text-3xl font-bold mb-6">Mesa {tableId} - Pedido</h1> {/* Changed from Table ... - Order */}
+      <h1 className="text-3xl font-bold mb-6">{getPageTitle()} - Pedido</h1>
       <div className="flex flex-grow gap-4 overflow-hidden">
         {/* Menu Section */}
         <Card className="w-3/5 flex flex-col shadow-lg">
           <CardHeader>
-            <CardTitle>Menú</CardTitle> {/* Changed from Menu */}
+            <CardTitle>Menú</CardTitle>
             <div className="flex space-x-2 pt-2 overflow-x-auto pb-2">
                <Button
-                variant={selectedCategory === 'Todos' ? 'default' : 'secondary'} // Changed from 'All'
-                onClick={() => setSelectedCategory('Todos')} // Changed from 'All'
+                variant={selectedCategory === 'Todos' ? 'default' : 'secondary'}
+                onClick={() => setSelectedCategory('Todos')}
                 className="shrink-0"
               >
-                Todos {/* Changed from All */}
+                Todos
               </Button>
               {categories.map((category) => (
                 <Button
@@ -260,13 +278,13 @@ export default function TableDetailPage() {
         {/* Order Summary Section */}
         <Card className="w-2/5 flex flex-col shadow-lg">
           <CardHeader>
-            <CardTitle>Pedido Actual</CardTitle> {/* Changed from Current Order */}
-            <CardDescription>Artículos añadidos para esta mesa.</CardDescription> {/* Changed from Items added for this table. */}
+            <CardTitle>Pedido Actual</CardTitle>
+            <CardDescription>Artículos añadidos.</CardDescription>
           </CardHeader>
           <CardContent className="flex-grow overflow-hidden p-0">
             <ScrollArea className="h-full p-4">
               {order.length === 0 ? (
-                <p className="text-muted-foreground text-center">Aún no se han añadido artículos.</p> /* Changed from No items added yet. */
+                <p className="text-muted-foreground text-center">Aún no se han añadido artículos.</p>
               ) : (
                 <ul className="space-y-3">
                   {order.map((item) => (
@@ -304,7 +322,7 @@ export default function TableDetailPage() {
               <span>${total.toFixed(2)}</span>
             </div>
             <Button size="lg" onClick={handleFinalizeOrder} disabled={order.length === 0}>
-              <CheckCircle className="mr-2 h-5 w-5" /> Finalizar Pedido {/* Changed from Finalize Order */}
+              <CheckCircle className="mr-2 h-5 w-5" /> Finalizar Pedido
             </Button>
           </CardFooter>
         </Card>

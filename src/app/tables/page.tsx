@@ -6,16 +6,28 @@ import Link from 'next/link';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {cn} from '@/lib/utils';
+import { Store, Truck } from 'lucide-react'; // Replaced Countertop with Store
 
 interface Table {
-  id: number;
+  id: number | string; // Allow string IDs for Mezon and Delivery
+  name?: string; // Optional name for special types
   status: 'available' | 'occupied';
 }
 
-const initialTables: Table[] = Array.from({length: 12}, (_, i) => ({
+// Generate 10 numbered tables
+const numberedTables: Table[] = Array.from({length: 10}, (_, i) => ({
   id: i + 1,
   status: Math.random() > 0.6 ? 'occupied' : 'available', // Randomly assign status
 }));
+
+// Add Mezon and Delivery
+const specialTables: Table[] = [
+    { id: 'mezon', name: 'Mezón', status: 'available'}, // Counter/Bar - Using Store icon now
+    { id: 'delivery', name: 'Delivery', status: 'available' }
+];
+
+const initialTables: Table[] = [...numberedTables, ...specialTables];
+
 
 export default function TablesPage() {
   const [tables, setTables] = useState<Table[]>(initialTables);
@@ -23,24 +35,31 @@ export default function TablesPage() {
   // In a real app, this would likely involve fetching data and potentially more complex state management.
   // For now, we just use local state.
 
+  const getIcon = (tableId: number | string) => {
+      if (tableId === 'mezon') return <Store className="h-6 w-6 mb-1 mx-auto"/>; // Using Store icon
+      if (tableId === 'delivery') return <Truck className="h-6 w-6 mb-1 mx-auto"/>;
+      return null;
+  }
+
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6">Gestión de Mesas</h1> {/* Changed from Table Management */}
+      <h1 className="text-3xl font-bold mb-6">Gestión de Mesas</h1>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
         {tables.map((table) => (
           <Link key={table.id} href={`/tables/${table.id}`} passHref>
             <Card
               className={cn(
-                'cursor-pointer transition-all duration-200 hover:shadow-lg',
+                'cursor-pointer transition-all duration-200 hover:shadow-lg flex flex-col justify-between h-full', // Ensure cards have consistent height
                 table.status === 'available'
                   ? 'bg-secondary hover:bg-secondary/90'
                   : 'bg-muted hover:bg-muted/90',
                  table.status === 'occupied' ? 'border-primary border-2' : ''
               )}
             >
-              <CardHeader className="p-4">
+              <CardHeader className="p-4 flex-grow">
+                 {getIcon(table.id)}
                 <CardTitle className="text-center text-lg">
-                  Mesa {table.id} {/* Changed from Table */}
+                  {table.name || `Mesa ${table.id}`} {/* Display name or "Mesa {id}" */}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 pt-0 text-center">
@@ -52,7 +71,7 @@ export default function TablesPage() {
                       : 'bg-orange-200 text-orange-800'
                   )}
                 >
-                  {table.status === 'available' ? 'Disponible' : 'Ocupada'} {/* Changed from Available/Occupied */}
+                  {table.status === 'available' ? 'Disponible' : 'Ocupada'}
                 </span>
               </CardContent>
             </Card>
