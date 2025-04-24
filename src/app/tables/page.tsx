@@ -39,7 +39,7 @@ export default function TablesPage() {
       if (tableId === 'mezon') return <Store className="h-6 w-6 mb-1 mx-auto"/>;
       if (tableId === 'delivery') return <Truck className="h-6 w-6 mb-1 mx-auto"/>;
       // Add icon for regular tables
-      return <Utensils className="h-6 w-6 mb-1 mx-auto text-muted-foreground group-hover:text-foreground transition-colors"/>;
+      return <Utensils className="h-6 w-6 mb-1 mx-auto group-hover:text-foreground transition-colors"/>;
   }
 
   return (
@@ -82,3 +82,4 @@ export default function TablesPage() {
     </div>
   );
 }
+
