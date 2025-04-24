@@ -6,7 +6,7 @@ import Link from 'next/link';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {cn} from '@/lib/utils';
-import { Store, Truck } from 'lucide-react'; // Replaced Countertop with Store
+import { Store, Truck, Utensils } from 'lucide-react'; // Added Utensils
 
 interface Table {
   id: number | string; // Allow string IDs for Mezon and Delivery
@@ -36,9 +36,10 @@ export default function TablesPage() {
   // For now, we just use local state.
 
   const getIcon = (tableId: number | string) => {
-      if (tableId === 'mezon') return <Store className="h-6 w-6 mb-1 mx-auto"/>; // Using Store icon
+      if (tableId === 'mezon') return <Store className="h-6 w-6 mb-1 mx-auto"/>;
       if (tableId === 'delivery') return <Truck className="h-6 w-6 mb-1 mx-auto"/>;
-      return null;
+      // Add icon for regular tables
+      return <Utensils className="h-6 w-6 mb-1 mx-auto text-muted-foreground group-hover:text-foreground transition-colors"/>;
   }
 
   return (
@@ -49,7 +50,7 @@ export default function TablesPage() {
           <Link key={table.id} href={`/tables/${table.id}`} passHref>
             <Card
               className={cn(
-                'cursor-pointer transition-all duration-200 hover:shadow-lg flex flex-col justify-between h-full', // Ensure cards have consistent height
+                'cursor-pointer transition-all duration-200 hover:shadow-lg flex flex-col justify-between h-full group', // Added group class
                 table.status === 'available'
                   ? 'bg-secondary hover:bg-secondary/90'
                   : 'bg-muted hover:bg-muted/90',
