@@ -25,7 +25,7 @@ export default function TablesPage() {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6">Table Management</h1>
+      <h1 className="text-3xl font-bold mb-6">Gestión de Mesas</h1> {/* Changed from Table Management */}
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
         {tables.map((table) => (
           <Link key={table.id} href={`/tables/${table.id}`} passHref>
@@ -40,7 +40,7 @@ export default function TablesPage() {
             >
               <CardHeader className="p-4">
                 <CardTitle className="text-center text-lg">
-                  Table {table.id}
+                  Mesa {table.id} {/* Changed from Table */}
                 </CardTitle>
               </CardHeader>
               <CardContent className="p-4 pt-0 text-center">
@@ -52,7 +52,7 @@ export default function TablesPage() {
                       : 'bg-orange-200 text-orange-800'
                   )}
                 >
-                  {table.status === 'available' ? 'Available' : 'Occupied'}
+                  {table.status === 'available' ? 'Disponible' : 'Ocupada'} {/* Changed from Available/Occupied */}
                 </span>
               </CardContent>
             </Card>

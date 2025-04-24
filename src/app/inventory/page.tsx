@@ -25,6 +25,7 @@ import {
 import {Label} from '@/components/ui/label';
 import {PlusCircle, Edit, Trash2} from 'lucide-react';
 import {useToast} from '@/hooks/use-toast';
+import { Card } from '@/components/ui/card'; // Added Card import
 
 interface InventoryItem {
   id: number;
@@ -34,15 +35,15 @@ interface InventoryItem {
 }
 
 const initialInventory: InventoryItem[] = [
-  {id: 1, name: 'Burger Buns', price: 0.5, stock: 100},
-  {id: 2, name: 'Beef Patties', price: 1.5, stock: 80},
-  {id: 3, name: 'Pizza Dough', price: 1.0, stock: 50},
-  {id: 4, name: 'Tomato Sauce', price: 2.0, stock: 40},
-  {id: 5, name: 'Cheese', price: 3.0, stock: 60},
-  {id: 6, name: 'Lettuce', price: 0.8, stock: 30},
-  {id: 7, name: 'Potatoes', price: 0.2, stock: 200},
-  {id: 8, name: 'Soda Syrup', price: 10.0, stock: 10},
-  {id: 9, name: 'Coffee Beans', price: 15.0, stock: 20},
+  {id: 1, name: 'Pan de Hamburguesa', price: 0.5, stock: 100}, // Burger Buns
+  {id: 2, name: 'Carne de Res', price: 1.5, stock: 80}, // Beef Patties
+  {id: 3, name: 'Masa de Pizza', price: 1.0, stock: 50}, // Pizza Dough
+  {id: 4, name: 'Salsa de Tomate', price: 2.0, stock: 40}, // Tomato Sauce
+  {id: 5, name: 'Queso', price: 3.0, stock: 60}, // Cheese
+  {id: 6, name: 'Lechuga', price: 0.8, stock: 30}, // Lettuce
+  {id: 7, name: 'Patatas', price: 0.2, stock: 200}, // Potatoes
+  {id: 8, name: 'Jarabe de Refresco', price: 10.0, stock: 10}, // Soda Syrup
+  {id: 9, name: 'Granos de Café', price: 15.0, stock: 20}, // Coffee Beans
 ];
 
 export default function InventoryPage() {
@@ -63,7 +64,7 @@ export default function InventoryPage() {
 
   const handleAddItem = () => {
     if (!newItem.name || !newItem.price || !newItem.stock) {
-        toast({ title: "Error", description: "Please fill all fields.", variant: "destructive"})
+        toast({ title: "Error", description: "Por favor, rellene todos los campos.", variant: "destructive"}) // Please fill all fields.
         return;
     }
     const newId = inventory.length > 0 ? Math.max(...inventory.map((item) => item.id)) + 1 : 1;
@@ -76,12 +77,12 @@ export default function InventoryPage() {
     setInventory([...inventory, addedItem]);
     setNewItem({name: '', price: '', stock: ''}); // Reset form
     setIsAddDialogOpen(false); // Close dialog
-     toast({ title: "Success", description: `${addedItem.name} added to inventory.`});
+     toast({ title: "Éxito", description: `${addedItem.name} añadido al inventario.`}); // added to inventory.
   };
 
   const handleEditItem = () => {
       if (!editingItem || !editingItem.name || !editingItem.price || !editingItem.stock) {
-           toast({ title: "Error", description: "Please fill all fields.", variant: "destructive"})
+           toast({ title: "Error", description: "Por favor, rellene todos los campos.", variant: "destructive"}) // Please fill all fields.
           return;
       }
      setInventory(
@@ -89,13 +90,13 @@ export default function InventoryPage() {
     );
     setEditingItem(null); // Reset editing state
     setIsEditDialogOpen(false); // Close dialog
-     toast({ title: "Success", description: `${editingItem.name} updated.`});
+     toast({ title: "Éxito", description: `${editingItem.name} actualizado.`}); // updated.
   };
 
   const handleDeleteItem = (id: number) => {
      const itemToDelete = inventory.find(item => item.id === id);
     setInventory(inventory.filter((item) => item.id !== id));
-    toast({ title: "Deleted", description: `${itemToDelete?.name} removed from inventory.`, variant: "destructive"});
+    toast({ title: "Eliminado", description: `${itemToDelete?.name} eliminado del inventario.`, variant: "destructive"}); // removed from inventory.
   };
 
   const openEditDialog = (item: InventoryItem) => {
@@ -106,24 +107,24 @@ export default function InventoryPage() {
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Inventory Management</h1>
+        <h1 className="text-3xl font-bold">Gestión de Inventario</h1> {/* Inventory Management */}
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button>
-              <PlusCircle className="mr-2 h-4 w-4" /> Add New Item
+              <PlusCircle className="mr-2 h-4 w-4" /> Añadir Nuevo Artículo {/* Add New Item */}
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Add New Inventory Item</DialogTitle>
+              <DialogTitle>Añadir Nuevo Artículo de Inventario</DialogTitle> {/* Add New Inventory Item */}
               <DialogDescription>
-                Enter the details for the new inventory item.
+                Introduzca los detalles del nuevo artículo de inventario. {/* Enter the details for the new inventory item. */}
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="name" className="text-right">
-                  Name
+                  Nombre {/* Name */}
                 </Label>
                 <Input
                   id="name"
@@ -135,7 +136,7 @@ export default function InventoryPage() {
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="price" className="text-right">
-                  Price ($)
+                  Precio ($) {/* Price ($) */}
                 </Label>
                 <Input
                   id="price"
@@ -149,7 +150,7 @@ export default function InventoryPage() {
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="stock" className="text-right">
-                  Stock
+                  Existencias {/* Stock */}
                 </Label>
                 <Input
                   id="stock"
@@ -163,9 +164,9 @@ export default function InventoryPage() {
             </div>
             <DialogFooter>
               <DialogClose asChild>
-                 <Button type="button" variant="secondary">Cancel</Button>
+                 <Button type="button" variant="secondary">Cancelar</Button> {/* Cancel */}
               </DialogClose>
-              <Button type="submit" onClick={handleAddItem}>Add Item</Button>
+              <Button type="submit" onClick={handleAddItem}>Añadir Artículo</Button> {/* Add Item */}
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -175,10 +176,10 @@ export default function InventoryPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead className="text-right">Price</TableHead>
-              <TableHead className="text-right">Stock Level</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead>Nombre</TableHead> {/* Name */}
+              <TableHead className="text-right">Precio</TableHead> {/* Price */}
+              <TableHead className="text-right">Nivel de Existencias</TableHead> {/* Stock Level */}
+              <TableHead className="text-right">Acciones</TableHead> {/* Actions */}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -196,15 +197,15 @@ export default function InventoryPage() {
                      </DialogTrigger>
                      <DialogContent className="sm:max-w-[425px]">
                         <DialogHeader>
-                          <DialogTitle>Edit Inventory Item</DialogTitle>
+                          <DialogTitle>Editar Artículo de Inventario</DialogTitle> {/* Edit Inventory Item */}
                           <DialogDescription>
-                            Update the details for {editingItem?.name}.
+                            Actualice los detalles de {editingItem?.name}. {/* Update the details for ... */}
                           </DialogDescription>
                         </DialogHeader>
                          <div className="grid gap-4 py-4">
                           <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="edit-name" className="text-right">
-                              Name
+                              Nombre {/* Name */}
                             </Label>
                             <Input
                               id="edit-name"
@@ -216,7 +217,7 @@ export default function InventoryPage() {
                           </div>
                           <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="edit-price" className="text-right">
-                              Price ($)
+                              Precio ($) {/* Price ($) */}
                             </Label>
                             <Input
                               id="edit-price"
@@ -230,7 +231,7 @@ export default function InventoryPage() {
                           </div>
                           <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="edit-stock" className="text-right">
-                              Stock
+                              Existencias {/* Stock */}
                             </Label>
                             <Input
                               id="edit-stock"
@@ -244,9 +245,9 @@ export default function InventoryPage() {
                         </div>
                         <DialogFooter>
                            <DialogClose asChild>
-                             <Button type="button" variant="secondary">Cancel</Button>
+                             <Button type="button" variant="secondary">Cancelar</Button> {/* Cancel */}
                            </DialogClose>
-                           <Button type="submit" onClick={handleEditItem}>Save Changes</Button>
+                           <Button type="submit" onClick={handleEditItem}>Guardar Cambios</Button> {/* Save Changes */}
                         </DialogFooter>
                       </DialogContent>
                    </Dialog>
@@ -265,7 +266,7 @@ export default function InventoryPage() {
              {inventory.length === 0 && (
                 <TableRow>
                     <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
-                    No inventory items found. Add some!
+                    No se encontraron artículos en el inventario. ¡Añade algunos! {/* No inventory items found. Add some! */}
                     </TableCell>
                 </TableRow>
              )}

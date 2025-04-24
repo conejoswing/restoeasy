@@ -34,65 +34,65 @@ interface OrderItem extends MenuItem {
 const mockMenu: MenuItem[] = [
   {
     id: 1,
-    name: 'Burger',
+    name: 'Hamburguesa', // Changed from Burger
     price: 8.99,
-    category: 'Main Dishes',
+    category: 'Platos Principales', // Changed from Main Dishes
     imageUrl: 'https://picsum.photos/seed/burger/200/150',
   },
   {
     id: 2,
     name: 'Pizza',
     price: 12.5,
-    category: 'Main Dishes',
+    category: 'Platos Principales', // Changed from Main Dishes
     imageUrl: 'https://picsum.photos/seed/pizza/200/150',
   },
   {
     id: 3,
-    name: 'Salad',
+    name: 'Ensalada', // Changed from Salad
     price: 6.5,
-    category: 'Appetizers',
+    category: 'Entrantes', // Changed from Appetizers
     imageUrl: 'https://picsum.photos/seed/salad/200/150',
   },
   {
     id: 4,
-    name: 'Fries',
+    name: 'Patatas Fritas', // Changed from Fries
     price: 3.0,
-    category: 'Sides',
+    category: 'Acompañamientos', // Changed from Sides
     imageUrl: 'https://picsum.photos/seed/fries/200/150',
   },
   {
     id: 5,
-    name: 'Soda',
+    name: 'Refresco', // Changed from Soda
     price: 2.0,
-    category: 'Drinks',
+    category: 'Bebidas', // Changed from Drinks
     imageUrl: 'https://picsum.photos/seed/soda/200/150',
   },
   {
     id: 6,
-    name: 'Ice Cream',
+    name: 'Helado', // Changed from Ice Cream
     price: 4.5,
-    category: 'Desserts',
+    category: 'Postres', // Changed from Desserts
     imageUrl: 'https://picsum.photos/seed/icecream/200/150',
   },
   {
     id: 7,
-    name: 'Chicken Wings',
+    name: 'Alitas de Pollo', // Changed from Chicken Wings
     price: 9.5,
-    category: 'Appetizers',
+    category: 'Entrantes', // Changed from Appetizers
     imageUrl: 'https://picsum.photos/seed/wings/200/150',
   },
    {
     id: 8,
-    name: 'Steak',
+    name: 'Filete', // Changed from Steak
     price: 18.0,
-    category: 'Main Dishes',
+    category: 'Platos Principales', // Changed from Main Dishes
     imageUrl: 'https://picsum.photos/seed/steak/200/150',
   },
    {
     id: 9,
-    name: 'Water',
+    name: 'Agua', // Changed from Water
     price: 1.0,
-    category: 'Drinks',
+    category: 'Bebidas', // Changed from Drinks
     imageUrl: 'https://picsum.photos/seed/water/200/150',
   },
 ];
@@ -108,7 +108,7 @@ export default function TableDetailPage() {
   const tableId = params.tableId;
   const [order, setOrder] = useState<OrderItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>(
-    categories[0] || 'All'
+    categories[0] || 'Todos' // Changed default category to 'Todos'
   );
 
   // Simulate fetching existing order if table is occupied (replace with real logic)
@@ -138,7 +138,7 @@ export default function TableDetailPage() {
       }
     });
       toast({
-        title: `${item.name} added`,
+        title: `${item.name} añadido`, // Changed from added
         description: `Total: ${calculateTotal(order) + item.price}`,
         variant: "default",
         className: "bg-secondary text-secondary-foreground"
@@ -159,7 +159,7 @@ export default function TableDetailPage() {
       }
     });
      toast({
-        title: `Item quantity reduced / removed`,
+        title: `Cantidad reducida / eliminada`, // Changed from Item quantity reduced / removed
         variant: "default",
      })
   };
@@ -167,7 +167,7 @@ export default function TableDetailPage() {
    const removeCompletely = (itemId: number) => {
      setOrder((prevOrder) => prevOrder.filter((orderItem) => orderItem.id !== itemId));
       toast({
-        title: `Item removed from order`,
+        title: `Artículo eliminado del pedido`, // Changed from Item removed from order
         variant: "destructive",
       })
    }
@@ -181,10 +181,10 @@ export default function TableDetailPage() {
 
   const handleFinalizeOrder = () => {
     // In a real app: send order to backend, update table status, navigate or show success
-    console.log('Finalizing order:', order);
+    console.log('Finalizando pedido:', order); // Changed from Finalizing order
     toast({
-      title: "Order Placed!",
-      description: `Total: $${calculateTotal(order).toFixed(2)} for Table ${tableId}`,
+      title: "¡Pedido Realizado!", // Changed from Order Placed!
+      description: `Total: $${calculateTotal(order).toFixed(2)} para Mesa ${tableId}`, // Changed from for Table
       variant: "default",
        className: "bg-green-200 text-green-800 border-green-400"
     });
@@ -194,7 +194,7 @@ export default function TableDetailPage() {
   };
 
   const filteredMenu =
-    selectedCategory === 'All'
+    selectedCategory === 'Todos' // Changed from 'All'
       ? mockMenu
       : mockMenu.filter((item) => item.category === selectedCategory);
 
@@ -202,19 +202,19 @@ export default function TableDetailPage() {
 
   return (
     <div className="container mx-auto p-4 h-[calc(100vh-theme(spacing.16))] flex flex-col">
-      <h1 className="text-3xl font-bold mb-6">Table {tableId} - Order</h1>
+      <h1 className="text-3xl font-bold mb-6">Mesa {tableId} - Pedido</h1> {/* Changed from Table ... - Order */}
       <div className="flex flex-grow gap-4 overflow-hidden">
         {/* Menu Section */}
         <Card className="w-3/5 flex flex-col shadow-lg">
           <CardHeader>
-            <CardTitle>Menu</CardTitle>
+            <CardTitle>Menú</CardTitle> {/* Changed from Menu */}
             <div className="flex space-x-2 pt-2 overflow-x-auto pb-2">
                <Button
-                variant={selectedCategory === 'All' ? 'default' : 'secondary'}
-                onClick={() => setSelectedCategory('All')}
+                variant={selectedCategory === 'Todos' ? 'default' : 'secondary'} // Changed from 'All'
+                onClick={() => setSelectedCategory('Todos')} // Changed from 'All'
                 className="shrink-0"
               >
-                All
+                Todos {/* Changed from All */}
               </Button>
               {categories.map((category) => (
                 <Button
@@ -260,13 +260,13 @@ export default function TableDetailPage() {
         {/* Order Summary Section */}
         <Card className="w-2/5 flex flex-col shadow-lg">
           <CardHeader>
-            <CardTitle>Current Order</CardTitle>
-            <CardDescription>Items added for this table.</CardDescription>
+            <CardTitle>Pedido Actual</CardTitle> {/* Changed from Current Order */}
+            <CardDescription>Artículos añadidos para esta mesa.</CardDescription> {/* Changed from Items added for this table. */}
           </CardHeader>
           <CardContent className="flex-grow overflow-hidden p-0">
             <ScrollArea className="h-full p-4">
               {order.length === 0 ? (
-                <p className="text-muted-foreground text-center">No items added yet.</p>
+                <p className="text-muted-foreground text-center">Aún no se han añadido artículos.</p> /* Changed from No items added yet. */
               ) : (
                 <ul className="space-y-3">
                   {order.map((item) => (
@@ -304,7 +304,7 @@ export default function TableDetailPage() {
               <span>${total.toFixed(2)}</span>
             </div>
             <Button size="lg" onClick={handleFinalizeOrder} disabled={order.length === 0}>
-              <CheckCircle className="mr-2 h-5 w-5" /> Finalize Order
+              <CheckCircle className="mr-2 h-5 w-5" /> Finalizar Pedido {/* Changed from Finalize Order */}
             </Button>
           </CardFooter>
         </Card>

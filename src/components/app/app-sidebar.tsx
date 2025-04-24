@@ -16,13 +16,13 @@ import {
 export default function AppSidebar() {
   const pathname = usePathname();
 
-  const isActive = (path: string) => pathname === path;
+  const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/'); // Updated isActive to handle detail pages
 
   return (
     <>
       <SidebarHeader>
         <h2 className="text-xl font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden">
-          RestoEasy
+          RestoFácil {/* Changed from RestoEasy */}
         </h2>
       </SidebarHeader>
       <SidebarContent>
@@ -31,10 +31,10 @@ export default function AppSidebar() {
             <Link href="/tables" passHref legacyBehavior>
               <SidebarMenuButton
                 isActive={isActive('/tables')}
-                tooltip="Tables"
+                tooltip="Mesas" // Changed from Tables
               >
                 <UtensilsCrossed />
-                <span>Tables</span>
+                <span>Mesas</span> {/* Changed from Tables */}
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
@@ -42,10 +42,10 @@ export default function AppSidebar() {
             <Link href="/inventory" passHref legacyBehavior>
               <SidebarMenuButton
                 isActive={isActive('/inventory')}
-                tooltip="Inventory"
+                tooltip="Inventario" // Changed from Inventory
               >
                 <Package />
-                <span>Inventory</span>
+                <span>Inventario</span> {/* Changed from Inventory */}
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
@@ -53,10 +53,10 @@ export default function AppSidebar() {
             <Link href="/expenses" passHref legacyBehavior>
               <SidebarMenuButton
                 isActive={isActive('/expenses')}
-                tooltip="Expenses"
+                tooltip="Gastos" // Changed from Expenses
               >
                 <Receipt />
-                <span>Expenses</span>
+                <span>Gastos</span> {/* Changed from Expenses */}
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>

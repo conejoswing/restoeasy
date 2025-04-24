@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'RestoEasy',
-  description: 'Restaurant Management App',
+  title: 'RestoFácil', // Changed from RestoEasy
+  description: 'Aplicación de Gestión de Restaurantes', // Changed from Restaurant Management App
 };
 
 export default function RootLayout({
@@ -27,7 +27,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="es"> {/* Changed lang to "es" */}
       <body
         className={cn(
           `${geistSans.variable} ${geistMono.variable}`,
