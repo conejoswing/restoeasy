@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import Image from 'next/image'; // Import Image component
 import {usePathname} from 'next/navigation';
 import { UtensilsCrossed, Package, Receipt } from 'lucide-react';
 
@@ -13,53 +14,29 @@ import {
   SidebarMenuButton,
 } from '@/components/ui/sidebar';
 
-// Simple SVG Logo Placeholder (Fork & Knife)
-const RestoFacilLogo = () => (
-    <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="32" // Increased size slightly
-        height="32" // Increased size slightly
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        className="h-8 w-8 shrink-0 text-sidebar-foreground" // Ensure color and size
-    >
-        <path d="M16 2v20"></path>
-        <path d="M11 2v11a5 5 0 0 0 10 0V2"></path>
-        <path d="M8 2v20"></path>
-        <path d="M3 12h3a3 3 0 0 1 0 6H3"></path>
-    </svg>
-);
-
 
 export default function AppSidebar() {
   const pathname = usePathname();
 
-  const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/'); // Updated isActive to handle detail pages
+  const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/');
 
   return (
     <>
-      {/* Changed flex direction to column, added padding, centered items */}
       <SidebarHeader className="flex flex-col items-center p-4 gap-2">
-         {/* Logo removido de aquí */}
-        {/* Added text-center */}
         <h2 className="text-lg font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden text-center">
           El Bajón de la Cami
         </h2>
       </SidebarHeader>
-      <SidebarContent className="flex flex-col justify-between"> {/* Flex container for menu and logo */}
+      <SidebarContent className="flex flex-col justify-between flex-grow"> {/* Added flex-grow */}
         <SidebarMenu>
           <SidebarMenuItem>
             <Link href="/tables" passHref legacyBehavior>
               <SidebarMenuButton
                 isActive={isActive('/tables')}
-                tooltip="Mesas" // Changed from Tables
+                tooltip="Mesas"
               >
                 <UtensilsCrossed />
-                <span>Mesas</span> {/* Changed from Tables */}
+                <span>Mesas</span>
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
@@ -67,10 +44,10 @@ export default function AppSidebar() {
             <Link href="/inventory" passHref legacyBehavior>
               <SidebarMenuButton
                 isActive={isActive('/inventory')}
-                tooltip="Inventario" // Changed from Inventory
+                tooltip="Inventario"
               >
                 <Package />
-                <span>Inventario</span> {/* Changed from Inventory */}
+                <span>Inventario</span>
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
@@ -78,24 +55,39 @@ export default function AppSidebar() {
             <Link href="/expenses" passHref legacyBehavior>
               <SidebarMenuButton
                 isActive={isActive('/expenses')}
-                tooltip="Gastos" // Changed from Expenses
+                tooltip="Gastos"
               >
                 <Receipt />
-                <span>Gastos</span> {/* Changed from Expenses */}
+                <span>Gastos</span>
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
         </SidebarMenu>
 
-        {/* Logo movido aquí, al final del contenido */}
-        {/* <div className="flex justify-center p-4 mt-auto group-data-[collapsible=icon]:hidden">
-            <RestoFacilLogo />
-        </div>
-         <div className="flex justify-center p-2 mt-auto group-data-[collapsible=icon]:flex hidden group-data-[collapsible=icon]:visible">  Icon only when collapsed 
-             <RestoFacilLogo />
-        </div> */}
+        {/* Logo Placeholder Below Gastos */}
+        <div className="mt-auto p-4 flex justify-center group-data-[collapsible=icon]:hidden">
+           {/* Placeholder for the logo - Replace with the actual logo */}
+           <Image
+             // Using picsum as placeholder - Replace src with your actual logo path
+             src="https://picsum.photos/seed/el_bajon_logo/150/150"
+             alt="Logo El Bajón de la Cami"
+             width={120} // Adjust size as needed
+             height={120} // Adjust size as needed
+             className="rounded-full" // Example styling
+           />
+         </div>
+         {/* Icon-only placeholder when collapsed */}
+         <div className="mt-auto p-2 flex justify-center group-data-[collapsible=icon]:flex hidden">
+            {/* Simplified placeholder for collapsed state */}
+           <Image
+             src="https://picsum.photos/seed/el_bajon_icon/40/40" // Smaller placeholder
+             alt="Logo Icono"
+             width={32}
+             height={32}
+             className="rounded-full"
+           />
+         </div>
       </SidebarContent>
     </>
   );
 }
-
