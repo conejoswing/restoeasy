@@ -46,13 +46,13 @@ export default function AppSidebar() {
     <>
       {/* Changed flex direction to column, added padding, centered items */}
       <SidebarHeader className="flex flex-col items-center p-4 gap-2">
-         <RestoFacilLogo />
+         {/* Logo removido de aquí */}
         {/* Added text-center */}
         <h2 className="text-lg font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden text-center">
           El Bajón de la Cami
         </h2>
       </SidebarHeader>
-      <SidebarContent>
+      <SidebarContent className="flex flex-col justify-between"> {/* Flex container for menu and logo */}
         <SidebarMenu>
           <SidebarMenuItem>
             <Link href="/tables" passHref legacyBehavior>
@@ -88,6 +88,14 @@ export default function AppSidebar() {
             </Link>
           </SidebarMenuItem>
         </SidebarMenu>
+
+        {/* Logo movido aquí, al final del contenido */}
+         <div className="flex justify-center p-4 mt-auto group-data-[collapsible=icon]:hidden">
+            <RestoFacilLogo />
+        </div>
+         <div className="flex justify-center p-2 mt-auto group-data-[collapsible=icon]:flex hidden group-data-[collapsible=icon]:visible"> {/* Icon only when collapsed */}
+             <RestoFacilLogo />
+        </div>
       </SidebarContent>
     </>
   );
