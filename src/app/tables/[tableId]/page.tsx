@@ -51,7 +51,7 @@ const mockMenu: MenuItem[] = [
   },
   {
     id: 4,
-    name: 'Patatas Fritas',
+    name: 'dinamico grande', // Changed from 'Patatas Fritas'
     price: 3.0,
     category: 'Colaciones',
   },
