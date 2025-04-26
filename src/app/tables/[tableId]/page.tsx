@@ -33,57 +33,57 @@ interface OrderItem extends MenuItem {
 const mockMenu: MenuItem[] = [
   {
     id: 1,
-    name: 'Italiano chico', // Changed from 'Hamburguesa'
+    name: 'Italiano chico',
     price: 8.99,
-    category: 'Fajitas', // Changed from 'Platos Principales'
+    category: 'Fajitas',
   },
   {
     id: 2,
-    name: 'Italiano grande', // Changed from 'Pizza'
+    name: 'Italiano grande',
     price: 12.5,
-    category: 'Fajitas', // Changed from 'Platos Principales'
+    category: 'Fajitas',
   },
   {
     id: 3,
-    name: 'Ensalada',
+    name: 'dinamico chico', // Changed from 'Ensalada'
     price: 6.5,
-    category: 'Café', // Changed from 'Entrantes'
+    category: 'Café',
   },
   {
     id: 4,
     name: 'Patatas Fritas',
     price: 3.0,
-    category: 'Colaciones', // Changed from 'Acompañamientos'
+    category: 'Colaciones',
   },
   {
     id: 5,
     name: 'Refresco',
     price: 2.0,
-    category: 'Bebidas', // Kept as 'Bebidas'
+    category: 'Bebidas',
   },
   {
     id: 6,
     name: 'Helado',
     price: 4.5,
-    category: 'Promociones', // Changed from 'Postres'
+    category: 'Promociones',
   },
   {
     id: 7,
     name: 'Alitas de Pollo',
     price: 9.5,
-    category: 'Café', // Changed from 'Entrantes'
+    category: 'Café',
   },
    {
     id: 8,
     name: 'Filete',
     price: 18.0,
-    category: 'Fajitas', // Changed from 'Platos Principales'
+    category: 'Fajitas',
   },
    {
     id: 9,
     name: 'Agua',
     price: 1.0,
-    category: 'Bebidas', // Kept as 'Bebidas'
+    category: 'Bebidas',
   },
 ];
 
@@ -104,7 +104,7 @@ export default function TableDetailPage() {
   const tableIdParam = params.tableId as string; // Get the raw param (can be number or string)
   const [order, setOrder] = useState<OrderItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>(
-    'Completos' // Changed initial state from 'Todos'
+    'Completos'
   );
 
   // Simulate fetching existing order (replace with real logic)
@@ -192,7 +192,7 @@ export default function TableDetailPage() {
   };
 
   const filteredMenu =
-    selectedCategory === 'Completos' // Check against 'Completos'
+    selectedCategory === 'Completos'
       ? mockMenu
       : mockMenu.filter((item) => item.category === selectedCategory);
 
@@ -221,10 +221,10 @@ export default function TableDetailPage() {
             <div className="flex space-x-2 pt-2 overflow-x-auto pb-2">
                <Button
                 variant={selectedCategory === 'Completos' ? 'default' : 'secondary'}
-                onClick={() => setSelectedCategory('Completos')} // Set category to 'Completos'
+                onClick={() => setSelectedCategory('Completos')}
                 className="shrink-0"
               >
-                Completos {/* Changed button text from 'Todos' */}
+                Completos
               </Button>
               {categories.map((category) => (
                 <Button
@@ -233,7 +233,7 @@ export default function TableDetailPage() {
                   onClick={() => setSelectedCategory(category)}
                   className="shrink-0"
                 >
-                  {category} {/* Button text now uses updated categories */}
+                  {category}
                 </Button>
               ))}
             </div>
