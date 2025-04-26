@@ -99,7 +99,7 @@ export default function InventoryPage() {
           }
           const stockValue = parseInt(newManualProduct.stock, 10);
           if (isNaN(stockValue) || stockValue < 0) {
-              toast({ title: "Error", description: "Las existencias deben ser un número válido y no negativo.", variant: "destructive" }); // Stock must be a valid non-negative number.
+              toast({ title: "Error", description: "La cantidad debe ser un número válido y no negativo.", variant: "destructive" }); // Stock must be a valid non-negative number.
               return;
           }
           // Check if product already exists
@@ -268,7 +268,7 @@ export default function InventoryPage() {
                     </div>
                     <div className="grid grid-cols-4 items-center gap-4">
                         <Label htmlFor="manual-product-stock" className="text-right">
-                        Existencias Iniciales {/* Initial Stock */}
+                        Cantidad Inicial {/* Initial Stock */}
                         </Label>
                         <Input
                         id="manual-product-stock"
@@ -303,7 +303,7 @@ export default function InventoryPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Producto</TableHead> {/* Product */}
-              <TableHead className="text-center">Existencias</TableHead> {/* Stock - Centered */}
+              <TableHead className="text-center">Cantidad</TableHead> {/* Quantity - Changed */}
               <TableHead className="text-center">Acciones</TableHead> {/* Actions - Centered */}
             </TableRow>
           </TableHeader>
@@ -352,3 +352,4 @@ export default function InventoryPage() {
     </div>
   );
 }
+
