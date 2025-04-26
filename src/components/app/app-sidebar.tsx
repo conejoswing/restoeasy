@@ -91,13 +91,14 @@ export default function AppSidebar() {
             </>
           )}
 
-          {/* Spacer to push logout down */}
+          {/* Spacer to push potential bottom items down */}
           <div className="flex-grow" />
 
-          {/* Logout Button - Now at the end of the main menu */}
+          {/* Logout Button - Removed from here, now on Tables page */}
+          {/*
           {isAuthenticated && (
              <>
-                 <SidebarSeparator /> {/* Optional separator */}
+                 <SidebarSeparator />
                  <SidebarMenuItem>
                      <SidebarMenuButton onClick={handleLogout} tooltip="Cerrar Sesión" variant="ghost" className="text-destructive hover:bg-destructive/10 hover:text-destructive">
                          <LogOut />
@@ -106,6 +107,7 @@ export default function AppSidebar() {
                  </SidebarMenuItem>
              </>
           )}
+          */}
         </SidebarMenu>
       </SidebarContent>
     </>

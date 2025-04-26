@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -6,7 +7,8 @@ import Link from 'next/link';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {cn} from '@/lib/utils';
-import { Store, Truck, Utensils } from 'lucide-react'; // Added Utensils
+import { Store, Truck, Utensils, LogOut } from 'lucide-react'; // Added Utensils & LogOut
+import { useAuth } from '@/context/AuthContext'; // Import useAuth
 
 interface Table {
   id: number | string; // Allow string IDs for Mezon and Delivery
@@ -33,6 +35,7 @@ const initialTables: Table[] = [...numberedTables, ...specialTables];
 export default function TablesPage() {
   // Use initialTables which now have deterministic statuses
   const [tables, setTables] = useState<Table[]>(initialTables);
+  const { logout } = useAuth(); // Get logout function
 
   // In a real app, this would likely involve fetching data and potentially more complex state management.
   // For now, we just use local state.
@@ -44,9 +47,19 @@ export default function TablesPage() {
       return <Utensils className="h-6 w-6 mb-1 mx-auto group-hover:text-foreground transition-colors"/>;
   }
 
+  const handleLogout = () => {
+    logout();
+    // Navigation is handled by AuthContext
+  };
+
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6">Gestión de Mesas</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Gestión de Mesas</h1>
+         <Button variant="outline" onClick={handleLogout}>
+            <LogOut className="mr-2 h-4 w-4" /> Cerrar Sesión
+          </Button>
+      </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
         {tables.map((table) => (
           <Link key={table.id} href={`/tables/${table.id}`} passHref>
