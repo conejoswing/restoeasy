@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -15,7 +16,7 @@ import {
 } from '@/components/ui/card';
 import {ScrollArea} from '@/components/ui/scroll-area';
 import {Separator} from '@/components/ui/separator';
-import {PlusCircle, MinusCircle, XCircle, CheckCircle} from 'lucide-react';
+import {PlusCircle, MinusCircle, XCircle, CheckCircle, ArrowLeft} from 'lucide-react'; // Added ArrowLeft
 import {useToast} from '@/hooks/use-toast';
 
 interface MenuItem {
@@ -148,8 +149,10 @@ export default function TableDetailPage() {
 
   // Simulate fetching existing order (replace with real logic)
   useEffect(() => {
-    if (!['mezon', 'delivery'].includes(tableIdParam) && Math.random() > 0.5) { // Only simulate for tables
-      const mockExistingOrder = mockMenu.slice(0, Math.floor(Math.random() * 3) + 1).map(item => ({
+    // Check if tableIdParam is a number before simulating existing order
+    const tableIdNumber = parseInt(tableIdParam, 10);
+    if (!isNaN(tableIdNumber) && Math.random() > 0.5) {
+        const mockExistingOrder = mockMenu.slice(0, Math.floor(Math.random() * 3) + 1).map(item => ({
         ...item,
         quantity: Math.floor(Math.random() * 2) + 1
       }));
@@ -273,7 +276,12 @@ export default function TableDetailPage() {
 
   return (
     <div className="container mx-auto p-4 h-[calc(100vh-theme(spacing.16))] flex flex-col">
-      <h1 className="text-3xl font-bold mb-6">{getPageTitle()} - Pedido</h1>
+       <div className="flex items-center mb-6">
+         <Button variant="ghost" size="icon" onClick={() => router.push('/tables')} className="mr-2">
+           <ArrowLeft className="h-6 w-6" />
+         </Button>
+         <h1 className="text-3xl font-bold">{getPageTitle()} - Pedido</h1>
+       </div>
       <div className="flex flex-grow gap-4 overflow-hidden">
         {/* Menu Section */}
         <Card className="w-3/5 flex flex-col shadow-lg">
