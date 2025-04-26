@@ -39,79 +39,79 @@ interface OrderItem extends Omit<MenuItem, 'price' | 'modificationPrices' | 'mod
 }
 
 
-// Mock data - replace with actual API calls
+// Mock data - replace with actual API calls - Updated prices to CLP
 const mockMenu: MenuItem[] = [
     // --- Completos Vienesas ---
     {
       id: 13,
       name: 'Completo Vienesa Italiana',
-      price: 4.00,
+      price: 4000,
       category: 'Completos Vienesas',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Agregado Queso'], // Updated: Mostaza -> Agregado Queso, Ketchup removed
-      modificationPrices: { 'Agregado Queso': 1.00 } // Add price for cheese
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Agregado Queso'],
+      modificationPrices: { 'Agregado Queso': 1000 } // Add price for cheese
     },
     {
       id: 14,
       name: 'Completo Vienesa Dinámico',
-      price: 4.50,
+      price: 4500,
       category: 'Completos Vienesas',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Salsa Verde', 'Americana'],
-      modificationPrices: { 'Agregado Queso': 1.00 } // Example: Add price for cheese here too if applicable
+      modificationPrices: { 'Agregado Queso': 1000 } // Example: Add price for cheese here too if applicable
     },
      {
       id: 15, // Example new item
       name: 'Completo Vienesa Completo',
-      price: 4.20,
+      price: 4200,
       category: 'Completos Vienesas',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Chucrut', 'Tomate', 'Americana', 'Agregado Queso'],
-      modificationPrices: { 'Agregado Queso': 1.00 } // Add price for cheese
+      modificationPrices: { 'Agregado Queso': 1000 } // Add price for cheese
     },
     // --- Completos As ---
     {
       id: 10,
       name: 'Completo As Italiano',
-      price: 5.50,
+      price: 5500,
       category: 'Completos As',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Agregado Queso'],
-      modificationPrices: { 'Agregado Queso': 1.20 } // Different price example
+      modificationPrices: { 'Agregado Queso': 1200 } // Different price example
     },
     {
       id: 11,
       name: 'Completo As Dinámico',
-      price: 6.00,
+      price: 6000,
       category: 'Completos As',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Salsa Verde', 'Americana', 'Agregado Queso'],
-      modificationPrices: { 'Agregado Queso': 1.20 }
+      modificationPrices: { 'Agregado Queso': 1200 }
     },
     {
       id: 12,
       name: 'Completo As Chacarero',
-      price: 6.50,
+      price: 6500,
       category: 'Completos As',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Agregado Queso'],
-       modificationPrices: { 'Agregado Queso': 1.20 }
+       modificationPrices: { 'Agregado Queso': 1200 }
     },
     // --- Fajitas ---
     {
       id: 1,
       name: 'Italiano chico',
-      price: 8.99,
+      price: 8990,
       category: 'Fajitas',
       modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne'], // Simpler modifications
-      modificationPrices: { 'Con Queso': 0.50, 'Extra Carne': 1.00 }, // Example prices
+      modificationPrices: { 'Con Queso': 500, 'Extra Carne': 1000 }, // Example prices
     },
     {
       id: 2,
       name: 'Italiano grande',
-      price: 12.5,
+      price: 12500,
       category: 'Fajitas',
       modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají'],
-      modificationPrices: { 'Con Queso': 0.80, 'Extra Carne': 1.50 },
+      modificationPrices: { 'Con Queso': 800, 'Extra Carne': 1500 },
     },
      {
       id: 8,
       name: 'Filete',
-      price: 18.0,
+      price: 18000,
       category: 'Fajitas',
        // No modifications for this one example
     },
@@ -119,34 +119,34 @@ const mockMenu: MenuItem[] = [
     {
       id: 3,
       name: 'Dinamico chico', // Assuming this was meant for Cafe? Or was it Colaciones? Adjust if needed.
-      price: 6.5,
+      price: 6500,
       category: 'Café',
     },
     {
       id: 7,
       name: 'Alitas de Pollo', // Example item, potentially needs translation or replacement
-      price: 9.5,
+      price: 9500,
       category: 'Café',
     },
     // --- Colaciones ---
     {
       id: 4,
       name: 'Dinamico grande', // Adjust category if needed
-      price: 3.0,
+      price: 3000,
       category: 'Colaciones',
     },
     // --- Promociones ---
     {
       id: 6,
       name: 'Completo grande', // Adjust category/name if needed
-      price: 4.5,
+      price: 4500,
       category: 'Promociones',
       modifications: ['Vienesa', 'As', 'Con Bebida Pequeña'],
     },
      {
       id: 5,
       name: 'Completo chico', // Adjust category if needed
-      price: 2.0,
+      price: 2000,
       category: 'Promociones', // Or maybe Bebidas? Adjust as needed
       modifications: ['Vienesa', 'As', 'Con Bebida Pequeña'],
     },
@@ -154,13 +154,13 @@ const mockMenu: MenuItem[] = [
     {
       id: 9,
       name: 'Agua',
-      price: 1.0,
+      price: 1000,
       category: 'Bebidas',
     },
      {
       id: 16, // Example
       name: 'Coca-Cola',
-      price: 1.50,
+      price: 1500,
       category: 'Bebidas',
     },
   ];
@@ -208,6 +208,10 @@ export default function TableDetailPage() {
     // Your existing logic for fetching/mocking order
   }, [tableIdParam]);
 
+  // Helper to format currency
+  const formatCurrency = (amount: number) => {
+    return `CLP ${amount.toFixed(0)}`; // Format as CLP with no decimals
+  };
 
   // Function to handle clicking a menu item
   const handleItemClick = (item: MenuItem) => {
@@ -286,7 +290,7 @@ export default function TableDetailPage() {
 
       toast({
         title: `${item.name}${modificationsString} añadido`,
-        description: `Total: $${newTotal.toFixed(2)}`, // Use the correctly calculated new total
+        description: `Total: ${formatCurrency(newTotal)}`, // Use the correctly calculated new total, formatted
         variant: "default",
         className: "bg-secondary text-secondary-foreground"
       })
@@ -339,7 +343,7 @@ export default function TableDetailPage() {
     console.log('Finalizando pedido:', order);
     toast({
       title: "¡Pedido Realizado!",
-      description: `Total: $${calculateTotal(order).toFixed(2)} para ${getPageTitle()}`,
+      description: `Total: ${formatCurrency(calculateTotal(order))} para ${getPageTitle()}`, // Format total
       variant: "default",
       className: "bg-green-200 text-green-800 border-green-400" // Using direct colors temporarily for success
     });
@@ -374,7 +378,7 @@ export default function TableDetailPage() {
             onClick={() => handleItemClick(item)} // Use handleItemClick
           >
             <span className="font-medium">{item.name}</span>
-            <span className="text-muted-foreground">${item.price.toFixed(2)}</span>
+            <span className="text-muted-foreground">{formatCurrency(item.price)}</span> {/* Format price */}
           </li>
         ))}
         {filteredMenu.length === 0 && (
@@ -439,7 +443,7 @@ export default function TableDetailPage() {
                              <p className="text-xs text-muted-foreground">({item.selectedModifications.join(', ')})</p>
                            )}
                            {/* Show the final calculated price per item */}
-                          <p className='text-xs text-muted-foreground'>${item.finalPrice.toFixed(2)}</p>
+                          <p className='text-xs text-muted-foreground'>{formatCurrency(item.finalPrice)}</p> {/* Format price */}
                         </div>
                      </div>
 
@@ -473,7 +477,7 @@ export default function TableDetailPage() {
           <CardFooter className="p-4 flex flex-col items-stretch gap-4">
             <div className="flex justify-between items-center text-lg font-semibold">
               <span>Total:</span>
-              <span>${total.toFixed(2)}</span>
+              <span>{formatCurrency(total)}</span> {/* Format total */}
             </div>
             <Button size="lg" onClick={handleFinalizeOrder} disabled={order.length === 0}>
               <CheckCircle className="mr-2 h-5 w-5" /> Finalizar Pedido

@@ -30,6 +30,11 @@ interface ModificationDialogProps {
   onCancel: () => void; // Callback for cancellation
 }
 
+// Helper to format currency
+const formatCurrency = (amount: number) => {
+    return `CLP ${amount.toFixed(0)}`; // Format as CLP with no decimals
+};
+
 const ModificationDialog: React.FC<ModificationDialogProps> = ({
   isOpen,
   onOpenChange,
@@ -78,10 +83,10 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Seleccionar Modificaciones para {item.name}</DialogTitle>
           <DialogDescription>
-            Elige las opciones deseadas para este artículo. Precio Base: ${item.price.toFixed(2)}
+            Elige las opciones deseadas para este artículo. Precio Base: {formatCurrency(item.price)} {/* Format base price */}
             {selectedModifications.length > 0 && (
               <span className="block mt-1">
-                Costo Adicional: +${totalModificationCost.toFixed(2)} (Total: ${(item.price + totalModificationCost).toFixed(2)})
+                Costo Adicional: +{formatCurrency(totalModificationCost)} (Total: {formatCurrency(item.price + totalModificationCost)}) {/* Format additional and total cost */}
               </span>
             )}
           </DialogDescription>
@@ -94,7 +99,7 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
             ) : (
                 item.modifications.map((mod) => {
                 const modificationCost = item.modificationPrices?.[mod];
-                const costString = modificationCost ? ` (+ $${modificationCost.toFixed(2)})` : '';
+                const costString = modificationCost ? ` (+ ${formatCurrency(modificationCost)})` : ''; {/* Format modification cost */}
                 const checkboxId = `mod-${mod.replace(/\s+/g, '-')}`;
                 return (
                     <div key={mod} className="flex items-center space-x-2">

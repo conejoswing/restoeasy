@@ -51,12 +51,12 @@ interface CashMovement { // Renamed from Expense
 // Categories can include income types as well
 const movementCategories = ['Ingreso Venta', 'Suministros', 'Mantenimiento', 'Servicios', 'Alquiler', 'Salarios', 'Marketing', 'Otros Egresos', 'Otros Ingresos']; // Added income/expense distinction
 
-const initialMovements: CashMovement[] = [ // Renamed from initialExpenses
-  { id: 1, date: new Date(2024, 5, 1), category: 'Suministros', description: 'Entrega de verduras', amount: -150.75 }, // Negative for expense
-  { id: 2, date: new Date(2024, 5, 3), category: 'Mantenimiento', description: 'Reparación de fontanería', amount: -300.00 }, // Negative for expense
-  { id: 3, date: new Date(2024, 5, 5), category: 'Servicios', description: 'Factura de electricidad', amount: -450.50 }, // Negative for expense
-  { id: 4, date: new Date(2024, 5, 10), category: 'Alquiler', description: 'Alquiler mensual', amount: -2500.00 }, // Negative for expense
-  { id: 5, date: new Date(2024, 5, 12), category: 'Ingreso Venta', description: 'Ventas del día', amount: 850.00 }, // Positive for income
+const initialMovements: CashMovement[] = [ // Renamed from initialExpenses - Updated amounts to CLP
+  { id: 1, date: new Date(2024, 5, 1), category: 'Suministros', description: 'Entrega de verduras', amount: -150750 }, // Negative for expense
+  { id: 2, date: new Date(2024, 5, 3), category: 'Mantenimiento', description: 'Reparación de fontanería', amount: -300000 }, // Negative for expense
+  { id: 3, date: new Date(2024, 5, 5), category: 'Servicios', description: 'Factura de electricidad', amount: -450500 }, // Negative for expense
+  { id: 4, date: new Date(2024, 5, 10), category: 'Alquiler', description: 'Alquiler mensual', amount: -2500000 }, // Negative for expense
+  { id: 5, date: new Date(2024, 5, 12), category: 'Ingreso Venta', description: 'Ventas del día', amount: 850000 }, // Positive for income
 ];
 
 export default function CashRegisterPage() { // Renamed component
@@ -70,6 +70,11 @@ export default function CashRegisterPage() { // Renamed component
   }>({ date: undefined, category: '', description: '', amount: '', type: 'expense' }); // Default to expense
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const { toast } = useToast();
+
+   // Helper to format currency
+   const formatCurrency = (amount: number) => {
+    return `CLP ${amount.toFixed(0)}`; // Format as CLP with no decimals
+  };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -119,7 +124,7 @@ export default function CashRegisterPage() { // Renamed component
     setCashMovements([...cashMovements, addedMovement].sort((a, b) => b.date.getTime() - a.date.getTime())); // Keep sorted by date descending
     setNewMovement({ date: undefined, category: '', description: '', amount: '', type: 'expense' }); // Reset form
     setIsAddDialogOpen(false); // Close dialog
-     toast({ title: "Éxito", description: `Movimiento de $${addedMovement.amount.toFixed(2)} registrado.` }); // Movement of $... added.
+     toast({ title: "Éxito", description: `Movimiento de ${formatCurrency(addedMovement.amount)} registrado.` }); // Movement of CLP ... added.
   };
 
    const handleDeleteMovement = (id: number) => { // Renamed function
@@ -221,12 +226,12 @@ export default function CashRegisterPage() { // Renamed component
               </div>
                <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="amount" className="text-right">
-                  Monto ($) {/* Amount ($) */}
+                  Monto (CLP) {/* Amount (CLP) */}
                 </Label>
                 <Input
                   id="amount"
                   type="number"
-                  step="0.01"
+                  step="1" // Step by 1 for CLP
                   min="0" // Amount should be positive, type determines sign
                   value={newMovement.amount}
                   onChange={(e) => handleInputChange(e, 'amount')}
@@ -267,7 +272,7 @@ export default function CashRegisterPage() { // Renamed component
                         "text-right",
                         movement.amount >= 0 ? "text-green-600" : "text-red-600" // Direct color use for +/- indication
                     )}>
-                        ${movement.amount.toFixed(2)}
+                        {formatCurrency(movement.amount)} {/* Format currency */}
                     </TableCell>
                     <TableCell className="text-right">
                          <Button

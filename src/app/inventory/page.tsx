@@ -35,15 +35,15 @@ interface InventoryItem {
 }
 
 const initialInventory: InventoryItem[] = [
-  {id: 1, name: 'Pan de Hamburguesa', price: 0.5, stock: 100}, // Burger Buns
-  {id: 2, name: 'Carne de Res', price: 1.5, stock: 80}, // Beef Patties
-  {id: 3, name: 'Masa de Pizza', price: 1.0, stock: 50}, // Pizza Dough
-  {id: 4, name: 'Salsa de Tomate', price: 2.0, stock: 40}, // Tomato Sauce
-  {id: 5, name: 'Queso', price: 3.0, stock: 60}, // Cheese
-  {id: 6, name: 'Lechuga', price: 0.8, stock: 30}, // Lettuce
-  {id: 7, name: 'Patatas', price: 0.2, stock: 200}, // Potatoes
-  {id: 8, name: 'Jarabe de Refresco', price: 10.0, stock: 10}, // Soda Syrup
-  {id: 9, name: 'Granos de Café', price: 15.0, stock: 20}, // Coffee Beans
+  {id: 1, name: 'Pan de Hamburguesa', price: 500, stock: 100}, // Burger Buns - Updated price to CLP
+  {id: 2, name: 'Carne de Res', price: 1500, stock: 80}, // Beef Patties - Updated price to CLP
+  {id: 3, name: 'Masa de Pizza', price: 1000, stock: 50}, // Pizza Dough - Updated price to CLP
+  {id: 4, name: 'Salsa de Tomate', price: 2000, stock: 40}, // Tomato Sauce - Updated price to CLP
+  {id: 5, name: 'Queso', price: 3000, stock: 60}, // Cheese - Updated price to CLP
+  {id: 6, name: 'Lechuga', price: 800, stock: 30}, // Lettuce - Updated price to CLP
+  {id: 7, name: 'Patatas', price: 200, stock: 200}, // Potatoes - Updated price to CLP
+  {id: 8, name: 'Jarabe de Refresco', price: 10000, stock: 10}, // Soda Syrup - Updated price to CLP
+  {id: 9, name: 'Granos de Café', price: 15000, stock: 20}, // Coffee Beans - Updated price to CLP
 ];
 
 export default function InventoryPage() {
@@ -71,7 +71,7 @@ export default function InventoryPage() {
     const addedItem: InventoryItem = {
         id: newId,
         name: newItem.name,
-        price: parseFloat(newItem.price),
+        price: parseFloat(newItem.price), // Keep parsing as float/int initially
         stock: parseInt(newItem.stock, 10)
     };
     setInventory([...inventory, addedItem]);
@@ -102,6 +102,11 @@ export default function InventoryPage() {
   const openEditDialog = (item: InventoryItem) => {
     setEditingItem({...item}); // Copy item to avoid direct state mutation during edits
     setIsEditDialogOpen(true);
+  };
+
+   // Helper to format currency
+  const formatCurrency = (amount: number) => {
+    return `CLP ${amount.toFixed(0)}`; // Format as CLP with no decimals
   };
 
   return (
@@ -136,12 +141,13 @@ export default function InventoryPage() {
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label htmlFor="price" className="text-right">
-                  Precio ($) {/* Price ($) */}
+                  Precio (CLP) {/* Price (CLP) */}
                 </Label>
                 <Input
                   id="price"
                   type="number"
-                  step="0.01"
+                  step="1" // Step by 1 for CLP
+                  min="0" // Minimum price is 0
                   value={newItem.price}
                   onChange={(e) => handleInputChange(e, setNewItem, 'price')}
                   className="col-span-3"
@@ -155,6 +161,8 @@ export default function InventoryPage() {
                 <Input
                   id="stock"
                   type="number"
+                   min="0" // Minimum stock is 0
+                   step="1" // Step by 1 for stock
                   value={newItem.stock}
                   onChange={(e) => handleInputChange(e, setNewItem, 'stock')}
                   className="col-span-3"
@@ -186,7 +194,7 @@ export default function InventoryPage() {
             {inventory.map((item) => (
               <TableRow key={item.id}>
                 <TableCell className="font-medium">{item.name}</TableCell>
-                <TableCell className="text-right">${item.price.toFixed(2)}</TableCell>
+                <TableCell className="text-right">{formatCurrency(item.price)}</TableCell> {/* Format price */}
                 <TableCell className="text-right">{item.stock}</TableCell>
                 <TableCell className="text-right">
                   <Dialog open={isEditDialogOpen && editingItem?.id === item.id} onOpenChange={(open) => { if (!open) setEditingItem(null); setIsEditDialogOpen(open);}}>
@@ -217,12 +225,13 @@ export default function InventoryPage() {
                           </div>
                           <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="edit-price" className="text-right">
-                              Precio ($) {/* Price ($) */}
+                              Precio (CLP) {/* Price (CLP) */}
                             </Label>
                             <Input
                               id="edit-price"
                               type="number"
-                              step="0.01"
+                              step="1" // Step by 1 for CLP
+                              min="0"
                               value={editingItem?.price || ''}
                                onChange={(e) => handleInputChange(e, setEditingItem, 'price')}
                               className="col-span-3"
@@ -236,6 +245,8 @@ export default function InventoryPage() {
                             <Input
                               id="edit-stock"
                               type="number"
+                               min="0"
+                               step="1"
                                value={editingItem?.stock || ''}
                                onChange={(e) => handleInputChange(e, setEditingItem, 'stock')}
                               className="col-span-3"
