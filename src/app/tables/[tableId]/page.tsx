@@ -57,13 +57,13 @@ const mockMenu: MenuItem[] = [
   },
   {
     id: 5,
-    name: 'completo chico', // Changed from 'Refresco'
+    name: 'completo chico',
     price: 2.0,
     category: 'Bebidas',
   },
   {
     id: 6,
-    name: 'Helado',
+    name: 'completo grande', // Changed from 'Helado'
     price: 4.5,
     category: 'Promociones',
   },
