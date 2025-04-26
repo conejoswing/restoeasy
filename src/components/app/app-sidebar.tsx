@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import {usePathname} from 'next/navigation';
-import { UtensilsCrossed, Package, Receipt } from 'lucide-react'; // Receipt icon is still suitable for 'Caja'
+import { UtensilsCrossed, Package, Receipt, Users } from 'lucide-react'; // Import Users icon
 
 import {
   SidebarContent,
@@ -51,14 +51,25 @@ export default function AppSidebar() {
             </Link>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            {/* Update the href and text for the Cash Register page */}
             <Link href="/expenses">
               <SidebarMenuButton
-                isActive={isActive('/expenses')} // Keep path check as /expenses
-                tooltip="Caja" // Updated tooltip
+                isActive={isActive('/expenses')}
+                tooltip="Caja"
               >
-                <Receipt /> {/* Icon is okay */}
-                <span>Caja</span> {/* Updated text */}
+                <Receipt />
+                <span>Caja</span>
+              </SidebarMenuButton>
+            </Link>
+          </SidebarMenuItem>
+          {/* New Staff Menu Item */}
+          <SidebarMenuItem>
+            <Link href="/staff"> {/* Placeholder link, adjust as needed */}
+              <SidebarMenuButton
+                isActive={isActive('/staff')}
+                tooltip="Personal de Trabajo"
+              >
+                <Users /> {/* Staff icon */}
+                <span>Personal de Trabajo</span> {/* Staff text */}
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
