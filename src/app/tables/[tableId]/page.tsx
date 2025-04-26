@@ -33,7 +33,7 @@ interface OrderItem extends MenuItem {
 const mockMenu: MenuItem[] = [
   {
     id: 1,
-    name: 'Hamburguesa',
+    name: 'Italiano chico', // Changed from 'Hamburguesa'
     price: 8.99,
     category: 'Fajitas', // Changed from 'Platos Principales'
   },
