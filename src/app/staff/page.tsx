@@ -39,7 +39,8 @@ const initialStaff: StaffMember[] = [
 ];
 
 export default function StaffPage() {
-  const { isAuthenticated, isLoading } = useAuth(); // Get auth state
+  // Role checks and redirection are now handled by AuthProvider
+  const { isAuthenticated, isLoading, userRole } = useAuth();
   const router = useRouter();
   const [staff, setStaff] = useState<StaffMember[]>(initialStaff);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -48,13 +49,7 @@ export default function StaffPage() {
   const [newStaffData, setNewStaffData] = useState<{ name: string; role: string }>({ name: '', role: '' });
   const { toast } = useToast();
 
-   // Redirect if not authenticated and not loading
-   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push('/login');
-    }
-  }, [isLoading, isAuthenticated, router]);
-
+  // No need for explicit redirect here, AuthProvider handles it
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, key: keyof typeof newStaffData) => {
     setNewStaffData((prev) => ({ ...prev, [key]: e.target.value }));
@@ -120,10 +115,14 @@ export default function StaffPage() {
      }
   };
 
-   // Show loading or nothing if not authenticated
-   if (isLoading || !isAuthenticated) {
-    return <div className="flex items-center justify-center min-h-screen">Cargando...</div>; // Or a spinner
-  }
+   // Loading state is handled by AuthProvider wrapper in layout.tsx
+   if (isLoading) {
+     return null; // Or a minimal loading indicator if preferred
+   }
+   // If not authenticated or not admin, AuthProvider will redirect
+   if (!isAuthenticated || userRole !== 'admin') {
+     return null; // Prevent rendering content before redirect
+   }
 
   return (
     <div className="container mx-auto p-4">
@@ -170,9 +169,10 @@ export default function StaffPage() {
               {/* Add Avatar URL input if needed */}
             </div>
             <DialogFooter>
-              <DialogClose asChild>
+               {/* Wrap Button in DialogClose */}
+               <DialogClose asChild>
                  <Button type="button" variant="secondary">Cancelar</Button>
-              </DialogClose>
+               </DialogClose>
               <Button type="submit" onClick={handleAddOrEditStaff}>
                 {isEditing ? 'Guardar Cambios' : 'Añadir Personal'} {/* Save Changes / Add Staff */}
               </Button>

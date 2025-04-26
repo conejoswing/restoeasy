@@ -20,7 +20,7 @@ import { useAuth } from '@/context/AuthContext'; // Import useAuth
 
 export default function AppSidebar() {
   const pathname = usePathname();
-  const { isAuthenticated, logout } = useAuth(); // Get auth state and logout function
+  const { isAuthenticated, userRole, logout } = useAuth(); // Get auth state, role and logout function
   const router = useRouter();
 
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/');
@@ -39,6 +39,7 @@ export default function AppSidebar() {
       </SidebarHeader>
       <SidebarContent className="flex flex-col justify-between flex-grow"> {/* Added flex-grow */}
         <SidebarMenu>
+          {/* Tables is visible to all authenticated users */}
           <SidebarMenuItem>
             <Link href="/tables">
               <SidebarMenuButton
@@ -50,42 +51,48 @@ export default function AppSidebar() {
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
-          <SidebarMenuItem>
-            <Link href="/inventory">
-              <SidebarMenuButton
-                isActive={isActive('/inventory')}
-                tooltip="Inventario" // Added tooltip
-              >
-                <Package />
-                <span className="group-data-[collapsible=icon]:hidden">Inventario</span>
-              </SidebarMenuButton>
-            </Link>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <Link href="/expenses">
-              <SidebarMenuButton
-                isActive={isActive('/expenses')}
-                tooltip="Caja" // Added tooltip
-              >
-                <Receipt />
-                <span className="group-data-[collapsible=icon]:hidden">Caja</span>
-              </SidebarMenuButton>
-            </Link>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <Link href="/staff">
-              <SidebarMenuButton
-                isActive={isActive('/staff')}
-                tooltip="Personal de Trabajo" // Added tooltip
-              >
-                <Users /> {/* Staff icon */}
-                <span className="group-data-[collapsible=icon]:hidden">Personal de Trabajo</span> {/* Staff text */}
-              </SidebarMenuButton>
-            </Link>
-          </SidebarMenuItem>
+
+          {/* Admin Only Menu Items */}
+          {userRole === 'admin' && (
+            <>
+              <SidebarMenuItem>
+                <Link href="/inventory">
+                  <SidebarMenuButton
+                    isActive={isActive('/inventory')}
+                    tooltip="Inventario" // Added tooltip
+                  >
+                    <Package />
+                    <span className="group-data-[collapsible=icon]:hidden">Inventario</span>
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <Link href="/expenses">
+                  <SidebarMenuButton
+                    isActive={isActive('/expenses')}
+                    tooltip="Caja" // Added tooltip
+                  >
+                    <Receipt />
+                    <span className="group-data-[collapsible=icon]:hidden">Caja</span>
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <Link href="/staff">
+                  <SidebarMenuButton
+                    isActive={isActive('/staff')}
+                    tooltip="Personal de Trabajo" // Added tooltip
+                  >
+                    <Users /> {/* Staff icon */}
+                    <span className="group-data-[collapsible=icon]:hidden">Personal de Trabajo</span> {/* Staff text */}
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
+            </>
+          )}
         </SidebarMenu>
 
-        {/* Logout Button Section */}
+        {/* Logout Button Section - Visible to all authenticated users */}
         {isAuthenticated && (
             <SidebarFooter className="mt-auto"> {/* Push footer to bottom */}
                  <SidebarSeparator /> {/* Optional separator */}

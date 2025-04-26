@@ -63,7 +63,8 @@ const initialInventory: InventoryItem[] = predefinedItemNames.map((name, index) 
 
 
 export default function InventoryPage() {
-  const { isAuthenticated, isLoading } = useAuth(); // Get auth state
+  // Role checks and redirection are now handled by AuthProvider
+  const { isAuthenticated, isLoading, userRole } = useAuth();
   const router = useRouter();
   const [inventory, setInventory] = useState<InventoryItem[]>(initialInventory);
   const [newManualProduct, setNewManualProduct] = useState<{ name: string; stock: string }>({ name: '', stock: '' });
@@ -73,12 +74,7 @@ export default function InventoryPage() {
   const [addProductMode, setAddProductMode] = useState<'predefined' | 'manual'>('predefined');
   const { toast } = useToast();
 
-   // Redirect if not authenticated and not loading
-   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push('/login');
-    }
-  }, [isLoading, isAuthenticated, router]);
+  // No need for explicit redirect here, AuthProvider handles it
 
   const handleManualProductInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -181,10 +177,14 @@ export default function InventoryPage() {
     setNewManualProduct({ name: '', stock: '' });
   };
 
-   // Show loading or nothing if not authenticated
-   if (isLoading || !isAuthenticated) {
-    return <div className="flex items-center justify-center min-h-screen">Cargando...</div>; // Or a spinner
-  }
+   // Loading state is handled by AuthProvider wrapper in layout.tsx
+   if (isLoading) {
+     return null; // Or a minimal loading indicator if preferred
+   }
+   // If not authenticated or not admin, AuthProvider will redirect
+   if (!isAuthenticated || userRole !== 'admin') {
+     return null; // Prevent rendering content before redirect
+   }
 
 
   return (

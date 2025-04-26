@@ -24,36 +24,32 @@ const geistMono = Geist_Mono({
 // Inner component to access auth context after provider is set up
 function AppContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, userRole } = useAuth();
 
   // Determine if the sidebar should be shown
-  // Hide on login page, and on specific table detail pages unless it's the main tables page
+  // Hide on login page, non-admin users, and specific table detail pages unless it's the main tables page
    const isLoginPage = pathname === '/login';
-   const isTableDetailPage = pathname.startsWith('/tables/') && pathname !== '/tables';
-   const showSidebar = !isLoginPage && !isTableDetailPage && isAuthenticated; // Only show if authenticated and not login/table detail
+   // Sidebar should only show for admin users on non-login pages
+   const showSidebar = isAuthenticated && userRole === 'admin' && !isLoginPage;
 
-  // Handle loading state - show minimal layout or spinner
-  if (isLoading && !isLoginPage) { // Don't show loader on login page itself
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-         {/* Optional: Add a loading spinner here */}
-         Cargando... {/* Loading... */}
-      </div>
-    );
-  }
+  // Handle loading state within AuthProvider now
+
+  // Hide sidebar on table detail page for all users
+  const isTableDetailPage = pathname.startsWith('/tables/') && pathname !== '/tables';
+  const displaySidebar = showSidebar && !isTableDetailPage;
 
 
   return (
-    <SidebarProvider defaultOpen={showSidebar}>
-        {/* Conditionally render the Sidebar */}
-        {showSidebar && (
+    <SidebarProvider defaultOpen={displaySidebar}>
+        {/* Conditionally render the Sidebar only for admins and not on table detail */}
+        {displaySidebar && (
         <Sidebar collapsible="icon">
             <AppSidebar />
         </Sidebar>
         )}
-        {/* SidebarInset will now take full width when Sidebar is not rendered */}
-        {/* Render children only if authenticated or on the login page */}
-        { (isAuthenticated || isLoginPage) ? <SidebarInset>{children}</SidebarInset> : null }
+        {/* SidebarInset will take full width when Sidebar is not rendered */}
+        {/* Content is rendered by AuthProvider after loading check */}
+        <SidebarInset>{children}</SidebarInset>
         <Toaster />
     </SidebarProvider>
   );
@@ -74,6 +70,7 @@ export default function RootLayout({
           'antialiased'
         )}
       >
+        {/* AuthProvider now wraps AppContent and handles initial loading/redirects */}
         <AuthProvider>
            <AppContent>{children}</AppContent>
         </AuthProvider>

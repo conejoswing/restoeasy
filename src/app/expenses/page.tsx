@@ -62,7 +62,8 @@ const initialMovements: CashMovement[] = [
 ];
 
 export default function CashRegisterPage() {
-  const { isAuthenticated, isLoading } = useAuth(); // Get auth state
+  // Role checks and redirection are now handled by AuthProvider
+  const { isAuthenticated, isLoading, userRole } = useAuth();
   const router = useRouter();
   const [cashMovements, setCashMovements] = useState<CashMovement[]>(initialMovements);
   const [newMovement, setNewMovement] = useState<{
@@ -75,12 +76,7 @@ export default function CashRegisterPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const { toast } = useToast();
 
-   // Redirect if not authenticated and not loading
-   useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      router.push('/login');
-    }
-  }, [isLoading, isAuthenticated, router]);
+  // No need for explicit redirect here, AuthProvider handles it
 
   const formatCurrency = (amount: number) => {
     return `CLP ${amount.toFixed(0)}`;
@@ -141,9 +137,13 @@ export default function CashRegisterPage() {
     toast({ title: "Eliminado", description: `Movimiento por ${movementToDelete?.description} eliminado.`, variant: "destructive" });
   };
 
-   // Show loading or nothing if not authenticated
-   if (isLoading || !isAuthenticated) {
-    return <div className="flex items-center justify-center min-h-screen">Cargando...</div>; // Or a spinner
+   // Loading state is handled by AuthProvider wrapper in layout.tsx
+   if (isLoading) {
+     return null; // Or a minimal loading indicator if preferred
+   }
+   // If not authenticated or not admin, AuthProvider will redirect
+   if (!isAuthenticated || userRole !== 'admin') {
+     return null; // Prevent rendering content before redirect
    }
 
   return (
