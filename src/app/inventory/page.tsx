@@ -77,7 +77,7 @@ export default function InventoryPage() {
     setInventory([...inventory, addedItem]);
     setNewItem({name: '', price: '', stock: ''}); // Reset form
     setIsAddDialogOpen(false); // Close dialog
-     toast({ title: "Éxito", description: `${addedItem.name} añadido al inventario.`}); // added to inventory.
+     toast({ title: "Éxito", description: `${addedItem.name} añadido.`}); // added.
   };
 
   const handleEditItem = () => {
@@ -96,7 +96,7 @@ export default function InventoryPage() {
   const handleDeleteItem = (id: number) => {
      const itemToDelete = inventory.find(item => item.id === id);
     setInventory(inventory.filter((item) => item.id !== id));
-    toast({ title: "Eliminado", description: `${itemToDelete?.name} eliminado del inventario.`, variant: "destructive"}); // removed from inventory.
+    toast({ title: "Eliminado", description: `${itemToDelete?.name} eliminado.`, variant: "destructive"}); // removed.
   };
 
   const openEditDialog = (item: InventoryItem) => {
@@ -116,14 +116,14 @@ export default function InventoryPage() {
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button>
-              <PlusCircle className="mr-2 h-4 w-4" /> Añadir Nuevo Artículo {/* Add New Item */}
+              <PlusCircle className="mr-2 h-4 w-4" /> Añadir Producto {/* Add Product */}
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Añadir Nuevo Artículo de Inventario</DialogTitle> {/* Add New Inventory Item */}
+              <DialogTitle>Añadir Producto</DialogTitle> {/* Add Product */}
               <DialogDescription>
-                Introduzca los detalles del nuevo artículo de inventario. {/* Enter the details for the new inventory item. */}
+                Introduzca los detalles del nuevo producto. {/* Enter the details for the new product. */}
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
@@ -174,7 +174,7 @@ export default function InventoryPage() {
               <DialogClose asChild>
                  <Button type="button" variant="secondary">Cancelar</Button> {/* Cancel */}
               </DialogClose>
-              <Button type="submit" onClick={handleAddItem}>Añadir Artículo</Button> {/* Add Item */}
+              <Button type="submit" onClick={handleAddItem}>Añadir Producto</Button> {/* Add Product */}
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -205,9 +205,9 @@ export default function InventoryPage() {
                      </DialogTrigger>
                      <DialogContent className="sm:max-w-[425px]">
                         <DialogHeader>
-                          <DialogTitle>Editar Artículo de Inventario</DialogTitle> {/* Edit Inventory Item */}
+                          <DialogTitle>Editar Producto</DialogTitle> {/* Edit Product */}
                           <DialogDescription>
-                            Actualice los detalles de {editingItem?.name}. {/* Update the details for ... */}
+                            Actualice los detalles del producto. {/* Update the details for the product. */}
                           </DialogDescription>
                         </DialogHeader>
                          <div className="grid gap-4 py-4">
@@ -277,7 +277,7 @@ export default function InventoryPage() {
              {inventory.length === 0 && (
                 <TableRow>
                     <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
-                    No se encontraron artículos en el inventario. ¡Añada algunos! {/* No inventory items found. Add some! */}
+                    No se encontraron productos. ¡Añada algunos! {/* No products found. Add some! */}
                     </TableCell>
                 </TableRow>
              )}
