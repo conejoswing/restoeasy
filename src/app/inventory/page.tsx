@@ -37,7 +37,7 @@ interface InventoryItem {
 }
 
 // Predefined bread items instead of general inventory
-const predefinedBreadItems: Omit<InventoryItem, 'id' | 'stock' | 'price'>[] = [
+const predefinedItems: Omit<InventoryItem, 'id' | 'stock' | 'price'>[] = [
   { name: 'Pan especial grande' },
   { name: 'Pan especial chico' },
   { name: 'Pan de marraqueta' },
@@ -55,7 +55,7 @@ const predefinedBreadItems: Omit<InventoryItem, 'id' | 'stock' | 'price'>[] = [
 ];
 
 // Initialize inventory state with predefined items and zero stock/price
-const initialInventory: InventoryItem[] = predefinedBreadItems.map((item, index) => ({
+const initialInventory: InventoryItem[] = predefinedItems.map((item, index) => ({
   id: index + 1, // Assign unique IDs
   name: item.name,
   price: 0, // Set initial price/cost to 0 or fetch from somewhere
@@ -94,8 +94,11 @@ export default function InventoryPage() {
     let updateMessages: string[] = [];
 
     const newInventory = inventory.map(item => {
+       // Only update items that are part of the predefined bread list in this dialog
+      const isBreadItem = predefinedItems.some(p => p.name === item.name && p.name.toLowerCase().includes('pan'));
       const quantityToAddStr = addQuantities[item.name];
-      if (quantityToAddStr) {
+
+      if (isBreadItem && quantityToAddStr) {
         const quantityToAdd = parseInt(quantityToAddStr, 10);
         if (!isNaN(quantityToAdd) && quantityToAdd > 0) {
           updated = true;
@@ -103,14 +106,14 @@ export default function InventoryPage() {
           return { ...item, stock: item.stock + quantityToAdd };
         }
       }
-      return item;
+      return item; // Return unchanged if not a relevant bread item or no valid quantity
     });
 
     if (updated) {
       setInventory(newInventory);
       toast({ title: "Inventario Actualizado", description: `Cantidades añadidas: ${updateMessages.join(', ')}.` });
     } else {
-       toast({ title: "Sin Cambios", description: "No se ingresaron cantidades válidas.", variant: "default" });
+       toast({ title: "Sin Cambios", description: "No se ingresaron cantidades válidas para los panes.", variant: "default" });
     }
 
     setAddQuantities({}); // Reset quantities state
@@ -160,26 +163,28 @@ export default function InventoryPage() {
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button>
-              <PlusCircle className="mr-2 h-4 w-4" /> Añadir Cantidades {/* Add Quantities */}
+              <PlusCircle className="mr-2 h-4 w-4" /> Añadir Producto {/* Add Product */}
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-md"> {/* Adjusted width */}
             <DialogHeader>
-              <DialogTitle>Añadir Cantidades al Inventario</DialogTitle> {/* Changed Title */}
+              <DialogTitle>Añadir Cantidades de Pan</DialogTitle> {/* Changed Title */}
               <DialogDescription>
-                Introduzca las cantidades a añadir para cada producto. {/* Enter quantities to add for each product. */}
+                Introduzca las cantidades a añadir para cada tipo de pan. {/* Enter quantities to add for each bread type. */}
               </DialogDescription>
             </DialogHeader>
              <ScrollArea className="max-h-[400px] p-1"> {/* Added ScrollArea */}
                 <div className="grid gap-4 py-4 px-3">
-                  {/* Map through inventory items to show inputs */}
-                  {inventory.map((item) => (
-                    <div key={item.id} className="grid grid-cols-5 items-center gap-2"> {/* Changed grid columns */}
-                      <Label htmlFor={`quantity-${item.id}`} className="text-right col-span-3">
+                  {/* Filter to show only bread items */}
+                  {predefinedItems
+                    .filter(item => item.name.toLowerCase().includes('pan')) // Filter for bread items
+                    .map((item) => (
+                    <div key={item.name} className="grid grid-cols-5 items-center gap-2"> {/* Changed grid columns */}
+                      <Label htmlFor={`quantity-${item.name}`} className="text-right col-span-3">
                         {item.name}
                       </Label>
                       <Input
-                        id={`quantity-${item.id}`}
+                        id={`quantity-${item.name}`}
                         type="number"
                         min="0"
                         step="1"
@@ -290,7 +295,7 @@ export default function InventoryPage() {
                    </Dialog>
 
                   {/* Delete Button - Consider disabling/hiding for predefined items */}
-                   { !predefinedBreadItems.some(p => p.name === item.name) && ( // Only show delete for non-predefined items
+                   { !predefinedItems.some(p => p.name === item.name) && ( // Only show delete for non-predefined items
                       <Button
                           variant="ghost"
                           size="icon"
