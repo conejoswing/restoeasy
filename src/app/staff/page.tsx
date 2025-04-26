@@ -171,7 +171,7 @@ export default function StaffPage() {
             </div>
             <DialogFooter>
               <DialogClose asChild>
-                 <Button type="button" variant="secondary">Cancelar</Button> {/* Cancel */}
+                 <Button type="button" variant="secondary">Cancelar</Button>
               </DialogClose>
               <Button type="submit" onClick={handleAddOrEditStaff}>
                 {isEditing ? 'Guardar Cambios' : 'Añadir Personal'} {/* Save Changes / Add Staff */}
