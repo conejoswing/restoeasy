@@ -206,10 +206,34 @@ export default function TableDetailPage() {
   const [isModificationDialogOpen, setIsModificationDialogOpen] = useState(false);
   const [currentItemForModification, setCurrentItemForModification] = useState<MenuItem | null>(null);
 
-  // Simulate fetching existing order (if needed)
+  // Load order from sessionStorage on mount
   useEffect(() => {
-    // Your existing logic for fetching/mocking order
+    const storedOrder = sessionStorage.getItem(`table-${tableIdParam}-order`);
+    if (storedOrder) {
+      try {
+        const parsedOrder = JSON.parse(storedOrder);
+        if (Array.isArray(parsedOrder)) {
+          setOrder(parsedOrder);
+        }
+      } catch (error) {
+        console.error("Failed to parse stored order:", error);
+        sessionStorage.removeItem(`table-${tableIdParam}-order`); // Clear invalid data
+      }
+    }
+    // Also potentially load table status if needed, but status update is handled on the tables page for now
   }, [tableIdParam]);
+
+  // Save order to sessionStorage whenever it changes
+   useEffect(() => {
+     if (order.length > 0) {
+       sessionStorage.setItem(`table-${tableIdParam}-order`, JSON.stringify(order));
+     } else {
+       // If order becomes empty, remove the item and potentially update status
+       sessionStorage.removeItem(`table-${tableIdParam}-order`);
+       // Optionally set status back to 'available' if the order is cleared
+       // sessionStorage.setItem(`table-${tableIdParam}-status`, 'available'); // Be careful with this logic placement
+     }
+   }, [order, tableIdParam]);
 
   // Helper to format currency
   const formatCurrency = (amount: number) => {
@@ -318,7 +342,15 @@ export default function TableDetailPage() {
         const itemToRemove = updatedOrder[existingItemIndex];
         const modsString = itemToRemove.selectedModifications?.join(', ');
         toast({ title: `${itemToRemove.name}${modsString ? ` (${modsString})` : ''} eliminado`, variant: "destructive" });
-        return updatedOrder.filter((item) => item.orderItemId !== orderItemId);
+        // Filter out the item
+        const filteredOrder = updatedOrder.filter((item) => item.orderItemId !== orderItemId);
+        // If this was the last item, update table status back to available
+        if (filteredOrder.length === 0) {
+          sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
+          // Optionally remove the order key itself if it's empty
+          sessionStorage.removeItem(`table-${tableIdParam}-order`);
+        }
+        return filteredOrder;
       }
     });
   };
@@ -327,7 +359,16 @@ export default function TableDetailPage() {
    const removeCompletely = (orderItemId: string) => {
      const itemToRemove = order.find(item => item.orderItemId === orderItemId);
      const modsString = itemToRemove?.selectedModifications?.join(', ');
-     setOrder((prevOrder) => prevOrder.filter((orderItem) => orderItem.orderItemId !== orderItemId));
+     setOrder((prevOrder) => {
+        const filteredOrder = prevOrder.filter((orderItem) => orderItem.orderItemId !== orderItemId);
+        // If this was the last item, update table status back to available
+        if (filteredOrder.length === 0) {
+            sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
+            // Optionally remove the order key itself if it's empty
+            sessionStorage.removeItem(`table-${tableIdParam}-order`);
+        }
+        return filteredOrder;
+     });
       toast({
         title: `${itemToRemove?.name}${modsString ? ` (${modsString})` : ''} eliminado del pedido`, // Show item name and mods in toast
         variant: "destructive",
@@ -344,13 +385,21 @@ export default function TableDetailPage() {
 
   const handleFinalizeOrder = () => {
     console.log('Finalizando pedido:', order);
+    // Set table status to occupied in sessionStorage when order is placed
+    sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
+    // Keep the order in storage as well, as it's now the active order
+    // sessionStorage.setItem(`table-${tableIdParam}-order`, JSON.stringify(order)); // Already handled by useEffect
+
     toast({
       title: "¡Pedido Realizado!",
-      description: `Total: ${formatCurrency(calculateTotal(order))} para ${getPageTitle()}`, // Format total
+      description: `Total: ${formatCurrency(calculateTotal(order))} para ${getPageTitle()}. Mesa marcada como ocupada.`, // Format total and indicate status change
       variant: "default",
       className: "bg-green-200 text-green-800 border-green-400" // Using direct colors temporarily for success
     });
-     setOrder([]); // Clear order
+     // setOrder([]); // Clear order *after* saving status and potentially order data
+     // Optionally clear the order if finalized means payment/completion
+     // If the order should persist until cleared manually, don't clear it here.
+     // For now, let's assume finalize means 'sent to kitchen', order persists.
   };
 
   // Filter menu items based on the selected category

@@ -2,7 +2,7 @@
 'use client';
 
 import * as React from 'react';
-import {useState} from 'react';
+import {useState, useEffect} from 'react'; // Import useEffect
 import Link from 'next/link';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
@@ -16,14 +16,13 @@ interface Table {
   status: 'available' | 'occupied';
 }
 
-// Generate 10 numbered tables with fixed statuses to avoid hydration issues
+// Generate 10 numbered tables, all initially available
 const numberedTables: Table[] = Array.from({length: 10}, (_, i) => ({
   id: i + 1,
-  // Assign fixed statuses: first 3 occupied, rest available
-  status: i < 3 ? 'occupied' : 'available',
+  status: 'available', // All tables start as available
 }));
 
-// Add Mezon and Delivery
+// Add Mezon and Delivery, also initially available
 const specialTables: Table[] = [
     { id: 'mezon', name: 'Mezón', status: 'available'}, // Counter/Bar - Using Store icon now
     { id: 'delivery', name: 'Delivery', status: 'available' }
@@ -33,12 +32,38 @@ const initialTables: Table[] = [...numberedTables, ...specialTables];
 
 
 export default function TablesPage() {
-  // Use initialTables which now have deterministic statuses
   const [tables, setTables] = useState<Table[]>(initialTables);
-  const { logout } = useAuth(); // Get logout function
+  const { logout, isAuthenticated, isLoading, userRole } = useAuth(); // Get auth state and logout
 
-  // In a real app, this would likely involve fetching data and potentially more complex state management.
-  // For now, we just use local state.
+  // --- Dynamic Table Status Update (Placeholder/Example) ---
+  // In a real application, you'd fetch status or get it from global state.
+  // This useEffect simulates checking localStorage/sessionStorage after an order
+  // might have been placed on a table detail page.
+  useEffect(() => {
+    const updatedTables = tables.map(table => {
+      // Check if there's a stored status for this table
+      const storedStatus = sessionStorage.getItem(`table-${table.id}-status`);
+      if (storedStatus === 'occupied') {
+        return { ...table, status: 'occupied' };
+      }
+      // Check if there's an active order stored (more complex logic)
+      const storedOrder = sessionStorage.getItem(`table-${table.id}-order`);
+      if (storedOrder && JSON.parse(storedOrder).length > 0) {
+          return { ...table, status: 'occupied'};
+      }
+      // You might also need to reset status if order is cleared
+      // For this example, we'll just use the initial state or the stored 'occupied' status
+      return table;
+    });
+    // Only update state if there are actual changes to avoid infinite loops
+    if (JSON.stringify(updatedTables) !== JSON.stringify(tables)) {
+        setTables(updatedTables);
+    }
+    // Dependency array should include things that trigger a re-check,
+    // but be careful not to cause infinite loops. `tables` itself shouldn't be here
+    // unless the check logic is very carefully managed. For simplicity, this runs once on mount.
+  }, []); // Empty dependency array means this runs once on mount
+
 
   const getIcon = (tableId: number | string) => {
       if (tableId === 'mezon') return <Store className="h-6 w-6 mb-1 mx-auto"/>;
@@ -52,13 +77,26 @@ export default function TablesPage() {
     // Navigation is handled by AuthContext
   };
 
+  // Loading state is handled by AuthProvider wrapper in layout.tsx
+  if (isLoading) {
+    return <div className="flex items-center justify-center min-h-screen">Cargando...</div>; // Or a minimal loading indicator if preferred
+  }
+  // If not authenticated AuthProvider will redirect
+  if (!isAuthenticated) {
+    return null; // Prevent rendering content before redirect
+  }
+
+
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Gestión de Mesas</h1>
-         <Button variant="outline" onClick={handleLogout}>
-            <LogOut className="mr-2 h-4 w-4" /> Cerrar Sesión
-          </Button>
+         {/* Only show logout for admin on this page */}
+         {userRole === 'admin' && (
+            <Button variant="outline" onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" /> Cerrar Sesión
+            </Button>
+         )}
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
         {tables.map((table) => (
