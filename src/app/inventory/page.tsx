@@ -27,107 +27,118 @@ import {Label} from '@/components/ui/label';
 import {PlusCircle, Edit, Trash2} from 'lucide-react';
 import {useToast} from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area'; // Import ScrollArea
+// Removed ScrollArea as it's no longer needed in the simplified Add Product dialog
 
 interface InventoryItem {
   id: number;
   name: string;
-  price: number; // Cost price or placeholder
+  price: number; // Cost price or selling price
   stock: number;
 }
 
-// Predefined bread items instead of general inventory
-const predefinedItems: Omit<InventoryItem, 'id' | 'stock' | 'price'>[] = [
-  { name: 'Pan especial grande' },
-  { name: 'Pan especial chico' },
-  { name: 'Pan de marraqueta' },
-  { name: 'Pan de hamburguesa chico' },
-  { name: 'Pan de hamburguesa grande' },
-  // Add other non-bread items that need inventory tracking below
-  { name: 'Carne de Res' },
-  { name: 'Masa de Pizza' },
-  { name: 'Salsa de Tomate' },
-  { name: 'Queso' },
-  { name: 'Lechuga' },
-  { name: 'Patatas' },
-  { name: 'Jarabe de Refresco' },
-  { name: 'Granos de Café' },
+// Predefined items for initial inventory state
+const predefinedItems: Omit<InventoryItem, 'id'>[] = [
+  { name: 'Pan especial grande', price: 0, stock: 0 },
+  { name: 'Pan especial chico', price: 0, stock: 0 },
+  { name: 'Pan de marraqueta', price: 0, stock: 0 },
+  { name: 'Pan de hamburguesa chico', price: 0, stock: 0 },
+  { name: 'Pan de hamburguesa grande', price: 0, stock: 0 },
+  { name: 'Carne de Res', price: 0, stock: 0 },
+  { name: 'Masa de Pizza', price: 0, stock: 0 },
+  { name: 'Salsa de Tomate', price: 0, stock: 0 },
+  { name: 'Queso', price: 0, stock: 0 },
+  { name: 'Lechuga', price: 0, stock: 0 },
+  { name: 'Patatas', price: 0, stock: 0 },
+  { name: 'Jarabe de Refresco', price: 0, stock: 0 },
+  { name: 'Granos de Café', price: 0, stock: 0 },
 ];
 
-// Initialize inventory state with predefined items and zero stock/price
+// Initialize inventory state with predefined items
 const initialInventory: InventoryItem[] = predefinedItems.map((item, index) => ({
   id: index + 1, // Assign unique IDs
-  name: item.name,
-  price: 0, // Set initial price/cost to 0 or fetch from somewhere
-  stock: 0, // Start with 0 stock
+  ...item,
 }));
 
 
 export default function InventoryPage() {
   const [inventory, setInventory] = useState<InventoryItem[]>(initialInventory);
-  // State to hold quantities to add in the dialog, keyed by item name
-  const [addQuantities, setAddQuantities] = useState<Record<string, string>>({});
+  // State for the new product form
+  const [newProduct, setNewProduct] = useState<{ name: string; price: string; stock: string }>({ name: '', price: '', stock: '' });
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
-  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false); // Renamed state
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const {toast} = useToast();
 
-  // Handles input change for the "Add Quantities" dialog
-  const handleQuantityChange = (itemName: string, value: string) => {
-    setAddQuantities((prev) => ({ ...prev, [itemName]: value }));
+  // Handles input change for the "Add New Product" dialog
+   const handleNewProductInputChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    key: keyof typeof newProduct
+  ) => {
+    setNewProduct((prev) => ({ ...prev, [key]: e.target.value }));
   };
+
 
   // Handles input change for the "Edit Item" dialog (only stock and price)
   const handleEditInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    key: 'price' | 'stock'
+    key: 'price' | 'stock' // Only allow editing price and stock here
   ) => {
     if (editingItem) {
-      setEditingItem((prev) => (prev ? { ...prev, [key]: e.target.value } : null));
+        // Directly update the number fields, handling potential empty input for typing
+        const value = e.target.value;
+         setEditingItem((prev) => (prev ? { ...prev, [key]: value === '' ? '' : Number(value) } : null));
     }
   };
 
 
-  // Function to update stock based on the quantities entered in the dialog
-  const handleUpdateStock = () => {
-    let updated = false;
-    let updateMessages: string[] = [];
-
-    const newInventory = inventory.map(item => {
-       // Only update items that are part of the predefined bread list in this dialog
-      const isBreadItem = predefinedItems.some(p => p.name === item.name && p.name.toLowerCase().includes('pan'));
-      const quantityToAddStr = addQuantities[item.name];
-
-      if (isBreadItem && quantityToAddStr) {
-        const quantityToAdd = parseInt(quantityToAddStr, 10);
-        if (!isNaN(quantityToAdd) && quantityToAdd > 0) {
-          updated = true;
-          updateMessages.push(`${quantityToAdd} x ${item.name}`);
-          return { ...item, stock: item.stock + quantityToAdd };
-        }
-      }
-      return item; // Return unchanged if not a relevant bread item or no valid quantity
-    });
-
-    if (updated) {
-      setInventory(newInventory);
-      toast({ title: "Inventario Actualizado", description: `Cantidades añadidas: ${updateMessages.join(', ')}.` });
-    } else {
-       toast({ title: "Sin Cambios", description: "No se ingresaron cantidades válidas para los panes.", variant: "default" });
+  // Function to add a new product entered in the dialog
+  const handleAddNewProduct = () => {
+     if (!newProduct.name || !newProduct.price || !newProduct.stock) {
+      toast({ title: "Error", description: "Por favor, complete todos los campos del producto.", variant: "destructive" }); // Please fill all product fields.
+      return;
     }
 
-    setAddQuantities({}); // Reset quantities state
-    setIsAddDialogOpen(false); // Close dialog
+     const priceValue = parseFloat(newProduct.price);
+     const stockValue = parseInt(newProduct.stock, 10);
+
+     if (isNaN(priceValue) || isNaN(stockValue) || priceValue < 0 || stockValue < 0) {
+        toast({ title: "Error", description: "El precio y las existencias deben ser números válidos y no negativos.", variant: "destructive" }); // Price and stock must be valid non-negative numbers.
+        return;
+     }
+
+    const newId = inventory.length > 0 ? Math.max(...inventory.map(item => item.id)) + 1 : 1;
+    const addedProduct: InventoryItem = {
+      id: newId,
+      name: newProduct.name,
+      price: priceValue,
+      stock: stockValue,
+    };
+
+    setInventory([...inventory, addedProduct]);
+    toast({ title: "Producto Añadido", description: `${addedProduct.name} añadido al inventario.` }); // Product added to inventory.
+    setNewProduct({ name: '', price: '', stock: '' }); // Reset form
+    setIsAddProductDialogOpen(false); // Close dialog
   };
+
 
   // Handle saving changes from the Edit dialog (only stock and price)
    const handleEditItem = () => {
-      if (!editingItem || !editingItem.name || editingItem.price === undefined || editingItem.stock === undefined) {
-           toast({ title: "Error", description: "Faltan datos para editar.", variant: "destructive"}) // Missing data to edit.
+      if (!editingItem || !editingItem.name || editingItem.price === undefined || editingItem.stock === undefined || String(editingItem.price) === '' || String(editingItem.stock) === '') {
+           toast({ title: "Error", description: "Faltan datos para editar o son inválidos.", variant: "destructive"}) // Missing or invalid data to edit.
           return;
       }
+
+      const priceValue = parseFloat(String(editingItem.price));
+      const stockValue = parseInt(String(editingItem.stock), 10);
+
+       if (isNaN(priceValue) || isNaN(stockValue) || priceValue < 0 || stockValue < 0) {
+        toast({ title: "Error", description: "El precio y las existencias deben ser números válidos y no negativos.", variant: "destructive" }); // Price and stock must be valid non-negative numbers.
+        return;
+     }
+
+
      setInventory(
-      inventory.map((item) => (item.id === editingItem.id ? {...editingItem, price: parseFloat(String(editingItem.price)), stock: parseInt(String(editingItem.stock), 10)} : item))
+      inventory.map((item) => (item.id === editingItem.id ? {...editingItem, price: priceValue, stock: stockValue } : item))
     );
     const originalItemName = inventory.find(i => i.id === editingItem.id)?.name; // Get name for toast
     toast({ title: "Éxito", description: `${originalItemName} actualizado.`}); // updated.
@@ -136,12 +147,11 @@ export default function InventoryPage() {
   };
 
 
-  // Delete is less likely for predefined items, but kept for now.
+  // Delete item function - Allows deleting any item now
   const handleDeleteItem = (id: number) => {
      const itemToDelete = inventory.find(item => item.id === id);
-     // Consider preventing deletion of predefined items or adding confirmation
-    setInventory(inventory.filter((item) => item.id !== id));
-    toast({ title: "Eliminado", description: `${itemToDelete?.name} eliminado.`, variant: "destructive"}); // removed.
+     setInventory(inventory.filter((item) => item.id !== id));
+     toast({ title: "Eliminado", description: `${itemToDelete?.name} eliminado.`, variant: "destructive"}); // removed.
   };
 
   const openEditDialog = (item: InventoryItem) => {
@@ -149,7 +159,7 @@ export default function InventoryPage() {
     setIsEditDialogOpen(true);
   };
 
-   // Helper to format currency (maybe cost price)
+   // Helper to format currency
   const formatCurrency = (amount: number) => {
     // If price is 0, maybe display '-' or 'N/A'
     return amount === 0 ? '-' : `CLP ${amount.toFixed(0)}`;
@@ -159,50 +169,74 @@ export default function InventoryPage() {
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Gestión del Inventario</h1> {/* Inventory Management */}
-        {/* "Add Product" button now opens the "Add Quantities" dialog */}
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+        {/* "Add Product" button opens the "Add New Product" dialog */}
+        <Dialog open={isAddProductDialogOpen} onOpenChange={setIsAddProductDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <PlusCircle className="mr-2 h-4 w-4" /> Añadir Producto {/* Add Product */}
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md"> {/* Adjusted width */}
+          <DialogContent className="sm:max-w-[425px]"> {/* Adjusted width */}
             <DialogHeader>
-              <DialogTitle>Añadir Cantidades de Pan</DialogTitle> {/* Changed Title */}
+              <DialogTitle>Añadir Nuevo Producto</DialogTitle> {/* Changed Title */}
               <DialogDescription>
-                Introduzca las cantidades a añadir para cada tipo de pan. {/* Enter quantities to add for each bread type. */}
+                Introduzca los detalles del nuevo producto a inventariar. {/* Enter details for the new product. */}
               </DialogDescription>
             </DialogHeader>
-             <ScrollArea className="max-h-[400px] p-1"> {/* Added ScrollArea */}
-                <div className="grid gap-4 py-4 px-3">
-                  {/* Filter to show only bread items */}
-                  {predefinedItems
-                    .filter(item => item.name.toLowerCase().includes('pan')) // Filter for bread items
-                    .map((item) => (
-                    <div key={item.name} className="grid grid-cols-5 items-center gap-2"> {/* Changed grid columns */}
-                      <Label htmlFor={`quantity-${item.name}`} className="text-right col-span-3">
-                        {item.name}
-                      </Label>
-                      <Input
-                        id={`quantity-${item.name}`}
-                        type="number"
-                        min="0"
-                        step="1"
-                        value={addQuantities[item.name] || ''}
-                        onChange={(e) => handleQuantityChange(item.name, e.target.value)}
-                        className="col-span-2"
-                        placeholder="Cantidad" /* Quantity */
-                      />
-                    </div>
-                  ))}
+            {/* Form fields for adding a new product */}
+             <div className="grid gap-4 py-4">
+                 <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="new-product-name" className="text-right">
+                    Nombre {/* Name */}
+                    </Label>
+                    <Input
+                    id="new-product-name"
+                    value={newProduct.name}
+                    onChange={(e) => handleNewProductInputChange(e, 'name')}
+                    className="col-span-3"
+                    placeholder="Nombre del producto" /* Product name */
+                    required
+                    />
                 </div>
-            </ScrollArea>
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="new-product-price" className="text-right">
+                    Costo/Precio (CLP) {/* Price/Cost (CLP) */}
+                    </Label>
+                    <Input
+                    id="new-product-price"
+                    type="number"
+                    step="1"
+                    min="0"
+                    value={newProduct.price}
+                    onChange={(e) => handleNewProductInputChange(e, 'price')}
+                    className="col-span-3"
+                     placeholder="0"
+                    required
+                    />
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="new-product-stock" className="text-right">
+                    Existencias Iniciales {/* Initial Stock */}
+                    </Label>
+                    <Input
+                    id="new-product-stock"
+                    type="number"
+                    min="0"
+                    step="1"
+                    value={newProduct.stock}
+                    onChange={(e) => handleNewProductInputChange(e, 'stock')}
+                    className="col-span-3"
+                    placeholder="0"
+                    required
+                    />
+                </div>
+            </div>
             <DialogFooter>
               <DialogClose asChild>
                  <Button type="button" variant="secondary">Cancelar</Button> {/* Cancel */}
               </DialogClose>
-              {/* Button now updates stock */}
-              <Button type="submit" onClick={handleUpdateStock}>Actualizar Inventario</Button> {/* Update Inventory */}
+              {/* Button now adds the new product */}
+              <Button type="submit" onClick={handleAddNewProduct}>Añadir Producto</Button> {/* Add Product */}
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -240,20 +274,18 @@ export default function InventoryPage() {
                           </DialogDescription>
                         </DialogHeader>
                          <div className="grid gap-4 py-4">
-                           {/* Edit Name - Potentially disable editing for predefined items */}
-                           {/* <div className="grid grid-cols-4 items-center gap-4">
+                           {/* Name editing is disabled */}
+                           <div className="grid grid-cols-4 items-center gap-4">
                              <Label htmlFor="edit-name" className="text-right">
-                               Nombre
+                               Nombre {/* Name */}
                              </Label>
                              <Input
                                id="edit-name"
                                value={editingItem?.name || ''}
-                               onChange={(e) => handleEditInputChange(e, 'name')} // Need separate handler if name is editable
                                className="col-span-3"
-                               required
-                               disabled // Example: Disable editing name for predefined items
+                               disabled // Disable editing name
                              />
-                           </div> */}
+                           </div>
                           <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="edit-price" className="text-right">
                               Costo/Precio (CLP) {/* Price/Cost (CLP) */}
@@ -263,8 +295,8 @@ export default function InventoryPage() {
                               type="number"
                               step="1"
                               min="0"
-                              value={editingItem?.price ?? ''} // Use ?? to handle potential undefined
-                               onChange={(e) => handleEditInputChange(e, 'price')}
+                              value={editingItem?.price ?? ''} // Use ?? to handle potential undefined or null
+                              onChange={(e) => handleEditInputChange(e, 'price')}
                               className="col-span-3"
                                required
                             />
@@ -278,7 +310,7 @@ export default function InventoryPage() {
                               type="number"
                                min="0"
                                step="1"
-                               value={editingItem?.stock ?? ''} // Use ?? to handle potential undefined
+                               value={editingItem?.stock ?? ''} // Use ?? to handle potential undefined or null
                                onChange={(e) => handleEditInputChange(e, 'stock')}
                               className="col-span-3"
                                required
@@ -294,24 +326,22 @@ export default function InventoryPage() {
                       </DialogContent>
                    </Dialog>
 
-                  {/* Delete Button - Consider disabling/hiding for predefined items */}
-                   { !predefinedItems.some(p => p.name === item.name) && ( // Only show delete for non-predefined items
-                      <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-destructive hover:text-destructive/90"
-                          onClick={() => handleDeleteItem(item.id)}
-                      >
-                          <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
+                  {/* Delete Button - Enabled for all items now */}
+                  <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-destructive hover:text-destructive/90"
+                      onClick={() => handleDeleteItem(item.id)}
+                  >
+                      <Trash2 className="h-4 w-4" />
+                  </Button>
                 </TableCell>
               </TableRow>
             ))}
              {inventory.length === 0 && (
                 <TableRow>
                     <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
-                    No se encontraron productos. Configure el inventario inicial. {/* No products found. Configure initial inventory. */}
+                    No hay productos en el inventario. ¡Añada algunos! {/* No products in inventory. Add some! */}
                     </TableCell>
                 </TableRow>
              )}
