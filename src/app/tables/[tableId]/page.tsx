@@ -104,7 +104,7 @@ export default function TableDetailPage() {
   const tableIdParam = params.tableId as string; // Get the raw param (can be number or string)
   const [order, setOrder] = useState<OrderItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>(
-    'Completos'
+    'Completos Vienesas' // Changed initial category
   );
 
   // Simulate fetching existing order (replace with real logic)
@@ -192,7 +192,7 @@ export default function TableDetailPage() {
   };
 
   const filteredMenu =
-    selectedCategory === 'Completos'
+    selectedCategory === 'Completos Vienesas' // Changed condition
       ? mockMenu
       : mockMenu.filter((item) => item.category === selectedCategory);
 
@@ -220,11 +220,11 @@ export default function TableDetailPage() {
             <CardTitle>Menú</CardTitle>
             <div className="flex space-x-2 pt-2 overflow-x-auto pb-2">
                <Button
-                variant={selectedCategory === 'Completos' ? 'default' : 'secondary'}
-                onClick={() => setSelectedCategory('Completos')}
+                variant={selectedCategory === 'Completos Vienesas' ? 'default' : 'secondary'} // Changed condition
+                onClick={() => setSelectedCategory('Completos Vienesas')} // Changed category
                 className="shrink-0"
               >
-                Completos
+                Completos Vienesas {/* Changed text */}
               </Button>
               {categories.map((category) => (
                 <Button
