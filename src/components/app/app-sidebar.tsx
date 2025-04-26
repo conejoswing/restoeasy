@@ -1,9 +1,10 @@
+
 'use client';
 
 import * as React from 'react';
 import Link from 'next/link';
-import {usePathname} from 'next/navigation';
-import { UtensilsCrossed, Package, Receipt, Users } from 'lucide-react'; // Import Users icon
+import { usePathname, useRouter } from 'next/navigation';
+import { UtensilsCrossed, Package, Receipt, Users, LogOut } from 'lucide-react'; // Import Users icon & LogOut
 
 import {
   SidebarContent,
@@ -11,13 +12,23 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
+  SidebarFooter, // Import SidebarFooter
+  SidebarSeparator, // Import SidebarSeparator
 } from '@/components/ui/sidebar';
+import { useAuth } from '@/context/AuthContext'; // Import useAuth
 
 
 export default function AppSidebar() {
   const pathname = usePathname();
+  const { isAuthenticated, logout } = useAuth(); // Get auth state and logout function
+  const router = useRouter();
 
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/');
+
+  const handleLogout = () => {
+      logout();
+      // router.push('/login'); // Already handled in AuthContext logout
+  }
 
   return (
     <>
@@ -61,9 +72,8 @@ export default function AppSidebar() {
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
-          {/* New Staff Menu Item */}
           <SidebarMenuItem>
-            <Link href="/staff"> {/* Placeholder link, adjust as needed */}
+            <Link href="/staff">
               <SidebarMenuButton
                 isActive={isActive('/staff')}
                 tooltip="Personal de Trabajo" // Added tooltip
@@ -75,7 +85,20 @@ export default function AppSidebar() {
           </SidebarMenuItem>
         </SidebarMenu>
 
-        {/* Image section removed */}
+        {/* Logout Button Section */}
+        {isAuthenticated && (
+            <SidebarFooter className="mt-auto"> {/* Push footer to bottom */}
+                 <SidebarSeparator /> {/* Optional separator */}
+                 <SidebarMenu>
+                     <SidebarMenuItem>
+                         <SidebarMenuButton onClick={handleLogout} tooltip="Cerrar Sesión" variant="ghost" className="text-destructive hover:bg-destructive/10 hover:text-destructive">
+                             <LogOut />
+                             <span className="group-data-[collapsible=icon]:hidden">Cerrar Sesión</span>
+                         </SidebarMenuButton>
+                     </SidebarMenuItem>
+                 </SidebarMenu>
+            </SidebarFooter>
+        )}
 
       </SidebarContent>
     </>
