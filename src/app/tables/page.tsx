@@ -14,10 +14,11 @@ interface Table {
   status: 'available' | 'occupied';
 }
 
-// Generate 10 numbered tables
+// Generate 10 numbered tables with fixed statuses to avoid hydration issues
 const numberedTables: Table[] = Array.from({length: 10}, (_, i) => ({
   id: i + 1,
-  status: Math.random() > 0.6 ? 'occupied' : 'available', // Randomly assign status
+  // Assign fixed statuses: first 3 occupied, rest available
+  status: i < 3 ? 'occupied' : 'available',
 }));
 
 // Add Mezon and Delivery
@@ -30,6 +31,7 @@ const initialTables: Table[] = [...numberedTables, ...specialTables];
 
 
 export default function TablesPage() {
+  // Use initialTables which now have deterministic statuses
   const [tables, setTables] = useState<Table[]>(initialTables);
 
   // In a real app, this would likely involve fetching data and potentially more complex state management.
@@ -68,8 +70,8 @@ export default function TablesPage() {
                   className={cn(
                     'text-sm font-medium px-2 py-1 rounded-full',
                     table.status === 'available'
-                      ? 'bg-green-200 text-green-800'
-                      : 'bg-orange-200 text-orange-800'
+                      ? 'bg-green-200 text-green-800' // Use direct colors temporarily for visibility
+                      : 'bg-orange-200 text-orange-800' // Use direct colors temporarily for visibility
                   )}
                 >
                   {table.status === 'available' ? 'Disponible' : 'Ocupada'}
