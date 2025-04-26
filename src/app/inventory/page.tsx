@@ -24,7 +24,7 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import {Label} from '@/components/ui/label';
-import {PlusCircle, Edit, Trash2} from 'lucide-react'; // Trash2 might not be used anymore but keep import for now
+import {PlusCircle, MinusCircle} from 'lucide-react'; // Import MinusCircle
 import {useToast} from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -67,9 +67,7 @@ export default function InventoryPage() {
   // State for adding stock to predefined items
   const [selectedPredefinedItem, setSelectedPredefinedItem] = useState<string | null>(null);
   const [predefinedItemStock, setPredefinedItemStock] = useState<string>('');
-  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [addProductMode, setAddProductMode] = useState<'predefined' | 'manual'>('predefined'); // Control dialog mode
   const {toast} = useToast();
 
@@ -90,20 +88,6 @@ export default function InventoryPage() {
   const handlePredefinedItemSelect = (value: string) => {
       setSelectedPredefinedItem(value);
   }
-
-
-  // Handles input change for the "Edit Item" dialog (only stock)
-  const handleEditInputChange = (
-    e: React.ChangeEvent<HTMLInputElement>,
-    key: 'stock' // Only allow editing stock here
-  ) => {
-    if (editingItem) {
-        // Directly update the number fields, handling potential empty input for typing
-        const value = e.target.value;
-         setEditingItem((prev) => (prev ? { ...prev, [key]: value === '' ? '' : Number(value) } : null));
-    }
-  };
-
 
   // Function to add a new product or update stock based on the dialog mode
   const handleAddOrUpdateStock = () => {
@@ -131,7 +115,7 @@ export default function InventoryPage() {
               stock: stockValue,
           };
 
-          setInventory([...inventory, addedProduct]);
+          setInventory([...inventory, addedProduct].sort((a, b) => a.name.localeCompare(b.name))); // Sort alphabetically
           toast({ title: "Producto Añadido", description: `${addedProduct.name} añadido al inventario.` }); // Product added to inventory.
           setNewManualProduct({ name: '', stock: '' }); // Reset manual form
           setIsAddProductDialogOpen(false); // Close dialog
@@ -153,7 +137,7 @@ export default function InventoryPage() {
                  return { ...item, stock: item.stock + stockToAdd };
              }
              return item;
-         }));
+         }).sort((a, b) => a.name.localeCompare(b.name))); // Keep sorted alphabetically
          toast({ title: "Stock Actualizado", description: `Se añadieron ${stockToAdd} unidades de ${selectedPredefinedItem}.` }); // Stock updated.
          setSelectedPredefinedItem(null); // Reset selection
          setPredefinedItemStock(''); // Reset stock input
@@ -161,43 +145,42 @@ export default function InventoryPage() {
      }
   };
 
+  // Function to increase stock by 1
+  const handleIncreaseStock = (id: number) => {
+    setInventory(inventory.map(item =>
+      item.id === id ? { ...item, stock: item.stock + 1 } : item
+    ));
+    const itemName = inventory.find(item => item.id === id)?.name;
+    toast({ title: "Stock Incrementado", description: `+1 unidad de ${itemName}.` });
+  };
 
-  // Handle saving changes from the Edit dialog (only stock)
-   const handleEditItem = () => {
-      if (!editingItem || !editingItem.name || editingItem.stock === undefined || String(editingItem.stock) === '') {
-           toast({ title: "Error", description: "Faltan datos para editar o son inválidos.", variant: "destructive"}) // Missing or invalid data to edit.
-          return;
+  // Function to decrease stock by 1
+  const handleDecreaseStock = (id: number) => {
+    let itemName = '';
+    setInventory(inventory.map(item => {
+      if (item.id === id) {
+        itemName = item.name;
+        // Prevent stock from going below zero
+        if (item.stock > 0) {
+          return { ...item, stock: item.stock - 1 };
+        }
       }
+      return item;
+    }));
 
-      const stockValue = parseInt(String(editingItem.stock), 10);
+    // Only show toast if stock was actually decreased
+     const updatedItem = inventory.find(item => item.id === id);
+    if (updatedItem && updatedItem.stock >= 0) { // Check if item exists and stock non-negative (it might be 0 now)
+         const originalItem = inventory.find(item => item.id === id); // Find the item again to check original stock
+         if (originalItem && originalItem.stock > 0) { // Only toast if original stock was > 0
+            toast({ title: "Stock Reducido", description: `-1 unidad de ${itemName}.`, variant: "destructive" });
+         } else {
+             toast({ title: "Sin Stock", description: `${itemName} ya no tiene existencias.`, variant: "destructive" });
+         }
+    }
 
-       if (isNaN(stockValue) || stockValue < 0) {
-        toast({ title: "Error", description: "Las existencias deben ser un número válido y no negativo.", variant: "destructive" }); // Stock must be valid non-negative numbers.
-        return;
-     }
-
-
-     setInventory(
-      inventory.map((item) => (item.id === editingItem.id ? {...editingItem, stock: stockValue } : item))
-    );
-    const originalItemName = inventory.find(i => i.id === editingItem.id)?.name; // Get name for toast
-    toast({ title: "Éxito", description: `${originalItemName} actualizado.`}); // updated.
-    setEditingItem(null); // Reset editing state
-    setIsEditDialogOpen(false); // Close dialog
   };
 
-
-  // Delete item function - Kept for potential future use, but button is removed
-  const handleDeleteItem = (id: number) => {
-     const itemToDelete = inventory.find(item => item.id === id);
-     setInventory(inventory.filter((item) => item.id !== id));
-     toast({ title: "Eliminado", description: `${itemToDelete?.name} eliminado.`, variant: "destructive"}); // removed.
-  };
-
-  const openEditDialog = (item: InventoryItem) => {
-    setEditingItem({...item}); // Copy item to avoid direct state mutation during edits
-    setIsEditDialogOpen(true);
-  };
 
   // Reset dialog state when closing
    const handleDialogClose = () => {
@@ -216,12 +199,12 @@ export default function InventoryPage() {
         <Dialog open={isAddProductDialogOpen} onOpenChange={handleDialogClose}>
           <DialogTrigger asChild>
             <Button onClick={() => setIsAddProductDialogOpen(true)}>
-              <PlusCircle className="mr-2 h-4 w-4" /> Añadir Producto {/* Changed Button Text */}
+              <PlusCircle className="mr-2 h-4 w-4" /> Añadir Producto
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-lg"> {/* Adjusted width */}
             <DialogHeader>
-              <DialogTitle>Añadir Producto</DialogTitle> {/* Changed Title */}
+              <DialogTitle>Añadir Producto</DialogTitle>
               <DialogDescription>
                  Seleccione un producto predefinido para añadir stock o agregue un nuevo producto manualmente. {/* Select predefined or add manually */}
               </DialogDescription>
@@ -320,77 +303,38 @@ export default function InventoryPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Producto</TableHead> {/* Product */}
-              <TableHead className="text-right">Existencias</TableHead> {/* Stock */}
-              <TableHead className="text-right">Acciones</TableHead> {/* Actions */}
+              <TableHead className="text-center">Existencias</TableHead> {/* Stock - Centered */}
+              <TableHead className="text-center">Acciones</TableHead> {/* Actions - Centered */}
             </TableRow>
           </TableHeader>
           <TableBody>
             {inventory.map((item) => (
               <TableRow key={item.id}>
                 <TableCell className="font-medium">{item.name}</TableCell>
-                <TableCell className="text-right">{item.stock}</TableCell>
-                <TableCell className="text-right">
-                  {/* Edit Dialog Trigger */}
-                  <Dialog open={isEditDialogOpen && editingItem?.id === item.id} onOpenChange={(open) => { if (!open) setEditingItem(null); setIsEditDialogOpen(open);}}>
-                     <DialogTrigger asChild>
-                         <Button variant="ghost" size="icon" onClick={() => openEditDialog(item)} className="mr-2">
-                            <Edit className="h-4 w-4" />
-                         </Button>
-                     </DialogTrigger>
-                     <DialogContent className="sm:max-w-[425px]">
-                        <DialogHeader>
-                          <DialogTitle>Editar {editingItem?.name}</DialogTitle> {/* Edit Product Name */}
-                          <DialogDescription>
-                             Actualice las existencias del producto. {/* Update stock. */}
-                          </DialogDescription>
-                        </DialogHeader>
-                         <div className="grid gap-4 py-4">
-                           {/* Name editing is disabled */}
-                           <div className="grid grid-cols-4 items-center gap-4">
-                             <Label htmlFor="edit-name" className="text-right">
-                               Nombre {/* Name */}
-                             </Label>
-                             <Input
-                               id="edit-name"
-                               value={editingItem?.name || ''}
-                               className="col-span-3"
-                               disabled // Disable editing name
-                             />
-                           </div>
-                          <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="edit-stock" className="text-right">
-                              Existencias {/* Stock */}
-                            </Label>
-                            <Input
-                              id="edit-stock"
-                              type="number"
-                               min="0"
-                               step="1"
-                               value={editingItem?.stock ?? ''} // Use ?? to handle potential undefined or null
-                               onChange={(e) => handleEditInputChange(e, 'stock')}
-                              className="col-span-3"
-                               required
-                            />
-                          </div>
-                        </div>
-                        <DialogFooter>
-                           <DialogClose asChild>
-                             <Button type="button" variant="secondary">Cancelar</Button> {/* Cancel */}
-                           </DialogClose>
-                           <Button type="submit" onClick={handleEditItem}>Guardar Cambios</Button> {/* Save Changes */}
-                        </DialogFooter>
-                      </DialogContent>
-                   </Dialog>
+                <TableCell className="text-center w-24">{item.stock}</TableCell> {/* Centered and fixed width */}
+                <TableCell className="text-center w-32"> {/* Centered and fixed width */}
+                  <div className="flex justify-center items-center gap-1">
+                    {/* Decrease Stock Button */}
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-destructive hover:bg-destructive/10"
+                        onClick={() => handleDecreaseStock(item.id)}
+                        disabled={item.stock <= 0} // Disable if stock is 0
+                    >
+                        <MinusCircle className="h-4 w-4" />
+                    </Button>
 
-                  {/* Delete Button Removed */}
-                  {/* <Button
-                      variant="ghost"
-                      size="icon"
-                      className="text-destructive hover:text-destructive/90"
-                      onClick={() => handleDeleteItem(item.id)}
-                  >
-                      <Trash2 className="h-4 w-4" />
-                  </Button> */}
+                    {/* Increase Stock Button */}
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-primary hover:bg-primary/10"
+                        onClick={() => handleIncreaseStock(item.id)}
+                    >
+                        <PlusCircle className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             ))}
