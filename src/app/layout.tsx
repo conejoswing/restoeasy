@@ -33,7 +33,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const pathname = usePathname();
-  const showSidebar = !pathname.startsWith('/tables'); // Hide sidebar on /tables/** routes
+  // Show sidebar unless the path starts with /tables/ followed by more segments (like /tables/1, /tables/mezon)
+  // Show sidebar on the main /tables page itself.
+  const showSidebar = !pathname.startsWith('/tables/') || pathname === '/tables';
 
   return (
     // The html and body tags should remain in the server component if possible,
