@@ -228,10 +228,11 @@ export default function TableDetailPage() {
      // router.push('/tables'); // Option to navigate back
   };
 
-  const filteredMenu =
-    selectedCategory === 'Completos Vienesas' // Filter for 'Completos Vienesas' shows all menu items
-      ? mockMenu
-      : mockMenu.filter((item) => item.category === selectedCategory);
+  // Filter menu items based on the selected category
+  const filteredMenu = mockMenu.filter(
+    (item) => selectedCategory === 'Completos Vienesas' || item.category === selectedCategory
+  );
+
 
   const total = calculateTotal(order);
 
@@ -245,6 +246,47 @@ export default function TableDetailPage() {
           return `Mesa ${tableIdParam}`;
       }
   }
+
+  const renderMenuItems = () => {
+    if (selectedCategory === 'Completos Vienesas') {
+      // Render as a list
+      return (
+        <ul className="space-y-2">
+          {filteredMenu.map((item) => (
+            <li
+              key={item.id}
+              className="flex justify-between items-center p-3 border rounded-md cursor-pointer hover:bg-secondary/50 transition-colors"
+              onClick={() => addToOrder(item)}
+            >
+              <span className="font-medium">{item.name}</span>
+              <span className="text-muted-foreground">${item.price.toFixed(2)}</span>
+            </li>
+          ))}
+        </ul>
+      );
+    } else {
+      // Render as a grid (existing layout)
+      return (
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          {filteredMenu.map((item) => (
+            <Card
+              key={item.id}
+              className="cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => addToOrder(item)}
+            >
+              <CardContent className="p-3">
+                <h3 className="font-semibold text-sm truncate">{item.name}</h3>
+                <p className="text-xs text-muted-foreground">${item.price.toFixed(2)}</p>
+              </CardContent>
+            </Card>
+          ))}
+          {filteredMenu.length === 0 && selectedCategory !== 'Completos Vienesas' && (
+            <p className="text-muted-foreground col-span-full text-center pt-4">No hay artículos en esta categoría.</p>
+          )}
+        </div>
+      );
+    }
+  };
 
 
   return (
@@ -271,23 +313,7 @@ export default function TableDetailPage() {
           </CardHeader>
           <CardContent className="flex-grow overflow-hidden p-0">
             <ScrollArea className="h-full p-4">
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                {filteredMenu.map((item) => (
-                  <Card
-                    key={item.id}
-                    className="cursor-pointer hover:shadow-md transition-shadow"
-                    onClick={() => addToOrder(item)}
-                  >
-                    <CardContent className="p-3">
-                      <h3 className="font-semibold text-sm truncate">{item.name}</h3>
-                      <p className="text-xs text-muted-foreground">${item.price.toFixed(2)}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-                 {filteredMenu.length === 0 && selectedCategory !== 'Completos Vienesas' && (
-                     <p className="text-muted-foreground col-span-full text-center pt-4">No hay artículos en esta categoría.</p>
-                 )}
-              </div>
+              {renderMenuItems()}
             </ScrollArea>
           </CardContent>
         </Card>
