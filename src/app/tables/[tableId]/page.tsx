@@ -39,7 +39,7 @@ const mockMenu: MenuItem[] = [
   },
   {
     id: 2,
-    name: 'Pizza',
+    name: 'Italiano grande', // Changed from 'Pizza'
     price: 12.5,
     category: 'Fajitas', // Changed from 'Platos Principales'
   },
