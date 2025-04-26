@@ -55,7 +55,7 @@ const mockMenu: MenuItem[] = [
       name: 'Completo Vienesa Dinámico',
       price: 4500,
       category: 'Completos Vienesas',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Salsa Verde', 'Americana'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Salsa Verde', 'Americana', 'Agregado Queso'],
       modificationPrices: { 'Agregado Queso': 1000 } // Example: Add price for cheese here too if applicable
     },
      {
@@ -97,23 +97,24 @@ const mockMenu: MenuItem[] = [
       name: 'Italiano chico',
       price: 8990,
       category: 'Fajitas',
-      modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne'], // Simpler modifications
-      modificationPrices: { 'Con Queso': 500, 'Extra Carne': 1000 }, // Example prices
+      modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají Verde', 'Agregado Queso'], // Simpler modifications + Ají Verde + Agregado Queso
+      modificationPrices: { 'Con Queso': 500, 'Extra Carne': 1000, 'Agregado Queso': 1000 }, // Example prices + Cheese
     },
     {
       id: 2,
       name: 'Italiano grande',
       price: 12500,
       category: 'Fajitas',
-      modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají'],
-      modificationPrices: { 'Con Queso': 800, 'Extra Carne': 1500 },
+      modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají', 'Ají Verde', 'Agregado Queso'], // + Ají Verde + Agregado Queso
+      modificationPrices: { 'Con Queso': 800, 'Extra Carne': 1500, 'Agregado Queso': 1000 }, // + Cheese
     },
      {
       id: 8,
       name: 'Filete',
       price: 18000,
       category: 'Fajitas',
-       // No modifications for this one example
+      modifications: ['Ají Verde', 'Agregado Queso'], // Added modifications
+      modificationPrices: { 'Agregado Queso': 1000 }, // Added cheese price
     },
     // --- Café ---
     {
@@ -141,14 +142,16 @@ const mockMenu: MenuItem[] = [
       name: 'Completo grande', // Adjust category/name if needed
       price: 4500,
       category: 'Promociones',
-      modifications: ['Vienesa', 'As', 'Con Bebida Pequeña'],
+      modifications: ['Vienesa', 'As', 'Con Bebida Pequeña', 'Ají Verde', 'Agregado Queso'], // + Ají Verde + Agregado Queso
+      modificationPrices: { 'Agregado Queso': 1000 }, // + Cheese
     },
      {
       id: 5,
       name: 'Completo chico', // Adjust category if needed
       price: 2000,
       category: 'Promociones', // Or maybe Bebidas? Adjust as needed
-      modifications: ['Vienesa', 'As', 'Con Bebida Pequeña'],
+      modifications: ['Vienesa', 'As', 'Con Bebida Pequeña', 'Ají Verde', 'Agregado Queso'], // + Ají Verde + Agregado Queso
+      modificationPrices: { 'Agregado Queso': 1000 }, // + Cheese
     },
     // --- Bebidas ---
     {
@@ -391,7 +394,8 @@ export default function TableDetailPage() {
   return (
     <div className="container mx-auto p-4 h-[calc(100vh-theme(spacing.16))] flex flex-col">
        <div className="flex items-center mb-6">
-         <Button variant="ghost" size="icon" onClick={() => router.push('/tables')} className="mr-2">
+         {/* Change variant to 'secondary' for the back button */}
+         <Button variant="secondary" size="icon" onClick={() => router.push('/tables')} className="mr-2">
            <ArrowLeft className="h-6 w-6" />
          </Button>
          <h1 className="text-3xl font-bold">{getPageTitle()} - Pedido</h1>
