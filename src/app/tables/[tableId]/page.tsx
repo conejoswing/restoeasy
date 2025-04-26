@@ -22,16 +22,19 @@ import ModificationDialog from '@/components/app/modification-dialog'; // Import
 interface MenuItem {
   id: number;
   name: string;
-  price: number;
+  price: number; // Base price
   category: string;
   modifications?: string[]; // Optional list of modifications
+  modificationPrices?: { [key: string]: number }; // Optional map of modification name to additional price
 }
 
-// OrderItem now includes the selected modification
-interface OrderItem extends MenuItem {
+// OrderItem now includes the calculated price based on modification
+interface OrderItem extends Omit<MenuItem, 'price' | 'modificationPrices'> {
   orderItemId: string; // Unique ID for this specific item instance in the order
   quantity: number;
   selectedModification?: string;
+  basePrice: number; // Store the original base price
+  finalPrice: number; // Store the calculated price (base + modification)
 }
 
 
@@ -44,6 +47,7 @@ const mockMenu: MenuItem[] = [
       price: 4.00,
       category: 'Completos Vienesas',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Agregado Queso'], // Updated: Mostaza -> Agregado Queso, Ketchup removed
+      modificationPrices: { 'Agregado Queso': 1.00 } // Add price for cheese
     },
     {
       id: 14,
@@ -51,13 +55,15 @@ const mockMenu: MenuItem[] = [
       price: 4.50,
       category: 'Completos Vienesas',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Salsa Verde', 'Americana'],
+      modificationPrices: { 'Agregado Queso': 1.00 } // Example: Add price for cheese here too if applicable
     },
      {
       id: 15, // Example new item
       name: 'Completo Vienesa Completo',
       price: 4.20,
       category: 'Completos Vienesas',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Chucrut', 'Tomate', 'Americana'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Chucrut', 'Tomate', 'Americana', 'Agregado Queso'],
+      modificationPrices: { 'Agregado Queso': 1.00 } // Add price for cheese
     },
     // --- Completos As ---
     {
@@ -65,21 +71,24 @@ const mockMenu: MenuItem[] = [
       name: 'Completo As Italiano',
       price: 5.50,
       category: 'Completos As',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Agregado Queso'],
+      modificationPrices: { 'Agregado Queso': 1.20 } // Different price example
     },
     {
       id: 11,
       name: 'Completo As Dinámico',
       price: 6.00,
       category: 'Completos As',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Salsa Verde', 'Americana'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Salsa Verde', 'Americana', 'Agregado Queso'],
+      modificationPrices: { 'Agregado Queso': 1.20 }
     },
     {
       id: 12,
       name: 'Completo As Chacarero',
       price: 6.50,
       category: 'Completos As',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Agregado Queso'],
+       modificationPrices: { 'Agregado Queso': 1.20 }
     },
     // --- Fajitas ---
     {
@@ -87,14 +96,16 @@ const mockMenu: MenuItem[] = [
       name: 'Italiano chico',
       price: 8.99,
       category: 'Fajitas',
-      modifications: ['Con Queso (+ $500)', 'Sin Cebolla', 'Extra Carne (+ $1000)'], // Example modifications
+      modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne'], // Simpler modifications
+      modificationPrices: { 'Con Queso': 0.50, 'Extra Carne': 1.00 }, // Example prices
     },
     {
       id: 2,
       name: 'Italiano grande',
       price: 12.5,
       category: 'Fajitas',
-      modifications: ['Con Queso (+ $800)', 'Sin Cebolla', 'Extra Carne (+ $1500)', 'Ají'],
+      modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají'],
+      modificationPrices: { 'Con Queso': 0.80, 'Extra Carne': 1.50 },
     },
      {
       id: 8,
@@ -206,8 +217,12 @@ export default function TableDetailPage() {
     setIsModificationDialogOpen(false);
   };
 
-  // Updated addToOrder to handle modifications
+  // Updated addToOrder to handle modifications and their prices
   const addToOrder = (item: MenuItem, modification?: string) => {
+    // Calculate modification cost
+    const modificationCost = (modification && item.modificationPrices?.[modification]) ? item.modificationPrices[modification] : 0;
+    const finalItemPrice = item.price + modificationCost;
+
     setOrder((prevOrder) => {
        // Check if an identical item *with the same modification* already exists
       const existingItemIndex = prevOrder.findIndex(
@@ -224,18 +239,36 @@ export default function TableDetailPage() {
         return updatedOrder;
       } else {
          // Add as a new item
+        const { price, modificationPrices, ...itemWithoutPrices } = item; // Destructure to remove original price/modPrices
         const newOrderItem: OrderItem = {
-          ...item,
+          ...itemWithoutPrices, // Spread remaining item props (id, name, category, modifications)
           orderItemId: `${item.id}-${Date.now()}-${Math.random()}`, // Generate unique ID
           quantity: 1,
           selectedModification: modification,
+          basePrice: item.price, // Store original base price
+          finalPrice: finalItemPrice, // Store calculated final price
         };
         return [...prevOrder, newOrderItem];
       }
     });
+
+    // Calculate the total for the toast message correctly AFTER the state update logic runs
+    // (we need to recalculate based on the potentially new order state)
+    const tempOrder = [...order]; // Create a temporary copy
+    const existingItemIndex = tempOrder.findIndex(oi => oi.id === item.id && oi.selectedModification === modification);
+    let newTotal;
+    if (existingItemIndex > -1) {
+        // If item exists, calculate total as if quantity increased by 1
+        newTotal = calculateTotal(tempOrder) + tempOrder[existingItemIndex].finalPrice;
+    } else {
+        // If new item, calculate total as if this item was added
+        newTotal = calculateTotal(tempOrder) + finalItemPrice;
+    }
+
+
       toast({
         title: `${item.name}${modification ? ` (${modification})` : ''} añadido`,
-        description: `Total: $${(calculateTotal(order) + item.price).toFixed(2)}`,
+        description: `Total: $${newTotal.toFixed(2)}`, // Use the correctly calculated new total
         variant: "default",
         className: "bg-secondary text-secondary-foreground"
       })
@@ -274,11 +307,10 @@ export default function TableDetailPage() {
       })
    }
 
+  // Calculate total based on finalPrice of each OrderItem
   const calculateTotal = (currentOrder: OrderItem[]) => {
-    // Note: This calculation doesn't yet account for potential price changes from modifications.
-    // You'll need to add logic here if modifications affect the price.
     return currentOrder.reduce(
-      (total, item) => total + item.price * item.quantity,
+      (total, item) => total + item.finalPrice * item.quantity,
       0
     );
   };
@@ -386,7 +418,8 @@ export default function TableDetailPage() {
                            {item.selectedModification && (
                              <p className="text-xs text-muted-foreground">({item.selectedModification})</p>
                            )}
-                          <p className='text-xs text-muted-foreground'>${item.price.toFixed(2)}</p>
+                           {/* Show the final calculated price per item */}
+                          <p className='text-xs text-muted-foreground'>${item.finalPrice.toFixed(2)}</p>
                         </div>
                      </div>
 
@@ -396,8 +429,14 @@ export default function TableDetailPage() {
                             <MinusCircle className="h-4 w-4" />
                           </Button>
                         <span className="font-medium w-4 text-center">{item.quantity}</span>
-                         {/* Add to order requires the base item info, not just orderItemId */}
-                         <Button variant="ghost" size="icon" className="h-6 w-6 text-primary" onClick={() => addToOrder(item, item.selectedModification)}>
+                         {/* Add to order requires the base item info and modification */}
+                         <Button variant="ghost" size="icon" className="h-6 w-6 text-primary" onClick={() => {
+                            // Find the original MenuItem to pass to addToOrder
+                             const originalItem = mockMenu.find(menuItem => menuItem.id === item.id);
+                             if (originalItem) {
+                                 addToOrder(originalItem, item.selectedModification);
+                             }
+                         }}>
                            <PlusCircle className="h-4 w-4" />
                          </Button>
                           <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive/70" onClick={() => removeCompletely(item.orderItemId)}>

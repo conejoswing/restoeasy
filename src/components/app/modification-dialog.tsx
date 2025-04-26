@@ -20,6 +20,7 @@ interface MenuItem {
   price: number;
   category: string;
   modifications?: string[];
+  modificationPrices?: { [key: string]: number }; // Optional map of modification name to additional price
 }
 
 interface ModificationDialogProps {
@@ -75,7 +76,7 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Seleccionar Modificación para {item.name}</DialogTitle>
           <DialogDescription>
-            Elige una opción para este artículo. Precio: ${item.price.toFixed(2)}
+            Elige una opción para este artículo. Precio Base: ${item.price.toFixed(2)}
             {/* Add note about potential price changes here if applicable */}
           </DialogDescription>
         </DialogHeader>
@@ -86,17 +87,23 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
               className="grid gap-4 py-4 px-3" // Added padding inside scroll area
             >
               {/* Optionally add a "None" or default option */}
-              {/* <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="ninguno" id="mod-ninguno" />
+               <div className="flex items-center space-x-2">
+                  <RadioGroupItem value={undefined as any} id="mod-ninguno" checked={selectedModification === undefined} /> {/* Handle undefined value */}
                   <Label htmlFor="mod-ninguno">Ninguno / Por defecto</Label>
-              </div> */}
-              {item.modifications?.map((mod) => (
-                <div key={mod} className="flex items-center space-x-2">
-                  <RadioGroupItem value={mod} id={`mod-${mod.replace(/\s+/g, '-')}`} />
-                  <Label htmlFor={`mod-${mod.replace(/\s+/g, '-')}`}>{mod}</Label>
-                  {/* You could display price changes next to the modification here */}
-                </div>
-              ))}
+              </div>
+              {item.modifications?.map((mod) => {
+                 const modificationCost = item.modificationPrices?.[mod];
+                 const costString = modificationCost ? ` (+ $${modificationCost.toFixed(2)})` : '';
+                 return (
+                    <div key={mod} className="flex items-center space-x-2">
+                      <RadioGroupItem value={mod} id={`mod-${mod.replace(/\s+/g, '-')}`} />
+                      <Label htmlFor={`mod-${mod.replace(/\s+/g, '-')}`}>
+                        {mod}
+                        <span className="text-muted-foreground text-xs">{costString}</span>
+                      </Label>
+                    </div>
+                 );
+              })}
             </RadioGroup>
         </ScrollArea>
         <DialogFooter>
@@ -113,4 +120,3 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
 };
 
 export default ModificationDialog;
-
