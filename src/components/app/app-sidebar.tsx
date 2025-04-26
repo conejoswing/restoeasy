@@ -12,8 +12,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-  SidebarFooter, // Import SidebarFooter
-  SidebarSeparator, // Import SidebarSeparator
+  SidebarSeparator, // Keep this import
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/context/AuthContext'; // Import useAuth
 
@@ -37,8 +36,9 @@ export default function AppSidebar() {
           El Bajón de la Cami
         </h2>
       </SidebarHeader>
-      <SidebarContent className="flex flex-col justify-between flex-grow"> {/* Added flex-grow */}
-        <SidebarMenu>
+      {/* Use flex-col and mt-auto on the logout item to push it down */}
+      <SidebarContent className="flex flex-col justify-between flex-grow">
+        <SidebarMenu className="flex flex-col flex-grow"> {/* Add flex-grow here */}
           {/* Tables is visible to all authenticated users */}
           <SidebarMenuItem>
             <Link href="/tables">
@@ -90,23 +90,23 @@ export default function AppSidebar() {
               </SidebarMenuItem>
             </>
           )}
-        </SidebarMenu>
 
-        {/* Logout Button Section - Visible to all authenticated users */}
-        {isAuthenticated && (
-            <SidebarFooter className="mt-auto"> {/* Push footer to bottom */}
+          {/* Spacer to push logout down */}
+          <div className="flex-grow" />
+
+          {/* Logout Button - Now at the end of the main menu */}
+          {isAuthenticated && (
+             <>
                  <SidebarSeparator /> {/* Optional separator */}
-                 <SidebarMenu>
-                     <SidebarMenuItem>
-                         <SidebarMenuButton onClick={handleLogout} tooltip="Cerrar Sesión" variant="ghost" className="text-destructive hover:bg-destructive/10 hover:text-destructive">
-                             <LogOut />
-                             <span className="group-data-[collapsible=icon]:hidden">Cerrar Sesión</span>
-                         </SidebarMenuButton>
-                     </SidebarMenuItem>
-                 </SidebarMenu>
-            </SidebarFooter>
-        )}
-
+                 <SidebarMenuItem>
+                     <SidebarMenuButton onClick={handleLogout} tooltip="Cerrar Sesión" variant="ghost" className="text-destructive hover:bg-destructive/10 hover:text-destructive">
+                         <LogOut />
+                         <span className="group-data-[collapsible=icon]:hidden">Cerrar Sesión</span>
+                     </SidebarMenuButton>
+                 </SidebarMenuItem>
+             </>
+          )}
+        </SidebarMenu>
       </SidebarContent>
     </>
   );
