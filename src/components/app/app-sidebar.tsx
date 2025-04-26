@@ -3,7 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import {usePathname} from 'next/navigation';
-import { UtensilsCrossed, Package, Receipt } from 'lucide-react';
+import { UtensilsCrossed, Package, Receipt } from 'lucide-react'; // Receipt icon is still suitable for 'Caja'
 
 import {
   SidebarContent,
@@ -29,7 +29,7 @@ export default function AppSidebar() {
       <SidebarContent className="flex flex-col justify-between flex-grow"> {/* Added flex-grow */}
         <SidebarMenu>
           <SidebarMenuItem>
-            <Link href="/tables" passHref legacyBehavior>
+            <Link href="/tables">
               <SidebarMenuButton
                 isActive={isActive('/tables')}
                 tooltip="Mesas"
@@ -40,7 +40,7 @@ export default function AppSidebar() {
             </Link>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <Link href="/inventory" passHref legacyBehavior>
+            <Link href="/inventory">
               <SidebarMenuButton
                 isActive={isActive('/inventory')}
                 tooltip="Inventario"
@@ -51,13 +51,14 @@ export default function AppSidebar() {
             </Link>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <Link href="/expenses" passHref legacyBehavior>
+            {/* Update the href and text for the Cash Register page */}
+            <Link href="/expenses">
               <SidebarMenuButton
-                isActive={isActive('/expenses')}
-                tooltip="Gastos"
+                isActive={isActive('/expenses')} // Keep path check as /expenses
+                tooltip="Caja" // Updated tooltip
               >
-                <Receipt />
-                <span>Gastos</span>
+                <Receipt /> {/* Icon is okay */}
+                <span>Caja</span> {/* Updated text */}
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
