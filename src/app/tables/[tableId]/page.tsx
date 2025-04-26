@@ -85,6 +85,25 @@ const mockMenu: MenuItem[] = [
     price: 1.0,
     category: 'Bebidas',
   },
+  // Added "Completos As" category and items
+   {
+    id: 10,
+    name: 'Completo As Italiano',
+    price: 5.50,
+    category: 'Completos As',
+   },
+    {
+    id: 11,
+    name: 'Completo As Dinámico',
+    price: 6.00,
+    category: 'Completos As',
+   },
+    {
+    id: 12,
+    name: 'Completo As Chacarero',
+    price: 6.50,
+    category: 'Completos As',
+   },
 ];
 
 // Dynamically generate categories from the updated mockMenu
@@ -104,7 +123,7 @@ export default function TableDetailPage() {
   const tableIdParam = params.tableId as string; // Get the raw param (can be number or string)
   const [order, setOrder] = useState<OrderItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>(
-    'Completos Vienesas' // Changed initial category
+    'Completos Vienesas' // Keep initial category as Completos Vienesas
   );
 
   // Simulate fetching existing order (replace with real logic)
@@ -192,7 +211,7 @@ export default function TableDetailPage() {
   };
 
   const filteredMenu =
-    selectedCategory === 'Completos Vienesas' // Changed condition
+    selectedCategory === 'Completos Vienesas' // Filter for 'Completos Vienesas' shows all menu items
       ? mockMenu
       : mockMenu.filter((item) => item.category === selectedCategory);
 
