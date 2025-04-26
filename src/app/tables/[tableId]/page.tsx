@@ -45,19 +45,19 @@ const mockMenu: MenuItem[] = [
   },
   {
     id: 3,
-    name: 'dinamico chico', // Changed from 'Ensalada'
+    name: 'dinamico chico',
     price: 6.5,
     category: 'Café',
   },
   {
     id: 4,
-    name: 'dinamico grande', // Changed from 'Patatas Fritas'
+    name: 'dinamico grande',
     price: 3.0,
     category: 'Colaciones',
   },
   {
     id: 5,
-    name: 'Refresco',
+    name: 'completo chico', // Changed from 'Refresco'
     price: 2.0,
     category: 'Bebidas',
   },
