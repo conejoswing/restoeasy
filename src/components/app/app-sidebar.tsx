@@ -32,10 +32,10 @@ export default function AppSidebar() {
             <Link href="/tables">
               <SidebarMenuButton
                 isActive={isActive('/tables')}
-                tooltip="Mesas"
+                tooltip="Mesas" // Added tooltip
               >
                 <UtensilsCrossed />
-                <span>Mesas</span>
+                <span className="group-data-[collapsible=icon]:hidden">Mesas</span>
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
@@ -43,10 +43,10 @@ export default function AppSidebar() {
             <Link href="/inventory">
               <SidebarMenuButton
                 isActive={isActive('/inventory')}
-                tooltip="Inventario"
+                tooltip="Inventario" // Added tooltip
               >
                 <Package />
-                <span>Inventario</span>
+                <span className="group-data-[collapsible=icon]:hidden">Inventario</span>
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
@@ -54,10 +54,10 @@ export default function AppSidebar() {
             <Link href="/expenses">
               <SidebarMenuButton
                 isActive={isActive('/expenses')}
-                tooltip="Caja"
+                tooltip="Caja" // Added tooltip
               >
                 <Receipt />
-                <span>Caja</span>
+                <span className="group-data-[collapsible=icon]:hidden">Caja</span>
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
@@ -66,10 +66,10 @@ export default function AppSidebar() {
             <Link href="/staff"> {/* Placeholder link, adjust as needed */}
               <SidebarMenuButton
                 isActive={isActive('/staff')}
-                tooltip="Personal de Trabajo"
+                tooltip="Personal de Trabajo" // Added tooltip
               >
                 <Users /> {/* Staff icon */}
-                <span>Personal de Trabajo</span> {/* Staff text */}
+                <span className="group-data-[collapsible=icon]:hidden">Personal de Trabajo</span> {/* Staff text */}
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
