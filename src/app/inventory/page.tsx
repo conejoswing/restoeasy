@@ -24,15 +24,14 @@ import {
   DialogClose,
 } from '@/components/ui/dialog';
 import {Label} from '@/components/ui/label';
-import {PlusCircle, Edit, Trash2} from 'lucide-react';
+import {PlusCircle, Edit, Trash2} from 'lucide-react'; // Trash2 might not be used anymore but keep import for now
 import {useToast} from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'; // Import RadioGroup
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 
 interface InventoryItem {
   id: number;
   name: string;
-  // price: number; // Removed price
   stock: number;
 }
 
@@ -188,7 +187,7 @@ export default function InventoryPage() {
   };
 
 
-  // Delete item function
+  // Delete item function - Kept for potential future use, but button is removed
   const handleDeleteItem = (id: number) => {
      const itemToDelete = inventory.find(item => item.id === id);
      setInventory(inventory.filter((item) => item.id !== id));
@@ -217,12 +216,12 @@ export default function InventoryPage() {
         <Dialog open={isAddProductDialogOpen} onOpenChange={handleDialogClose}>
           <DialogTrigger asChild>
             <Button onClick={() => setIsAddProductDialogOpen(true)}>
-              <PlusCircle className="mr-2 h-4 w-4" /> Añadir/Actualizar Stock {/* Add/Update Stock */}
+              <PlusCircle className="mr-2 h-4 w-4" /> Añadir Producto {/* Changed Button Text */}
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-lg"> {/* Adjusted width */}
             <DialogHeader>
-              <DialogTitle>Añadir/Actualizar Stock de Producto</DialogTitle> {/* Changed Title */}
+              <DialogTitle>Añadir Producto</DialogTitle> {/* Changed Title */}
               <DialogDescription>
                  Seleccione un producto predefinido para añadir stock o agregue un nuevo producto manualmente. {/* Select predefined or add manually */}
               </DialogDescription>
@@ -321,7 +320,6 @@ export default function InventoryPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Producto</TableHead> {/* Product */}
-              {/* Removed Price/Cost Header */}
               <TableHead className="text-right">Existencias</TableHead> {/* Stock */}
               <TableHead className="text-right">Acciones</TableHead> {/* Actions */}
             </TableRow>
@@ -330,7 +328,6 @@ export default function InventoryPage() {
             {inventory.map((item) => (
               <TableRow key={item.id}>
                 <TableCell className="font-medium">{item.name}</TableCell>
-                {/* Removed Price/Cost Cell */}
                 <TableCell className="text-right">{item.stock}</TableCell>
                 <TableCell className="text-right">
                   {/* Edit Dialog Trigger */}
@@ -360,7 +357,6 @@ export default function InventoryPage() {
                                disabled // Disable editing name
                              />
                            </div>
-                          {/* Removed Price/Cost Edit Field */}
                           <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="edit-stock" className="text-right">
                               Existencias {/* Stock */}
@@ -386,15 +382,15 @@ export default function InventoryPage() {
                       </DialogContent>
                    </Dialog>
 
-                  {/* Delete Button */}
-                  <Button
+                  {/* Delete Button Removed */}
+                  {/* <Button
                       variant="ghost"
                       size="icon"
                       className="text-destructive hover:text-destructive/90"
                       onClick={() => handleDeleteItem(item.id)}
                   >
                       <Trash2 className="h-4 w-4" />
-                  </Button>
+                  </Button> */}
                 </TableCell>
               </TableRow>
             ))}
@@ -412,4 +408,3 @@ export default function InventoryPage() {
     </div>
   );
 }
-

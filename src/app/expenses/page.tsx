@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -32,7 +33,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {PlusCircle, Calendar as CalendarIcon, Trash2} from 'lucide-react';
+import {PlusCircle, Calendar as CalendarIcon, Trash2} from 'lucide-react'; // Trash2 might not be used anymore but keep import for now
 import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover';
 import {Calendar} from '@/components/ui/calendar';
 import {cn} from '@/lib/utils';
@@ -127,6 +128,7 @@ export default function CashRegisterPage() { // Renamed component
      toast({ title: "Éxito", description: `Movimiento de ${formatCurrency(addedMovement.amount)} registrado.` }); // Movement of CLP ... added.
   };
 
+   // Delete movement function - Kept for potential future use, but button is removed
    const handleDeleteMovement = (id: number) => { // Renamed function
         const movementToDelete = cashMovements.find(m => m.id === id);
         setCashMovements(cashMovements.filter((m) => m.id !== id));
@@ -258,7 +260,7 @@ export default function CashRegisterPage() { // Renamed component
                   <TableHead>Categoría</TableHead> {/* Category */}
                   <TableHead>Descripción</TableHead> {/* Description */}
                   <TableHead className="text-right">Monto</TableHead> {/* Amount */}
-                  <TableHead className="text-right">Acciones</TableHead> {/* Actions */}
+                  {/* <TableHead className="text-right">Acciones</TableHead> Removed Actions Header */}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -274,7 +276,8 @@ export default function CashRegisterPage() { // Renamed component
                     )}>
                         {formatCurrency(movement.amount)} {/* Format currency */}
                     </TableCell>
-                    <TableCell className="text-right">
+                    {/* Removed Actions Cell */}
+                    {/* <TableCell className="text-right">
                          <Button
                             variant="ghost"
                             size="icon"
@@ -283,12 +286,13 @@ export default function CashRegisterPage() { // Renamed component
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
-                    </TableCell>
+                    </TableCell> */}
                   </TableRow>
                 ))}
                  {cashMovements.length === 0 && ( // Use renamed state variable
                     <TableRow>
-                        <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                        {/* Updated colspan */}
+                        <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
                         Aún no se han registrado movimientos de caja. ¡Registre algunos! {/* Updated text */}
                         </TableCell>
                     </TableRow>
