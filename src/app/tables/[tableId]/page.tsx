@@ -11,7 +11,7 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-  CardFooter,
+  CardFooter, // Ensure CardFooter is imported
 } from '@/components/ui/card';
 import {ScrollArea} from '@/components/ui/scroll-area';
 import {Separator} from '@/components/ui/separator';
@@ -43,7 +43,7 @@ const mockMenu: MenuItem[] = [
       name: 'Completo Vienesa Italiana',
       price: 4.00,
       category: 'Completos Vienesas',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Mostaza', 'Ketchup'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Agregado Queso'], // Updated: Mostaza -> Agregado Queso, Ketchup removed
     },
     {
       id: 14,
@@ -296,8 +296,9 @@ export default function TableDetailPage() {
 
   // Filter menu items based on the selected category
   const filteredMenu = mockMenu.filter(
-    (item) => selectedCategory === 'Completos Vienesas' || item.category === selectedCategory
+    (item) => item.category === selectedCategory
   );
+
 
   const total = calculateTotal(order);
 
@@ -324,7 +325,7 @@ export default function TableDetailPage() {
             <span className="text-muted-foreground">${item.price.toFixed(2)}</span>
           </li>
         ))}
-        {filteredMenu.length === 0 && selectedCategory !== 'Completos Vienesas' && (
+        {filteredMenu.length === 0 && (
           <p className="text-muted-foreground col-span-full text-center pt-4">No hay artículos en esta categoría.</p>
         )}
       </ul>
