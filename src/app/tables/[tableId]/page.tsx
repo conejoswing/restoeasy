@@ -11,13 +11,14 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-  CardFooter, // Ensure CardFooter is imported
+  CardFooter,
 } from '@/components/ui/card';
 import {ScrollArea} from '@/components/ui/scroll-area';
 import {Separator} from '@/components/ui/separator';
 import {PlusCircle, MinusCircle, XCircle, CheckCircle, ArrowLeft} from 'lucide-react';
 import {useToast} from '@/hooks/use-toast';
 import ModificationDialog from '@/components/app/modification-dialog'; // Import the new dialog
+import { isEqual } from 'lodash'; // Import isEqual for comparing arrays
 
 interface MenuItem {
   id: number;
@@ -28,13 +29,13 @@ interface MenuItem {
   modificationPrices?: { [key: string]: number }; // Optional map of modification name to additional price
 }
 
-// OrderItem now includes the calculated price based on modification
-interface OrderItem extends Omit<MenuItem, 'price' | 'modificationPrices'> {
+// OrderItem now includes an array of selected modifications and the calculated price
+interface OrderItem extends Omit<MenuItem, 'price' | 'modificationPrices' | 'modifications'> {
   orderItemId: string; // Unique ID for this specific item instance in the order
   quantity: number;
-  selectedModification?: string;
+  selectedModifications?: string[]; // Array of selected modifications
   basePrice: number; // Store the original base price
-  finalPrice: number; // Store the calculated price (base + modification)
+  finalPrice: number; // Store the calculated price (base + modifications)
 }
 
 
@@ -181,6 +182,17 @@ const capitalizeFirstLetter = (string: string) => {
   return string.charAt(0).toUpperCase() + string.slice(1);
 }
 
+// Helper function to compare modification arrays (order insensitive)
+const compareModifications = (arr1?: string[], arr2?: string[]): boolean => {
+    if (!arr1 && !arr2) return true; // Both undefined/null
+    if (!arr1 || !arr2) return false; // One is undefined/null, the other isn't
+    if (arr1.length !== arr2.length) return false;
+    const sortedArr1 = [...arr1].sort();
+    const sortedArr2 = [...arr2].sort();
+    return isEqual(sortedArr1, sortedArr2); // Use lodash isEqual for deep comparison
+};
+
+
 export default function TableDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -208,25 +220,27 @@ export default function TableDetailPage() {
     }
   };
 
-  // Function to handle confirming modification selection
-  const handleModificationConfirm = (modification: string | undefined) => {
+  // Function to handle confirming modification selection (now receives an array)
+  const handleModificationConfirm = (modifications: string[] | undefined) => {
     if (currentItemForModification) {
-      addToOrder(currentItemForModification, modification);
+      addToOrder(currentItemForModification, modifications);
       setCurrentItemForModification(null); // Reset after adding
     }
     setIsModificationDialogOpen(false);
   };
 
-  // Updated addToOrder to handle modifications and their prices
-  const addToOrder = (item: MenuItem, modification?: string) => {
-    // Calculate modification cost
-    const modificationCost = (modification && item.modificationPrices?.[modification]) ? item.modificationPrices[modification] : 0;
-    const finalItemPrice = item.price + modificationCost;
+  // Updated addToOrder to handle an array of modifications and their prices
+  const addToOrder = (item: MenuItem, modifications?: string[]) => {
+    // Calculate total modification cost
+    const totalModificationCost = modifications?.reduce((acc, mod) => {
+      return acc + (item.modificationPrices?.[mod] ?? 0);
+    }, 0) ?? 0;
+    const finalItemPrice = item.price + totalModificationCost;
 
     setOrder((prevOrder) => {
-       // Check if an identical item *with the same modification* already exists
+       // Check if an identical item *with the exact same set of modifications* already exists
       const existingItemIndex = prevOrder.findIndex(
-        (orderItem) => orderItem.id === item.id && orderItem.selectedModification === modification
+        (orderItem) => orderItem.id === item.id && compareModifications(orderItem.selectedModifications, modifications)
       );
 
       if (existingItemIndex > -1) {
@@ -239,12 +253,13 @@ export default function TableDetailPage() {
         return updatedOrder;
       } else {
          // Add as a new item
-        const { price, modificationPrices, ...itemWithoutPrices } = item; // Destructure to remove original price/modPrices
+         // Omit original modifications list from OrderItem
+        const { price, modificationPrices, modifications: itemMods, ...itemWithoutPricesAndMods } = item;
         const newOrderItem: OrderItem = {
-          ...itemWithoutPrices, // Spread remaining item props (id, name, category, modifications)
+          ...itemWithoutPricesAndMods, // Spread remaining item props (id, name, category)
           orderItemId: `${item.id}-${Date.now()}-${Math.random()}`, // Generate unique ID
           quantity: 1,
-          selectedModification: modification,
+          selectedModifications: modifications, // Store array of selected mods
           basePrice: item.price, // Store original base price
           finalPrice: finalItemPrice, // Store calculated final price
         };
@@ -253,9 +268,8 @@ export default function TableDetailPage() {
     });
 
     // Calculate the total for the toast message correctly AFTER the state update logic runs
-    // (we need to recalculate based on the potentially new order state)
     const tempOrder = [...order]; // Create a temporary copy
-    const existingItemIndex = tempOrder.findIndex(oi => oi.id === item.id && oi.selectedModification === modification);
+    const existingItemIndex = tempOrder.findIndex(oi => oi.id === item.id && compareModifications(oi.selectedModifications, modifications));
     let newTotal;
     if (existingItemIndex > -1) {
         // If item exists, calculate total as if quantity increased by 1
@@ -265,9 +279,13 @@ export default function TableDetailPage() {
         newTotal = calculateTotal(tempOrder) + finalItemPrice;
     }
 
+    // Format modifications string for toast
+    const modificationsString = modifications && modifications.length > 0
+        ? ` (${modifications.join(', ')})`
+        : '';
 
       toast({
-        title: `${item.name}${modification ? ` (${modification})` : ''} añadido`,
+        title: `${item.name}${modificationsString} añadido`,
         description: `Total: $${newTotal.toFixed(2)}`, // Use the correctly calculated new total
         variant: "default",
         className: "bg-secondary text-secondary-foreground"
@@ -291,7 +309,8 @@ export default function TableDetailPage() {
       } else {
         // Remove the item completely if quantity is 1
         const itemToRemove = updatedOrder[existingItemIndex];
-        toast({ title: `${itemToRemove.name}${itemToRemove.selectedModification ? ` (${itemToRemove.selectedModification})` : ''} eliminado`, variant: "destructive" });
+        const modsString = itemToRemove.selectedModifications?.join(', ');
+        toast({ title: `${itemToRemove.name}${modsString ? ` (${modsString})` : ''} eliminado`, variant: "destructive" });
         return updatedOrder.filter((item) => item.orderItemId !== orderItemId);
       }
     });
@@ -300,9 +319,10 @@ export default function TableDetailPage() {
   // Updated removeCompletely to use orderItemId
    const removeCompletely = (orderItemId: string) => {
      const itemToRemove = order.find(item => item.orderItemId === orderItemId);
+     const modsString = itemToRemove?.selectedModifications?.join(', ');
      setOrder((prevOrder) => prevOrder.filter((orderItem) => orderItem.orderItemId !== orderItemId));
       toast({
-        title: `${itemToRemove?.name}${itemToRemove?.selectedModification ? ` (${itemToRemove.selectedModification})` : ''} eliminado del pedido`, // Show item name and mod in toast
+        title: `${itemToRemove?.name}${modsString ? ` (${modsString})` : ''} eliminado del pedido`, // Show item name and mods in toast
         variant: "destructive",
       })
    }
@@ -414,9 +434,9 @@ export default function TableDetailPage() {
                      <div className='flex items-center gap-2'>
                         <div>
                           <span className="font-medium text-sm">{item.name}</span>
-                          {/* Display selected modification */}
-                           {item.selectedModification && (
-                             <p className="text-xs text-muted-foreground">({item.selectedModification})</p>
+                          {/* Display selected modifications */}
+                           {item.selectedModifications && item.selectedModifications.length > 0 && (
+                             <p className="text-xs text-muted-foreground">({item.selectedModifications.join(', ')})</p>
                            )}
                            {/* Show the final calculated price per item */}
                           <p className='text-xs text-muted-foreground'>${item.finalPrice.toFixed(2)}</p>
@@ -429,12 +449,12 @@ export default function TableDetailPage() {
                             <MinusCircle className="h-4 w-4" />
                           </Button>
                         <span className="font-medium w-4 text-center">{item.quantity}</span>
-                         {/* Add to order requires the base item info and modification */}
+                         {/* Add to order requires the base item info and modifications */}
                          <Button variant="ghost" size="icon" className="h-6 w-6 text-primary" onClick={() => {
                             // Find the original MenuItem to pass to addToOrder
                              const originalItem = mockMenu.find(menuItem => menuItem.id === item.id);
                              if (originalItem) {
-                                 addToOrder(originalItem, item.selectedModification);
+                                 addToOrder(originalItem, item.selectedModifications); // Pass the array of mods
                              }
                          }}>
                            <PlusCircle className="h-4 w-4" />
@@ -468,7 +488,7 @@ export default function TableDetailPage() {
           isOpen={isModificationDialogOpen}
           onOpenChange={setIsModificationDialogOpen}
           item={currentItemForModification}
-          onConfirm={handleModificationConfirm}
+          onConfirm={handleModificationConfirm} // Expects array of modifications
           onCancel={() => setCurrentItemForModification(null)} // Reset item on cancel
         />
       )}

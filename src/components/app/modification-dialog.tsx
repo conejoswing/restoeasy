@@ -7,12 +7,11 @@ import {
   DialogTitle,
   DialogDescription,
   DialogFooter,
-  DialogClose,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Checkbox } from '@/components/ui/checkbox'; // Import Checkbox
 import { Label } from '@/components/ui/label';
-import { ScrollArea } from '@/components/ui/scroll-area'; // Added for long modification lists
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface MenuItem {
   id: number;
@@ -27,7 +26,7 @@ interface ModificationDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   item: MenuItem | null; // Item to modify
-  onConfirm: (modification: string | undefined) => void; // Callback with selected modification
+  onConfirm: (modifications: string[] | undefined) => void; // Callback with selected modifications array
   onCancel: () => void; // Callback for cancellation
 }
 
@@ -38,76 +37,84 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
   onConfirm,
   onCancel,
 }) => {
-  const [selectedModification, setSelectedModification] = React.useState<string | undefined>(undefined);
+  // State to hold an array of selected modifications
+  const [selectedModifications, setSelectedModifications] = React.useState<string[]>([]);
 
   // Reset selection when dialog opens or item changes
   React.useEffect(() => {
-    if (isOpen && item?.modifications?.length) {
-      // Optionally set a default, e.g., the first modification or 'Ninguno' if applicable
-      // setSelectedModification(item.modifications[0]);
-       setSelectedModification(undefined); // Start with nothing selected
-    } else {
-        setSelectedModification(undefined);
+    if (isOpen) {
+      setSelectedModifications([]); // Start with no modifications selected
     }
-  }, [isOpen, item]);
+  }, [isOpen]);
 
-
-  const handleConfirm = () => {
-    onConfirm(selectedModification);
-    // Optional: Add a check if a modification is required before confirming
-    // if (!selectedModification && item?.modifications?.length) {
-    //    // Show some error or prevent closing
-    //    console.log("Please select a modification");
-    //    return;
-    // }
+  const handleCheckboxChange = (modification: string, checked: boolean) => {
+    setSelectedModifications((prev) =>
+      checked
+        ? [...prev, modification] // Add modification if checked
+        : prev.filter((mod) => mod !== modification) // Remove modification if unchecked
+    );
   };
 
-   const handleCancel = () => {
-        onCancel(); // Call the cancel callback provided by the parent
-        onOpenChange(false); // Close the dialog
-    }
+  const handleConfirm = () => {
+    // Pass the array of selected modifications, or undefined if empty
+    onConfirm(selectedModifications.length > 0 ? selectedModifications : undefined);
+  };
 
+  const handleCancel = () => {
+    onCancel(); // Call the cancel callback provided by the parent
+    onOpenChange(false); // Close the dialog
+  };
 
   if (!item) return null;
+
+  // Calculate total additional cost for selected modifications
+  const totalModificationCost = selectedModifications.reduce((acc, mod) => {
+    return acc + (item.modificationPrices?.[mod] ?? 0);
+  }, 0);
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Seleccionar Modificación para {item.name}</DialogTitle>
+          <DialogTitle>Seleccionar Modificaciones para {item.name}</DialogTitle>
           <DialogDescription>
-            Elige una opción para este artículo. Precio Base: ${item.price.toFixed(2)}
-            {/* Add note about potential price changes here if applicable */}
+            Elige las opciones deseadas para este artículo. Precio Base: ${item.price.toFixed(2)}
+            {selectedModifications.length > 0 && (
+              <span className="block mt-1">
+                Costo Adicional: +${totalModificationCost.toFixed(2)} (Total: ${(item.price + totalModificationCost).toFixed(2)})
+              </span>
+            )}
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="max-h-[300px] p-1"> {/* Added ScrollArea */}
-            <RadioGroup
-              value={selectedModification}
-              onValueChange={setSelectedModification}
-              className="grid gap-4 py-4 px-3" // Added padding inside scroll area
-            >
-              {/* Optionally add a "None" or default option */}
-               <div className="flex items-center space-x-2">
-                  <RadioGroupItem value={undefined as any} id="mod-ninguno" checked={selectedModification === undefined} /> {/* Handle undefined value */}
-                  <Label htmlFor="mod-ninguno">Ninguno / Por defecto</Label>
-              </div>
-              {item.modifications?.map((mod) => {
-                 const modificationCost = item.modificationPrices?.[mod];
-                 const costString = modificationCost ? ` (+ $${modificationCost.toFixed(2)})` : '';
-                 return (
+        <ScrollArea className="max-h-[300px] p-1">
+          <div className="grid gap-4 py-4 px-3">
+            {/* Display "Ninguno / Por defecto" implicitly if nothing is checked */}
+            {!item.modifications || item.modifications.length === 0 ? (
+                 <p className="text-sm text-muted-foreground">No hay modificaciones disponibles.</p>
+            ) : (
+                item.modifications.map((mod) => {
+                const modificationCost = item.modificationPrices?.[mod];
+                const costString = modificationCost ? ` (+ $${modificationCost.toFixed(2)})` : '';
+                const checkboxId = `mod-${mod.replace(/\s+/g, '-')}`;
+                return (
                     <div key={mod} className="flex items-center space-x-2">
-                      <RadioGroupItem value={mod} id={`mod-${mod.replace(/\s+/g, '-')}`} />
-                      <Label htmlFor={`mod-${mod.replace(/\s+/g, '-')}`}>
+                    <Checkbox
+                        id={checkboxId}
+                        checked={selectedModifications.includes(mod)}
+                        onCheckedChange={(checked) => handleCheckboxChange(mod, !!checked)} // Pass boolean
+                    />
+                    <Label htmlFor={checkboxId} className="flex-grow cursor-pointer">
                         {mod}
-                        <span className="text-muted-foreground text-xs">{costString}</span>
-                      </Label>
+                        <span className="text-muted-foreground text-xs ml-1">{costString}</span>
+                    </Label>
                     </div>
-                 );
-              })}
-            </RadioGroup>
+                );
+                })
+            )}
+          </div>
         </ScrollArea>
         <DialogFooter>
-          <Button type="button" variant="secondary" onClick={handleCancel}> {/* Use handleCancel */}
+          <Button type="button" variant="secondary" onClick={handleCancel}>
             Cancelar
           </Button>
           <Button type="button" onClick={handleConfirm}>
