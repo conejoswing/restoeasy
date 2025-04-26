@@ -27,61 +27,76 @@ import {Label} from '@/components/ui/label';
 import {PlusCircle, Edit, Trash2} from 'lucide-react';
 import {useToast} from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
-// Removed ScrollArea as it's no longer needed in the simplified Add Product dialog
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'; // Import RadioGroup
 
 interface InventoryItem {
   id: number;
   name: string;
-  price: number; // Cost price or selling price
+  // price: number; // Removed price
   stock: number;
 }
 
-// Predefined items for initial inventory state
-const predefinedItems: Omit<InventoryItem, 'id'>[] = [
-  { name: 'Pan especial grande', price: 0, stock: 0 },
-  { name: 'Pan especial chico', price: 0, stock: 0 },
-  { name: 'Pan de marraqueta', price: 0, stock: 0 },
-  { name: 'Pan de hamburguesa chico', price: 0, stock: 0 },
-  { name: 'Pan de hamburguesa grande', price: 0, stock: 0 },
-  { name: 'Carne de Res', price: 0, stock: 0 },
-  { name: 'Masa de Pizza', price: 0, stock: 0 },
-  { name: 'Salsa de Tomate', price: 0, stock: 0 },
-  { name: 'Queso', price: 0, stock: 0 },
-  { name: 'Lechuga', price: 0, stock: 0 },
-  { name: 'Patatas', price: 0, stock: 0 },
-  { name: 'Jarabe de Refresco', price: 0, stock: 0 },
-  { name: 'Granos de Café', price: 0, stock: 0 },
+// Predefined items for initial inventory state (name only)
+const predefinedItemNames: string[] = [
+  'Pan especial grande',
+  'Pan especial chico',
+  'Pan de marraqueta',
+  'Pan de hamburguesa chico',
+  'Pan de hamburguesa grande',
+  'Carne de Res',
+  'Masa de Pizza',
+  'Salsa de Tomate',
+  'Queso',
+  'Lechuga',
+  'Patatas',
+  'Jarabe de Refresco',
+  'Granos de Café',
 ];
 
-// Initialize inventory state with predefined items
-const initialInventory: InventoryItem[] = predefinedItems.map((item, index) => ({
+// Initialize inventory state with predefined items having 0 stock
+const initialInventory: InventoryItem[] = predefinedItemNames.map((name, index) => ({
   id: index + 1, // Assign unique IDs
-  ...item,
+  name: name,
+  stock: 0, // Initialize stock to 0
 }));
 
 
 export default function InventoryPage() {
   const [inventory, setInventory] = useState<InventoryItem[]>(initialInventory);
-  // State for the new product form
-  const [newProduct, setNewProduct] = useState<{ name: string; price: string; stock: string }>({ name: '', price: '', stock: '' });
+  // State for the new product form (manual entry)
+  const [newManualProduct, setNewManualProduct] = useState<{ name: string; stock: string }>({ name: '', stock: '' });
+  // State for adding stock to predefined items
+  const [selectedPredefinedItem, setSelectedPredefinedItem] = useState<string | null>(null);
+  const [predefinedItemStock, setPredefinedItemStock] = useState<string>('');
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
-  const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false); // Renamed state
+  const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [addProductMode, setAddProductMode] = useState<'predefined' | 'manual'>('predefined'); // Control dialog mode
   const {toast} = useToast();
 
-  // Handles input change for the "Add New Product" dialog
-   const handleNewProductInputChange = (
+  // Handles input change for the "Add New Manual Product" section
+   const handleManualProductInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    key: keyof typeof newProduct
+    key: keyof typeof newManualProduct
   ) => {
-    setNewProduct((prev) => ({ ...prev, [key]: e.target.value }));
+    setNewManualProduct((prev) => ({ ...prev, [key]: e.target.value }));
   };
 
+  // Handles stock input change for predefined items
+  const handlePredefinedStockChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setPredefinedItemStock(e.target.value);
+  }
 
-  // Handles input change for the "Edit Item" dialog (only stock and price)
+  // Handles radio button selection for predefined items
+  const handlePredefinedItemSelect = (value: string) => {
+      setSelectedPredefinedItem(value);
+  }
+
+
+  // Handles input change for the "Edit Item" dialog (only stock)
   const handleEditInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    key: 'price' | 'stock' // Only allow editing price and stock here
+    key: 'stock' // Only allow editing stock here
   ) => {
     if (editingItem) {
         // Directly update the number fields, handling potential empty input for typing
@@ -91,54 +106,80 @@ export default function InventoryPage() {
   };
 
 
-  // Function to add a new product entered in the dialog
-  const handleAddNewProduct = () => {
-     if (!newProduct.name || !newProduct.price || !newProduct.stock) {
-      toast({ title: "Error", description: "Por favor, complete todos los campos del producto.", variant: "destructive" }); // Please fill all product fields.
-      return;
-    }
+  // Function to add a new product or update stock based on the dialog mode
+  const handleAddOrUpdateStock = () => {
+     if (addProductMode === 'manual') {
+          // Add new manual product logic
+          if (!newManualProduct.name || !newManualProduct.stock) {
+             toast({ title: "Error", description: "Por favor, complete todos los campos del producto.", variant: "destructive" }); // Please fill all product fields.
+             return;
+          }
+          const stockValue = parseInt(newManualProduct.stock, 10);
+          if (isNaN(stockValue) || stockValue < 0) {
+              toast({ title: "Error", description: "Las existencias deben ser un número válido y no negativo.", variant: "destructive" }); // Stock must be a valid non-negative number.
+              return;
+          }
+          // Check if product already exists
+          if (inventory.some(item => item.name.toLowerCase() === newManualProduct.name.toLowerCase())) {
+              toast({ title: "Error", description: "Este producto ya existe en el inventario.", variant: "destructive" }); // Product already exists.
+              return;
+          }
 
-     const priceValue = parseFloat(newProduct.price);
-     const stockValue = parseInt(newProduct.stock, 10);
+          const newId = inventory.length > 0 ? Math.max(...inventory.map(item => item.id)) + 1 : 1;
+          const addedProduct: InventoryItem = {
+              id: newId,
+              name: newManualProduct.name,
+              stock: stockValue,
+          };
 
-     if (isNaN(priceValue) || isNaN(stockValue) || priceValue < 0 || stockValue < 0) {
-        toast({ title: "Error", description: "El precio y las existencias deben ser números válidos y no negativos.", variant: "destructive" }); // Price and stock must be valid non-negative numbers.
-        return;
+          setInventory([...inventory, addedProduct]);
+          toast({ title: "Producto Añadido", description: `${addedProduct.name} añadido al inventario.` }); // Product added to inventory.
+          setNewManualProduct({ name: '', stock: '' }); // Reset manual form
+          setIsAddProductDialogOpen(false); // Close dialog
+
+     } else {
+         // Add stock to predefined item logic
+         if (!selectedPredefinedItem || !predefinedItemStock) {
+             toast({ title: "Error", description: "Seleccione un producto y especifique la cantidad.", variant: "destructive" }); // Select a product and specify quantity.
+             return;
+         }
+          const stockToAdd = parseInt(predefinedItemStock, 10);
+          if (isNaN(stockToAdd) || stockToAdd <= 0) {
+             toast({ title: "Error", description: "La cantidad debe ser un número positivo válido.", variant: "destructive" }); // Quantity must be a valid positive number.
+             return;
+         }
+
+         setInventory(inventory.map(item => {
+             if (item.name === selectedPredefinedItem) {
+                 return { ...item, stock: item.stock + stockToAdd };
+             }
+             return item;
+         }));
+         toast({ title: "Stock Actualizado", description: `Se añadieron ${stockToAdd} unidades de ${selectedPredefinedItem}.` }); // Stock updated.
+         setSelectedPredefinedItem(null); // Reset selection
+         setPredefinedItemStock(''); // Reset stock input
+         setIsAddProductDialogOpen(false); // Close dialog
      }
-
-    const newId = inventory.length > 0 ? Math.max(...inventory.map(item => item.id)) + 1 : 1;
-    const addedProduct: InventoryItem = {
-      id: newId,
-      name: newProduct.name,
-      price: priceValue,
-      stock: stockValue,
-    };
-
-    setInventory([...inventory, addedProduct]);
-    toast({ title: "Producto Añadido", description: `${addedProduct.name} añadido al inventario.` }); // Product added to inventory.
-    setNewProduct({ name: '', price: '', stock: '' }); // Reset form
-    setIsAddProductDialogOpen(false); // Close dialog
   };
 
 
-  // Handle saving changes from the Edit dialog (only stock and price)
+  // Handle saving changes from the Edit dialog (only stock)
    const handleEditItem = () => {
-      if (!editingItem || !editingItem.name || editingItem.price === undefined || editingItem.stock === undefined || String(editingItem.price) === '' || String(editingItem.stock) === '') {
+      if (!editingItem || !editingItem.name || editingItem.stock === undefined || String(editingItem.stock) === '') {
            toast({ title: "Error", description: "Faltan datos para editar o son inválidos.", variant: "destructive"}) // Missing or invalid data to edit.
           return;
       }
 
-      const priceValue = parseFloat(String(editingItem.price));
       const stockValue = parseInt(String(editingItem.stock), 10);
 
-       if (isNaN(priceValue) || isNaN(stockValue) || priceValue < 0 || stockValue < 0) {
-        toast({ title: "Error", description: "El precio y las existencias deben ser números válidos y no negativos.", variant: "destructive" }); // Price and stock must be valid non-negative numbers.
+       if (isNaN(stockValue) || stockValue < 0) {
+        toast({ title: "Error", description: "Las existencias deben ser un número válido y no negativo.", variant: "destructive" }); // Stock must be valid non-negative numbers.
         return;
      }
 
 
      setInventory(
-      inventory.map((item) => (item.id === editingItem.id ? {...editingItem, price: priceValue, stock: stockValue } : item))
+      inventory.map((item) => (item.id === editingItem.id ? {...editingItem, stock: stockValue } : item))
     );
     const originalItemName = inventory.find(i => i.id === editingItem.id)?.name; // Get name for toast
     toast({ title: "Éxito", description: `${originalItemName} actualizado.`}); // updated.
@@ -147,7 +188,7 @@ export default function InventoryPage() {
   };
 
 
-  // Delete item function - Allows deleting any item now
+  // Delete item function
   const handleDeleteItem = (id: number) => {
      const itemToDelete = inventory.find(item => item.id === id);
      setInventory(inventory.filter((item) => item.id !== id));
@@ -159,84 +200,117 @@ export default function InventoryPage() {
     setIsEditDialogOpen(true);
   };
 
-   // Helper to format currency
-  const formatCurrency = (amount: number) => {
-    // If price is 0, maybe display '-' or 'N/A'
-    return amount === 0 ? '-' : `CLP ${amount.toFixed(0)}`;
-  };
+  // Reset dialog state when closing
+   const handleDialogClose = () => {
+       setIsAddProductDialogOpen(false);
+       setAddProductMode('predefined'); // Reset to default mode
+       setSelectedPredefinedItem(null);
+       setPredefinedItemStock('');
+       setNewManualProduct({ name: '', stock: '' });
+   };
 
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Gestión del Inventario</h1> {/* Inventory Management */}
-        {/* "Add Product" button opens the "Add New Product" dialog */}
-        <Dialog open={isAddProductDialogOpen} onOpenChange={setIsAddProductDialogOpen}>
+        {/* "Add Product" button opens the "Add/Update Stock" dialog */}
+        <Dialog open={isAddProductDialogOpen} onOpenChange={handleDialogClose}>
           <DialogTrigger asChild>
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" /> Añadir Producto {/* Add Product */}
+            <Button onClick={() => setIsAddProductDialogOpen(true)}>
+              <PlusCircle className="mr-2 h-4 w-4" /> Añadir/Actualizar Stock {/* Add/Update Stock */}
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]"> {/* Adjusted width */}
+          <DialogContent className="sm:max-w-lg"> {/* Adjusted width */}
             <DialogHeader>
-              <DialogTitle>Añadir Nuevo Producto</DialogTitle> {/* Changed Title */}
+              <DialogTitle>Añadir/Actualizar Stock de Producto</DialogTitle> {/* Changed Title */}
               <DialogDescription>
-                Introduzca los detalles del nuevo producto a inventariar. {/* Enter details for the new product. */}
+                 Seleccione un producto predefinido para añadir stock o agregue un nuevo producto manualmente. {/* Select predefined or add manually */}
               </DialogDescription>
             </DialogHeader>
-            {/* Form fields for adding a new product */}
-             <div className="grid gap-4 py-4">
-                 <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="new-product-name" className="text-right">
-                    Nombre {/* Name */}
-                    </Label>
-                    <Input
-                    id="new-product-name"
-                    value={newProduct.name}
-                    onChange={(e) => handleNewProductInputChange(e, 'name')}
-                    className="col-span-3"
-                    placeholder="Nombre del producto" /* Product name */
-                    required
-                    />
+            {/* Radio buttons to switch mode */}
+             <RadioGroup defaultValue="predefined" value={addProductMode} onValueChange={(value: 'predefined' | 'manual') => setAddProductMode(value)} className="flex space-x-4 py-2">
+                <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="predefined" id="r-predefined" />
+                    <Label htmlFor="r-predefined">Usar Producto Predefinido</Label> {/* Use Predefined Product */}
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="new-product-price" className="text-right">
-                    Costo/Precio (CLP) {/* Price/Cost (CLP) */}
-                    </Label>
-                    <Input
-                    id="new-product-price"
-                    type="number"
-                    step="1"
-                    min="0"
-                    value={newProduct.price}
-                    onChange={(e) => handleNewProductInputChange(e, 'price')}
-                    className="col-span-3"
-                     placeholder="0"
-                    required
-                    />
+                <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="manual" id="r-manual" />
+                    <Label htmlFor="r-manual">Añadir Producto Manualmente</Label> {/* Add Product Manually */}
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="new-product-stock" className="text-right">
-                    Existencias Iniciales {/* Initial Stock */}
-                    </Label>
-                    <Input
-                    id="new-product-stock"
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={newProduct.stock}
-                    onChange={(e) => handleNewProductInputChange(e, 'stock')}
-                    className="col-span-3"
-                    placeholder="0"
-                    required
-                    />
-                </div>
-            </div>
+            </RadioGroup>
+
+            {/* Conditional rendering based on mode */}
+            {addProductMode === 'predefined' ? (
+                 <div className="grid gap-4 py-4">
+                     <Label>Seleccione Producto Predefinido</Label> {/* Select Predefined Product */}
+                     <RadioGroup value={selectedPredefinedItem ?? ''} onValueChange={handlePredefinedItemSelect} className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto p-2 border rounded">
+                        {predefinedItemNames.map((name) => (
+                            <div key={name} className="flex items-center space-x-2">
+                                <RadioGroupItem value={name} id={`radio-${name.replace(/\s+/g, '-')}`} />
+                                <Label htmlFor={`radio-${name.replace(/\s+/g, '-')}`}>{name}</Label>
+                            </div>
+                        ))}
+                     </RadioGroup>
+                     <div className="grid grid-cols-4 items-center gap-4 mt-4">
+                        <Label htmlFor="predefined-stock" className="text-right col-span-1">
+                            Cantidad a Añadir {/* Quantity to Add */}
+                        </Label>
+                        <Input
+                            id="predefined-stock"
+                            type="number"
+                            min="1"
+                            step="1"
+                            value={predefinedItemStock}
+                            onChange={handlePredefinedStockChange}
+                            className="col-span-3"
+                            placeholder="0"
+                            required
+                        />
+                    </div>
+                 </div>
+            ) : (
+                // Form fields for adding a new manual product
+                 <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="manual-product-name" className="text-right">
+                        Nombre {/* Name */}
+                        </Label>
+                        <Input
+                        id="manual-product-name"
+                        value={newManualProduct.name}
+                        onChange={(e) => handleManualProductInputChange(e, 'name')}
+                        className="col-span-3"
+                        placeholder="Nombre del producto" /* Product name */
+                        required
+                        />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="manual-product-stock" className="text-right">
+                        Existencias Iniciales {/* Initial Stock */}
+                        </Label>
+                        <Input
+                        id="manual-product-stock"
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={newManualProduct.stock}
+                        onChange={(e) => handleManualProductInputChange(e, 'stock')}
+                        className="col-span-3"
+                        placeholder="0"
+                        required
+                        />
+                    </div>
+                 </div>
+            )}
+
             <DialogFooter>
               <DialogClose asChild>
                  <Button type="button" variant="secondary">Cancelar</Button> {/* Cancel */}
               </DialogClose>
-              {/* Button now adds the new product */}
-              <Button type="submit" onClick={handleAddNewProduct}>Añadir Producto</Button> {/* Add Product */}
+              {/* Button text changes based on mode */}
+              <Button type="submit" onClick={handleAddOrUpdateStock}>
+                 {addProductMode === 'predefined' ? 'Añadir Stock' : 'Añadir Producto'} {/* Add Stock / Add Product */}
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -247,7 +321,7 @@ export default function InventoryPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Producto</TableHead> {/* Product */}
-              <TableHead className="text-right">Costo/Precio (CLP)</TableHead> {/* Price/Cost (CLP) */}
+              {/* Removed Price/Cost Header */}
               <TableHead className="text-right">Existencias</TableHead> {/* Stock */}
               <TableHead className="text-right">Acciones</TableHead> {/* Actions */}
             </TableRow>
@@ -256,7 +330,7 @@ export default function InventoryPage() {
             {inventory.map((item) => (
               <TableRow key={item.id}>
                 <TableCell className="font-medium">{item.name}</TableCell>
-                <TableCell className="text-right">{formatCurrency(item.price)}</TableCell> {/* Format price/cost */}
+                {/* Removed Price/Cost Cell */}
                 <TableCell className="text-right">{item.stock}</TableCell>
                 <TableCell className="text-right">
                   {/* Edit Dialog Trigger */}
@@ -270,7 +344,7 @@ export default function InventoryPage() {
                         <DialogHeader>
                           <DialogTitle>Editar {editingItem?.name}</DialogTitle> {/* Edit Product Name */}
                           <DialogDescription>
-                             Actualice el precio/costo y las existencias del producto. {/* Update price/cost and stock. */}
+                             Actualice las existencias del producto. {/* Update stock. */}
                           </DialogDescription>
                         </DialogHeader>
                          <div className="grid gap-4 py-4">
@@ -286,21 +360,7 @@ export default function InventoryPage() {
                                disabled // Disable editing name
                              />
                            </div>
-                          <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="edit-price" className="text-right">
-                              Costo/Precio (CLP) {/* Price/Cost (CLP) */}
-                            </Label>
-                            <Input
-                              id="edit-price"
-                              type="number"
-                              step="1"
-                              min="0"
-                              value={editingItem?.price ?? ''} // Use ?? to handle potential undefined or null
-                              onChange={(e) => handleEditInputChange(e, 'price')}
-                              className="col-span-3"
-                               required
-                            />
-                          </div>
+                          {/* Removed Price/Cost Edit Field */}
                           <div className="grid grid-cols-4 items-center gap-4">
                             <Label htmlFor="edit-stock" className="text-right">
                               Existencias {/* Stock */}
@@ -326,7 +386,7 @@ export default function InventoryPage() {
                       </DialogContent>
                    </Dialog>
 
-                  {/* Delete Button - Enabled for all items now */}
+                  {/* Delete Button */}
                   <Button
                       variant="ghost"
                       size="icon"
@@ -340,7 +400,8 @@ export default function InventoryPage() {
             ))}
              {inventory.length === 0 && (
                 <TableRow>
-                    <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                    {/* Updated colspan */}
+                    <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
                     No hay productos en el inventario. ¡Añada algunos! {/* No products in inventory. Add some! */}
                     </TableCell>
                 </TableRow>

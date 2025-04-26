@@ -381,7 +381,8 @@ export default function TableDetailPage() {
             onClick={() => handleItemClick(item)} // Use handleItemClick
           >
             <span className="font-medium">{item.name}</span>
-            <span className="text-muted-foreground">{formatCurrency(item.price)}</span> {/* Format price */}
+            {/* Removed static price display */}
+            {/* <span className="text-muted-foreground">{formatCurrency(item.price)}</span> */}
           </li>
         ))}
         {filteredMenu.length === 0 && (
