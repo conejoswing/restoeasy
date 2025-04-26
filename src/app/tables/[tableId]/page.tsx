@@ -63,19 +63,19 @@ const mockMenu: MenuItem[] = [
   },
   {
     id: 6,
-    name: 'completo grande', // Changed from 'Helado'
+    name: 'completo grande',
     price: 4.5,
     category: 'Promociones',
   },
   {
     id: 7,
-    name: 'Alitas de Pollo',
+    name: 'Alitas de Pollo', // Example item, potentially needs translation or replacement
     price: 9.5,
     category: 'Café',
   },
    {
     id: 8,
-    name: 'Filete',
+    name: 'Filete', // Example item, potentially needs translation or replacement
     price: 18.0,
     category: 'Fajitas',
   },
@@ -104,12 +104,32 @@ const mockMenu: MenuItem[] = [
     price: 6.50,
     category: 'Completos As',
    },
+    // Add some "Completos Vienesas" specific items if needed, otherwise they'll show under 'All'
+    {
+    id: 13,
+    name: 'Completo Vienesa Italiana',
+    price: 4.00,
+    category: 'Completos Vienesas', // Keep this category for potential filtering later
+   },
+    {
+    id: 14,
+    name: 'Completo Vienesa Dinámico',
+    price: 4.50,
+    category: 'Completos Vienesas',
+   },
 ];
 
-// Dynamically generate categories from the updated mockMenu
-const categories = [
-  ...new Set(mockMenu.map((item) => item.category)),
+// Define the desired order for categories
+const orderedCategories = [
+  'Completos Vienesas', // Represents 'All'
+  'Completos As',
+  'Fajitas',
+  'Café',
+  'Colaciones',
+  'Promociones',
+  'Bebidas',
 ];
+
 
 // Helper function to capitalize first letter
 const capitalizeFirstLetter = (string: string) => {
@@ -123,12 +143,10 @@ export default function TableDetailPage() {
   const tableIdParam = params.tableId as string; // Get the raw param (can be number or string)
   const [order, setOrder] = useState<OrderItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>(
-    'Completos Vienesas' // Keep initial category as Completos Vienesas
+    orderedCategories[0] // Set initial category to the first in the ordered list
   );
 
   // Simulate fetching existing order (replace with real logic)
-  // Note: This mock logic might not make sense for "Mezón" or "Delivery"
-  // In a real app, you'd fetch based on the specific ID/type.
   useEffect(() => {
     if (!['mezon', 'delivery'].includes(tableIdParam) && Math.random() > 0.5) { // Only simulate for tables
       const mockExistingOrder = mockMenu.slice(0, Math.floor(Math.random() * 3) + 1).map(item => ({
@@ -238,14 +256,8 @@ export default function TableDetailPage() {
           <CardHeader>
             <CardTitle>Menú</CardTitle>
             <div className="flex space-x-2 pt-2 overflow-x-auto pb-2">
-               <Button
-                variant={selectedCategory === 'Completos Vienesas' ? 'default' : 'secondary'} // Changed condition
-                onClick={() => setSelectedCategory('Completos Vienesas')} // Changed category
-                className="shrink-0"
-              >
-                Completos Vienesas {/* Changed text */}
-              </Button>
-              {categories.map((category) => (
+              {/* Iterate over the ordered categories */}
+              {orderedCategories.map((category) => (
                 <Button
                   key={category}
                   variant={selectedCategory === category ? 'default' : 'secondary'}
@@ -272,6 +284,9 @@ export default function TableDetailPage() {
                     </CardContent>
                   </Card>
                 ))}
+                 {filteredMenu.length === 0 && selectedCategory !== 'Completos Vienesas' && (
+                     <p className="text-muted-foreground col-span-full text-center pt-4">No hay artículos en esta categoría.</p>
+                 )}
               </div>
             </ScrollArea>
           </CardContent>
