@@ -354,28 +354,31 @@ export default function CashRegisterPage() {
               {/* <TableHead className="text-right">Acciones</TableHead> */}
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {cashMovements.map((movement) => (
-              <TableRow key={movement.id}>
-                <TableCell>{format(new Date(movement.date), 'dd/MM/yyyy')}</TableCell> {/* Ensure date is Date object */}
-                <TableCell>{movement.category}</TableCell>
-                <TableCell className="font-medium">{movement.description}</TableCell>
-                <TableCell className={cn(
-                  "text-right font-mono", // Added font-mono for better number alignment
-                  movement.amount >= 0 ? "text-green-600" : "text-red-600"
-                )}>
-                  {formatCurrency(movement.amount)}
-                </TableCell>
-              </TableRow>
-            ))}
-            {cashMovements.length === 0 && (
-              <TableRow>
-                <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
-                  Aún no se han registrado movimientos de caja. ¡Registre algunos!
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
+          {/* Render TableBody only on the client after initialization */}
+          {isInitialized && (
+            <TableBody>
+              {cashMovements.map((movement) => (
+                <TableRow key={movement.id}>
+                  <TableCell>{format(new Date(movement.date), 'dd/MM/yyyy')}</TableCell> {/* Ensure date is Date object */}
+                  <TableCell>{movement.category}</TableCell>
+                  <TableCell className="font-medium">{movement.description}</TableCell>
+                  <TableCell className={cn(
+                    "text-right font-mono", // Added font-mono for better number alignment
+                    movement.amount >= 0 ? "text-green-600" : "text-red-600"
+                  )}>
+                    {formatCurrency(movement.amount)}
+                  </TableCell>
+                </TableRow>
+              ))}
+              {cashMovements.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                    Aún no se han registrado movimientos de caja. ¡Registre algunos!
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          )}
         </Table>
       </Card>
     </div>
