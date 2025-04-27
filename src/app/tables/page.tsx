@@ -35,34 +35,40 @@ export default function TablesPage() {
   const [tables, setTables] = useState<Table[]>(initialTables);
   const { logout, isAuthenticated, isLoading, userRole } = useAuth(); // Get auth state and logout
 
-  // --- Dynamic Table Status Update (Placeholder/Example) ---
-  // In a real application, you'd fetch status or get it from global state.
-  // This useEffect simulates checking localStorage/sessionStorage after an order
-  // might have been placed on a table detail page.
+  // --- Dynamic Table Status Update ---
+  // This useEffect checks sessionStorage on mount and updates table status locally.
   useEffect(() => {
-    const updatedTables = tables.map(table => {
-      // Check if there's a stored status for this table
+    const updatedTables = initialTables.map(table => {
       const storedStatus = sessionStorage.getItem(`table-${table.id}-status`);
-      if (storedStatus === 'occupied') {
-        return { ...table, status: 'occupied' };
-      }
-      // Check if there's an active order stored (more complex logic)
       const storedOrder = sessionStorage.getItem(`table-${table.id}-order`);
-      if (storedOrder && JSON.parse(storedOrder).length > 0) {
-          return { ...table, status: 'occupied'};
+      let currentStatus: 'available' | 'occupied' = 'available'; // Default to available
+
+      if (storedStatus === 'occupied') {
+          // If explicitly marked as occupied, keep it that way
+          currentStatus = 'occupied';
+      } else if (storedOrder) {
+          // If there's an order, mark as occupied
+          try {
+              const parsedOrder = JSON.parse(storedOrder);
+              if (Array.isArray(parsedOrder) && parsedOrder.length > 0) {
+                  currentStatus = 'occupied';
+              }
+          } catch (e) {
+              console.error("Error parsing stored order for table", table.id, e);
+              // Potentially clear invalid order data
+              sessionStorage.removeItem(`table-${table.id}-order`);
+          }
       }
-      // You might also need to reset status if order is cleared
-      // For this example, we'll just use the initial state or the stored 'occupied' status
-      return table;
+        // If no stored 'occupied' status and no valid order, it remains 'available'
+      return { ...table, status: currentStatus };
     });
-    // Only update state if there are actual changes to avoid infinite loops
+
+    // Update state only if there are actual changes to avoid infinite loops
     if (JSON.stringify(updatedTables) !== JSON.stringify(tables)) {
         setTables(updatedTables);
     }
-    // Dependency array should include things that trigger a re-check,
-    // but be careful not to cause infinite loops. `tables` itself shouldn't be here
-    // unless the check logic is very carefully managed. For simplicity, this runs once on mount.
-  }, []); // Empty dependency array means this runs once on mount
+    // Dependency array is empty, so this runs once on mount to initialize status.
+  }, []); // Empty dependency array
 
 
   const getIcon = (tableId: number | string) => {
@@ -92,10 +98,11 @@ export default function TablesPage() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Gestión de Mesas</h1>
          {/* Only show logout for admin on this page */}
-         {userRole === 'admin' && (
-            <Button variant="outline" onClick={handleLogout}>
-                <LogOut className="mr-2 h-4 w-4" /> Cerrar Sesión
-            </Button>
+         {/* Show logout for all logged-in users */}
+         {isAuthenticated && (
+             <Button variant="outline" onClick={handleLogout}>
+                 <LogOut className="mr-2 h-4 w-4" /> Cerrar Sesión
+             </Button>
          )}
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">

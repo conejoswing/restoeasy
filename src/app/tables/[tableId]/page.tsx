@@ -220,8 +220,17 @@ export default function TableDetailPage() {
         sessionStorage.removeItem(`table-${tableIdParam}-order`); // Clear invalid data
       }
     }
-    // Also potentially load table status if needed, but status update is handled on the tables page for now
-  }, [tableIdParam]);
+    // Load table status from sessionStorage
+    const storedStatus = sessionStorage.getItem(`table-${tableIdParam}-status`);
+    if (storedStatus && storedStatus !== 'available' && order.length === 0) {
+        // If status is occupied but order is empty locally (e.g., after refresh),
+        // ensure status reflects reality, but don't override if order exists.
+        // This case might need more robust state sync in a real app.
+    } else if (!storedStatus && order.length === 0) {
+        // If no status stored and order is empty, ensure it's 'available'
+        sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
+    }
+  }, [tableIdParam]); // Only run on mount based on tableIdParam
 
   // Save order to sessionStorage whenever it changes
    useEffect(() => {
@@ -376,19 +385,20 @@ export default function TableDetailPage() {
 
   const handlePrintOrder = () => {
     console.log('Imprimiendo Comanda:', order);
-    // Set table status to occupied in sessionStorage when order is placed (already handled by useEffect)
-    // sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
+    // Set table status to occupied explicitly here as well (though useEffect also handles it)
+    sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
 
     // Here you would typically trigger a print action
     // For now, just showing a toast
     toast({
       title: "¡Comanda Enviada!",
-      description: `Total: ${formatCurrency(calculateTotal(order))} para ${getPageTitle()}. Pedido listo para cocina/impresión.`, // Format total and indicate status change
+      description: `Total: ${formatCurrency(calculateTotal(order))} para ${getPageTitle()}. Pedido pendiente.`, // Updated message
       variant: "default",
       className: "bg-green-200 text-green-800 border-green-400" // Using direct colors temporarily for success
     });
      // Keep order in session storage until table is cleared or paid
-     // setOrder([]); // Do not clear order here, it should persist
+     // Do not clear the order state here: setOrder([]);
+     // The order remains so more items can be added.
   };
 
   // Filter menu items based on the selected category
@@ -419,6 +429,7 @@ export default function TableDetailPage() {
             onClick={() => handleItemClick(item)} // Use handleItemClick
           >
             <span className="font-medium">{item.name}</span>
+            <span className="text-sm text-muted-foreground">{formatCurrency(item.price)}</span>
           </li>
         ))}
         {filteredMenu.length === 0 && (
@@ -431,7 +442,7 @@ export default function TableDetailPage() {
   return (
     <div className="container mx-auto p-4 h-[calc(100vh-theme(spacing.16))] flex flex-col">
        <div className="flex items-center mb-6">
-         <Button variant="secondary" size="icon" onClick={() => router.push('/tables')} className="mr-2">
+         <Button variant="secondary" size="icon" onClick={() => router.push('/tables')} className="mr-2 h-10 w-10 rounded-md">
            <ArrowLeft className="h-6 w-6" />
          </Button>
          <h1 className="text-3xl font-bold">{getPageTitle()} - Pedido</h1>
