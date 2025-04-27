@@ -639,7 +639,8 @@ export default function TableDetailPage() {
         {/* Menu Section */}
         <Card className="w-1/2 flex flex-col shadow-lg"> {/* Adjusted width */}
           <CardHeader>
-            <CardTitle>Menú</CardTitle>
+             {/* Styled Menu Title */}
+            <CardTitle className="p-2 text-center rounded-md bg-muted text-muted-foreground">Menú</CardTitle>
             <div className="flex space-x-2 pt-2 overflow-x-auto pb-2">
               {orderedCategories.map((category) => (
                 <Button
