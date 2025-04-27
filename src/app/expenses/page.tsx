@@ -337,7 +337,7 @@ export default function CashRegisterPage() {
                 </DialogFooter>
             </DialogContent>
             </Dialog>
-            <Button variant="outline" onClick={handleCashClosing}> {/* Added Cierre de Caja button */}
+            <Button variant="default" onClick={handleCashClosing}> {/* Changed variant to default */}
                 <FileCheck className="mr-2 h-4 w-4" /> Cierre de Caja
             </Button>
         </div>
