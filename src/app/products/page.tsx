@@ -228,7 +228,7 @@ export default function ProductsPage() {
                 <TableRow>
                 <TableHead>Producto</TableHead>
                 <TableHead>Categoría</TableHead>
-                <TableHead>Modificaciones</TableHead>
+                <TableHead>Descripción</TableHead> {/* Changed from Modificaciones */}
                 <TableHead className="text-right">Precio Base</TableHead>
                 </TableRow>
             </TableHeader>
@@ -262,3 +262,4 @@ export default function ProductsPage() {
     </div>
   );
 }
+
