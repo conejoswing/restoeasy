@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/card';
 import {ScrollArea} from '@/components/ui/scroll-area';
 import {Separator} from '@/components/ui/separator';
-import {PlusCircle, MinusCircle, XCircle, CheckCircle, ArrowLeft} from 'lucide-react';
+import {PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft} from 'lucide-react'; // Changed CheckCircle to Printer
 import {useToast} from '@/hooks/use-toast';
 import ModificationDialog from '@/components/app/modification-dialog'; // Import the new dialog
 import { isEqual } from 'lodash'; // Import isEqual for comparing arrays
@@ -227,11 +227,12 @@ export default function TableDetailPage() {
    useEffect(() => {
      if (order.length > 0) {
        sessionStorage.setItem(`table-${tableIdParam}-order`, JSON.stringify(order));
+       // Set status to occupied when order is not empty
+       sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
      } else {
-       // If order becomes empty, remove the item and potentially update status
+       // If order becomes empty, remove the item and set status back to 'available'
        sessionStorage.removeItem(`table-${tableIdParam}-order`);
-       // Optionally set status back to 'available' if the order is cleared
-       // sessionStorage.setItem(`table-${tableIdParam}-status`, 'available'); // Be careful with this logic placement
+       sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
      }
    }, [order, tableIdParam]);
 
@@ -344,12 +345,7 @@ export default function TableDetailPage() {
         toast({ title: `${itemToRemove.name}${modsString ? ` (${modsString})` : ''} eliminado`, variant: "destructive" });
         // Filter out the item
         const filteredOrder = updatedOrder.filter((item) => item.orderItemId !== orderItemId);
-        // If this was the last item, update table status back to available
-        if (filteredOrder.length === 0) {
-          sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
-          // Optionally remove the order key itself if it's empty
-          sessionStorage.removeItem(`table-${tableIdParam}-order`);
-        }
+        // If this was the last item, update table status back to available (handled by useEffect)
         return filteredOrder;
       }
     });
@@ -361,12 +357,7 @@ export default function TableDetailPage() {
      const modsString = itemToRemove?.selectedModifications?.join(', ');
      setOrder((prevOrder) => {
         const filteredOrder = prevOrder.filter((orderItem) => orderItem.orderItemId !== orderItemId);
-        // If this was the last item, update table status back to available
-        if (filteredOrder.length === 0) {
-            sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
-            // Optionally remove the order key itself if it's empty
-            sessionStorage.removeItem(`table-${tableIdParam}-order`);
-        }
+        // If this was the last item, update table status back to available (handled by useEffect)
         return filteredOrder;
      });
       toast({
@@ -383,23 +374,21 @@ export default function TableDetailPage() {
     );
   };
 
-  const handleFinalizeOrder = () => {
-    console.log('Finalizando pedido:', order);
-    // Set table status to occupied in sessionStorage when order is placed
-    sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
-    // Keep the order in storage as well, as it's now the active order
-    // sessionStorage.setItem(`table-${tableIdParam}-order`, JSON.stringify(order)); // Already handled by useEffect
+  const handlePrintOrder = () => {
+    console.log('Imprimiendo Comanda:', order);
+    // Set table status to occupied in sessionStorage when order is placed (already handled by useEffect)
+    // sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
 
+    // Here you would typically trigger a print action
+    // For now, just showing a toast
     toast({
-      title: "¡Pedido Realizado!",
-      description: `Total: ${formatCurrency(calculateTotal(order))} para ${getPageTitle()}. Mesa marcada como ocupada.`, // Format total and indicate status change
+      title: "¡Comanda Enviada!",
+      description: `Total: ${formatCurrency(calculateTotal(order))} para ${getPageTitle()}. Pedido listo para cocina/impresión.`, // Format total and indicate status change
       variant: "default",
       className: "bg-green-200 text-green-800 border-green-400" // Using direct colors temporarily for success
     });
-     // setOrder([]); // Clear order *after* saving status and potentially order data
-     // Optionally clear the order if finalized means payment/completion
-     // If the order should persist until cleared manually, don't clear it here.
-     // For now, let's assume finalize means 'sent to kitchen', order persists.
+     // Keep order in session storage until table is cleared or paid
+     // setOrder([]); // Do not clear order here, it should persist
   };
 
   // Filter menu items based on the selected category
@@ -430,8 +419,6 @@ export default function TableDetailPage() {
             onClick={() => handleItemClick(item)} // Use handleItemClick
           >
             <span className="font-medium">{item.name}</span>
-            {/* Removed static price display */}
-            {/* <span className="text-muted-foreground">{formatCurrency(item.price)}</span> */}
           </li>
         ))}
         {filteredMenu.length === 0 && (
@@ -444,7 +431,6 @@ export default function TableDetailPage() {
   return (
     <div className="container mx-auto p-4 h-[calc(100vh-theme(spacing.16))] flex flex-col">
        <div className="flex items-center mb-6">
-         {/* Change variant to 'secondary' for the back button */}
          <Button variant="secondary" size="icon" onClick={() => router.push('/tables')} className="mr-2">
            <ArrowLeft className="h-6 w-6" />
          </Button>
@@ -492,24 +478,19 @@ export default function TableDetailPage() {
                      <div className='flex items-center gap-2'>
                         <div>
                           <span className="font-medium text-sm">{item.name}</span>
-                          {/* Display selected modifications */}
                            {item.selectedModifications && item.selectedModifications.length > 0 && (
                              <p className="text-xs text-muted-foreground">({item.selectedModifications.join(', ')})</p>
                            )}
-                           {/* Show the final calculated price per item */}
                           <p className='text-xs text-muted-foreground'>{formatCurrency(item.finalPrice)}</p> {/* Format price */}
                         </div>
                      </div>
 
                       <div className="flex items-center gap-2">
-                         {/* Use orderItemId for actions */}
                          <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => removeFromOrder(item.orderItemId)}>
                             <MinusCircle className="h-4 w-4" />
                           </Button>
                         <span className="font-medium w-4 text-center">{item.quantity}</span>
-                         {/* Add to order requires the base item info and modifications */}
                          <Button variant="ghost" size="icon" className="h-6 w-6 text-primary" onClick={() => {
-                            // Find the original MenuItem to pass to addToOrder
                              const originalItem = mockMenu.find(menuItem => menuItem.id === item.id);
                              if (originalItem) {
                                  addToOrder(originalItem, item.selectedModifications); // Pass the array of mods
@@ -533,8 +514,8 @@ export default function TableDetailPage() {
               <span>Total:</span>
               <span>{formatCurrency(total)}</span> {/* Format total */}
             </div>
-            <Button size="lg" onClick={handleFinalizeOrder} disabled={order.length === 0}>
-              <CheckCircle className="mr-2 h-5 w-5" /> Finalizar Pedido
+            <Button size="lg" onClick={handlePrintOrder} disabled={order.length === 0}>
+              <Printer className="mr-2 h-5 w-5" /> Imprimir Comanda {/* Changed text and icon */}
             </Button>
           </CardFooter>
         </Card>
