@@ -15,7 +15,21 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge'; // Import Badge
+import { Button } from '@/components/ui/button'; // Import Button
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from '@/components/ui/dialog'; // Import Dialog components
+import { Label } from '@/components/ui/label'; // Import Label
 import { useState } from 'react';
+import { Edit } from 'lucide-react'; // Import Edit icon
+import { useToast } from '@/hooks/use-toast'; // Import useToast
 
 interface MenuItem {
   id: number;
@@ -167,7 +181,8 @@ const orderedCategories = [
 ];
 
 // Sort menu items by category order first, then alphabetically by name
-const sortedMenu = [...mockMenu].sort((a, b) => {
+const sortMenu = (menu: MenuItem[]): MenuItem[] => {
+  return [...menu].sort((a, b) => {
     const categoryAIndex = orderedCategories.indexOf(a.category);
     const categoryBIndex = orderedCategories.indexOf(b.category);
 
@@ -175,7 +190,8 @@ const sortedMenu = [...mockMenu].sort((a, b) => {
         return categoryAIndex - categoryBIndex;
     }
     return a.name.localeCompare(b.name);
-});
+  });
+};
 
 
 export default function ProductsPage() {
@@ -183,6 +199,11 @@ export default function ProductsPage() {
   const { isAuthenticated, isLoading, userRole } = useAuth();
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
+  const [menu, setMenu] = useState<MenuItem[]>(sortMenu(mockMenu)); // State for menu items
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<MenuItem | null>(null);
+  const [newPrice, setNewPrice] = useState('');
+  const { toast } = useToast(); // Toast hook
 
   // Format currency
   const formatCurrency = (amount: number) => {
@@ -199,10 +220,46 @@ export default function ProductsPage() {
    }
 
    // Filter products based on search term
-   const filteredProducts = sortedMenu.filter(product =>
+   const filteredProducts = menu.filter(product =>
      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
      product.category.toLowerCase().includes(searchTerm.toLowerCase())
    );
+
+   const openEditDialog = (product: MenuItem) => {
+     setEditingProduct(product);
+     setNewPrice(product.price.toString()); // Pre-fill with current price
+     setIsEditDialogOpen(true);
+   };
+
+   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+     setNewPrice(e.target.value);
+   };
+
+   const handleUpdatePrice = () => {
+     if (!editingProduct || newPrice === '') {
+       toast({ title: "Error", description: "Debe ingresar un precio.", variant: "destructive"});
+       return;
+     }
+     const priceValue = parseInt(newPrice, 10);
+     if (isNaN(priceValue) || priceValue < 0) {
+       toast({ title: "Error", description: "El precio debe ser un número válido y no negativo.", variant: "destructive"});
+       return;
+     }
+
+     // Update the product price in the menu state
+     setMenu(prevMenu =>
+       sortMenu( // Re-sort after update
+         prevMenu.map(item =>
+           item.id === editingProduct.id ? { ...item, price: priceValue } : item
+         )
+       )
+     );
+
+     toast({ title: "Precio Actualizado", description: `El precio de ${editingProduct.name} se actualizó a ${formatCurrency(priceValue)}.`});
+     setIsEditDialogOpen(false); // Close dialog
+     setEditingProduct(null); // Reset editing state
+     setNewPrice(''); // Clear price input
+   };
 
   return (
     <div className="container mx-auto p-4">
@@ -215,7 +272,7 @@ export default function ProductsPage() {
            onChange={(e) => setSearchTerm(e.target.value)}
            className="max-w-sm"
          />
-        {/* Optional: Add a button to add/edit products if needed later */}
+        {/* Optional: Add a button to add new products if needed later */}
       </div>
 
       <Card>
@@ -230,6 +287,7 @@ export default function ProductsPage() {
                 <TableHead>Categoría</TableHead>
                 <TableHead>Descripción</TableHead> {/* Changed from Modificaciones */}
                 <TableHead className="text-right">Precio Base</TableHead>
+                 <TableHead className="text-center w-20">Editar</TableHead> {/* Add Edit column */}
                 </TableRow>
             </TableHeader>
             <TableBody>
@@ -246,11 +304,17 @@ export default function ProductsPage() {
                         : '-'}
                     </TableCell>
                     <TableCell className="text-right font-mono">{formatCurrency(item.price)}</TableCell>
+                    <TableCell className="text-center">
+                       <Button variant="ghost" size="icon" onClick={() => openEditDialog(item)} className="h-7 w-7">
+                          <Edit className="h-4 w-4" />
+                          <span className="sr-only">Editar Precio</span>
+                       </Button>
+                    </TableCell>
                 </TableRow>
                 ))}
                 {filteredProducts.length === 0 && (
                 <TableRow>
-                    <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground"> {/* Increased colSpan */}
                      {searchTerm ? 'No se encontraron productos.' : 'No hay productos para mostrar.'}
                     </TableCell>
                 </TableRow>
@@ -259,6 +323,42 @@ export default function ProductsPage() {
             </Table>
         </CardContent>
       </Card>
+
+      {/* Edit Price Dialog */}
+       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+         <DialogContent className="sm:max-w-[425px]">
+           <DialogHeader>
+             <DialogTitle>Editar Precio de {editingProduct?.name}</DialogTitle>
+             <DialogDescription>
+               Actualice el precio base para este producto.
+             </DialogDescription>
+           </DialogHeader>
+           <div className="grid gap-4 py-4">
+             <div className="grid grid-cols-4 items-center gap-4">
+               <Label htmlFor="price" className="text-right">
+                 Nuevo Precio (CLP)
+               </Label>
+               <Input
+                 id="price"
+                 type="number"
+                 value={newPrice}
+                 onChange={handlePriceChange}
+                 className="col-span-3"
+                 required
+                 min="0"
+                 step="1" // Allow integer prices
+               />
+             </div>
+           </div>
+           <DialogFooter>
+             <DialogClose asChild>
+               <Button type="button" variant="secondary">Cancelar</Button>
+             </DialogClose>
+             <Button type="submit" onClick={handleUpdatePrice}>Guardar Cambios</Button>
+           </DialogFooter>
+         </DialogContent>
+       </Dialog>
+
     </div>
   );
 }
