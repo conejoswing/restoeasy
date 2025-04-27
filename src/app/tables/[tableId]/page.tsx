@@ -23,7 +23,7 @@ import {
   SheetDescription,
   SheetFooter,
 } from '@/components/ui/sheet';
-import { Utensils, PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard } from 'lucide-react';
+import { Utensils, PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard, ChevronRight } from 'lucide-react'; // Added ChevronRight
 import {useToast} from '@/hooks/use-toast';
 import ModificationDialog from '@/components/app/modification-dialog';
 import { isEqual } from 'lodash';
@@ -276,11 +276,14 @@ export default function TableDetailPage() {
   const tableIdParam = params.tableId as string;
   const [order, setOrder] = useState<OrderItem[]>([]); // Current items being added
   const [pendingPaymentOrder, setPendingPaymentOrder] = useState<OrderItem[]>([]); // Items sent to print
-  const [selectedCategory, setSelectedCategory] = useState<string>(orderedCategories[0]);
+  const [selectedCategory, setSelectedCategory] = useState<string>(orderedCategories[0]); // State for Category Buttons (now unused)
   const [isModificationDialogOpen, setIsModificationDialogOpen] = useState(false);
   const [currentItemForModification, setCurrentItemForModification] = useState<MenuItem | null>(null);
   const [isMenuSheetOpen, setIsMenuSheetOpen] = useState(false); // State for Menu Sheet
   const [isInitialized, setIsInitialized] = useState(false); // Track initialization
+  const [menuSheetView, setMenuSheetView] = useState<'categories' | 'items'>('categories'); // State for sheet view
+  const [selectedCategoryForItemsView, setSelectedCategoryForItemsView] = useState<string | null>(null); // State for selected category in items view
+
 
   // --- Load orders and status from sessionStorage on mount ---
   useEffect(() => {
@@ -401,7 +404,13 @@ export default function TableDetailPage() {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
   };
 
-  // Function to handle clicking a menu item (from Sheet)
+  // Function to handle clicking a category (from Categories view in Sheet)
+  const handleCategoryClick = (category: string) => {
+    setSelectedCategoryForItemsView(category);
+    setMenuSheetView('items'); // Switch to items view
+  };
+
+  // Function to handle clicking a menu item (from Items view in Sheet)
   const handleItemClick = (item: MenuItem) => {
     if (item.modifications && item.modifications.length > 0) {
       setCurrentItemForModification(item);
@@ -410,9 +419,8 @@ export default function TableDetailPage() {
     } else {
       // If no modifications, add directly to current order
       addToOrder(item);
-      // Close the sheet after adding an item without mods (like beverages)
-      // Keep sheet open for non-modification items for faster multi-add
-      // setIsMenuSheetOpen(false);
+      // Do not automatically close the sheet
+      // setIsMenuSheetOpen(false); // Close menu sheet
     }
   };
 
@@ -643,9 +651,9 @@ export default function TableDetailPage() {
        });
      };
 
-  // Filter menu items based on the selected category (used in Sheet now)
+  // Filter menu items based on the selected category (used in Items view)
   const filteredMenu = mockMenu.filter(
-    (item) => item.category === selectedCategory
+    (item) => item.category === selectedCategoryForItemsView
   );
 
   const currentOrderTotal = calculateTotal(order); // Calculate current order total (though not displayed directly)
@@ -662,43 +670,65 @@ export default function TableDetailPage() {
       }
   }
 
-  // Render Menu Items inside the Sheet
-  const renderMenuItemsInSheet = () => {
-    return (
-        <div className="p-4">
-          <div className="flex flex-wrap gap-2 mb-4">
-            {orderedCategories.map((category) => (
-              <Button
-                key={category}
-                variant={selectedCategory === category ? 'default' : 'secondary'}
-                onClick={() => setSelectedCategory(category)}
-                className="shrink-0"
-              >
-                {category}
-              </Button>
-            ))}
-          </div>
-          <ScrollArea className="h-[calc(100vh-250px)]"> {/* Adjusted height */}
-            <ul className="space-y-2">
-              {filteredMenu.map((item) => (
-                <li
-                  key={item.id}
-                  className="flex justify-between items-center p-3 border rounded-md cursor-pointer hover:bg-secondary/50 transition-colors"
-                  onClick={() => handleItemClick(item)} // Use handleItemClick
-                >
-                  <span className="font-medium">{item.name}</span>
-                   {/* Display base price in menu */}
-                   <span className="text-sm text-muted-foreground">{formatCurrency(item.price)}</span>
-                </li>
-              ))}
-              {filteredMenu.length === 0 && (
-                <p className="text-muted-foreground col-span-full text-center pt-4">No hay artículos en esta categoría.</p>
-              )}
-            </ul>
-          </ScrollArea>
-        </div>
-    );
+  // Render Menu Categories or Items inside the Sheet based on view state
+  const renderMenuSheetContent = () => {
+    if (menuSheetView === 'categories') {
+        return (
+            <div className="p-4">
+                <ScrollArea className="h-[calc(100vh-150px)]"> {/* Adjusted height */}
+                    <ul className="space-y-2">
+                        {orderedCategories.map((category) => (
+                            <li
+                                key={category}
+                                className="flex justify-between items-center p-3 border rounded-md cursor-pointer hover:bg-secondary/50 transition-colors"
+                                onClick={() => handleCategoryClick(category)}
+                            >
+                                <span className="font-medium">{category}</span>
+                                <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                            </li>
+                        ))}
+                    </ul>
+                </ScrollArea>
+            </div>
+        );
+    } else if (menuSheetView === 'items' && selectedCategoryForItemsView) {
+        return (
+            <div className="p-4">
+                <Button variant="ghost" onClick={() => setMenuSheetView('categories')} className="mb-4">
+                    <ArrowLeft className="mr-2 h-4 w-4" /> Volver a Categorías
+                </Button>
+                <ScrollArea className="h-[calc(100vh-200px)]"> {/* Adjusted height */}
+                    <ul className="space-y-2">
+                        {filteredMenu.map((item) => (
+                            <li
+                                key={item.id}
+                                className="flex justify-between items-center p-3 border rounded-md cursor-pointer hover:bg-secondary/50 transition-colors"
+                                onClick={() => handleItemClick(item)} // Use handleItemClick
+                            >
+                                <span className="font-medium">{item.name}</span>
+                                <span className="text-sm text-muted-foreground">{formatCurrency(item.price)}</span>
+                            </li>
+                        ))}
+                        {filteredMenu.length === 0 && (
+                            <p className="text-muted-foreground col-span-full text-center pt-4">No hay artículos en esta categoría.</p>
+                        )}
+                    </ul>
+                </ScrollArea>
+            </div>
+        );
+    }
+    return null; // Should not happen
   };
+
+   // Function to close the menu sheet and reset view state
+   const closeMenuSheet = () => {
+        setIsMenuSheetOpen(false);
+        // Reset view state when closing
+        setTimeout(() => { // Delay reset slightly to allow animation
+            setMenuSheetView('categories');
+            setSelectedCategoryForItemsView(null);
+        }, 300);
+   };
 
 
    // Render function for both current and pending order items
@@ -833,15 +863,20 @@ export default function TableDetailPage() {
       </div>
 
         {/* Menu Sheet Component */}
-        <Sheet open={isMenuSheetOpen} onOpenChange={setIsMenuSheetOpen}>
-            <SheetContent className="w-full sm:max-w-md" side="left"> {/* Adjust width and side as needed */}
+        <Sheet open={isMenuSheetOpen} onOpenChange={closeMenuSheet}> {/* Use closeMenuSheet */}
+            <SheetContent className="w-full sm:max-w-md" side="left">
                 <SheetHeader>
-                  <SheetTitle className="text-center text-lg font-semibold py-2 rounded-md bg-muted text-muted-foreground">Menú</SheetTitle>
-                  {/* <SheetDescription>Selecciona una categoría y añade artículos.</SheetDescription> */}
+                  <SheetTitle className="text-center text-lg font-semibold py-2 rounded-md bg-muted text-muted-foreground">
+                    {menuSheetView === 'categories' ? 'Menú' : selectedCategoryForItemsView}
+                  </SheetTitle>
                 </SheetHeader>
-                 {renderMenuItemsInSheet()}
+                 {renderMenuSheetContent()} {/* Render categories or items */}
                  <SheetFooter className="mt-4 p-4 border-t">
-                     <Button variant="outline" onClick={() => setIsMenuSheetOpen(false)}>Cerrar Menú</Button>
+                    {/* Conditionally show Confirm button only when viewing items */}
+                    {menuSheetView === 'items' && (
+                        <Button variant="default" onClick={closeMenuSheet}>Confirmar</Button>
+                    )}
+                    <Button variant="outline" onClick={closeMenuSheet}>Cerrar Menú</Button>
                  </SheetFooter>
             </SheetContent>
         </Sheet>
@@ -859,4 +894,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-
