@@ -659,73 +659,70 @@ export default function TableDetailPage() {
 
   return (
     <div className="container mx-auto p-4 h-[calc(100vh-theme(spacing.16))] flex flex-col">
-       <div className="flex items-center mb-6">
+       <div className="flex items-center mb-4"> {/* Reduced margin bottom */}
          <Button variant="secondary" size="icon" onClick={() => router.push('/tables')} className="mr-2 h-10 w-10 rounded-md bg-card hover:bg-accent">
            <ArrowLeft className="h-6 w-6" />
          </Button>
          <h1 className="text-3xl font-bold">{getPageTitle()} - Pedido</h1>
        </div>
-      <div className="flex flex-grow gap-4 overflow-hidden">
-        {/* Menu Button Section (Replaces Menu Card) */}
-        <div className="w-1/3 flex flex-col justify-start items-stretch pt-4"> {/* Use less space */}
-          <Button
-            onClick={() => setIsMenuSheetOpen(true)}
-            className="h-16 text-lg bg-primary hover:bg-primary/90" // Make button prominent
-          >
-            <Utensils className="mr-2 h-5 w-5" /> Ver Menú
-          </Button>
+
+        {/* Menu Button Centered Above */}
+        <div className="flex justify-center mb-4">
+            <Button
+                onClick={() => setIsMenuSheetOpen(true)}
+                className="h-12 text-md bg-primary hover:bg-primary/90" // Adjusted size/text
+            >
+                <Utensils className="mr-2 h-5 w-5" /> Ver Menú
+            </Button>
         </div>
 
-         {/* Order Summaries Section (Current + Pending) */}
-        <div className="w-2/3 flex flex-col gap-4 overflow-hidden"> {/* Use more space */}
-            {/* Current Order Section */}
-            <Card className="flex flex-col shadow-lg h-1/2"> {/* Use flex-1 */}
-              <CardHeader>
-                <CardTitle>Pedido Actual</CardTitle>
-                <CardDescription>Artículos para la próxima comanda.</CardDescription>
-              </CardHeader>
-              <CardContent className="flex-grow overflow-hidden p-0">
-                <ScrollArea className="h-full p-4">
-                  {renderOrderItems(order, false)}
-                </ScrollArea>
-              </CardContent>
-              <Separator />
-              <CardFooter className="p-4 flex flex-col items-stretch gap-2"> {/* Reduced gap */}
-                <div className="flex justify-between items-center text-md font-semibold"> {/* Smaller text */}
-                  <span>Total Actual:</span>
-                  <span>{formatCurrency(currentOrderTotal)}</span>
-                </div>
-                 <Button size="sm" onClick={handlePrintOrder} disabled={order.length === 0}> {/* Smaller button */}
-                    <Printer className="mr-2 h-4 w-4" /> Imprimir Comanda
-                  </Button>
-              </CardFooter>
-            </Card>
+        {/* Order Summaries Side-by-Side */}
+      <div className="flex flex-grow gap-4 overflow-hidden">
+        {/* Current Order Section */}
+        <Card className="w-1/2 flex flex-col shadow-lg"> {/* Use w-1/2 */}
+          <CardHeader>
+            <CardTitle>Pedido Actual</CardTitle>
+            <CardDescription>Artículos para la próxima comanda.</CardDescription>
+          </CardHeader>
+          <CardContent className="flex-grow overflow-hidden p-0">
+            <ScrollArea className="h-full p-4">
+              {renderOrderItems(order, false)}
+            </ScrollArea>
+          </CardContent>
+          <Separator />
+          <CardFooter className="p-4 flex flex-col items-stretch gap-2">
+            <div className="flex justify-between items-center text-md font-semibold">
+              <span>Total Actual:</span>
+              <span>{formatCurrency(currentOrderTotal)}</span>
+            </div>
+            <Button size="sm" onClick={handlePrintOrder} disabled={order.length === 0}>
+              <Printer className="mr-2 h-4 w-4" /> Imprimir Comanda
+            </Button>
+          </CardFooter>
+        </Card>
 
-             {/* Pending Payment Order Section */}
-            <Card className="flex flex-col shadow-lg h-1/2"> {/* Use flex-1 */}
-              <CardHeader>
-                <CardTitle>Pedido Pendiente de Pago</CardTitle>
-                <CardDescription>Comandas impresas esperando pago.</CardDescription>
-              </CardHeader>
-              <CardContent className="flex-grow overflow-hidden p-0">
-                <ScrollArea className="h-full p-4">
-                   {renderOrderItems(pendingPaymentOrder, true)}
-                </ScrollArea>
-              </CardContent>
-              <Separator />
-              <CardFooter className="p-4 flex flex-col items-stretch gap-2"> {/* Reduced gap */}
-                <div className="flex justify-between items-center text-md font-semibold"> {/* Smaller text */}
-                  <span>Total Pendiente:</span>
-                  <span>{formatCurrency(pendingOrderTotal)}</span>
-                </div>
-                {/* Changed button text and action */}
-                <Button size="sm" variant="default" onClick={handlePrintPayment} disabled={pendingPaymentOrder.length === 0} className="bg-blue-600 hover:bg-blue-700 text-white">
-                  <CreditCard className="mr-2 h-4 w-4" /> Imprimir Pago
-                </Button>
-              </CardFooter>
-            </Card>
-         </div>
-
+        {/* Pending Payment Order Section */}
+        <Card className="w-1/2 flex flex-col shadow-lg"> {/* Use w-1/2 */}
+          <CardHeader>
+            <CardTitle>Pedido Pendiente de Pago</CardTitle>
+            <CardDescription>Comandas impresas esperando pago.</CardDescription>
+          </CardHeader>
+          <CardContent className="flex-grow overflow-hidden p-0">
+            <ScrollArea className="h-full p-4">
+              {renderOrderItems(pendingPaymentOrder, true)}
+            </ScrollArea>
+          </CardContent>
+          <Separator />
+          <CardFooter className="p-4 flex flex-col items-stretch gap-2">
+            <div className="flex justify-between items-center text-md font-semibold">
+              <span>Total Pendiente:</span>
+              <span>{formatCurrency(pendingOrderTotal)}</span>
+            </div>
+            <Button size="sm" variant="default" onClick={handlePrintPayment} disabled={pendingPaymentOrder.length === 0} className="bg-blue-600 hover:bg-blue-700 text-white">
+              <CreditCard className="mr-2 h-4 w-4" /> Imprimir Pago
+            </Button>
+          </CardFooter>
+        </Card>
       </div>
 
         {/* Menu Sheet Component */}
