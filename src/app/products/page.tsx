@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -181,12 +182,33 @@ const mockMenu: MenuItem[] = [
       price: 9500,
       category: 'Café',
     },
-    // --- Promo Mechada --- // Changed from Colaciones
+    // --- Promo Churrasco --- (Previously Colaciones)
+    {
+        id: 25,
+        name: 'Promo Pollo Asado + Acompañamiento', // Updated name
+        price: 5500,
+        category: 'Promo Churrasco', // Updated Category
+        // Add modifications if needed
+    },
+    {
+        id: 26,
+        name: 'Promo Mechada + Acompañamiento', // Updated name
+        price: 6000,
+        category: 'Promo Churrasco', // Updated Category
+        // Add modifications if needed
+    },
+    // --- Promo Mechada ---
     {
       id: 4,
       name: 'Dinamico grande', // Changed from 'Papas Fritas'
       price: 3000,
-      category: 'Promo Mechada', // Changed Category
+      category: 'Promo Mechada', // Category already Promo Mechada
+    },
+    {
+      id: 24, // New Promo Mechada
+      name: 'Promo Mechada', // Keep name for now, but ensure ID is unique
+      price: 7000, // Example price
+      category: 'Promo Mechada', // Keep in Promotions category
     },
     // --- Promociones ---
     {
@@ -206,17 +228,11 @@ const mockMenu: MenuItem[] = [
       modificationPrices: { 'Agregado Queso': 1000 }, // + Cheese
     },
     {
-      id: 23, // New Promo Churrasco
-      name: 'Promo Churrasco',
+      id: 23, // Promo Churrasco already exists with ID 25/26
+      name: 'Promo Churrasco Simple', // Make name unique
       price: 6000, // Example price
       category: 'Promociones',
       // No modifications by default for promos, unless specified
-    },
-    {
-      id: 24, // New Promo Mechada (Duplicated name, consider changing if it's a separate item)
-      name: 'Promo Mechada', // Keep name for now, but ensure ID is unique
-      price: 7000, // Example price
-      category: 'Promociones', // Keep in Promotions category
     },
     // --- Bebidas ---
     {
@@ -231,21 +247,6 @@ const mockMenu: MenuItem[] = [
       price: 1500,
       category: 'Bebidas',
     },
-    // --- Colaciones --- (New Category)
-    {
-        id: 25,
-        name: 'Colación Pollo Asado',
-        price: 5500,
-        category: 'Colaciones',
-        // Add modifications if needed
-    },
-    {
-        id: 26,
-        name: 'Colación Carne Mechada',
-        price: 6000,
-        category: 'Colaciones',
-        // Add modifications if needed
-    },
 ];
 
 // Define the desired order for categories
@@ -257,8 +258,8 @@ const orderedCategories = [
   'Churrascos',   // Added
   'Papas Fritas', // Added
   'Café',
-  'Colaciones', // Added New Category
-  'Promo Mechada', // Changed from Colaciones
+  'Promo Churrasco', // Changed from Colaciones
+  'Promo Mechada',
   'Promociones',
   'Bebidas',
 ];
@@ -449,3 +450,4 @@ export default function ProductsPage() {
     </div>
   );
 }
+

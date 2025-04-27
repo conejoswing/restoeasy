@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -190,19 +191,22 @@ const mockMenu: MenuItem[] = [
       price: 9500,
       category: 'Café',
     },
-     // --- Colaciones --- (New Category)
+     // --- Colaciones --- (New Category - now empty after renaming below)
+    // --- Promo Churrasco --- (Previously Colaciones)
     {
         id: 25,
-        name: 'Colación Pollo Asado',
+        name: 'Colación Pollo Asado', // Keep name or change? Assuming change name too.
+        name: 'Promo Pollo Asado + Acompañamiento',
         price: 5500,
-        category: 'Colaciones',
+        category: 'Promo Churrasco', // Changed Category
         // Add modifications if needed
     },
     {
         id: 26,
-        name: 'Colación Carne Mechada',
+        name: 'Colación Carne Mechada', // Keep name or change? Assuming change name too.
+        name: 'Promo Mechada + Acompañamiento',
         price: 6000,
-        category: 'Colaciones',
+        category: 'Promo Churrasco', // Changed Category
         // Add modifications if needed
     },
     // --- Promo Mechada --- // Changed from Colaciones
@@ -211,6 +215,12 @@ const mockMenu: MenuItem[] = [
       name: 'Dinamico grande', // Changed from 'Papas Fritas'
       price: 3000,
       category: 'Promo Mechada', // Changed Category
+    },
+     {
+      id: 24, // New Promo Mechada (Duplicated name, consider changing if it's a separate item)
+      name: 'Promo Mechada', // Keep name for now, but ensure ID is unique
+      price: 7000, // Example price
+      category: 'Promo Mechada', // Keep in Promotions category
     },
     // --- Promociones ---
     {
@@ -230,17 +240,11 @@ const mockMenu: MenuItem[] = [
       modificationPrices: { 'Agregado Queso': 1000 }, // + Cheese
     },
     {
-      id: 23, // New Promo Churrasco
+      id: 23, // New Promo Churrasco (Duplicated name, consider changing if it's a separate item)
       name: 'Promo Churrasco',
       price: 6000, // Example price
       category: 'Promociones',
       // No modifications by default for promos, unless specified
-    },
-    {
-      id: 24, // New Promo Mechada (Duplicated name, consider changing if it's a separate item)
-      name: 'Promo Mechada', // Keep name for now, but ensure ID is unique
-      price: 7000, // Example price
-      category: 'Promociones', // Keep in Promotions category
     },
     // --- Bebidas ---
     {
@@ -266,8 +270,8 @@ const orderedCategories = [
   'Churrascos',   // Added
   'Papas Fritas', // Added
   'Café',
-  'Colaciones', // Added New Category
-  'Promo Mechada', // Changed from Colaciones
+  'Promo Churrasco', // Changed from Colaciones
+  'Promo Mechada',
   'Promociones',
   'Bebidas',
 ];
@@ -913,3 +917,4 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
