@@ -122,8 +122,9 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
           <Button type="button" variant="secondary" onClick={handleCancel}>
             Cancelar
           </Button>
+          {/* The primary button now acts as the confirmation */}
           <Button type="button" onClick={handleConfirm}>
-            Confirmar
+            Añadir al Pedido {/* Changed text to reflect action */}
           </Button>
         </DialogFooter>
       </DialogContent>

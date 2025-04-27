@@ -338,8 +338,8 @@ export default function TableDetailPage() {
     } else {
       // If no modifications, add directly to current order
       addToOrder(item);
-      // Optionally close the sheet after adding an item without mods
-      // setIsMenuSheetOpen(false);
+      // Close the sheet after adding an item without mods (like beverages)
+      setIsMenuSheetOpen(false);
     }
   };
 
