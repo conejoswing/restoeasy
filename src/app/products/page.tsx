@@ -117,6 +117,57 @@ const mockMenu: MenuItem[] = [
       modifications: ['Ají Verde', 'Agregado Queso'], // Added modifications
       modificationPrices: { 'Agregado Queso': 1000 }, // Added cheese price
     },
+    // --- Hamburguesas --- (New Category)
+    {
+        id: 17,
+        name: 'Hamburguesa Clásica',
+        price: 7000,
+        category: 'Hamburguesas',
+        modifications: ['Doble Carne', 'Queso Cheddar', 'Bacon', 'Sin Pepinillos', 'Agregado Queso'],
+        modificationPrices: { 'Doble Carne': 2000, 'Queso Cheddar': 800, 'Bacon': 1000, 'Agregado Queso': 1000 },
+    },
+    {
+        id: 18,
+        name: 'Hamburguesa Especial Cami',
+        price: 8500,
+        category: 'Hamburguesas',
+        modifications: ['Queso Azul', 'Cebolla Caramelizada', 'Rúcula', 'Agregado Queso'],
+        modificationPrices: { 'Queso Azul': 1200, 'Agregado Queso': 1000 },
+    },
+    // --- Churrascos --- (New Category)
+    {
+        id: 19,
+        name: 'Churrasco Italiano',
+        price: 7500,
+        category: 'Churrascos',
+        modifications: ['Palta', 'Tomate', 'Mayonesa Casera', 'Ají Verde', 'Agregado Queso'],
+        modificationPrices: { 'Agregado Queso': 1000 },
+    },
+    {
+        id: 20,
+        name: 'Churrasco Luco',
+        price: 7200,
+        category: 'Churrascos',
+        modifications: ['Queso Fundido', 'Agregado Queso'],
+        modificationPrices: { 'Agregado Queso': 1000 },
+    },
+    // --- Papas Fritas --- (New Category)
+    {
+        id: 21,
+        name: 'Papas Fritas Normales',
+        price: 3500,
+        category: 'Papas Fritas',
+        modifications: ['Agregar Queso Fundido', 'Agregar Salsa Cheddar'],
+        modificationPrices: { 'Agregar Queso Fundido': 1500, 'Agregar Salsa Cheddar': 1200 },
+    },
+    {
+        id: 22,
+        name: 'Papas Fritas Cami Style',
+        price: 5000,
+        category: 'Papas Fritas',
+        modifications: ['Queso Cheddar', 'Bacon', 'Cebolla Crispy', 'Salsa BBQ'],
+        modificationPrices: { 'Queso Cheddar': 1200, 'Bacon': 1000 },
+    },
     // --- Café ---
     {
       id: 3,
@@ -174,6 +225,9 @@ const orderedCategories = [
   'Completos Vienesas',
   'Completos As',
   'Fajitas',
+  'Hamburguesas', // Added
+  'Churrascos',   // Added
+  'Papas Fritas', // Added
   'Café',
   'Colaciones',
   'Promociones',
@@ -187,6 +241,10 @@ const sortMenu = (menu: MenuItem[]): MenuItem[] => {
     const categoryBIndex = orderedCategories.indexOf(b.category);
 
     if (categoryAIndex !== categoryBIndex) {
+        // Handle cases where a category might not be in orderedCategories (place them at the end)
+        if (categoryAIndex === -1 && categoryBIndex === -1) return a.name.localeCompare(b.name);
+        if (categoryAIndex === -1) return 1;
+        if (categoryBIndex === -1) return -1;
         return categoryAIndex - categoryBIndex;
     }
     return a.name.localeCompare(b.name);
