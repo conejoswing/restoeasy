@@ -227,8 +227,8 @@ export default function CashRegisterPage() {
       {/* Title first */}
       <h1 className="text-3xl font-bold mb-6">Gestión de Caja</h1>
 
-      {/* Buttons below title */}
-      <div className="flex items-center gap-2 mb-6"> {/* Removed justify-end */}
+      {/* Buttons aligned to the right */}
+      <div className="flex justify-end items-center gap-2 mb-6">
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
                 <Button>
@@ -339,7 +339,7 @@ export default function CashRegisterPage() {
                 </DialogFooter>
             </DialogContent>
             </Dialog>
-            <Button variant="default" onClick={handleCashClosing}> {/* Changed variant to default */}
+            <Button variant="default" onClick={handleCashClosing}>
                 <FileCheck className="mr-2 h-4 w-4" /> Cierre de Caja
             </Button>
       </div>
