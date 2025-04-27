@@ -38,9 +38,11 @@ function AppContent({ children }: { children: React.ReactNode }) {
   const isTableDetailPage = pathname.startsWith('/tables/') && pathname !== '/tables';
   const displaySidebar = showSidebar && !isTableDetailPage;
 
+  // Default to collapsed state (icons only) when displayed
+  const defaultSidebarOpen = false; // Set default state to collapsed
 
   return (
-    <SidebarProvider defaultOpen={displaySidebar}>
+    <SidebarProvider defaultOpen={defaultSidebarOpen}>
         {/* Conditionally render the Sidebar only for admins and not on table detail */}
         {displaySidebar && (
         <Sidebar collapsible="icon">
