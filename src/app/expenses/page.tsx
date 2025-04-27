@@ -228,7 +228,7 @@ export default function CashRegisterPage() {
       <h1 className="text-3xl font-bold mb-6">Gestión de Caja</h1>
 
       {/* Buttons below title */}
-      <div className="flex justify-end items-center gap-2 mb-6"> {/* Align buttons to the right */}
+      <div className="flex items-center gap-2 mb-6"> {/* Removed justify-end */}
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
                 <Button>
