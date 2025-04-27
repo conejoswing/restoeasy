@@ -190,6 +190,21 @@ const mockMenu: MenuItem[] = [
       price: 9500,
       category: 'Café',
     },
+     // --- Colaciones --- (New Category)
+    {
+        id: 25,
+        name: 'Colación Pollo Asado',
+        price: 5500,
+        category: 'Colaciones',
+        // Add modifications if needed
+    },
+    {
+        id: 26,
+        name: 'Colación Carne Mechada',
+        price: 6000,
+        category: 'Colaciones',
+        // Add modifications if needed
+    },
     // --- Promo Mechada --- // Changed from Colaciones
     {
       id: 4,
@@ -251,6 +266,7 @@ const orderedCategories = [
   'Churrascos',   // Added
   'Papas Fritas', // Added
   'Café',
+  'Colaciones', // Added New Category
   'Promo Mechada', // Changed from Colaciones
   'Promociones',
   'Bebidas',
@@ -897,4 +913,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-
