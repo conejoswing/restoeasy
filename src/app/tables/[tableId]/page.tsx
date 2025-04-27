@@ -195,29 +195,27 @@ const mockMenu: MenuItem[] = [
     // --- Promo Churrasco --- (Previously Colaciones)
     {
         id: 25,
-        name: 'Colación Pollo Asado', // Keep name or change? Assuming change name too.
-        name: 'Promo Pollo Asado + Acompañamiento',
+        name: 'Promo Pollo Asado + Acompañamiento', // Updated name
         price: 5500,
-        category: 'Promo Churrasco', // Changed Category
+        category: 'Promo Churrasco', // Updated Category
         // Add modifications if needed
     },
     {
         id: 26,
-        name: 'Colación Carne Mechada', // Keep name or change? Assuming change name too.
-        name: 'Promo Mechada + Acompañamiento',
+        name: 'Promo Mechada + Acompañamiento', // Updated name
         price: 6000,
-        category: 'Promo Churrasco', // Changed Category
+        category: 'Promo Churrasco', // Updated Category
         // Add modifications if needed
     },
-    // --- Promo Mechada --- // Changed from Colaciones
+    // --- Promo Mechada ---
     {
       id: 4,
       name: 'Dinamico grande', // Changed from 'Papas Fritas'
       price: 3000,
-      category: 'Promo Mechada', // Changed Category
+      category: 'Promo Mechada', // Category already Promo Mechada
     },
-     {
-      id: 24, // New Promo Mechada (Duplicated name, consider changing if it's a separate item)
+    {
+      id: 24, // New Promo Mechada
       name: 'Promo Mechada', // Keep name for now, but ensure ID is unique
       price: 7000, // Example price
       category: 'Promo Mechada', // Keep in Promotions category
@@ -240,8 +238,8 @@ const mockMenu: MenuItem[] = [
       modificationPrices: { 'Agregado Queso': 1000 }, // + Cheese
     },
     {
-      id: 23, // New Promo Churrasco (Duplicated name, consider changing if it's a separate item)
-      name: 'Promo Churrasco',
+      id: 23, // Promo Churrasco already exists with ID 25/26
+      name: 'Promo Churrasco Simple', // Make name unique
       price: 6000, // Example price
       category: 'Promociones',
       // No modifications by default for promos, unless specified
@@ -259,7 +257,7 @@ const mockMenu: MenuItem[] = [
       price: 1500,
       category: 'Bebidas',
     },
-  ];
+];
 
 // Define the desired order for categories
 const orderedCategories = [
@@ -712,11 +710,12 @@ export default function TableDetailPage() {
         );
     } else if (menuSheetView === 'items' && selectedCategoryForItemsView) {
         return (
-            <div className="p-4">
-                <Button variant="ghost" onClick={() => setMenuSheetView('categories')} className="mb-4">
+            <div className="p-4 flex flex-col h-full"> {/* Use flex-col and h-full */}
+                <Button variant="ghost" onClick={() => setMenuSheetView('categories')} className="mb-4 self-start"> {/* Align button left */}
                     <ArrowLeft className="mr-2 h-4 w-4" /> Volver a Categorías
                 </Button>
-                <ScrollArea className="h-[calc(100vh-200px)]"> {/* Adjusted height */}
+                {/* Make ScrollArea take remaining height */}
+                <ScrollArea className="flex-grow">
                     <ul className="space-y-2">
                         {filteredMenu.map((item) => (
                             <li
@@ -883,8 +882,8 @@ export default function TableDetailPage() {
 
         {/* Menu Sheet Component */}
         <Sheet open={isMenuSheetOpen} onOpenChange={closeMenuSheet}> {/* Use closeMenuSheet */}
-            <SheetContent className="w-full sm:max-w-md" side="left">
-                <SheetHeader>
+            <SheetContent className="w-full sm:max-w-md flex flex-col" side="left"> {/* Use flex-col */}
+                <SheetHeader className="flex-shrink-0"> {/* Prevent header from growing */}
                   <SheetTitle className={cn(
                       "text-center text-lg font-semibold py-2 rounded-md bg-muted text-muted-foreground",
                       // Ensure title uses same border and hover styles as category items for consistency
@@ -893,8 +892,11 @@ export default function TableDetailPage() {
                     {menuSheetView === 'categories' ? 'Menú' : selectedCategoryForItemsView}
                   </SheetTitle>
                 </SheetHeader>
-                 {renderMenuSheetContent()} {/* Render categories or items */}
-                 <SheetFooter className="mt-4 p-4 border-t">
+                 {/* Make content area flexible and scrollable */}
+                 <div className="flex-grow overflow-hidden">
+                    {renderMenuSheetContent()} {/* Render categories or items */}
+                 </div>
+                 <SheetFooter className="mt-auto p-4 border-t flex-shrink-0"> {/* Prevent footer from growing, use mt-auto */}
                     {/* Conditionally show Confirm button only when viewing items */}
                     {menuSheetView === 'items' && (
                         <Button variant="default" onClick={closeMenuSheet}>Confirmar</Button>
