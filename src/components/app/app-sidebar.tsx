@@ -32,6 +32,8 @@ export default function AppSidebar() {
   return (
     <>
       <SidebarHeader className="flex flex-col items-center p-4 gap-2">
+        {/* Restaurant Icon (Optional) */}
+        {/* <UtensilsCrossed className="h-8 w-8 text-sidebar-foreground group-data-[collapsible=icon]:h-6 group-data-[collapsible=icon]:w-6 mb-2" /> */}
         <h2 className="text-lg font-semibold text-sidebar-foreground group-data-[collapsible=icon]:hidden text-center">
           El Bajón de la Cami
         </h2>
@@ -89,9 +91,9 @@ export default function AppSidebar() {
                 </Link>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <Link href="/inventory"> {/* Link to inventory for now */}
+                <Link href="/products"> {/* Link to products page */}
                   <SidebarMenuButton
-                    isActive={isActive('/inventory')} // Reuse inventory active state for now
+                    isActive={isActive('/products')} // Check active state for products
                     tooltip="Productos"
                   >
                     <ShoppingBag /> {/* Products icon */}
