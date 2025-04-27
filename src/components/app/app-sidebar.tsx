@@ -4,7 +4,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { UtensilsCrossed, Package, Receipt, Users, LogOut } from 'lucide-react'; // Import Users icon & LogOut
+import { UtensilsCrossed, Package, Receipt, Users, LogOut, ShoppingBag } from 'lucide-react'; // Import Users icon, LogOut, ShoppingBag
 
 import {
   SidebarContent,
@@ -85,6 +85,17 @@ export default function AppSidebar() {
                   >
                     <Users /> {/* Staff icon */}
                     <span className="group-data-[collapsible=icon]:hidden">Personal de Trabajo</span> {/* Staff text */}
+                  </SidebarMenuButton>
+                </Link>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <Link href="/inventory"> {/* Link to inventory for now */}
+                  <SidebarMenuButton
+                    isActive={isActive('/inventory')} // Reuse inventory active state for now
+                    tooltip="Productos"
+                  >
+                    <ShoppingBag /> {/* Products icon */}
+                    <span className="group-data-[collapsible=icon]:hidden">Productos</span> {/* Products text */}
                   </SidebarMenuButton>
                 </Link>
               </SidebarMenuItem>
