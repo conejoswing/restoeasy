@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/card';
 import {ScrollArea} from '@/components/ui/scroll-area';
 import {Separator} from '@/components/ui/separator';
-import {PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard} from 'lucide-react'; // Added CreditCard for pay
+import {PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard} from 'lucide-react'; // Removed CreditCard as payment is removed
 import {useToast} from '@/hooks/use-toast';
 import ModificationDialog from '@/components/app/modification-dialog'; // Import the new dialog
 import { isEqual } from 'lodash'; // Import isEqual for comparing arrays
@@ -202,17 +202,14 @@ export default function TableDetailPage() {
   const router = useRouter();
   const { toast } = useToast();
   const tableIdParam = params.tableId as string;
-  const [order, setOrder] = useState<OrderItem[]>([]); // Current items being added
-  const [pendingPaymentOrder, setPendingPaymentOrder] = useState<OrderItem[]>([]); // Items printed but not paid
+  const [order, setOrder] = useState<OrderItem[]>([]); // Current items in the order
   const [selectedCategory, setSelectedCategory] = useState<string>(orderedCategories[0]);
   const [isModificationDialogOpen, setIsModificationDialogOpen] = useState(false);
   const [currentItemForModification, setCurrentItemForModification] = useState<MenuItem | null>(null);
-  const [hasPendingOrder, setHasPendingOrder] = useState<boolean>(false); // Track if there's a pending payment order
 
-  // Load order and pending order from sessionStorage on mount
+  // Load order from sessionStorage on mount
   useEffect(() => {
     const storedOrder = sessionStorage.getItem(`table-${tableIdParam}-order`);
-    const storedPendingOrder = sessionStorage.getItem(`table-${tableIdParam}-pendingOrder`);
 
     if (storedOrder) {
       try {
@@ -226,29 +223,13 @@ export default function TableDetailPage() {
       }
     }
 
-    if (storedPendingOrder) {
-       try {
-         const parsedPendingOrder = JSON.parse(storedPendingOrder);
-         if (Array.isArray(parsedPendingOrder)) {
-           setPendingPaymentOrder(parsedPendingOrder);
-           setHasPendingOrder(parsedPendingOrder.length > 0);
-         }
-       } catch (error) {
-         console.error("Failed to parse stored pending order:", error);
-         sessionStorage.removeItem(`table-${tableIdParam}-pendingOrder`); // Clear invalid data
-         setHasPendingOrder(false);
-       }
-     } else {
-       setHasPendingOrder(false);
-     }
-
     // Load table status from sessionStorage
     const storedStatus = sessionStorage.getItem(`table-${tableIdParam}-status`);
-    if (storedStatus === 'occupied' && order.length === 0 && pendingPaymentOrder.length === 0) {
-        // If status is occupied but both orders are empty locally (e.g., after refresh),
+    if (storedStatus === 'occupied' && order.length === 0) {
+        // If status is occupied but order is empty locally (e.g., after refresh),
         // reset status to available.
          sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
-    } else if (!storedStatus && (order.length > 0 || pendingPaymentOrder.length > 0)) {
+    } else if (!storedStatus && order.length > 0) {
          // If no status stored but there's an order, ensure it's 'occupied'
          sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
     } else if (!storedStatus) {
@@ -257,9 +238,9 @@ export default function TableDetailPage() {
 
   }, [tableIdParam]); // Only run on mount based on tableIdParam
 
-  // Save order and pending order to sessionStorage whenever they change
+  // Save order to sessionStorage whenever it changes
    useEffect(() => {
-     const hasItems = order.length > 0 || pendingPaymentOrder.length > 0;
+     const hasItems = order.length > 0;
 
      // Save current order
      if (order.length > 0) {
@@ -268,23 +249,14 @@ export default function TableDetailPage() {
         sessionStorage.removeItem(`table-${tableIdParam}-order`);
      }
 
-     // Save pending order
-     if (pendingPaymentOrder.length > 0) {
-        sessionStorage.setItem(`table-${tableIdParam}-pendingOrder`, JSON.stringify(pendingPaymentOrder));
-        setHasPendingOrder(true);
-     } else {
-        sessionStorage.removeItem(`table-${tableIdParam}-pendingOrder`);
-        setHasPendingOrder(false);
-     }
-
-     // Update table status based on whether *any* items exist
+     // Update table status based on whether items exist in the current order
      if (hasItems) {
         sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
      } else {
         sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
      }
 
-   }, [order, pendingPaymentOrder, tableIdParam]);
+   }, [order, tableIdParam]);
 
 
   // Helper to format currency
@@ -320,10 +292,6 @@ export default function TableDetailPage() {
     }, 0) ?? 0;
     const finalItemPrice = item.price + totalModificationCost;
 
-    // Capture the current order state *before* updating
-    const orderBeforeUpdate = [...order];
-    const pendingOrderBeforeUpdate = [...pendingPaymentOrder];
-
     // Update the current order state
     setOrder((prevOrder) => {
        // Check if an identical item *with the exact same set of modifications* already exists in the *current* order
@@ -355,23 +323,19 @@ export default function TableDetailPage() {
       }
     });
 
-     // Calculate the total for the toast message using the *previous* order states + the new item/quantity
-     const existingItemIndexBeforeUpdate = orderBeforeUpdate.findIndex(
-       oi => oi.id === item.id && compareModifications(oi.selectedModifications, modifications)
+     // Calculate the total for the toast message using the *updated* order state
+     const updatedTotal = calculateTotal(
+         order.some(oi => oi.id === item.id && compareModifications(oi.selectedModifications, modifications))
+             ? order.map(oi => oi.id === item.id && compareModifications(oi.selectedModifications, modifications) ? { ...oi, quantity: oi.quantity + 1 } : oi) // Simulate increment if exists
+             : [...order, { // Simulate adding new item
+                 ...item,
+                 orderItemId: '', // dummy values
+                 quantity: 1,
+                 basePrice: item.price,
+                 finalPrice: finalItemPrice,
+                 selectedModifications: modifications
+             }]
      );
-
-     const currentTotalBeforeUpdate = calculateTotal(orderBeforeUpdate);
-     const pendingTotalBeforeUpdate = calculateTotal(pendingOrderBeforeUpdate);
-     const combinedTotalBeforeUpdate = currentTotalBeforeUpdate + pendingTotalBeforeUpdate;
-
-     let newCombinedTotal;
-     if (existingItemIndexBeforeUpdate > -1) {
-         // If item existed before in current order, add its price again to the combined total
-         newCombinedTotal = combinedTotalBeforeUpdate + orderBeforeUpdate[existingItemIndexBeforeUpdate].finalPrice;
-     } else {
-         // If it was a new item, add its final price to the combined total
-         newCombinedTotal = combinedTotalBeforeUpdate + finalItemPrice;
-     }
 
 
     // Format modifications string for toast
@@ -379,13 +343,11 @@ export default function TableDetailPage() {
         ? ` (${modifications.join(', ')})`
         : '';
 
-    const toastTitle = hasPendingOrder
-      ? `${item.name}${modificationsString} añadido (Pedido Actualizado)`
-      : `${item.name}${modificationsString} añadido`;
+    const toastTitle = `${item.name}${modificationsString} añadido`;
 
     toast({
         title: toastTitle,
-        description: `Nuevo Total General: ${formatCurrency(newCombinedTotal)}`, // Show the new combined total
+        description: `Nuevo Total: ${formatCurrency(updatedTotal)}`, // Show the new total
         variant: "default",
         className: "bg-secondary text-secondary-foreground"
       })
@@ -432,22 +394,6 @@ export default function TableDetailPage() {
       })
    }
 
-   // Function to remove an item completely from the *pending* order
-   const removeCompletelyFromPending = (orderItemId: string) => {
-      const itemToRemove = pendingPaymentOrder.find(item => item.orderItemId === orderItemId);
-      const modsString = itemToRemove?.selectedModifications?.join(', ');
-      setPendingPaymentOrder((prevPendingOrder) => {
-         const filteredPendingOrder = prevPendingOrder.filter((orderItem) => orderItem.orderItemId !== orderItemId);
-          if (filteredPendingOrder.length === 0) {
-            setHasPendingOrder(false); // Update state if pending order becomes empty
-          }
-         return filteredPendingOrder;
-      });
-       toast({
-         title: `${itemToRemove?.name}${modsString ? ` (${modsString})` : ''} eliminado del pedido pendiente`, // Specify pending order
-         variant: "destructive",
-       })
-    }
 
   // Calculate total based on finalPrice of each OrderItem
   const calculateTotal = (currentOrder: OrderItem[]) => {
@@ -459,37 +405,22 @@ export default function TableDetailPage() {
 
   const handlePrintOrder = () => {
      if (order.length === 0) {
-       toast({ title: "Error", description: "No hay nuevos artículos para imprimir.", variant: "destructive" });
+       toast({ title: "Error", description: "No hay artículos para imprimir.", variant: "destructive" });
        return;
      }
 
-     console.log('Imprimiendo Comanda (Nuevos artículos):', order);
+     console.log('Imprimiendo Comanda:', order);
      sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied'); // Ensure status is occupied
 
-     // Merge current order items into the pending order
-     setPendingPaymentOrder(prevPendingOrder => {
-         const updatedPendingOrder = [...prevPendingOrder];
-         order.forEach(newItem => {
-             const existingIndex = updatedPendingOrder.findIndex(
-                 pendingItem => pendingItem.id === newItem.id && compareModifications(pendingItem.selectedModifications, newItem.selectedModifications)
-             );
-             if (existingIndex > -1) {
-                 // Item exists, update quantity
-                 updatedPendingOrder[existingIndex].quantity += newItem.quantity;
-             } else {
-                 // Item is new to the pending order, add it
-                 updatedPendingOrder.push({...newItem}); // Push a copy
-             }
-         });
-         return updatedPendingOrder;
-     });
+     // Logic after printing (e.g., clear order, maybe move to a 'paid' state later)
+     // For now, just log and show toast. If payment integration is added, this would change.
 
-     // Clear the current order
-     setOrder([]);
+     // Keep the order as is for now, until payment is implemented or the order is explicitly cleared.
+     // setOrder([]); // Optionally clear the order after printing
 
      toast({
        title: "¡Comanda Enviada!",
-       description: `Nuevos artículos añadidos al pedido pendiente. Total Pendiente: ${formatCurrency(calculateTotal(pendingPaymentOrder) + calculateTotal(order))}.`, // Calculate total including just added items
+       description: `Pedido impreso. Total: ${formatCurrency(calculateTotal(order))}. La mesa sigue ocupada.`,
        variant: "default",
        className: "bg-green-200 text-green-800 border-green-400" // Using direct colors temporarily for success
      });
@@ -502,8 +433,6 @@ export default function TableDetailPage() {
 
 
   const currentOrderTotal = calculateTotal(order);
-  const pendingOrderTotal = calculateTotal(pendingPaymentOrder);
-  const grandTotal = currentOrderTotal + pendingOrderTotal;
 
   const getPageTitle = () => {
       if (tableIdParam === 'mezon') {
@@ -535,12 +464,9 @@ export default function TableDetailPage() {
     );
   };
 
-   const renderOrderItems = (items: OrderItem[], isPending: boolean) => {
-       if (items.length === 0 && !isPending) {
+   const renderOrderItems = (items: OrderItem[]) => {
+       if (items.length === 0) {
            return <p className="text-muted-foreground text-center">Aún no se han añadido artículos al pedido actual.</p>;
-       }
-       if (items.length === 0 && isPending) {
-           return <p className="text-muted-foreground text-center">No hay artículos pendientes de pago.</p>;
        }
 
        return (
@@ -558,7 +484,6 @@ export default function TableDetailPage() {
                </div>
                <div className="flex items-center gap-2">
                  {/* Conditionally render +/- buttons only for current order */}
-                 {!isPending && (
                    <>
                       <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => removeFromOrder(item.orderItemId)}>
                           <MinusCircle className="h-4 w-4" />
@@ -573,17 +498,13 @@ export default function TableDetailPage() {
                         <PlusCircle className="h-4 w-4" />
                       </Button>
                    </>
-                 )}
-                  {/* Always show quantity for pending order */}
-                 {isPending && (
-                     <span className="font-medium w-4 text-center mr-auto pl-10">{item.quantity}</span>
-                 )}
-                 {/* Button to remove completely (available for both, but different functions) */}
+
+                 {/* Button to remove completely */}
                   <Button
                       variant="ghost"
                       size="icon"
                       className="h-6 w-6 text-destructive/70"
-                      onClick={() => isPending ? removeCompletelyFromPending(item.orderItemId) : removeCompletely(item.orderItemId)}>
+                      onClick={() => removeCompletely(item.orderItemId)}>
                      <XCircle className="h-4 w-4" />
                    </Button>
                </div>
@@ -630,49 +551,31 @@ export default function TableDetailPage() {
         <Card className="w-2/5 flex flex-col shadow-lg">
           <CardHeader>
             <CardTitle>Pedido Actual</CardTitle>
-            <CardDescription>Artículos nuevos para añadir a la comanda.</CardDescription>
+            <CardDescription>Artículos añadidos a la comanda.</CardDescription>
           </CardHeader>
           <CardContent className="flex-grow overflow-hidden p-0">
-            <ScrollArea className="h-[calc(50%-theme(spacing.16))] p-4"> {/* Adjust height as needed */}
-              {renderOrderItems(order, false)}
+            <ScrollArea className="h-full p-4"> {/* Full height scroll */}
+              {renderOrderItems(order)}
             </ScrollArea>
           </CardContent>
-           <Separator />
-           {/* Pending Payment Section */}
-            <CardHeader className="pt-4">
-                <CardTitle>Pedido Pendiente de Pago</CardTitle>
-                <CardDescription>Artículos enviados a cocina, esperando pago.</CardDescription>
-            </CardHeader>
-            <CardContent className="flex-grow overflow-hidden p-0">
-                <ScrollArea className="h-[calc(50%-theme(spacing.16))] p-4"> {/* Adjust height as needed */}
-                {renderOrderItems(pendingPaymentOrder, true)}
-                </ScrollArea>
-            </CardContent>
 
           <Separator />
           <CardFooter className="p-4 flex flex-col items-stretch gap-4">
-            <div className="flex justify-between items-center text-sm">
-              <span>Subtotal Actual:</span>
+            <div className="flex justify-between items-center text-lg font-semibold">
+              <span>Total:</span>
               <span>{formatCurrency(currentOrderTotal)}</span>
             </div>
-             <div className="flex justify-between items-center text-sm">
-               <span>Subtotal Pendiente:</span>
-               <span>{formatCurrency(pendingOrderTotal)}</span>
-             </div>
-            <Separator className="my-1"/>
-            <div className="flex justify-between items-center text-lg font-semibold">
-              <span>Total General:</span>
-              <span>{formatCurrency(grandTotal)}</span>
-            </div>
              <Button size="lg" onClick={handlePrintOrder} disabled={order.length === 0}>
-                <Printer className="mr-2 h-5 w-5" /> Imprimir Comanda (Añadir al Pendiente)
+                <Printer className="mr-2 h-5 w-5" /> Imprimir Comanda
               </Button>
-             {/* Optional: Add a Pay Button */}
-             {hasPendingOrder && (
-               <Button size="lg" variant="destructive" onClick={() => { /* Implement payment logic here */ }}>
-                 <CreditCard className="mr-2 h-5 w-5" /> Pagar Total Pendiente ({formatCurrency(pendingOrderTotal)})
+             {/* Optional: Add a Pay Button or Clear Button later */}
+             {/*
+             {order.length > 0 && (
+               <Button size="lg" variant="destructive" onClick={() => { setOrder([]); toast({title: "Pedido Limpiado", variant: "destructive"})}}>
+                 <XCircle className="mr-2 h-5 w-5" /> Limpiar Pedido Actual
                </Button>
              )}
+             */}
           </CardFooter>
         </Card>
       </div>
@@ -690,3 +593,4 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
