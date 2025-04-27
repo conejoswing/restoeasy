@@ -214,7 +214,7 @@ const mockMenu: MenuItem[] = [
       modifications: ['Vienesa', 'As', 'Con Bebida Pequeña', 'Ají Verde', 'Agregado Queso'], // + Ají Verde + Agregado Queso
       modificationPrices: { 'Agregado Queso': 1000 }, // + Cheese
     },
-     {
+    {
       id: 23, // New Promo Churrasco
       name: 'Promo Churrasco',
       price: 6000, // Example price
@@ -859,3 +859,4 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
