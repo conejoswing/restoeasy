@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/card';
 import {ScrollArea} from '@/components/ui/scroll-area';
 import {Separator} from '@/components/ui/separator';
-import {PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, Trash2} from 'lucide-react'; // Added Trash2 for clear
+import {PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, Trash2, CreditCard} from 'lucide-react'; // Added Trash2 for clear, CreditCard for payment
 import {useToast} from '@/hooks/use-toast';
 import ModificationDialog from '@/components/app/modification-dialog'; // Import the new dialog
 import { isEqual } from 'lodash'; // Import isEqual for comparing arrays
@@ -207,10 +207,13 @@ export default function TableDetailPage() {
     const storedCurrentOrder = sessionStorage.getItem(`table-${tableIdParam}-order`);
     const storedPendingOrder = sessionStorage.getItem(`table-${tableIdParam}-pending-order`);
 
+    let parsedCurrentOrder: OrderItem[] = [];
+    let parsedPendingOrder: OrderItem[] = [];
+
     if (storedCurrentOrder) {
       try {
-        const parsedOrder = JSON.parse(storedCurrentOrder);
-        if (Array.isArray(parsedOrder)) setOrder(parsedOrder);
+        const parsed = JSON.parse(storedCurrentOrder);
+        if (Array.isArray(parsed)) parsedCurrentOrder = parsed;
       } catch (error) {
         console.error("Failed to parse stored current order:", error);
         sessionStorage.removeItem(`table-${tableIdParam}-order`); // Clear invalid data
@@ -219,28 +222,36 @@ export default function TableDetailPage() {
 
     if (storedPendingOrder) {
        try {
-         const parsedPendingOrder = JSON.parse(storedPendingOrder);
-         if (Array.isArray(parsedPendingOrder)) setPendingPaymentOrder(parsedPendingOrder);
+         const parsed = JSON.parse(storedPendingOrder);
+         if (Array.isArray(parsed)) parsedPendingOrder = parsed;
        } catch (error) {
          console.error("Failed to parse stored pending order:", error);
          sessionStorage.removeItem(`table-${tableIdParam}-pending-order`); // Clear invalid data
        }
      }
 
-    // Load table status from sessionStorage
-    const storedStatus = sessionStorage.getItem(`table-${tableIdParam}-status`);
-    const hasCurrentItems = order.length > 0;
-    const hasPendingItems = pendingPaymentOrder.length > 0;
+     setOrder(parsedCurrentOrder);
+     setPendingPaymentOrder(parsedPendingOrder);
 
-    if (storedStatus === 'occupied' && !hasCurrentItems && !hasPendingItems) {
-        // If status is occupied but both orders are empty locally (e.g., after refresh), reset status.
-         sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
-    } else if (!storedStatus && (hasCurrentItems || hasPendingItems)) {
-         // If no status stored but there's an order, ensure it's 'occupied'
+
+    // Load table status from sessionStorage and determine initial status
+    const storedStatus = sessionStorage.getItem(`table-${tableIdParam}-status`);
+    const hasCurrentItems = parsedCurrentOrder.length > 0;
+    const hasPendingItems = parsedPendingOrder.length > 0;
+
+    if (!storedStatus) { // If no status is stored, determine it now
+         if (hasCurrentItems || hasPendingItems) {
+             sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
+         } else {
+             sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
+         }
+     } else if (storedStatus === 'available' && (hasCurrentItems || hasPendingItems)) {
+         // If status is available but items exist (e.g., after browser crash recovery)
          sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
-    } else if (!storedStatus) {
-         sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
-    }
+     } else if (storedStatus === 'occupied' && !hasCurrentItems && !hasPendingItems) {
+        // If status is occupied but no items exist (e.g., after clearing pending)
+        sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
+     }
 
   }, [tableIdParam]); // Only run on mount based on tableIdParam
 
@@ -267,6 +278,7 @@ export default function TableDetailPage() {
      if (hasCurrentItems || hasPendingItems) {
         sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
      } else {
+        // Only set to available if both are empty
         sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
      }
 
@@ -337,19 +349,27 @@ export default function TableDetailPage() {
       }
     });
 
-     // Calculate the total for the toast message using the *updated* order state
-     const updatedTotal = calculateTotal(
-         order.some(oi => oi.id === item.id && compareModifications(oi.selectedModifications, modifications))
-             ? order.map(oi => oi.id === item.id && compareModifications(oi.selectedModifications, modifications) ? { ...oi, quantity: oi.quantity + 1 } : oi) // Simulate increment if exists
-             : [...order, { // Simulate adding new item
-                 ...item,
-                 orderItemId: '', // dummy values
-                 quantity: 1,
-                 basePrice: item.price,
-                 finalPrice: finalItemPrice,
-                 selectedModifications: modifications
-             }]
+     // Simulate the state update for toast calculation
+     let simulatedOrderForToast: OrderItem[];
+     const existingIndex = order.findIndex(
+        (oi) => oi.id === item.id && compareModifications(oi.selectedModifications, modifications)
      );
+     if (existingIndex > -1) {
+        simulatedOrderForToast = order.map((oi, index) =>
+             index === existingIndex ? { ...oi, quantity: oi.quantity + 1 } : oi
+         );
+     } else {
+        const { price, modificationPrices, modifications: itemMods, ...itemWithoutPricesAndMods } = item;
+        simulatedOrderForToast = [...order, {
+            ...itemWithoutPricesAndMods,
+            orderItemId: 'temp-toast-id', // Temporary unique ID for simulation
+            quantity: 1,
+            selectedModifications: modifications,
+            basePrice: item.price,
+            finalPrice: finalItemPrice,
+        }];
+     }
+     const updatedTotal = calculateTotal(simulatedOrderForToast);
 
 
     // Format modifications string for toast
@@ -426,26 +446,27 @@ export default function TableDetailPage() {
      console.log('Imprimiendo Comanda (Pedido Actual):', order);
 
      // Merge current order into pending payment order
-     setPendingPaymentOrder(prevPending => {
-         const mergedOrder = [...prevPending];
-         order.forEach(currentItem => {
-            const existingIndex = mergedOrder.findIndex(pendingItem =>
-                 pendingItem.id === currentItem.id &&
-                 compareModifications(pendingItem.selectedModifications, currentItem.selectedModifications)
-             );
-             if (existingIndex > -1) {
-                 // Item exists, increase quantity
-                 mergedOrder[existingIndex] = {
-                     ...mergedOrder[existingIndex],
-                     quantity: mergedOrder[existingIndex].quantity + currentItem.quantity
-                 };
-             } else {
-                 // New item, add it
-                 mergedOrder.push(currentItem);
-             }
-         });
-         return mergedOrder;
+     // Create a deep copy of the pending order to avoid direct state mutation issues
+     const currentPendingOrder = JSON.parse(JSON.stringify(pendingPaymentOrder));
+     const currentOrderToMove = JSON.parse(JSON.stringify(order)); // Copy current order too
+
+     currentOrderToMove.forEach((currentItem: OrderItem) => {
+         const existingIndex = currentPendingOrder.findIndex((pendingItem: OrderItem) =>
+             pendingItem.id === currentItem.id &&
+             compareModifications(pendingItem.selectedModifications, currentItem.selectedModifications)
+         );
+         if (existingIndex > -1) {
+             // Item exists, increase quantity
+             currentPendingOrder[existingIndex].quantity += currentItem.quantity;
+         } else {
+             // New item, add it
+             currentPendingOrder.push(currentItem);
+         }
      });
+
+
+     // Update state with the merged order
+     setPendingPaymentOrder(currentPendingOrder);
 
      // Clear the current order after moving to pending
      setOrder([]);
@@ -453,8 +474,8 @@ export default function TableDetailPage() {
      // Keep table occupied
      sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
 
-     const printedTotal = calculateTotal(order); // Calculate total of *what was just printed*
-     const newPendingTotal = calculateTotal([...pendingPaymentOrder, ...order]); // Calculate total of *new combined pending order*
+     const printedTotal = calculateTotal(currentOrderToMove); // Calculate total of *what was just printed*
+     const newPendingTotal = calculateTotal(currentPendingOrder); // Calculate total of *new combined pending order*
 
 
      toast({
@@ -465,6 +486,35 @@ export default function TableDetailPage() {
      });
   };
 
+    const handlePrintPayment = () => {
+       if (pendingPaymentOrder.length === 0) {
+         toast({ title: "Error", description: "No hay artículos pendientes para imprimir el pago.", variant: "destructive" });
+         return;
+       }
+
+       console.log('Imprimiendo Boleta/Factura (Pedido Pendiente):', pendingPaymentOrder);
+       console.log('Total a Pagar:', formatCurrency(pendingOrderTotal));
+
+       // Here you would typically integrate with a real printing service/API
+       // For this example, we'll just clear the pending order and update status
+
+       setPendingPaymentOrder([]); // Clear the pending order
+
+        // Update table status only if current order is also empty
+        if (order.length === 0) {
+            sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
+        }
+
+       toast({
+         title: "¡Pago Impreso!",
+         description: `Boleta/Factura por ${formatCurrency(pendingOrderTotal)} impresa. Mesa disponible si no hay pedido actual.`,
+         variant: "default",
+         className: "bg-blue-200 text-blue-800 border-blue-400" // Using direct colors for payment success
+       });
+     };
+
+
+   /*
    const handleClearPendingOrder = () => {
       if (pendingPaymentOrder.length === 0) {
         toast({ title: "Nada que limpiar", description: "No hay pedidos pendientes de pago.", variant: "default" });
@@ -479,6 +529,7 @@ export default function TableDetailPage() {
         toast({ title: "Pedido Pendiente Limpiado", description: "Todos los artículos pendientes de pago han sido eliminados.", variant: "destructive" });
       }
    };
+   */
 
   // Filter menu items based on the selected category
   const filteredMenu = mockMenu.filter(
@@ -550,6 +601,7 @@ export default function TableDetailPage() {
                         <Button variant="ghost" size="icon" className="h-6 w-6 text-primary" onClick={() => {
                             const originalItem = mockMenu.find(menuItem => menuItem.id === item.id);
                             if (originalItem) {
+                                // Re-adding needs to consider modifications
                                 addToOrder(originalItem, item.selectedModifications);
                             }
                         }}>
@@ -578,7 +630,7 @@ export default function TableDetailPage() {
   return (
     <div className="container mx-auto p-4 h-[calc(100vh-theme(spacing.16))] flex flex-col">
        <div className="flex items-center mb-6">
-         <Button variant="secondary" size="icon" onClick={() => router.push('/tables')} className="mr-2 h-10 w-10 rounded-md">
+         <Button variant="secondary" size="icon" onClick={() => router.push('/tables')} className="mr-2 h-10 w-10 rounded-md bg-card hover:bg-accent">
            <ArrowLeft className="h-6 w-6" />
          </Button>
          <h1 className="text-3xl font-bold">{getPageTitle()} - Pedido</h1>
@@ -650,13 +702,10 @@ export default function TableDetailPage() {
                   <span>Total Pendiente:</span>
                   <span>{formatCurrency(pendingOrderTotal)}</span>
                 </div>
-                {/* Add Payment Button (Future) */}
-                <Button size="sm" variant="destructive" onClick={handleClearPendingOrder} disabled={pendingPaymentOrder.length === 0}>
-                  <Trash2 className="mr-2 h-4 w-4" /> Limpiar Pendiente
+                {/* Changed button text and action */}
+                <Button size="sm" variant="default" onClick={handlePrintPayment} disabled={pendingPaymentOrder.length === 0} className="bg-blue-600 hover:bg-blue-700 text-white">
+                  <CreditCard className="mr-2 h-4 w-4" /> Imprimir Pago
                 </Button>
-                 {/* <Button size="sm" disabled={pendingPaymentOrder.length === 0}>
-                  <CreditCard className="mr-2 h-4 w-4" /> Procesar Pago
-                </Button> */}
               </CardFooter>
             </Card>
          </div>
@@ -676,4 +725,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-
