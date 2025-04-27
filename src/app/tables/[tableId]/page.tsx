@@ -190,12 +190,12 @@ const mockMenu: MenuItem[] = [
       price: 9500,
       category: 'Café',
     },
-    // --- Colaciones ---
+    // --- Promo Mechada --- // Changed from Colaciones
     {
       id: 4,
       name: 'Dinamico grande', // Changed from 'Papas Fritas'
       price: 3000,
-      category: 'Colaciones',
+      category: 'Promo Mechada', // Changed Category
     },
     // --- Promociones ---
     {
@@ -222,10 +222,10 @@ const mockMenu: MenuItem[] = [
       // No modifications by default for promos, unless specified
     },
     {
-      id: 24, // New Promo Mechada
-      name: 'Promo Mechada',
+      id: 24, // New Promo Mechada (Duplicated name, consider changing if it's a separate item)
+      name: 'Promo Mechada', // Keep name for now, but ensure ID is unique
       price: 7000, // Example price
-      category: 'Promociones',
+      category: 'Promociones', // Keep in Promotions category
     },
     // --- Bebidas ---
     {
@@ -251,7 +251,7 @@ const orderedCategories = [
   'Churrascos',   // Added
   'Papas Fritas', // Added
   'Café',
-  'Colaciones',
+  'Promo Mechada', // Changed from Colaciones
   'Promociones',
   'Bebidas',
 ];
@@ -276,7 +276,6 @@ export default function TableDetailPage() {
   const tableIdParam = params.tableId as string;
   const [order, setOrder] = useState<OrderItem[]>([]); // Current items being added
   const [pendingPaymentOrder, setPendingPaymentOrder] = useState<OrderItem[]>([]); // Items sent to print
-  const [selectedCategory, setSelectedCategory] = useState<string>(orderedCategories[0]); // State for Category Buttons (now unused)
   const [isModificationDialogOpen, setIsModificationDialogOpen] = useState(false);
   const [currentItemForModification, setCurrentItemForModification] = useState<MenuItem | null>(null);
   const [isMenuSheetOpen, setIsMenuSheetOpen] = useState(false); // State for Menu Sheet
@@ -866,7 +865,11 @@ export default function TableDetailPage() {
         <Sheet open={isMenuSheetOpen} onOpenChange={closeMenuSheet}> {/* Use closeMenuSheet */}
             <SheetContent className="w-full sm:max-w-md" side="left">
                 <SheetHeader>
-                  <SheetTitle className="text-center text-lg font-semibold py-2 rounded-md bg-muted text-muted-foreground">
+                  <SheetTitle className={cn(
+                      "text-center text-lg font-semibold py-2 rounded-md bg-muted text-muted-foreground",
+                      // Ensure title uses same border and hover styles as category items for consistency
+                      "border"
+                   )}>
                     {menuSheetView === 'categories' ? 'Menú' : selectedCategoryForItemsView}
                   </SheetTitle>
                 </SheetHeader>

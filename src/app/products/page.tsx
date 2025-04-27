@@ -181,12 +181,12 @@ const mockMenu: MenuItem[] = [
       price: 9500,
       category: 'Café',
     },
-    // --- Colaciones ---
+    // --- Promo Mechada --- // Changed from Colaciones
     {
       id: 4,
       name: 'Dinamico grande', // Changed from 'Papas Fritas'
       price: 3000,
-      category: 'Colaciones',
+      category: 'Promo Mechada', // Changed Category
     },
     // --- Promociones ---
     {
@@ -213,10 +213,10 @@ const mockMenu: MenuItem[] = [
       // No modifications by default for promos, unless specified
     },
     {
-      id: 24, // New Promo Mechada
-      name: 'Promo Mechada',
+      id: 24, // New Promo Mechada (Duplicated name, consider changing if it's a separate item)
+      name: 'Promo Mechada', // Keep name for now, but ensure ID is unique
       price: 7000, // Example price
-      category: 'Promociones',
+      category: 'Promociones', // Keep in Promotions category
     },
     // --- Bebidas ---
     {
@@ -242,7 +242,7 @@ const orderedCategories = [
   'Churrascos',   // Added
   'Papas Fritas', // Added
   'Café',
-  'Colaciones',
+  'Promo Mechada', // Changed from Colaciones
   'Promociones',
   'Bebidas',
 ];
