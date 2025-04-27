@@ -2,9 +2,9 @@
 'use client';
 
 import * as React from 'react';
-import { useState, useEffect } from 'react'; // Import useEffect
-import { useRouter } from 'next/navigation'; // Import useRouter
-import { useAuth } from '@/context/AuthContext'; // Import useAuth
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
@@ -43,9 +43,9 @@ import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
 
 
-interface CashMovement {
+export interface CashMovement { // Export interface for use in table page
   id: number;
-  date: Date;
+  date: Date | string; // Allow string for JSON parsing, convert back to Date
   category: string;
   description: string;
   amount: number;
@@ -53,6 +53,7 @@ interface CashMovement {
 
 const movementCategories = ['Ingreso Venta', 'Suministros', 'Mantenimiento', 'Servicios', 'Alquiler', 'Salarios', 'Marketing', 'Otros Egresos', 'Otros Ingresos'];
 
+// Initial movements are now just a fallback if nothing is in storage
 const initialMovements: CashMovement[] = [
   { id: 1, date: new Date(2024, 5, 1), category: 'Suministros', description: 'Entrega de verduras', amount: -150750 },
   { id: 2, date: new Date(2024, 5, 3), category: 'Mantenimiento', description: 'Reparación de fontanería', amount: -300000 },
@@ -61,11 +62,14 @@ const initialMovements: CashMovement[] = [
   { id: 5, date: new Date(2024, 5, 12), category: 'Ingreso Venta', description: 'Ventas del día', amount: 850000 },
 ];
 
+// Storage key
+const CASH_MOVEMENTS_STORAGE_KEY = 'cashMovements';
+
 export default function CashRegisterPage() {
-  // Role checks and redirection are now handled by AuthProvider
   const { isAuthenticated, isLoading, userRole } = useAuth();
   const router = useRouter();
-  const [cashMovements, setCashMovements] = useState<CashMovement[]>(initialMovements);
+  const [cashMovements, setCashMovements] = useState<CashMovement[]>([]);
+  const [isInitialized, setIsInitialized] = useState(false); // Track initialization
   const [newMovement, setNewMovement] = useState<{
     date: Date | undefined;
     category: string;
@@ -76,10 +80,67 @@ export default function CashRegisterPage() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  // No need for explicit redirect here, AuthProvider handles it
+  // Load movements from sessionStorage on mount
+  useEffect(() => {
+    if (isInitialized) return; // Prevent running multiple times
+
+    console.log("Initializing cash movements from storage...");
+    const storedMovements = sessionStorage.getItem(CASH_MOVEMENTS_STORAGE_KEY);
+    let loadedMovements: CashMovement[] = [];
+
+    if (storedMovements) {
+      try {
+        const parsed = JSON.parse(storedMovements);
+        if (Array.isArray(parsed)) {
+          // Convert date strings back to Date objects
+          loadedMovements = parsed.map((m: CashMovement) => ({
+            ...m,
+            date: new Date(m.date), // Ensure date is a Date object
+          }));
+           console.log("Loaded cash movements:", loadedMovements);
+        } else {
+          console.warn("Invalid cash movements data found, using initial data.");
+          loadedMovements = initialMovements;
+        }
+      } catch (error) {
+        console.error("Failed to parse stored cash movements:", error);
+        loadedMovements = initialMovements; // Fallback to initial on error
+      }
+    } else {
+      console.log("No cash movements found in storage, using initial data.");
+      loadedMovements = initialMovements; // Use initial if nothing in storage
+    }
+
+    // Sort movements by date (most recent first)
+    loadedMovements.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    setCashMovements(loadedMovements);
+    setIsInitialized(true); // Mark as initialized
+    console.log("Cash movements initialization complete.");
+
+  }, [isInitialized]);
+
+   // Save movements to sessionStorage whenever they change
+   useEffect(() => {
+     if (!isInitialized) return; // Only save after initial load
+
+     console.log("Saving cash movements to storage...");
+     try {
+        // Store dates as ISO strings for reliable JSON serialization/parsing
+        const movementsToStore = cashMovements.map(m => ({
+            ...m,
+            date: m.date instanceof Date ? m.date.toISOString() : m.date // Store as ISO string
+        }));
+       sessionStorage.setItem(CASH_MOVEMENTS_STORAGE_KEY, JSON.stringify(movementsToStore));
+       console.log("Cash movements saved.");
+     } catch (error) {
+       console.error("Failed to save cash movements to storage:", error);
+     }
+   }, [cashMovements, isInitialized]);
+
 
   const formatCurrency = (amount: number) => {
-    return `CLP ${amount.toFixed(0)}`;
+    // Format as CLP with no decimals
+    return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
   };
 
   const handleInputChange = (
@@ -106,6 +167,10 @@ export default function CashRegisterPage() {
     setNewMovement((prev) => ({ ...prev, type: value }));
   }
 
+  // Helper to get the next available ID
+  const getNextMovementId = (currentMovements: CashMovement[]): number => {
+      return currentMovements.length > 0 ? Math.max(...currentMovements.map((m) => m.id)) + 1 : 1;
+  };
 
   const handleAddMovement = () => {
     if (!newMovement.date || !newMovement.category || !newMovement.description || !newMovement.amount) {
@@ -113,33 +178,48 @@ export default function CashRegisterPage() {
       return;
     }
 
-    const newId = cashMovements.length > 0 ? Math.max(...cashMovements.map((m) => m.id)) + 1 : 1;
     const amountValue = parseFloat(newMovement.amount);
+    if (isNaN(amountValue)) {
+         toast({ title: "Error", description: "El monto debe ser un número válido.", variant: "destructive" });
+         return;
+    }
     const finalAmount = newMovement.type === 'expense' ? -Math.abs(amountValue) : Math.abs(amountValue);
+
+     // Read current movements from state (which should be synced with storage)
+    const currentMovements = cashMovements;
+    const newId = getNextMovementId(currentMovements);
 
     const addedMovement: CashMovement = {
       id: newId,
-      date: newMovement.date,
+      date: newMovement.date, // Already a Date object
       category: newMovement.category,
       description: newMovement.description,
       amount: finalAmount,
     }
 
-    setCashMovements([...cashMovements, addedMovement].sort((a, b) => b.date.getTime() - a.date.getTime()));
+    // Update state, which will trigger the useEffect to save to storage
+    setCashMovements((prev) =>
+        [...prev, addedMovement].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    );
+
     setNewMovement({ date: undefined, category: '', description: '', amount: '', type: 'expense' });
     setIsAddDialogOpen(false);
     toast({ title: "Éxito", description: `Movimiento de ${formatCurrency(addedMovement.amount)} registrado.` });
   };
 
   const handleDeleteMovement = (id: number) => {
+     // Deletion is disabled for now, but if re-enabled, update state and storage
+     /*
     const movementToDelete = cashMovements.find(m => m.id === id);
-    setCashMovements(cashMovements.filter((m) => m.id !== id));
+    const updatedMovements = cashMovements.filter((m) => m.id !== id);
+    setCashMovements(updatedMovements); // This triggers useEffect to save
     toast({ title: "Eliminado", description: `Movimiento por ${movementToDelete?.description} eliminado.`, variant: "destructive" });
+    */
   };
 
    // Loading state is handled by AuthProvider wrapper in layout.tsx
-   if (isLoading) {
-     return null; // Or a minimal loading indicator if preferred
+   if (isLoading || !isInitialized) { // Wait for auth and local state init
+     return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
    }
    // If not authenticated or not admin, AuthProvider will redirect
    if (!isAuthenticated || userRole !== 'admin') {
@@ -216,6 +296,7 @@ export default function CashRegisterPage() {
                   </SelectTrigger>
                   <SelectContent>
                     {movementCategories
+                      .filter(cat => cat !== 'Ingreso Venta') // Filter out 'Ingreso Venta'
                       .filter(cat => newMovement.type === 'income' ? cat.toLowerCase().includes('ingreso') : !cat.toLowerCase().includes('ingreso'))
                       .map((cat) => (
                         <SelectItem key={cat} value={cat}>{cat}</SelectItem>
@@ -275,15 +356,16 @@ export default function CashRegisterPage() {
           <TableBody>
             {cashMovements.map((movement) => (
               <TableRow key={movement.id}>
-                <TableCell>{format(movement.date, 'dd/MM/yyyy')}</TableCell>
+                <TableCell>{format(new Date(movement.date), 'dd/MM/yyyy')}</TableCell> {/* Ensure date is Date object */}
                 <TableCell>{movement.category}</TableCell>
                 <TableCell className="font-medium">{movement.description}</TableCell>
                 <TableCell className={cn(
-                  "text-right",
+                  "text-right font-mono", // Added font-mono for better number alignment
                   movement.amount >= 0 ? "text-green-600" : "text-red-600"
                 )}>
                   {formatCurrency(movement.amount)}
                 </TableCell>
+                 {/* Delete button is disabled */}
                  {/*
                  <TableCell className="text-right">
                      <Button

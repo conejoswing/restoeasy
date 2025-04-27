@@ -22,12 +22,13 @@ import {
   SheetTitle,
   SheetDescription,
   SheetFooter,
-} from '@/components/ui/sheet'; // Import Sheet components
-import { Utensils, PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard } from 'lucide-react'; // Added Utensils
+} from '@/components/ui/sheet';
+import { Utensils, PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard } from 'lucide-react';
 import {useToast} from '@/hooks/use-toast';
-import ModificationDialog from '@/components/app/modification-dialog'; // Import the new dialog
-import { isEqual } from 'lodash'; // Import isEqual for comparing arrays
-import { cn } from '@/lib/utils'; // Import cn
+import ModificationDialog from '@/components/app/modification-dialog';
+import { isEqual } from 'lodash';
+import { cn } from '@/lib/utils';
+import type { CashMovement } from '@/app/expenses/page'; // Import CashMovement type
 
 interface MenuItem {
   id: number;
@@ -198,6 +199,8 @@ const compareModifications = (arr1?: string[], arr2?: string[]): boolean => {
     return isEqual(sortedArr1, sortedArr2); // Use lodash isEqual for deep comparison
 };
 
+// Storage key for cash movements
+const CASH_MOVEMENTS_STORAGE_KEY = 'cashMovements';
 
 export default function TableDetailPage() {
   const params = useParams();
@@ -271,11 +274,12 @@ export default function TableDetailPage() {
     }
 
     // Update status in sessionStorage if it doesn't match the derived status
-    if (storedStatus !== newStatus) {
-       console.log(`Updating status for table ${tableIdParam} from ${storedStatus || 'none'} to ${newStatus}`);
+    const currentStatus = sessionStorage.getItem(`table-${tableIdParam}-status`);
+    if (currentStatus !== newStatus) {
+       console.log(`Updating status for table ${tableIdParam} from ${currentStatus || 'none'} to ${newStatus}`);
        sessionStorage.setItem(`table-${tableIdParam}-status`, newStatus);
     } else {
-       console.log(`Status for table ${tableIdParam} is already ${storedStatus}`);
+       console.log(`Status for table ${tableIdParam} is already ${currentStatus}`);
     }
 
     setIsInitialized(true); // Mark initialization as complete
@@ -326,7 +330,8 @@ export default function TableDetailPage() {
 
   // Helper to format currency
   const formatCurrency = (amount: number) => {
-    return `CLP ${amount.toFixed(0)}`; // Format as CLP with no decimals
+    // Format as CLP with no decimals
+    return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
   };
 
   // Function to handle clicking a menu item (from Sheet)
@@ -501,6 +506,11 @@ export default function TableDetailPage() {
      });
   };
 
+   // Helper to get the next available cash movement ID
+   const getNextMovementId = (currentMovements: CashMovement[]): number => {
+      return currentMovements.length > 0 ? Math.max(...currentMovements.map((m) => m.id)) + 1 : 1;
+  };
+
     const handlePrintPayment = () => {
        if (pendingPaymentOrder.length === 0) {
          toast({ title: "Error", description: "No hay artículos pendientes para imprimir el pago.", variant: "destructive" });
@@ -512,6 +522,46 @@ export default function TableDetailPage() {
        console.log('Imprimiendo Boleta/Factura (Pedido Pendiente):', pendingPaymentOrder);
        console.log('Total a Pagar:', formatCurrency(finalTotalToPay));
 
+       // --- Add sale to cash movements in sessionStorage ---
+       try {
+            const storedMovements = sessionStorage.getItem(CASH_MOVEMENTS_STORAGE_KEY);
+            let currentMovements: CashMovement[] = [];
+            if (storedMovements) {
+                const parsed = JSON.parse(storedMovements);
+                if (Array.isArray(parsed)) {
+                    // Parse dates back to Date objects
+                     currentMovements = parsed.map((m: any) => ({ ...m, date: new Date(m.date) }));
+                }
+            }
+
+            const newMovementId = getNextMovementId(currentMovements);
+            const saleMovement: CashMovement = {
+                id: newMovementId,
+                date: new Date(), // Use current date/time for the sale
+                category: 'Ingreso Venta',
+                description: `Venta ${getPageTitle()}`, // Description includes table/source
+                amount: finalTotalToPay, // Positive amount for income
+            };
+
+            // Add the new sale and sort (most recent first)
+            const updatedMovements = [...currentMovements, saleMovement].sort(
+                (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+            );
+
+            // Save back to sessionStorage (store dates as ISO strings)
+            sessionStorage.setItem(CASH_MOVEMENTS_STORAGE_KEY, JSON.stringify(
+                 updatedMovements.map(m => ({...m, date: m.date instanceof Date ? m.date.toISOString() : m.date }))
+             ));
+            console.log(`Sale of ${formatCurrency(finalTotalToPay)} registered in cash movements.`);
+
+       } catch (error) {
+            console.error("Error registering sale in cash movements:", error);
+            toast({title: "Error Interno", description: "No se pudo registrar la venta en la caja.", variant: "destructive"});
+            // Decide if you want to proceed with clearing the pending order even if saving fails
+            // return; // Option: Stop here if saving fails
+       }
+
+
        // --- Clear pending order and update status ---
        setPendingPaymentOrder([]); // Clear the pending order state immediately
 
@@ -519,7 +569,7 @@ export default function TableDetailPage() {
 
        toast({
          title: "¡Pago Impreso!",
-         description: `Boleta/Factura por ${formatCurrency(finalTotalToPay)} impresa. Mesa disponible si no hay pedido actual.`,
+         description: `Boleta/Factura por ${formatCurrency(finalTotalToPay)} impresa. Venta registrada en caja. Mesa disponible si no hay pedido actual.`,
          variant: "default",
          className: "bg-blue-200 text-blue-800 border-blue-400" // Using direct colors for payment success
        });
@@ -534,6 +584,7 @@ export default function TableDetailPage() {
   const pendingOrderTotal = calculateTotal(pendingPaymentOrder); // Calculate pending total
 
   const getPageTitle = () => {
+      if (!tableIdParam) return 'Cargando...'; // Handle case where param might be missing initially
       if (tableIdParam === 'mezon') {
           return 'Mezón';
       } else if (tableIdParam === 'delivery') {
@@ -559,7 +610,7 @@ export default function TableDetailPage() {
               </Button>
             ))}
           </div>
-          <ScrollArea className="h-[calc(100vh-200px)]"> {/* Adjust height as needed */}
+          <ScrollArea className="h-[calc(100vh-250px)]"> {/* Adjusted height */}
             <ul className="space-y-2">
               {filteredMenu.map((item) => (
                 <li
@@ -568,6 +619,8 @@ export default function TableDetailPage() {
                   onClick={() => handleItemClick(item)} // Use handleItemClick
                 >
                   <span className="font-medium">{item.name}</span>
+                   {/* Display base price in menu */}
+                   <span className="text-sm text-muted-foreground">{formatCurrency(item.price)}</span>
                 </li>
               ))}
               {filteredMenu.length === 0 && (
@@ -598,9 +651,9 @@ export default function TableDetailPage() {
                     {item.selectedModifications && item.selectedModifications.length > 0 && (
                       <p className="text-xs text-muted-foreground">({item.selectedModifications.join(', ')})</p>
                     )}
-                    {/* Show price only in pending section */}
+                    {/* Show final price only in pending section */}
                     {isPendingSection && (
-                        <p className='text-xs text-muted-foreground'>{formatCurrency(item.finalPrice)}</p>
+                        <p className='text-xs text-muted-foreground font-mono'>{formatCurrency(item.finalPrice)}</p>
                     )}
                  </div>
                </div>
@@ -631,8 +684,8 @@ export default function TableDetailPage() {
                           </Button>
                      </>
                  ) : (
-                    // For pending section, just show quantity
-                    <span className="font-medium w-4 text-center">{item.quantity}</span>
+                    // For pending section, just show quantity x price
+                    <span className="font-medium w-auto text-right text-sm">{item.quantity} x {formatCurrency(item.finalPrice)}</span>
                  )}
                </div>
              </li>
@@ -702,7 +755,7 @@ export default function TableDetailPage() {
           <CardFooter className="p-4 flex flex-col items-stretch gap-2">
             <div className="flex justify-between items-center text-md font-semibold">
               <span>Total Pendiente:</span>
-              <span>{formatCurrency(pendingOrderTotal)}</span>
+              <span className='font-mono'>{formatCurrency(pendingOrderTotal)}</span>
             </div>
             <Button size="sm" variant="default" onClick={handlePrintPayment} disabled={pendingPaymentOrder.length === 0} className="bg-blue-600 hover:bg-blue-700 text-white">
               <CreditCard className="mr-2 h-4 w-4" /> Imprimir Pago
@@ -719,7 +772,7 @@ export default function TableDetailPage() {
                   {/* <SheetDescription>Selecciona una categoría y añade artículos.</SheetDescription> */}
                 </SheetHeader>
                  {renderMenuItemsInSheet()}
-                 <SheetFooter className="mt-4">
+                 <SheetFooter className="mt-4 p-4 border-t">
                      <Button variant="outline" onClick={() => setIsMenuSheetOpen(false)}>Cerrar Menú</Button>
                  </SheetFooter>
             </SheetContent>
