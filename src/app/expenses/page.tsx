@@ -35,7 +35,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { PlusCircle, Calendar as CalendarIcon } from 'lucide-react';
+import { PlusCircle, Calendar as CalendarIcon, FileCheck } from 'lucide-react'; // Import FileCheck
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
@@ -207,15 +207,11 @@ export default function CashRegisterPage() {
     toast({ title: "Éxito", description: `Movimiento de ${formatCurrency(addedMovement.amount)} registrado.` });
   };
 
-  const handleDeleteMovement = (id: number) => {
-     // Deletion is disabled for now, but if re-enabled, update state and storage
-     /*
-    const movementToDelete = cashMovements.find(m => m.id === id);
-    const updatedMovements = cashMovements.filter((m) => m.id !== id);
-    setCashMovements(updatedMovements); // This triggers useEffect to save
-    toast({ title: "Eliminado", description: `Movimiento por ${movementToDelete?.description} eliminado.`, variant: "destructive" });
-    */
-  };
+  const handleCashClosing = () => {
+    // Placeholder for cash closing logic
+    toast({ title: "Cierre de Caja", description: "Funcionalidad de cierre de caja pendiente.", variant: "default"});
+    // Implement dialog or calculation logic here
+  }
 
    // Loading state is handled by AuthProvider wrapper in layout.tsx
    if (isLoading || !isInitialized) { // Wait for auth and local state init
@@ -230,116 +226,121 @@ export default function CashRegisterPage() {
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Gestión de Caja</h1>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <PlusCircle className="mr-2 h-4 w-4" /> Registrar Movimiento
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Registrar Nuevo Movimiento de Caja</DialogTitle>
-              <DialogDescription>
-                Introduzca los detalles del nuevo movimiento (ingreso o egreso).
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="date" className="text-right">
-                  Fecha
-                </Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant={'outline'}
-                      className={cn(
-                        'col-span-3 justify-start text-left font-normal',
-                        !newMovement.date && 'text-muted-foreground'
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {newMovement.date ? format(newMovement.date, 'PPP', { locale: es }) : <span>Elige una fecha</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={newMovement.date}
-                      onSelect={handleDateChange}
-                      initialFocus
-                      locale={es}
+        <div className="flex items-center gap-2"> {/* Added container for buttons */}
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+                <Button>
+                <PlusCircle className="mr-2 h-4 w-4" /> Registrar Movimiento
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                <DialogTitle>Registrar Nuevo Movimiento de Caja</DialogTitle>
+                <DialogDescription>
+                    Introduzca los detalles del nuevo movimiento (ingreso o egreso).
+                </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="date" className="text-right">
+                    Fecha
+                    </Label>
+                    <Popover>
+                    <PopoverTrigger asChild>
+                        <Button
+                        variant={'outline'}
+                        className={cn(
+                            'col-span-3 justify-start text-left font-normal',
+                            !newMovement.date && 'text-muted-foreground'
+                        )}
+                        >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {newMovement.date ? format(newMovement.date, 'PPP', { locale: es }) : <span>Elige una fecha</span>}
+                        </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                        <Calendar
+                        mode="single"
+                        selected={newMovement.date}
+                        onSelect={handleDateChange}
+                        initialFocus
+                        locale={es}
+                        />
+                    </PopoverContent>
+                    </Popover>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="type" className="text-right">
+                    Tipo
+                    </Label>
+                    <Select onValueChange={(value: 'income' | 'expense') => handleTypeChange(value)} value={newMovement.type}>
+                    <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Selecciona tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="expense">Egreso</SelectItem>
+                        <SelectItem value="income">Ingreso</SelectItem>
+                    </SelectContent>
+                    </Select>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="category" className="text-right">
+                    Categoría
+                    </Label>
+                    <Select onValueChange={(value) => handleSelectChange(value, 'category')} value={newMovement.category}>
+                    <SelectTrigger className="col-span-3">
+                        <SelectValue placeholder="Selecciona una categoría" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {movementCategories
+                        .filter(cat => cat !== 'Ingreso Venta') // Filter out 'Ingreso Venta'
+                        .filter(cat => newMovement.type === 'income' ? cat.toLowerCase().includes('ingreso') : !cat.toLowerCase().includes('ingreso'))
+                        .map((cat) => (
+                            <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                        ))}
+                    </SelectContent>
+                    </Select>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="description" className="text-right">
+                    Descripción
+                    </Label>
+                    <Input
+                    id="description"
+                    value={newMovement.description}
+                    onChange={(e) => handleInputChange(e, 'description')}
+                    className="col-span-3"
+                    required
                     />
-                  </PopoverContent>
-                </Popover>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="type" className="text-right">
-                  Tipo
-                </Label>
-                <Select onValueChange={(value: 'income' | 'expense') => handleTypeChange(value)} value={newMovement.type}>
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Selecciona tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="expense">Egreso</SelectItem>
-                    <SelectItem value="income">Ingreso</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="category" className="text-right">
-                  Categoría
-                </Label>
-                <Select onValueChange={(value) => handleSelectChange(value, 'category')} value={newMovement.category}>
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Selecciona una categoría" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {movementCategories
-                      .filter(cat => cat !== 'Ingreso Venta') // Filter out 'Ingreso Venta'
-                      .filter(cat => newMovement.type === 'income' ? cat.toLowerCase().includes('ingreso') : !cat.toLowerCase().includes('ingreso'))
-                      .map((cat) => (
-                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="description" className="text-right">
-                  Descripción
-                </Label>
-                <Input
-                  id="description"
-                  value={newMovement.description}
-                  onChange={(e) => handleInputChange(e, 'description')}
-                  className="col-span-3"
-                  required
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="amount" className="text-right">
-                  Monto (CLP)
-                </Label>
-                <Input
-                  id="amount"
-                  type="number"
-                  step="1"
-                  min="0"
-                  value={newMovement.amount}
-                  onChange={(e) => handleInputChange(e, 'amount')}
-                  className="col-span-3"
-                  required
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <DialogClose asChild>
-                <Button type="button" variant="secondary">Cancelar</Button>
-              </DialogClose>
-              <Button type="submit" onClick={handleAddMovement}>Registrar Movimiento</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="amount" className="text-right">
+                    Monto (CLP)
+                    </Label>
+                    <Input
+                    id="amount"
+                    type="number"
+                    step="1"
+                    min="0"
+                    value={newMovement.amount}
+                    onChange={(e) => handleInputChange(e, 'amount')}
+                    className="col-span-3"
+                    required
+                    />
+                </div>
+                </div>
+                <DialogFooter>
+                <DialogClose asChild>
+                    <Button type="button" variant="secondary">Cancelar</Button>
+                </DialogClose>
+                <Button type="submit" onClick={handleAddMovement}>Registrar Movimiento</Button>
+                </DialogFooter>
+            </DialogContent>
+            </Dialog>
+            <Button variant="outline" onClick={handleCashClosing}> {/* Added Cierre de Caja button */}
+                <FileCheck className="mr-2 h-4 w-4" /> Cierre de Caja
+            </Button>
+        </div>
       </div>
 
       <Card>
@@ -365,19 +366,6 @@ export default function CashRegisterPage() {
                 )}>
                   {formatCurrency(movement.amount)}
                 </TableCell>
-                 {/* Delete button is disabled */}
-                 {/*
-                 <TableCell className="text-right">
-                     <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-destructive hover:text-destructive/90"
-                        onClick={() => handleDeleteMovement(movement.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                 </TableCell>
-                 */}
               </TableRow>
             ))}
             {cashMovements.length === 0 && (
