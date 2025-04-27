@@ -128,27 +128,27 @@ const mockMenu: MenuItem[] = [
     // --- Café ---
     {
       id: 3,
-      name: 'Dinamico chico', // Assuming this was meant for Cafe? Or was it Colaciones? Adjust if needed.
+      name: 'Dinamico chico',
       price: 6500,
       category: 'Café',
     },
     {
       id: 7,
-      name: 'Alitas de Pollo', // Example item, potentially needs translation or replacement
+      name: 'Alitas de Pollo',
       price: 9500,
       category: 'Café',
     },
     // --- Colaciones ---
     {
       id: 4,
-      name: 'Dinamico grande', // Adjust category if needed
+      name: 'Dinamico grande',
       price: 3000,
       category: 'Colaciones',
     },
     // --- Promociones ---
     {
       id: 6,
-      name: 'Completo grande', // Adjust category/name if needed
+      name: 'Completo grande',
       price: 4500,
       category: 'Promociones',
       modifications: ['Vienesa', 'As', 'Con Bebida Pequeña', 'Ají Verde', 'Agregado Queso'], // + Ají Verde + Agregado Queso
@@ -156,9 +156,9 @@ const mockMenu: MenuItem[] = [
     },
      {
       id: 5,
-      name: 'Completo chico', // Adjust category if needed
+      name: 'Completo chico',
       price: 2000,
-      category: 'Promociones', // Or maybe Bebidas? Adjust as needed
+      category: 'Promociones',
       modifications: ['Vienesa', 'As', 'Con Bebida Pequeña', 'Ají Verde', 'Agregado Queso'], // + Ají Verde + Agregado Queso
       modificationPrices: { 'Agregado Queso': 1000 }, // + Cheese
     },
@@ -210,11 +210,17 @@ export default function TableDetailPage() {
   const [isModificationDialogOpen, setIsModificationDialogOpen] = useState(false);
   const [currentItemForModification, setCurrentItemForModification] = useState<MenuItem | null>(null);
   const [isMenuSheetOpen, setIsMenuSheetOpen] = useState(false); // State for Menu Sheet
+  const [isInitialized, setIsInitialized] = useState(false); // Track initialization
 
-  // Load orders from sessionStorage on mount
+  // --- Load orders and status from sessionStorage on mount ---
   useEffect(() => {
+    if (!tableIdParam || isInitialized) return; // Avoid running multiple times or without ID
+
+    console.log(`Initializing state for table ${tableIdParam}...`);
+
     const storedCurrentOrder = sessionStorage.getItem(`table-${tableIdParam}-order`);
     const storedPendingOrder = sessionStorage.getItem(`table-${tableIdParam}-pending-order`);
+    const storedStatus = sessionStorage.getItem(`table-${tableIdParam}-status`);
 
     let parsedCurrentOrder: OrderItem[] = [];
     let parsedPendingOrder: OrderItem[] = [];
@@ -222,9 +228,15 @@ export default function TableDetailPage() {
     if (storedCurrentOrder) {
       try {
         const parsed = JSON.parse(storedCurrentOrder);
-        if (Array.isArray(parsed)) parsedCurrentOrder = parsed;
+        if (Array.isArray(parsed)) {
+           parsedCurrentOrder = parsed;
+           console.log(`Loaded current order for table ${tableIdParam}:`, parsedCurrentOrder);
+        } else {
+           console.warn(`Invalid current order data found for table ${tableIdParam}, clearing.`);
+           sessionStorage.removeItem(`table-${tableIdParam}-order`);
+        }
       } catch (error) {
-        console.error("Failed to parse stored current order:", error);
+        console.error(`Failed to parse stored current order for table ${tableIdParam}:`, error);
         sessionStorage.removeItem(`table-${tableIdParam}-order`); // Clear invalid data
       }
     }
@@ -232,66 +244,84 @@ export default function TableDetailPage() {
     if (storedPendingOrder) {
        try {
          const parsed = JSON.parse(storedPendingOrder);
-         if (Array.isArray(parsed)) parsedPendingOrder = parsed;
+         if (Array.isArray(parsed)) {
+            parsedPendingOrder = parsed;
+            console.log(`Loaded pending order for table ${tableIdParam}:`, parsedPendingOrder);
+         } else {
+            console.warn(`Invalid pending order data found for table ${tableIdParam}, clearing.`);
+            sessionStorage.removeItem(`table-${tableIdParam}-pending-order`);
+         }
        } catch (error) {
-         console.error("Failed to parse stored pending order:", error);
+         console.error(`Failed to parse stored pending order for table ${tableIdParam}:`, error);
          sessionStorage.removeItem(`table-${tableIdParam}-pending-order`); // Clear invalid data
        }
      }
 
+     // Set state *after* parsing
      setOrder(parsedCurrentOrder);
      setPendingPaymentOrder(parsedPendingOrder);
 
-
-    // Load table status from sessionStorage and determine initial status
-    const storedStatus = sessionStorage.getItem(`table-${tableIdParam}-status`);
+    // --- Determine and Update Table Status ---
     const hasCurrentItems = parsedCurrentOrder.length > 0;
     const hasPendingItems = parsedPendingOrder.length > 0;
+    let newStatus: 'available' | 'occupied' = 'available';
 
-    if (!storedStatus) { // If no status is stored, determine it now
-         if (hasCurrentItems || hasPendingItems) {
-             sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
-         } else {
-             sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
-         }
-     } else if (storedStatus === 'available' && (hasCurrentItems || hasPendingItems)) {
-         // If status is available but items exist (e.g., after browser crash recovery)
-         sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
-     } else if (storedStatus === 'occupied' && !hasCurrentItems && !hasPendingItems) {
-        // If status is occupied but no items exist (e.g., after clearing pending)
-        sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
-     }
+    if (hasCurrentItems || hasPendingItems) {
+      newStatus = 'occupied';
+    }
 
-  }, [tableIdParam]); // Only run on mount based on tableIdParam
+    // Update status in sessionStorage if it doesn't match the derived status
+    if (storedStatus !== newStatus) {
+       console.log(`Updating status for table ${tableIdParam} from ${storedStatus || 'none'} to ${newStatus}`);
+       sessionStorage.setItem(`table-${tableIdParam}-status`, newStatus);
+    } else {
+       console.log(`Status for table ${tableIdParam} is already ${storedStatus}`);
+    }
 
-  // Save orders to sessionStorage whenever they change
+    setIsInitialized(true); // Mark initialization as complete
+    console.log(`Initialization complete for table ${tableIdParam}.`);
+
+  }, [tableIdParam, isInitialized]); // Dependencies ensure this runs once per table ID
+
+
+  // --- Save orders and update status to sessionStorage whenever they change ---
    useEffect(() => {
+     // Only run this effect *after* initial state is loaded
+     if (!isInitialized || !tableIdParam) return;
+
+     console.log(`Saving state for table ${tableIdParam}...`);
+
      const hasCurrentItems = order.length > 0;
      const hasPendingItems = pendingPaymentOrder.length > 0;
 
      // Save current order
      if (hasCurrentItems) {
         sessionStorage.setItem(`table-${tableIdParam}-order`, JSON.stringify(order));
+        console.log(`Saved current order for table ${tableIdParam}.`);
      } else {
         sessionStorage.removeItem(`table-${tableIdParam}-order`);
+        console.log(`Removed current order for table ${tableIdParam}.`);
      }
 
       // Save pending order
      if (hasPendingItems) {
         sessionStorage.setItem(`table-${tableIdParam}-pending-order`, JSON.stringify(pendingPaymentOrder));
+         console.log(`Saved pending order for table ${tableIdParam}.`);
      } else {
         sessionStorage.removeItem(`table-${tableIdParam}-pending-order`);
+         console.log(`Removed pending order for table ${tableIdParam}.`);
      }
 
      // Update table status based on whether items exist in either order
-     if (hasCurrentItems || hasPendingItems) {
-        sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
-     } else {
-        // Only set to available if both are empty
-        sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
+     const newStatus = (hasCurrentItems || hasPendingItems) ? 'occupied' : 'available';
+     const currentStatus = sessionStorage.getItem(`table-${tableIdParam}-status`);
+
+     if (currentStatus !== newStatus) {
+        sessionStorage.setItem(`table-${tableIdParam}-status`, newStatus);
+        console.log(`Updated status for table ${tableIdParam} to ${newStatus}.`);
      }
 
-   }, [order, pendingPaymentOrder, tableIdParam]);
+   }, [order, pendingPaymentOrder, tableIdParam, isInitialized]);
 
 
   // Helper to format currency
@@ -370,7 +400,6 @@ export default function TableDetailPage() {
 
     toast({
         title: toastTitle,
-        // description: `Nuevo Total Actual: ${formatCurrency(updatedTotal)}`, // Don't show total here
         variant: "default",
         className: "bg-secondary text-secondary-foreground"
       })
@@ -434,37 +463,35 @@ export default function TableDetailPage() {
 
      console.log('Imprimiendo Comanda (Pedido Actual):', order);
 
-     // Merge current order into pending payment order
-     // Create a deep copy of the pending order to avoid direct state mutation issues
-     const currentPendingOrder = JSON.parse(JSON.stringify(pendingPaymentOrder));
-     const currentOrderToMove = JSON.parse(JSON.stringify(order)); // Copy current order too
+     // --- Merge current order into pending payment order ---
+     // Create deep copies to avoid state mutation issues
+     const currentPendingCopy = JSON.parse(JSON.stringify(pendingPaymentOrder));
+     const currentOrderToMove = JSON.parse(JSON.stringify(order));
 
      currentOrderToMove.forEach((currentItem: OrderItem) => {
-         const existingIndex = currentPendingOrder.findIndex((pendingItem: OrderItem) =>
+         const existingIndex = currentPendingCopy.findIndex((pendingItem: OrderItem) =>
              pendingItem.id === currentItem.id &&
              compareModifications(pendingItem.selectedModifications, currentItem.selectedModifications)
          );
          if (existingIndex > -1) {
              // Item exists, increase quantity
-             currentPendingOrder[existingIndex].quantity += currentItem.quantity;
+             currentPendingCopy[existingIndex].quantity += currentItem.quantity;
+             console.log(`Increased quantity for existing pending item: ${currentItem.name}`);
          } else {
              // New item, add it
-             currentPendingOrder.push(currentItem);
+             currentPendingCopy.push(currentItem);
+              console.log(`Added new item to pending: ${currentItem.name}`);
          }
      });
 
+     // --- Update state ---
+     setPendingPaymentOrder(currentPendingCopy); // Update pending order state
+     setOrder([]); // Clear the current order state
 
-     // Update state with the merged order
-     setPendingPaymentOrder(currentPendingOrder);
+     // Status update is handled by the save useEffect hook
 
-     // Clear the current order after moving to pending
-     setOrder([]);
-
-     // Keep table occupied
-     sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
-
-    // Calculate total of *new combined pending order*
-     const newPendingTotal = calculateTotal(currentPendingOrder);
+     // Calculate total of *new combined pending order*
+     const newPendingTotal = calculateTotal(currentPendingCopy);
 
      toast({
        title: "¡Comanda Enviada!",
@@ -485,15 +512,10 @@ export default function TableDetailPage() {
        console.log('Imprimiendo Boleta/Factura (Pedido Pendiente):', pendingPaymentOrder);
        console.log('Total a Pagar:', formatCurrency(finalTotalToPay));
 
-       // Here you would typically integrate with a real printing service/API
-       // For this example, we'll just clear the pending order and update status
+       // --- Clear pending order and update status ---
+       setPendingPaymentOrder([]); // Clear the pending order state immediately
 
-       setPendingPaymentOrder([]); // Clear the pending order
-
-        // Update table status only if current order is also empty
-        if (order.length === 0) {
-            sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
-        }
+       // Status update is handled by the save useEffect hook
 
        toast({
          title: "¡Pago Impreso!",
@@ -502,24 +524,6 @@ export default function TableDetailPage() {
          className: "bg-blue-200 text-blue-800 border-blue-400" // Using direct colors for payment success
        });
      };
-
-
-   /*
-   const handleClearPendingOrder = () => {
-      if (pendingPaymentOrder.length === 0) {
-        toast({ title: "Nada que limpiar", description: "No hay pedidos pendientes de pago.", variant: "default" });
-        return;
-      }
-      if (confirm("¿Está seguro de que desea limpiar el pedido pendiente de pago? Esta acción no se puede deshacer.")) {
-        setPendingPaymentOrder([]);
-        // Update table status only if current order is also empty
-        if (order.length === 0) {
-            sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
-        }
-        toast({ title: "Pedido Pendiente Limpiado", description: "Todos los artículos pendientes de pago han sido eliminados.", variant: "destructive" });
-      }
-   };
-   */
 
   // Filter menu items based on the selected category (used in Sheet now)
   const filteredMenu = mockMenu.filter(
@@ -564,8 +568,6 @@ export default function TableDetailPage() {
                   onClick={() => handleItemClick(item)} // Use handleItemClick
                 >
                   <span className="font-medium">{item.name}</span>
-                  {/* Hide base price in menu selection */}
-                  {/* <span className="text-sm text-muted-foreground">{formatCurrency(item.price)}</span> */}
                 </li>
               ))}
               {filteredMenu.length === 0 && (
@@ -638,6 +640,11 @@ export default function TableDetailPage() {
          </ul>
        );
      };
+
+  // Show loading indicator until initialization is complete
+  if (!isInitialized) {
+    return <div className="flex items-center justify-center min-h-screen">Cargando datos de la mesa...</div>;
+  }
 
   return (
     <div className="container mx-auto p-4 h-[calc(100vh-theme(spacing.16))] flex flex-col">

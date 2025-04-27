@@ -34,41 +34,57 @@ const initialTables: Table[] = [...numberedTables, ...specialTables];
 export default function TablesPage() {
   const [tables, setTables] = useState<Table[]>(initialTables);
   const { logout, isAuthenticated, isLoading, userRole } = useAuth(); // Get auth state and logout
+  const [isInitialized, setIsInitialized] = useState(false); // Track initialization
 
   // --- Dynamic Table Status Update ---
   // This useEffect checks sessionStorage on mount and updates table status locally.
   useEffect(() => {
-    const updatedTables = initialTables.map(table => {
-      const storedStatus = sessionStorage.getItem(`table-${table.id}-status`);
-      const storedOrder = sessionStorage.getItem(`table-${table.id}-order`);
-      let currentStatus: 'available' | 'occupied' = 'available'; // Default to available
+    if (isInitialized) return; // Only run once
 
-      if (storedStatus === 'occupied') {
-          // If explicitly marked as occupied, keep it that way
-          currentStatus = 'occupied';
-      } else if (storedOrder) {
-          // If there's an order, mark as occupied
-          try {
-              const parsedOrder = JSON.parse(storedOrder);
-              if (Array.isArray(parsedOrder) && parsedOrder.length > 0) {
-                  currentStatus = 'occupied';
-              }
-          } catch (e) {
-              console.error("Error parsing stored order for table", table.id, e);
-              // Potentially clear invalid order data
-              sessionStorage.removeItem(`table-${table.id}-order`);
-          }
-      }
-        // If no stored 'occupied' status and no valid order, it remains 'available'
+    const updatedTables = initialTables.map(table => {
+        const storedStatus = sessionStorage.getItem(`table-${table.id}-status`);
+        const storedOrder = sessionStorage.getItem(`table-${table.id}-order`);
+        const storedPendingOrder = sessionStorage.getItem(`table-${table.id}-pending-order`);
+        let currentStatus: 'available' | 'occupied' = 'available'; // Default
+
+        // Determine status based on stored info
+        if (storedStatus === 'occupied') {
+            currentStatus = 'occupied'; // Explicitly occupied
+        } else {
+            // Check if there's a valid current or pending order
+            let hasOrder = false;
+            try {
+                const parsedOrder = storedOrder ? JSON.parse(storedOrder) : null;
+                const parsedPendingOrder = storedPendingOrder ? JSON.parse(storedPendingOrder) : null;
+                if ((Array.isArray(parsedOrder) && parsedOrder.length > 0) ||
+                    (Array.isArray(parsedPendingOrder) && parsedPendingOrder.length > 0)) {
+                    hasOrder = true;
+                }
+            } catch (e) {
+                console.error(`Error parsing stored order for table ${table.id}:`, e);
+                // Optionally clear invalid data
+                sessionStorage.removeItem(`table-${table.id}-order`);
+                sessionStorage.removeItem(`table-${table.id}-pending-order`);
+            }
+
+            if (hasOrder) {
+                currentStatus = 'occupied'; // Occupied due to existing orders
+            }
+        }
+
+        // If derived status doesn't match stored status, update storage
+        if (storedStatus !== currentStatus) {
+           console.log(`Initializing/Updating status for table ${table.id} from ${storedStatus || 'none'} to ${currentStatus}`);
+           sessionStorage.setItem(`table-${table.id}-status`, currentStatus);
+        }
+
       return { ...table, status: currentStatus };
     });
 
-    // Update state only if there are actual changes to avoid infinite loops
-    if (JSON.stringify(updatedTables) !== JSON.stringify(tables)) {
-        setTables(updatedTables);
-    }
-    // Dependency array is empty, so this runs once on mount to initialize status.
-  }, []); // Empty dependency array
+    setTables(updatedTables);
+    setIsInitialized(true); // Mark as initialized
+
+  }, [isInitialized]); // Run only once after initial render
 
 
   const getIcon = (tableId: number | string) => {
@@ -97,7 +113,6 @@ export default function TablesPage() {
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Gestión de Mesas</h1>
-         {/* Only show logout for admin on this page */}
          {/* Show logout for all logged-in users */}
          {isAuthenticated && (
              <Button variant="outline" onClick={handleLogout}>
