@@ -269,10 +269,12 @@ const orderedCategories = [
   'Papas Fritas', // Added
   'Café',
   'Promo Churrasco', // Changed from Colaciones
-  'Promo Mechada',
+  'Promo Mechada', // Added
   'Promociones',
   'Bebidas',
+  // 'Colaciones', // Keep commented or remove if not used
 ];
+
 
 // Helper function to compare modification arrays (order insensitive)
 const compareModifications = (arr1?: string[], arr2?: string[]): boolean => {
@@ -901,7 +903,7 @@ export default function TableDetailPage() {
                     {menuSheetView === 'items' && (
                         <Button variant="default" onClick={closeMenuSheet}>Confirmar</Button>
                     )}
-                    <Button variant="outline" onClick={closeMenuSheet}>Cerrar Menú</Button>
+                    {/* Remove "Cerrar Menú" button */}
                  </SheetFooter>
             </SheetContent>
         </Sheet>
