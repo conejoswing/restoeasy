@@ -15,7 +15,15 @@ import {
 } from '@/components/ui/card';
 import {ScrollArea} from '@/components/ui/scroll-area';
 import {Separator} from '@/components/ui/separator';
-import {PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, Trash2, CreditCard} from 'lucide-react'; // Added Trash2 for clear, CreditCard for payment
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from '@/components/ui/sheet'; // Import Sheet components
+import { Utensils, PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard } from 'lucide-react'; // Added Utensils
 import {useToast} from '@/hooks/use-toast';
 import ModificationDialog from '@/components/app/modification-dialog'; // Import the new dialog
 import { isEqual } from 'lodash'; // Import isEqual for comparing arrays
@@ -201,6 +209,7 @@ export default function TableDetailPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>(orderedCategories[0]);
   const [isModificationDialogOpen, setIsModificationDialogOpen] = useState(false);
   const [currentItemForModification, setCurrentItemForModification] = useState<MenuItem | null>(null);
+  const [isMenuSheetOpen, setIsMenuSheetOpen] = useState(false); // State for Menu Sheet
 
   // Load orders from sessionStorage on mount
   useEffect(() => {
@@ -290,14 +299,17 @@ export default function TableDetailPage() {
     return `CLP ${amount.toFixed(0)}`; // Format as CLP with no decimals
   };
 
-  // Function to handle clicking a menu item
+  // Function to handle clicking a menu item (from Sheet)
   const handleItemClick = (item: MenuItem) => {
     if (item.modifications && item.modifications.length > 0) {
       setCurrentItemForModification(item);
-      setIsModificationDialogOpen(true);
+      setIsModificationDialogOpen(true); // Open modification dialog
+      setIsMenuSheetOpen(false); // Close menu sheet
     } else {
       // If no modifications, add directly to current order
       addToOrder(item);
+      // Optionally close the sheet after adding an item without mods
+      // setIsMenuSheetOpen(false);
     }
   };
 
@@ -531,7 +543,7 @@ export default function TableDetailPage() {
    };
    */
 
-  // Filter menu items based on the selected category
+  // Filter menu items based on the selected category (used in Sheet now)
   const filteredMenu = mockMenu.filter(
     (item) => item.category === selectedCategory
   );
@@ -549,25 +561,43 @@ export default function TableDetailPage() {
       }
   }
 
-  const renderMenuItems = () => {
+  // Render Menu Items inside the Sheet
+  const renderMenuItemsInSheet = () => {
     return (
-      <ul className="space-y-2">
-        {filteredMenu.map((item) => (
-          <li
-            key={item.id}
-            className="flex justify-between items-center p-3 border rounded-md cursor-pointer hover:bg-secondary/50 transition-colors"
-            onClick={() => handleItemClick(item)} // Use handleItemClick
-          >
-            <span className="font-medium">{item.name}</span>
-            <span className="text-sm text-muted-foreground">{formatCurrency(item.price)}</span>
-          </li>
-        ))}
-        {filteredMenu.length === 0 && (
-          <p className="text-muted-foreground col-span-full text-center pt-4">No hay artículos en esta categoría.</p>
-        )}
-      </ul>
+        <div className="p-4">
+          <div className="flex flex-wrap gap-2 mb-4">
+            {orderedCategories.map((category) => (
+              <Button
+                key={category}
+                variant={selectedCategory === category ? 'default' : 'secondary'}
+                onClick={() => setSelectedCategory(category)}
+                className="shrink-0"
+              >
+                {category}
+              </Button>
+            ))}
+          </div>
+          <ScrollArea className="h-[calc(100vh-200px)]"> {/* Adjust height as needed */}
+            <ul className="space-y-2">
+              {filteredMenu.map((item) => (
+                <li
+                  key={item.id}
+                  className="flex justify-between items-center p-3 border rounded-md cursor-pointer hover:bg-secondary/50 transition-colors"
+                  onClick={() => handleItemClick(item)} // Use handleItemClick
+                >
+                  <span className="font-medium">{item.name}</span>
+                  <span className="text-sm text-muted-foreground">{formatCurrency(item.price)}</span>
+                </li>
+              ))}
+              {filteredMenu.length === 0 && (
+                <p className="text-muted-foreground col-span-full text-center pt-4">No hay artículos en esta categoría.</p>
+              )}
+            </ul>
+          </ScrollArea>
+        </div>
     );
   };
+
 
    // Render function for both current and pending order items
    const renderOrderItems = (items: OrderItem[], isPendingSection: boolean = false) => {
@@ -636,33 +666,18 @@ export default function TableDetailPage() {
          <h1 className="text-3xl font-bold">{getPageTitle()} - Pedido</h1>
        </div>
       <div className="flex flex-grow gap-4 overflow-hidden">
-        {/* Menu Section */}
-        <Card className="w-1/2 flex flex-col shadow-lg"> {/* Adjusted width */}
-          <CardHeader>
-             {/* Styled Menu Title */}
-            <CardTitle className="p-2 text-center rounded-md bg-muted text-muted-foreground">Menú</CardTitle>
-            <div className="flex space-x-2 pt-2 overflow-x-auto pb-2">
-              {orderedCategories.map((category) => (
-                <Button
-                  key={category}
-                  variant={selectedCategory === category ? 'default' : 'secondary'}
-                  onClick={() => setSelectedCategory(category)}
-                  className="shrink-0"
-                >
-                  {category}
-                </Button>
-              ))}
-            </div>
-          </CardHeader>
-          <CardContent className="flex-grow overflow-hidden p-0">
-            <ScrollArea className="h-full p-4">
-              {renderMenuItems()}
-            </ScrollArea>
-          </CardContent>
-        </Card>
+        {/* Menu Button Section (Replaces Menu Card) */}
+        <div className="w-1/3 flex flex-col justify-start items-stretch pt-4"> {/* Use less space */}
+          <Button
+            onClick={() => setIsMenuSheetOpen(true)}
+            className="h-16 text-lg bg-primary hover:bg-primary/90" // Make button prominent
+          >
+            <Utensils className="mr-2 h-5 w-5" /> Ver Menú
+          </Button>
+        </div>
 
          {/* Order Summaries Section (Current + Pending) */}
-        <div className="w-1/2 flex flex-col gap-4 overflow-hidden"> {/* Adjusted width */}
+        <div className="w-2/3 flex flex-col gap-4 overflow-hidden"> {/* Use more space */}
             {/* Current Order Section */}
             <Card className="flex flex-col shadow-lg h-1/2"> {/* Use flex-1 */}
               <CardHeader>
@@ -713,6 +728,20 @@ export default function TableDetailPage() {
 
       </div>
 
+        {/* Menu Sheet Component */}
+        <Sheet open={isMenuSheetOpen} onOpenChange={setIsMenuSheetOpen}>
+            <SheetContent className="w-full sm:max-w-md" side="left"> {/* Adjust width and side as needed */}
+                <SheetHeader>
+                  <SheetTitle className="text-center text-lg font-semibold py-2 rounded-md bg-muted text-muted-foreground">Menú</SheetTitle>
+                  {/* <SheetDescription>Selecciona una categoría y añade artículos.</SheetDescription> */}
+                </SheetHeader>
+                 {renderMenuItemsInSheet()}
+                 <SheetFooter className="mt-4">
+                     <Button variant="outline" onClick={() => setIsMenuSheetOpen(false)}>Cerrar Menú</Button>
+                 </SheetFooter>
+            </SheetContent>
+        </Sheet>
+
        {/* Modification Dialog */}
         {currentItemForModification && (
         <ModificationDialog
@@ -726,3 +755,4 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
