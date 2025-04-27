@@ -54,7 +54,7 @@ const mockMenu: MenuItem[] = [
     // --- Completos Vienesas ---
     {
       id: 13,
-      name: 'Completo Vienesa Italiana',
+      name: 'Italiano Normal', // Changed from 'Completo Vienesa Italiana'
       price: 4000,
       category: 'Completos Vienesas',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Agregado Queso'],
@@ -104,7 +104,7 @@ const mockMenu: MenuItem[] = [
     // --- Fajitas ---
     {
       id: 1,
-      name: 'Italiano chico',
+      name: 'Italiano chico', // Changed from 'Hamburguesa'
       price: 8990,
       category: 'Fajitas',
       modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají Verde', 'Agregado Queso'], // Simpler modifications + Ají Verde + Agregado Queso
@@ -112,7 +112,7 @@ const mockMenu: MenuItem[] = [
     },
     {
       id: 2,
-      name: 'Italiano grande',
+      name: 'Italiano grande', // Changed from 'Pizza'
       price: 12500,
       category: 'Fajitas',
       modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají', 'Ají Verde', 'Agregado Queso'], // + Ají Verde + Agregado Queso
@@ -129,7 +129,7 @@ const mockMenu: MenuItem[] = [
     // --- Café ---
     {
       id: 3,
-      name: 'Dinamico chico',
+      name: 'Dinamico chico', // Changed from 'Ensalada'
       price: 6500,
       category: 'Café',
     },
@@ -142,14 +142,14 @@ const mockMenu: MenuItem[] = [
     // --- Colaciones ---
     {
       id: 4,
-      name: 'Dinamico grande',
+      name: 'Dinamico grande', // Changed from 'Papas Fritas'
       price: 3000,
       category: 'Colaciones',
     },
     // --- Promociones ---
     {
       id: 6,
-      name: 'Completo grande',
+      name: 'Completo grande', // Changed from 'Helado'
       price: 4500,
       category: 'Promociones',
       modifications: ['Vienesa', 'As', 'Con Bebida Pequeña', 'Ají Verde', 'Agregado Queso'], // + Ají Verde + Agregado Queso
@@ -157,7 +157,7 @@ const mockMenu: MenuItem[] = [
     },
      {
       id: 5,
-      name: 'Completo chico',
+      name: 'Completo chico', // Changed from 'Refresco'
       price: 2000,
       category: 'Promociones',
       modifications: ['Vienesa', 'As', 'Con Bebida Pequeña', 'Ají Verde', 'Agregado Queso'], // + Ají Verde + Agregado Queso
@@ -791,3 +791,4 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
