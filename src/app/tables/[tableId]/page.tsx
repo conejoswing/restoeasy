@@ -361,29 +361,6 @@ export default function TableDetailPage() {
       }
     });
 
-     // Simulate the state update for toast calculation
-     let simulatedOrderForToast: OrderItem[];
-     const existingIndex = order.findIndex(
-        (oi) => oi.id === item.id && compareModifications(oi.selectedModifications, modifications)
-     );
-     if (existingIndex > -1) {
-        simulatedOrderForToast = order.map((oi, index) =>
-             index === existingIndex ? { ...oi, quantity: oi.quantity + 1 } : oi
-         );
-     } else {
-        const { price, modificationPrices, modifications: itemMods, ...itemWithoutPricesAndMods } = item;
-        simulatedOrderForToast = [...order, {
-            ...itemWithoutPricesAndMods,
-            orderItemId: 'temp-toast-id', // Temporary unique ID for simulation
-            quantity: 1,
-            selectedModifications: modifications,
-            basePrice: item.price,
-            finalPrice: finalItemPrice,
-        }];
-     }
-     const updatedTotal = calculateTotal(simulatedOrderForToast);
-
-
     // Format modifications string for toast
     const modificationsString = modifications && modifications.length > 0
         ? ` (${modifications.join(', ')})`
@@ -393,7 +370,7 @@ export default function TableDetailPage() {
 
     toast({
         title: toastTitle,
-        description: `Nuevo Total Actual: ${formatCurrency(updatedTotal)}`, // Show the new total for current order
+        // description: `Nuevo Total Actual: ${formatCurrency(updatedTotal)}`, // Don't show total here
         variant: "default",
         className: "bg-secondary text-secondary-foreground"
       })
@@ -442,8 +419,8 @@ export default function TableDetailPage() {
 
 
   // Calculate total based on finalPrice of each OrderItem
-  const calculateTotal = (currentOrder: OrderItem[]) => {
-    return currentOrder.reduce(
+  const calculateTotal = (items: OrderItem[]) => {
+    return items.reduce(
       (total, item) => total + item.finalPrice * item.quantity,
       0
     );
@@ -486,13 +463,12 @@ export default function TableDetailPage() {
      // Keep table occupied
      sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
 
-     const printedTotal = calculateTotal(currentOrderToMove); // Calculate total of *what was just printed*
-     const newPendingTotal = calculateTotal(currentPendingOrder); // Calculate total of *new combined pending order*
-
+    // Calculate total of *new combined pending order*
+     const newPendingTotal = calculateTotal(currentPendingOrder);
 
      toast({
        title: "¡Comanda Enviada!",
-       description: `Se añadieron ${formatCurrency(printedTotal)} al pedido pendiente. Total Pendiente: ${formatCurrency(newPendingTotal)}.`,
+       description: `Total Pendiente Actualizado: ${formatCurrency(newPendingTotal)}.`, // Show the new total for pending order
        variant: "default",
        className: "bg-green-200 text-green-800 border-green-400" // Using direct colors temporarily for success
      });
@@ -504,8 +480,10 @@ export default function TableDetailPage() {
          return;
        }
 
+       const finalTotalToPay = calculateTotal(pendingPaymentOrder); // Calculate final total here
+
        console.log('Imprimiendo Boleta/Factura (Pedido Pendiente):', pendingPaymentOrder);
-       console.log('Total a Pagar:', formatCurrency(pendingOrderTotal));
+       console.log('Total a Pagar:', formatCurrency(finalTotalToPay));
 
        // Here you would typically integrate with a real printing service/API
        // For this example, we'll just clear the pending order and update status
@@ -519,7 +497,7 @@ export default function TableDetailPage() {
 
        toast({
          title: "¡Pago Impreso!",
-         description: `Boleta/Factura por ${formatCurrency(pendingOrderTotal)} impresa. Mesa disponible si no hay pedido actual.`,
+         description: `Boleta/Factura por ${formatCurrency(finalTotalToPay)} impresa. Mesa disponible si no hay pedido actual.`,
          variant: "default",
          className: "bg-blue-200 text-blue-800 border-blue-400" // Using direct colors for payment success
        });
@@ -548,8 +526,8 @@ export default function TableDetailPage() {
     (item) => item.category === selectedCategory
   );
 
-  const currentOrderTotal = calculateTotal(order);
-  const pendingOrderTotal = calculateTotal(pendingPaymentOrder);
+  const currentOrderTotal = calculateTotal(order); // Calculate current order total (though not displayed directly)
+  const pendingOrderTotal = calculateTotal(pendingPaymentOrder); // Calculate pending total
 
   const getPageTitle = () => {
       if (tableIdParam === 'mezon') {
@@ -586,7 +564,8 @@ export default function TableDetailPage() {
                   onClick={() => handleItemClick(item)} // Use handleItemClick
                 >
                   <span className="font-medium">{item.name}</span>
-                  <span className="text-sm text-muted-foreground">{formatCurrency(item.price)}</span>
+                  {/* Hide base price in menu selection */}
+                  {/* <span className="text-sm text-muted-foreground">{formatCurrency(item.price)}</span> */}
                 </li>
               ))}
               {filteredMenu.length === 0 && (
@@ -617,7 +596,10 @@ export default function TableDetailPage() {
                     {item.selectedModifications && item.selectedModifications.length > 0 && (
                       <p className="text-xs text-muted-foreground">({item.selectedModifications.join(', ')})</p>
                     )}
-                   <p className='text-xs text-muted-foreground'>{formatCurrency(item.finalPrice)}</p>
+                    {/* Show price only in pending section */}
+                    {isPendingSection && (
+                        <p className='text-xs text-muted-foreground'>{formatCurrency(item.finalPrice)}</p>
+                    )}
                  </div>
                </div>
                <div className="flex items-center gap-2">
@@ -691,10 +673,7 @@ export default function TableDetailPage() {
           </CardContent>
           <Separator />
           <CardFooter className="p-4 flex flex-col items-stretch gap-2">
-            <div className="flex justify-between items-center text-md font-semibold">
-              <span>Total Actual:</span>
-              <span>{formatCurrency(currentOrderTotal)}</span>
-            </div>
+             {/* No total shown in current order footer */}
             <Button size="sm" onClick={handlePrintOrder} disabled={order.length === 0}>
               <Printer className="mr-2 h-4 w-4" /> Imprimir Comanda
             </Button>
@@ -752,4 +731,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-
