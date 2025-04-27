@@ -205,22 +205,36 @@ export default function TableDetailPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>(orderedCategories[0]);
   const [isModificationDialogOpen, setIsModificationDialogOpen] = useState(false);
   const [currentItemForModification, setCurrentItemForModification] = useState<MenuItem | null>(null);
+  const [orderPrinted, setOrderPrinted] = useState<boolean>(false); // Track if order has been printed
 
-  // Load order from sessionStorage on mount
+  // Load order and printed status from sessionStorage on mount
   useEffect(() => {
     const storedOrder = sessionStorage.getItem(`table-${tableIdParam}-order`);
+    const storedPrintedStatus = sessionStorage.getItem(`table-${tableIdParam}-printed`);
+
     if (storedOrder) {
       try {
         const parsedOrder = JSON.parse(storedOrder);
         if (Array.isArray(parsedOrder)) {
           setOrder(parsedOrder);
+          // Infer printed status based on whether an order exists and its status
+          if (parsedOrder.length > 0 && storedPrintedStatus === 'true') {
+             setOrderPrinted(true);
+          } else {
+             setOrderPrinted(false);
+          }
         }
       } catch (error) {
         console.error("Failed to parse stored order:", error);
         sessionStorage.removeItem(`table-${tableIdParam}-order`); // Clear invalid data
+        sessionStorage.removeItem(`table-${tableIdParam}-printed`);
+        setOrderPrinted(false);
       }
+    } else {
+      setOrderPrinted(false); // No order, so not printed
     }
-    // Load table status from sessionStorage
+
+    // Load table status from sessionStorage (handled by useEffect below as well)
     const storedStatus = sessionStorage.getItem(`table-${tableIdParam}-status`);
     if (storedStatus && storedStatus !== 'available' && order.length === 0) {
         // If status is occupied but order is empty locally (e.g., after refresh),
@@ -230,20 +244,24 @@ export default function TableDetailPage() {
         // If no status stored and order is empty, ensure it's 'available'
         sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
     }
-  }, [tableIdParam]); // Only run on mount based on tableIdParam
+  }, [tableIdParam]);
 
-  // Save order to sessionStorage whenever it changes
+  // Save order and printed status to sessionStorage whenever they change
    useEffect(() => {
      if (order.length > 0) {
        sessionStorage.setItem(`table-${tableIdParam}-order`, JSON.stringify(order));
        // Set status to occupied when order is not empty
        sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
+       // Persist printed status
+       sessionStorage.setItem(`table-${tableIdParam}-printed`, orderPrinted.toString());
      } else {
-       // If order becomes empty, remove the item and set status back to 'available'
+       // If order becomes empty, remove items and status
        sessionStorage.removeItem(`table-${tableIdParam}-order`);
        sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
+       sessionStorage.removeItem(`table-${tableIdParam}-printed`); // Remove printed status
+       setOrderPrinted(false); // Reset printed state
      }
-   }, [order, tableIdParam]);
+   }, [order, tableIdParam, orderPrinted]); // Include orderPrinted in dependency array
 
   // Helper to format currency
   const formatCurrency = (amount: number) => {
@@ -278,6 +296,10 @@ export default function TableDetailPage() {
     }, 0) ?? 0;
     const finalItemPrice = item.price + totalModificationCost;
 
+    // Capture the current order state *before* updating
+    const orderBeforeUpdate = [...order];
+
+    // Update the order state
     setOrder((prevOrder) => {
        // Check if an identical item *with the exact same set of modifications* already exists
       const existingItemIndex = prevOrder.findIndex(
@@ -308,16 +330,18 @@ export default function TableDetailPage() {
       }
     });
 
-    // Calculate the total for the toast message correctly AFTER the state update logic runs
-    const tempOrder = [...order]; // Create a temporary copy
-    const existingItemIndex = tempOrder.findIndex(oi => oi.id === item.id && compareModifications(oi.selectedModifications, modifications));
+    // Calculate the total for the toast message using the *previous* order state + the new item/quantity
+    const existingItemIndexBeforeUpdate = orderBeforeUpdate.findIndex(
+      oi => oi.id === item.id && compareModifications(oi.selectedModifications, modifications)
+    );
+
     let newTotal;
-    if (existingItemIndex > -1) {
-        // If item exists, calculate total as if quantity increased by 1
-        newTotal = calculateTotal(tempOrder) + tempOrder[existingItemIndex].finalPrice;
+    if (existingItemIndexBeforeUpdate > -1) {
+        // If item existed before, calculate total as if quantity increased by 1
+        newTotal = calculateTotal(orderBeforeUpdate) + orderBeforeUpdate[existingItemIndexBeforeUpdate].finalPrice;
     } else {
-        // If new item, calculate total as if this item was added
-        newTotal = calculateTotal(tempOrder) + finalItemPrice;
+        // If it was a new item, calculate total as if this item was added
+        newTotal = calculateTotal(orderBeforeUpdate) + finalItemPrice;
     }
 
     // Format modifications string for toast
@@ -325,13 +349,18 @@ export default function TableDetailPage() {
         ? ` (${modifications.join(', ')})`
         : '';
 
-      toast({
-        title: `${item.name}${modificationsString} añadido`,
-        description: `Total: ${formatCurrency(newTotal)}`, // Use the correctly calculated new total, formatted
+    const toastTitle = orderPrinted
+      ? `${item.name}${modificationsString} añadido (Pedido Actualizado)`
+      : `${item.name}${modificationsString} añadido`;
+
+    toast({
+        title: toastTitle,
+        description: `Nuevo Total: ${formatCurrency(newTotal)}`, // Use the correctly calculated new total, formatted
         variant: "default",
         className: "bg-secondary text-secondary-foreground"
       })
   };
+
 
   // Updated removeFromOrder to use orderItemId
   const removeFromOrder = (orderItemId: string) => {
@@ -387,6 +416,7 @@ export default function TableDetailPage() {
     console.log('Imprimiendo Comanda:', order);
     // Set table status to occupied explicitly here as well (though useEffect also handles it)
     sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
+    setOrderPrinted(true); // Mark order as printed
 
     // Here you would typically trigger a print action
     // For now, just showing a toast
