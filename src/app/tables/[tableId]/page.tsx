@@ -221,7 +221,7 @@ const mockMenu: MenuItem[] = [
     // --- Hamburguesas --- (New Category)
     {
         id: 17,
-        name: 'Hamburguesa Clásica',
+        name: 'Simple', // Changed name
         price: 7000,
         category: 'Hamburguesas',
         modifications: ['Doble Carne', 'Queso Cheddar', 'Bacon', 'Sin Pepinillos', 'Agregado Queso'],
@@ -229,7 +229,7 @@ const mockMenu: MenuItem[] = [
     },
     {
         id: 18,
-        name: 'Hamburguesa Especial Cami',
+        name: 'Doble', // Changed name
         price: 8500,
         category: 'Hamburguesas',
         modifications: ['Queso Azul', 'Cebolla Caramelizada', 'Rúcula', 'Agregado Queso'],
@@ -597,7 +597,7 @@ export default function TableDetailPage() {
     if (item.modifications && item.modifications.length > 0) {
       setCurrentItemForModification(item);
       setIsModificationDialogOpen(true); // Open modification dialog
-      setIsMenuSheetOpen(false); // Close menu sheet
+      // setIsMenuSheetOpen(false); // Keep menu sheet open
     } else {
       // If no modifications, add directly to current order
       addToOrder(item);
@@ -1060,8 +1060,9 @@ export default function TableDetailPage() {
                  <div className="flex-grow overflow-hidden">
                     {renderMenuSheetContent()} {/* Render categories or items */}
                  </div>
-                 {/* Removed footer and confirm button */}
-                 {/* <SheetFooter className="mt-auto p-4 flex-shrink-0"> </SheetFooter> */}
+                 <SheetFooter className="mt-auto p-4 flex-shrink-0 border-t">
+                   <Button onClick={closeMenuSheet} className="w-full">Confirmar</Button>
+                 </SheetFooter>
             </SheetContent>
         </Sheet>
 
@@ -1078,4 +1079,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-

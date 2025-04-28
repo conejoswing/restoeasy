@@ -212,7 +212,7 @@ const mockMenu: MenuItem[] = [
     // --- Hamburguesas --- (New Category)
     {
         id: 17,
-        name: 'Hamburguesa Clásica',
+        name: 'Simple', // Changed name
         price: 7000,
         category: 'Hamburguesas',
         modifications: ['Doble Carne', 'Queso Cheddar', 'Bacon', 'Sin Pepinillos', 'Agregado Queso'],
@@ -220,7 +220,7 @@ const mockMenu: MenuItem[] = [
     },
     {
         id: 18,
-        name: 'Hamburguesa Especial Cami',
+        name: 'Doble', // Changed name
         price: 8500,
         category: 'Hamburguesas',
         modifications: ['Queso Azul', 'Cebolla Caramelizada', 'Rúcula', 'Agregado Queso'],
