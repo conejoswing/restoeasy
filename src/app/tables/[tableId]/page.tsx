@@ -319,7 +319,7 @@ const mockMenu: MenuItem[] = [
     // --- Papas Fritas --- (New Category)
     {
         id: 21,
-        name: 'Papas Fritas Normales',
+        name: 'Papas Fritas Normal', // Changed name
         price: 3500,
         category: 'Papas Fritas',
         modifications: ['Agregar Queso Fundido', 'Agregar Salsa Cheddar'],
@@ -327,7 +327,7 @@ const mockMenu: MenuItem[] = [
     },
     {
         id: 22,
-        name: 'Papas Fritas Cami Style',
+        name: 'Papas Fritas Mediana', // Changed name
         price: 5000,
         category: 'Papas Fritas',
         modifications: ['Queso Cheddar', 'Bacon', 'Cebolla Crispy', 'Salsa BBQ'],
@@ -1072,3 +1072,4 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
