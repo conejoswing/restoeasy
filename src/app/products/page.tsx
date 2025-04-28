@@ -445,7 +445,7 @@ const mockMenu: MenuItem[] = [
     // --- Promociones ---
     {
       id: 6,
-      name: 'Completo + Bebida', // Changed name
+      name: 'Promo 1', // Changed name to Promo 1
       price: 4500,
       category: 'Promociones',
       modifications: ['Vienesa', 'As', 'Con Bebida Pequeña', 'Ají Verde', 'Agregado Queso'], // + Ají Verde + Agregado Queso
@@ -453,19 +453,30 @@ const mockMenu: MenuItem[] = [
     },
      {
       id: 5,
-      name: 'Italiano + Bebida', // Changed name
+      name: 'Promo 2', // Changed name to Promo 2
       price: 5000,
       category: 'Promociones',
       modifications: ['Vienesa', 'As', 'Con Bebida Pequeña', 'Ají Verde', 'Agregado Queso'], // + Ají Verde + Agregado Queso
       modificationPrices: { 'Agregado Queso': 1000 }, // + Cheese
     },
     {
-      id: 23, // Promo Churrasco already exists with ID 25/26
-      name: 'Promo Churrasco Simple', // Make name unique
+      id: 23,
+      name: 'Promo 3', // Changed name to Promo 3
       price: 6000, // Example price
       category: 'Promociones',
       // No modifications by default for promos, unless specified
     },
+    // --- Add new Promotions --- Start ID from 91 (last used was 90)
+    { id: 91, name: 'Promo 4', price: 6500, category: 'Promociones' }, // Example price
+    { id: 92, name: 'Promo 5', price: 7000, category: 'Promociones' },
+    { id: 93, name: 'Promo 6', price: 7500, category: 'Promociones' },
+    { id: 94, name: 'Promo 7', price: 8000, category: 'Promociones' },
+    { id: 95, name: 'Promo 8', price: 8500, category: 'Promociones' },
+    { id: 96, name: 'Promo 9', price: 9000, category: 'Promociones' },
+    { id: 97, name: 'Promo 10', price: 9500, category: 'Promociones' },
+    { id: 98, name: 'Promo 11', price: 10000, category: 'Promociones' },
+    { id: 99, name: 'Promo 12', price: 10500, category: 'Promociones' },
+    // --- End of new Promotions ---
     // --- Bebidas ---
     {
       id: 9,
@@ -685,5 +696,6 @@ export default function ProductsPage() {
     </div>
   );
 }
+
 
 
