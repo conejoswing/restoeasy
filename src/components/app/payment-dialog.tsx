@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import {
   Dialog,
@@ -12,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { Banknote, CreditCard, Landmark } from 'lucide-react'; // Import icons
 import type { PaymentMethod } from '@/app/tables/[tableId]/page'; // Import PaymentMethod type
 
 interface PaymentDialogProps {
@@ -26,7 +26,12 @@ const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
 };
 
-const paymentMethods: PaymentMethod[] = ['Efectivo', 'Tarjeta Débito', 'Tarjeta Crédito', 'Transferencia'];
+const paymentMethods: { name: PaymentMethod; icon: React.ReactNode }[] = [
+    { name: 'Efectivo', icon: <Banknote className="h-4 w-4 mr-2 text-green-600" /> },
+    { name: 'Tarjeta Débito', icon: <CreditCard className="h-4 w-4 mr-2 text-blue-600" /> },
+    { name: 'Tarjeta Crédito', icon: <CreditCard className="h-4 w-4 mr-2 text-purple-600" /> },
+    { name: 'Transferencia', icon: <Landmark className="h-4 w-4 mr-2 text-indigo-600" /> },
+];
 
 const PaymentDialog: React.FC<PaymentDialogProps> = ({
   isOpen,
@@ -70,10 +75,11 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
             className="grid gap-4"
           >
             {paymentMethods.map((method) => (
-              <div key={method} className="flex items-center space-x-2">
-                <RadioGroupItem value={method} id={`payment-${method.replace(/\s+/g, '-')}`} />
-                <Label htmlFor={`payment-${method.replace(/\s+/g, '-')}`} className="cursor-pointer">
-                  {method}
+              <div key={method.name} className="flex items-center space-x-2">
+                <RadioGroupItem value={method.name} id={`payment-${method.name.replace(/\s+/g, '-')}`} />
+                <Label htmlFor={`payment-${method.name.replace(/\s+/g, '-')}`} className="flex items-center cursor-pointer">
+                  {method.icon}
+                  {method.name}
                 </Label>
               </div>
             ))}

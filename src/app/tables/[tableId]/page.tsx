@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import * as React from 'react';
@@ -24,7 +22,7 @@ import {
   SheetDescription,
   SheetFooter,
 } from '@/components/ui/sheet';
-import { Utensils, PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard, ChevronRight } from 'lucide-react'; // Added ChevronRight
+import { Utensils, PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard, ChevronRight, Banknote, Landmark } from 'lucide-react'; // Added ChevronRight, Banknote, Landmark
 import {useToast} from '@/hooks/use-toast';
 import ModificationDialog from '@/components/app/modification-dialog';
 import PaymentDialog from '@/components/app/payment-dialog'; // Import the new PaymentDialog
@@ -869,8 +867,9 @@ export default function TableDetailPage() {
                 id: newMovementId,
                 date: new Date(), // Use current date/time for the sale
                 category: 'Ingreso Venta',
-                description: `Venta ${getPageTitle()} (${method})`, // Add payment method to description
+                description: `Venta ${getPageTitle()}`, // Removed payment method from description here, added below
                 amount: finalTotalToPay, // Positive amount for income
+                paymentMethod: method // Add the selected payment method
             };
 
             // Add the new sale and sort (most recent first)
@@ -1057,7 +1056,7 @@ export default function TableDetailPage() {
   return (
     <div className="container mx-auto p-4 h-[calc(100vh-theme(spacing.16))] flex flex-col">
        <div className="flex items-center mb-4"> {/* Reduced margin bottom */}
-         <Button variant="secondary" size="icon" onClick={() => router.push('/tables')} className="mr-2 h-10 w-10 rounded-md bg-card hover:bg-accent">
+         <Button variant="outline" size="icon" onClick={() => router.push('/tables')} className="mr-2 h-10 w-10 rounded-md bg-card hover:bg-accent"> {/* Changed variant to outline */}
            <ArrowLeft className="h-6 w-6" />
          </Button>
          <h1 className="text-3xl font-bold">{getPageTitle()} - Pedido</h1>

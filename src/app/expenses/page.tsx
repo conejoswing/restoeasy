@@ -46,12 +46,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { PlusCircle, Calendar as CalendarIcon, FileCheck } from 'lucide-react';
+import { PlusCircle, Calendar as CalendarIcon, FileCheck, Banknote, CreditCard, Landmark } from 'lucide-react'; // Added Banknote, CreditCard, Landmark
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { PaymentMethod } from '@/app/tables/[tableId]/page'; // Import PaymentMethod type
 
 
 export interface CashMovement { // Export interface for use in table page
@@ -60,6 +61,7 @@ export interface CashMovement { // Export interface for use in table page
   category: string;
   description: string;
   amount: number;
+  paymentMethod?: PaymentMethod; // Optional: Track payment method for sales
 }
 
 const movementCategories = ['Ingreso Venta', 'Suministros', 'Mantenimiento', 'Servicios', 'Alquiler', 'Salarios', 'Marketing', 'Otros Egresos', 'Otros Ingresos'];
@@ -143,28 +145,56 @@ export default function CashRegisterPage() {
      }
    }, [cashMovements, isInitialized]);
 
-   // Calculate daily totals
-   const { dailyIncome, dailyExpenses, dailyNetTotal } = useMemo(() => {
+   // Calculate daily totals per payment method
+   const {
+       dailyCashIncome,
+       dailyDebitCardIncome,
+       dailyCreditCardIncome,
+       dailyTransferIncome,
+       dailyTotalIncome,
+       dailyExpenses,
+       dailyNetTotal
+    } = useMemo(() => {
         const today = startOfDay(new Date());
-        let income = 0;
+        let cash = 0;
+        let debit = 0;
+        let credit = 0;
+        let transfer = 0;
         let expenses = 0;
 
         cashMovements.forEach(movement => {
             // Ensure movement.date is a Date object before comparison
             const movementDate = movement.date instanceof Date ? movement.date : new Date(movement.date);
             if (isToday(movementDate)) {
-                if (movement.amount > 0) {
-                income += movement.amount;
-                } else {
-                expenses += Math.abs(movement.amount); // Store expenses as positive value for calculation clarity
+                if (movement.amount > 0 && movement.category === 'Ingreso Venta') {
+                    // Sum income based on payment method
+                    switch(movement.paymentMethod) {
+                        case 'Efectivo': cash += movement.amount; break;
+                        case 'Tarjeta Débito': debit += movement.amount; break;
+                        case 'Tarjeta Crédito': credit += movement.amount; break;
+                        case 'Transferencia': transfer += movement.amount; break;
+                        default: cash += movement.amount; // Default to cash if method is missing
+                    }
+                } else if (movement.amount > 0 && movement.category === 'Otros Ingresos') {
+                    // Assume 'Otros Ingresos' are cash for simplicity, or adjust if needed
+                    cash += movement.amount;
+                }
+                 else if (movement.amount < 0) {
+                    expenses += Math.abs(movement.amount); // Sum all expenses
                 }
             }
         });
 
+        const totalIncome = cash + debit + credit + transfer;
+
         return {
-            dailyIncome: income,
+            dailyCashIncome: cash,
+            dailyDebitCardIncome: debit,
+            dailyCreditCardIncome: credit,
+            dailyTransferIncome: transfer,
+            dailyTotalIncome: totalIncome,
             dailyExpenses: expenses,
-            dailyNetTotal: income - expenses,
+            dailyNetTotal: totalIncome - expenses,
         };
    }, [cashMovements]);
 
@@ -226,6 +256,7 @@ export default function CashRegisterPage() {
       category: newMovement.category,
       description: newMovement.description,
       amount: finalAmount,
+      // Payment method is only added for sales from table detail page
     }
 
     // Update state, which will trigger the useEffect to save to storage
@@ -382,17 +413,50 @@ export default function CashRegisterPage() {
         </div>
 
          {/* Daily Summary Cards */}
-         <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4"> {/* Changed sm:grid-cols-3 to sm:grid-cols-2 */}
+         <div className="md:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-2"> {/* Adjusted grid for 4 cards */}
              <Card className="text-center">
-                 <CardHeader className="p-2 pb-0">
-                     <CardTitle className="text-sm font-medium">Efectivo</CardTitle> {/* Changed from Ingresos Hoy */}
+                 <CardHeader className="p-2 pb-0 flex flex-row items-center justify-center space-x-2">
+                    <Banknote className="h-4 w-4 text-muted-foreground" />
+                    <CardTitle className="text-xs font-medium">Efectivo</CardTitle>
                  </CardHeader>
                  <CardContent className="p-2 pt-0">
-                     <p className="text-xl font-bold text-green-600">{formatCurrency(dailyIncome)}</p>
+                     <p className="text-lg font-bold text-green-600">{formatCurrency(dailyCashIncome)}</p>
                  </CardContent>
              </Card>
-             {/* Removed Egresos Hoy Card */}
              <Card className="text-center">
+                 <CardHeader className="p-2 pb-0 flex flex-row items-center justify-center space-x-2">
+                    <CreditCard className="h-4 w-4 text-muted-foreground" />
+                    <CardTitle className="text-xs font-medium">T. Débito</CardTitle>
+                 </CardHeader>
+                 <CardContent className="p-2 pt-0">
+                     <p className="text-lg font-bold text-blue-600">{formatCurrency(dailyDebitCardIncome)}</p>
+                 </CardContent>
+             </Card>
+             <Card className="text-center">
+                 <CardHeader className="p-2 pb-0 flex flex-row items-center justify-center space-x-2">
+                     <CreditCard className="h-4 w-4 text-muted-foreground" />
+                     <CardTitle className="text-xs font-medium">T. Crédito</CardTitle>
+                 </CardHeader>
+                 <CardContent className="p-2 pt-0">
+                     <p className="text-lg font-bold text-purple-600">{formatCurrency(dailyCreditCardIncome)}</p>
+                 </CardContent>
+             </Card>
+             <Card className="text-center">
+                  <CardHeader className="p-2 pb-0 flex flex-row items-center justify-center space-x-2">
+                     <Landmark className="h-4 w-4 text-muted-foreground" />
+                     <CardTitle className="text-xs font-medium">Transfer.</CardTitle>
+                  </CardHeader>
+                  <CardContent className="p-2 pt-0">
+                      <p className="text-lg font-bold text-indigo-600">{formatCurrency(dailyTransferIncome)}</p>
+                  </CardContent>
+             </Card>
+         </div>
+      </div>
+
+      {/* Cash Closing Button & Net Total Summary (Moved below cards) */}
+      <div className="flex justify-between items-center mb-6 gap-4">
+          {/* Net Total Summary Card */}
+           <Card className="text-center flex-grow max-w-xs"> {/* Added flex-grow and max-w-xs */}
                  <CardHeader className="p-2 pb-0">
                      <CardTitle className="text-sm font-medium">Total Neto Hoy</CardTitle>
                  </CardHeader>
@@ -404,48 +468,61 @@ export default function CashRegisterPage() {
                          {formatCurrency(dailyNetTotal)}
                      </p>
                  </CardContent>
-             </Card>
-         </div>
-      </div>
+           </Card>
 
-      {/* Cash Closing Button (Moved below summary) */}
-      <div className="flex justify-end items-center mb-6">
-         <AlertDialog open={isClosingDialogOpen} onOpenChange={setIsClosingDialogOpen}>
-             <AlertDialogTrigger asChild>
-                <Button variant="default">
-                     <FileCheck className="mr-2 h-4 w-4" /> Cierre de Caja
-                </Button>
-             </AlertDialogTrigger>
-             <AlertDialogContent>
-                 <AlertDialogHeader>
-                     <AlertDialogTitle>Resumen del Cierre de Caja - {format(new Date(), 'dd/MM/yyyy')}</AlertDialogTitle>
-                     <AlertDialogDescription>
-                         Revisa los totales del día antes de confirmar el cierre. Al confirmar, se borrarán todos los movimientos registrados hoy.
-                     </AlertDialogDescription>
-                 </AlertDialogHeader>
-                 <div className="grid gap-2 text-sm mt-4">
-                    <div className="flex justify-between">
-                        <span>Total Ingresos:</span>
-                        <span className="font-medium text-green-600">{formatCurrency(dailyIncome)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                        <span>Total Egresos:</span>
-                        <span className="font-medium text-red-600">{formatCurrency(dailyExpenses)}</span>
-                    </div>
-                     <hr className="my-2"/>
-                     <div className="flex justify-between font-semibold">
-                         <span>Total Neto:</span>
-                         <span className={cn(dailyNetTotal >= 0 ? "text-green-600" : "text-red-600")}>
-                             {formatCurrency(dailyNetTotal)}
-                         </span>
+           {/* Cash Closing Button */}
+          <AlertDialog open={isClosingDialogOpen} onOpenChange={setIsClosingDialogOpen}>
+              <AlertDialogTrigger asChild>
+                 <Button variant="default">
+                      <FileCheck className="mr-2 h-4 w-4" /> Cierre de Caja
+                 </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                  <AlertDialogHeader>
+                      <AlertDialogTitle>Resumen del Cierre de Caja - {format(new Date(), 'dd/MM/yyyy')}</AlertDialogTitle>
+                      <AlertDialogDescription>
+                          Revisa los totales del día antes de confirmar el cierre. Al confirmar, se borrarán todos los movimientos registrados hoy.
+                      </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <div className="grid gap-2 text-sm mt-4">
+                     <div className="flex justify-between">
+                         <span>Total Ingresos (Efectivo):</span>
+                         <span className="font-medium text-green-600">{formatCurrency(dailyCashIncome)}</span>
                      </div>
-                 </div>
-                 <AlertDialogFooter className="mt-6">
-                     <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                     <AlertDialogAction onClick={handleConfirmClosing} className={cn(buttonVariants({ variant: "destructive" }))}>Confirmar Cierre</AlertDialogAction>
-                 </AlertDialogFooter>
-             </AlertDialogContent>
-         </AlertDialog>
+                      <div className="flex justify-between">
+                         <span>Total Ingresos (T. Débito):</span>
+                         <span className="font-medium text-blue-600">{formatCurrency(dailyDebitCardIncome)}</span>
+                     </div>
+                      <div className="flex justify-between">
+                         <span>Total Ingresos (T. Crédito):</span>
+                         <span className="font-medium text-purple-600">{formatCurrency(dailyCreditCardIncome)}</span>
+                     </div>
+                      <div className="flex justify-between">
+                         <span>Total Ingresos (Transferencia):</span>
+                         <span className="font-medium text-indigo-600">{formatCurrency(dailyTransferIncome)}</span>
+                     </div>
+                     <div className="flex justify-between font-semibold">
+                         <span>Total Ingresos (General):</span>
+                         <span className="font-medium text-green-600">{formatCurrency(dailyTotalIncome)}</span>
+                     </div>
+                     <div className="flex justify-between">
+                         <span>Total Egresos:</span>
+                         <span className="font-medium text-red-600">{formatCurrency(dailyExpenses)}</span>
+                     </div>
+                      <hr className="my-2"/>
+                      <div className="flex justify-between font-semibold">
+                          <span>Total Neto:</span>
+                          <span className={cn(dailyNetTotal >= 0 ? "text-green-600" : "text-red-600")}>
+                              {formatCurrency(dailyNetTotal)}
+                          </span>
+                      </div>
+                  </div>
+                  <AlertDialogFooter className="mt-6">
+                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                      <AlertDialogAction onClick={handleConfirmClosing} className={cn(buttonVariants({ variant: "destructive" }))}>Confirmar Cierre</AlertDialogAction>
+                  </AlertDialogFooter>
+              </AlertDialogContent>
+          </AlertDialog>
       </div>
 
 
@@ -457,6 +534,7 @@ export default function CashRegisterPage() {
               <TableHead>Categoría</TableHead>
               <TableHead>Descripción</TableHead>
               <TableHead className="text-right">Monto</TableHead>
+              <TableHead className="text-right">Método</TableHead> {/* Added Payment Method Column */}
               {/* <TableHead className="text-right">Acciones</TableHead> */}
             </TableRow>
           </TableHeader>
@@ -474,11 +552,14 @@ export default function CashRegisterPage() {
                   )}>
                     {formatCurrency(movement.amount)}
                   </TableCell>
+                   <TableCell className="text-right text-xs text-muted-foreground">
+                       {movement.category === 'Ingreso Venta' ? (movement.paymentMethod ?? 'Efectivo') : '-'}
+                   </TableCell>
                 </TableRow>
               ))}
               {cashMovements.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
+                  <TableCell colSpan={5} className="h-24 text-center text-muted-foreground"> {/* Increased colSpan to 5 */}
                     Aún no se han registrado movimientos de caja hoy. ¡Registre algunos!
                   </TableCell>
                 </TableRow>
