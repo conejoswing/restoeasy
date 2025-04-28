@@ -395,14 +395,14 @@ const mockMenu: MenuItem[] = [
     // --- Promo Churrasco --- (Previously Colaciones)
     {
         id: 25,
-        name: 'Promo Pollo Asado + Acompañamiento', // Updated name
+        name: '2x Completo', // Updated name
         price: 5500,
         category: 'Promo Churrasco', // Updated Category
         // Add modifications if needed
     },
     {
         id: 26,
-        name: 'Promo Mechada + Acompañamiento', // Updated name
+        name: '2x Italiano', // Updated name
         price: 6000,
         category: 'Promo Churrasco', // Updated Category
         // Add modifications if needed
@@ -663,3 +663,5 @@ export default function ProductsPage() {
     </div>
   );
 }
+
+    
