@@ -71,7 +71,7 @@ const mockMenu: MenuItem[] = [
     },
      {
       id: 15, // Example new item
-      name: 'Completo Vienesa Completo',
+      name: 'Hot Dog Normal', // Changed from 'Completo Vienesa Completo'
       price: 4200,
       category: 'Completos Vienesas',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Chucrut', 'Tomate', 'Americana', 'Agregado Queso'],
@@ -257,6 +257,8 @@ const mockMenu: MenuItem[] = [
       price: 1500,
       category: 'Bebidas',
     },
+     // --- Colaciones --- (Added back)
+    // Add items for Colaciones here if needed
 ];
 
 // Define the desired order for categories
@@ -884,8 +886,8 @@ export default function TableDetailPage() {
 
         {/* Menu Sheet Component */}
         <Sheet open={isMenuSheetOpen} onOpenChange={closeMenuSheet}> {/* Use closeMenuSheet */}
-            <SheetContent className="w-full sm:max-w-md flex flex-col" side="left"> {/* Use flex-col */}
-                <SheetHeader className="flex-shrink-0"> {/* Prevent header from growing */}
+            <SheetContent className="w-full sm:max-w-md flex flex-col p-0" side="left"> {/* Removed padding p-0 */}
+                <SheetHeader className="flex-shrink-0 p-4 pb-0"> {/* Added padding back, remove bottom padding */}
                   <SheetTitle className={cn(
                       "text-center text-lg font-semibold py-2 rounded-md bg-muted text-muted-foreground"
                       // Removed border class
@@ -919,3 +921,4 @@ export default function TableDetailPage() {
     </div>
   );
 }
+

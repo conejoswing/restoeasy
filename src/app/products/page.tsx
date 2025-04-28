@@ -62,7 +62,7 @@ const mockMenu: MenuItem[] = [
     },
      {
       id: 15, // Example new item
-      name: 'Completo Vienesa Completo',
+      name: 'Hot Dog Normal', // Changed from 'Completo Vienesa Completo'
       price: 4200,
       category: 'Completos Vienesas',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Chucrut', 'Tomate', 'Americana', 'Agregado Queso'],
@@ -247,6 +247,8 @@ const mockMenu: MenuItem[] = [
       price: 1500,
       category: 'Bebidas',
     },
+    // --- Colaciones --- (Added back)
+    // Add items for Colaciones here if needed
 ];
 
 // Define the desired order for categories
