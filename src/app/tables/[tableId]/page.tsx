@@ -432,13 +432,13 @@ const mockMenu: MenuItem[] = [
     // --- Promo Mechada ---
     {
       id: 4,
-      name: '2x Completo', // Changed name from Mechada Italiana to 2x Completo
+      name: '2x Completo', // Changed name from Mechada Completa
       price: 8000, // Example price
       category: 'Promo Mechada', // Category already Promo Mechada
     },
     {
       id: 24, // New Promo Mechada
-      name: '2x Italiano', // Changed name from Mechada Completa to 2x Italiano
+      name: '2x Italiano', // Changed name from Mechada Italiana
       price: 7800, // Example price
       category: 'Promo Mechada', // Keep in Promotions category
     },
@@ -488,17 +488,29 @@ const mockMenu: MenuItem[] = [
     { id: 98, name: 'Promo 11', price: 10000, category: 'Promociones' },
     { id: 99, name: 'Promo 12', price: 10500, category: 'Promociones' },
     // --- End of new Promotions ---
-    // --- Bebidas ---
+    // --- Bebidas --- Start new IDs from 100
     {
-      id: 9,
-      name: 'Agua',
-      price: 1000,
+      id: 100, // Changed from 9
+      name: 'Bebida 1.5L', // Changed from Agua
+      price: 2000, // Example price
       category: 'Bebidas',
     },
      {
-      id: 16, // Example
-      name: 'Coca-Cola',
+      id: 101, // Changed from 16
+      name: 'Lata', // Changed from Coca-Cola
       price: 1500,
+      category: 'Bebidas',
+    },
+    { // New item
+      id: 102,
+      name: 'Cafe Chico',
+      price: 1800, // Example price
+      category: 'Bebidas',
+    },
+    { // New item
+      id: 103,
+      name: 'Cafe Grande',
+      price: 2500, // Example price
       category: 'Bebidas',
     },
      // --- Colaciones --- (Added back)
