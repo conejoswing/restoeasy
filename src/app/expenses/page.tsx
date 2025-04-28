@@ -381,11 +381,11 @@ export default function CashRegisterPage() {
             </Dialog>
         </div>
 
-         {/* Daily Summary Cards - Removed Egresos Hoy */}
+         {/* Daily Summary Cards */}
          <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4"> {/* Changed sm:grid-cols-3 to sm:grid-cols-2 */}
              <Card className="text-center">
                  <CardHeader className="p-2 pb-0">
-                     <CardTitle className="text-sm font-medium">Ingresos Hoy</CardTitle>
+                     <CardTitle className="text-sm font-medium">Efectivo</CardTitle> {/* Changed from Ingresos Hoy */}
                  </CardHeader>
                  <CardContent className="p-2 pt-0">
                      <p className="text-xl font-bold text-green-600">{formatCurrency(dailyIncome)}</p>
