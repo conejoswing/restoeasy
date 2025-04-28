@@ -441,6 +441,17 @@ const mockMenu: MenuItem[] = [
       price: 7800, // Example price
       category: 'Promo Mechada', // Keep in Promotions category
     },
+    // --- Add new Promo Mechada items --- Start ID from 82 (last used was 81)
+    { id: 82, name: '2x Chacarero', price: 9000, category: 'Promo Mechada' }, // Example price
+    { id: 83, name: '2x Queso', price: 8500, category: 'Promo Mechada' },
+    { id: 84, name: '2x Palta', price: 8800, category: 'Promo Mechada' },
+    { id: 85, name: '2x Tomate', price: 8800, category: 'Promo Mechada' },
+    { id: 86, name: '2x Brasileño', price: 9200, category: 'Promo Mechada' },
+    { id: 87, name: '2x Dinamico', price: 9300, category: 'Promo Mechada' },
+    { id: 88, name: '2x Campestre', price: 9500, category: 'Promo Mechada' },
+    { id: 89, name: '2x Queso Champiñon', price: 9800, category: 'Promo Mechada' },
+    { id: 90, name: '2x Che milico', price: 10000, category: 'Promo Mechada' },
+    // --- End of new Promo Mechada items ---
     // --- Promociones ---
     {
       id: 6,
@@ -1172,3 +1183,4 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
