@@ -333,6 +333,12 @@ const mockMenu: MenuItem[] = [
         modifications: ['Queso Cheddar', 'Bacon', 'Cebolla Crispy', 'Salsa BBQ'],
         modificationPrices: { 'Queso Cheddar': 1200, 'Bacon': 1000 },
     },
+    { id: 61, name: 'Papas Fritas Grande', price: 6500, category: 'Papas Fritas', modifications: ['Queso Cheddar', 'Bacon'], modificationPrices: { 'Queso Cheddar': 1500, 'Bacon': 1200 } }, // Example modifications and prices
+    { id: 62, name: 'Papas Fritas XL', price: 8000, category: 'Papas Fritas', modifications: ['Queso Cheddar', 'Bacon'], modificationPrices: { 'Queso Cheddar': 2000, 'Bacon': 1500 } },
+    { id: 63, name: 'Salchipapas', price: 7000, category: 'Papas Fritas', modifications: ['Agregar Huevo Frito'], modificationPrices: { 'Agregar Huevo Frito': 800 } },
+    { id: 64, name: 'Chorrillana 2', price: 12000, category: 'Papas Fritas', modifications: ['Carne Mechada', 'Cebolla Caramelizada'], modificationPrices: { 'Carne Mechada': 2000 } },
+    { id: 65, name: 'Chorrillana 4', price: 18000, category: 'Papas Fritas', modifications: ['Doble Carne', 'Extra Queso'], modificationPrices: { 'Doble Carne': 3000, 'Extra Queso': 1500 } },
+    { id: 66, name: 'Box Cami', price: 15000, category: 'Papas Fritas', modifications: ['Alitas BBQ', 'Nuggets Pollo'], modificationPrices: { 'Alitas BBQ': 1000, 'Nuggets Pollo': 800 } },
     // --- Café ---
     {
       id: 3,
