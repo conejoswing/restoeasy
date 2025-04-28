@@ -12,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-  CardFooter, // Added CardFooter import
+  CardFooter,
 } from '@/components/ui/card';
 import {ScrollArea} from '@/components/ui/scroll-area';
 import {Separator} from '@/components/ui/separator';
@@ -389,20 +389,7 @@ const mockMenu: MenuItem[] = [
     { id: 64, name: 'Chorrillana 2', price: 12000, category: 'Papas Fritas', modifications: ['Carne Mechada', 'Cebolla Caramelizada'], modificationPrices: { 'Carne Mechada': 2000 } },
     { id: 65, name: 'Chorrillana 4', price: 18000, category: 'Papas Fritas', modifications: ['Doble Carne', 'Extra Queso'], modificationPrices: { 'Doble Carne': 3000, 'Extra Queso': 1500 } },
     { id: 66, name: 'Box Cami', price: 15000, category: 'Papas Fritas', modifications: ['Alitas BBQ', 'Nuggets Pollo'], modificationPrices: { 'Alitas BBQ': 1000, 'Nuggets Pollo': 800 } },
-    // --- Café ---
-    {
-      id: 3,
-      name: 'Café Americano', // Changed name
-      price: 2500, // Example price
-      category: 'Café',
-    },
-    {
-      id: 7,
-      name: 'Café Latte', // Changed name
-      price: 3000, // Example price
-      category: 'Café',
-    },
-     // --- Colaciones --- (New Category - now empty after renaming below)
+    // --- Colaciones --- (New Category - now empty after renaming below)
     // --- Promo Churrasco --- (Previously Colaciones)
     {
         id: 25,
@@ -525,7 +512,6 @@ const orderedCategories = [
   'Hamburguesas', // Added
   'Churrascos',   // Added
   'Papas Fritas', // Added
-  'Café',
   'Promo Churrasco', // Changed from Colaciones
   'Promo Mechada', // Added
   'Promociones',
@@ -1226,3 +1212,4 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
