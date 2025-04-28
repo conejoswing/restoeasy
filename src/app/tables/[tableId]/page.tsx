@@ -27,6 +27,7 @@ import {
 import { Utensils, PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard, ChevronRight } from 'lucide-react'; // Added ChevronRight
 import {useToast} from '@/hooks/use-toast';
 import ModificationDialog from '@/components/app/modification-dialog';
+import PaymentDialog from '@/components/app/payment-dialog'; // Import the new PaymentDialog
 import { isEqual } from 'lodash';
 import { cn } from '@/lib/utils';
 import type { CashMovement } from '@/app/expenses/page'; // Import CashMovement type
@@ -518,6 +519,8 @@ const sortMenu = (menu: MenuItem[]): MenuItem[] => {
   });
 };
 
+export type PaymentMethod = 'Efectivo' | 'Tarjeta Débito' | 'Tarjeta Crédito' | 'Transferencia';
+
 export default function TableDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -532,6 +535,9 @@ export default function TableDetailPage() {
   const [menuSheetView, setMenuSheetView] = useState<'categories' | 'items'>('categories'); // State for sheet view
   const [selectedCategoryForItemsView, setSelectedCategoryForItemsView] = useState<string | null>(null); // State for selected category in items view
   const [menuData, setMenuData] = useState<MenuItem[]>([]); // State for menu data
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false); // State for Payment Dialog
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null); // State for selected payment method
+
 
 
   // --- Load orders, status, and menu from sessionStorage/mock on mount ---
@@ -830,11 +836,21 @@ export default function TableDetailPage() {
          toast({ title: "Error", description: "No hay artículos pendientes para imprimir el pago.", variant: "destructive" });
          return;
        }
+       // Open the payment method dialog instead of printing directly
+       setIsPaymentDialogOpen(true);
+    };
 
-       const finalTotalToPay = calculateTotal(pendingPaymentOrder); // Calculate final total here
+    // Function to handle the confirmation of payment method
+    const handleConfirmPayment = (method: PaymentMethod) => {
+        setIsPaymentDialogOpen(false); // Close the dialog
+        setSelectedPaymentMethod(method); // Store the selected method (optional, could be used in toast or logs)
 
-       console.log('Imprimiendo Boleta/Factura (Pedido Pendiente):', pendingPaymentOrder);
-       console.log('Total a Pagar:', formatCurrency(finalTotalToPay));
+        // Now proceed with the original print logic
+        const finalTotalToPay = calculateTotal(pendingPaymentOrder); // Calculate final total here
+
+        console.log(`Imprimiendo Boleta/Factura (Pedido Pendiente) - Método: ${method}`);
+        console.log('Pedido:', pendingPaymentOrder);
+        console.log('Total a Pagar:', formatCurrency(finalTotalToPay));
 
        // --- Add sale to cash movements in sessionStorage ---
        try {
@@ -853,7 +869,7 @@ export default function TableDetailPage() {
                 id: newMovementId,
                 date: new Date(), // Use current date/time for the sale
                 category: 'Ingreso Venta',
-                description: `Venta ${getPageTitle()}`, // Description includes table/source
+                description: `Venta ${getPageTitle()} (${method})`, // Add payment method to description
                 amount: finalTotalToPay, // Positive amount for income
             };
 
@@ -866,7 +882,7 @@ export default function TableDetailPage() {
             sessionStorage.setItem(CASH_MOVEMENTS_STORAGE_KEY, JSON.stringify(
                  updatedMovements.map(m => ({...m, date: m.date instanceof Date ? m.date.toISOString() : m.date }))
              ));
-            console.log(`Sale of ${formatCurrency(finalTotalToPay)} registered in cash movements.`);
+            console.log(`Sale of ${formatCurrency(finalTotalToPay)} (${method}) registered in cash movements.`);
 
        } catch (error) {
             console.error("Error registering sale in cash movements:", error);
@@ -883,11 +899,12 @@ export default function TableDetailPage() {
 
        toast({
          title: "¡Pago Impreso!",
-         description: `Boleta/Factura por ${formatCurrency(finalTotalToPay)} impresa. Venta registrada en caja. Mesa disponible si no hay pedido actual.`,
+         description: `Boleta/Factura por ${formatCurrency(finalTotalToPay)} (${method}) impresa. Venta registrada en caja. Mesa disponible si no hay pedido actual.`,
          variant: "default",
          className: "bg-blue-200 text-blue-800 border-blue-400" // Using direct colors for payment success
        });
-     };
+    };
+
 
   // Filter menu items based on the selected category (used in Items view)
   const filteredMenu = menuData.filter( // Use menuData state here
@@ -1133,6 +1150,14 @@ export default function TableDetailPage() {
           onCancel={() => setCurrentItemForModification(null)} // Reset item on cancel
         />
       )}
+
+        {/* Payment Method Dialog */}
+        <PaymentDialog
+            isOpen={isPaymentDialogOpen}
+            onOpenChange={setIsPaymentDialogOpen}
+            totalAmount={pendingOrderTotal}
+            onConfirm={handleConfirmPayment}
+        />
     </div>
   );
 }
