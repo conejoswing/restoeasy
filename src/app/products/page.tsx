@@ -143,7 +143,7 @@ const mockMenu: MenuItem[] = [
     // --- Completos As ---
     {
       id: 10,
-      name: 'Completo As Italiano',
+      name: 'Italiano Normal', // Changed from 'Completo As Italiano'
       price: 5500,
       category: 'Completos As',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Agregado Queso'],
@@ -151,7 +151,7 @@ const mockMenu: MenuItem[] = [
     },
     {
       id: 11,
-      name: 'Completo As Dinámico',
+      name: 'Italiano Grande', // Changed from 'Completo As Dinámico'
       price: 6000,
       category: 'Completos As',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Salsa Verde', 'Americana', 'Agregado Queso'],
@@ -159,7 +159,7 @@ const mockMenu: MenuItem[] = [
     },
     {
       id: 12,
-      name: 'Completo As Chacarero',
+      name: 'Completo Normal', // Changed from 'Completo As Chacarero'
       price: 6500,
       category: 'Completos As',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Agregado Queso'],
@@ -525,4 +525,5 @@ export default function ProductsPage() {
     </div>
   );
 }
+
 
