@@ -272,7 +272,7 @@ const orderedCategories = [
   'Promo Mechada', // Added
   'Promociones',
   'Bebidas',
-  // 'Colaciones', // Keep commented or remove if not used
+   'Colaciones', // Added back
 ];
 
 
@@ -898,12 +898,11 @@ export default function TableDetailPage() {
                  <div className="flex-grow overflow-hidden">
                     {renderMenuSheetContent()} {/* Render categories or items */}
                  </div>
-                 <SheetFooter className="mt-auto p-4 border-t flex-shrink-0"> {/* Prevent footer from growing, use mt-auto */}
+                 <SheetFooter className="mt-auto p-4 flex-shrink-0"> {/* Removed border-t */}
                     {/* Conditionally show Confirm button only when viewing items */}
                     {menuSheetView === 'items' && (
                         <Button variant="default" onClick={closeMenuSheet}>Confirmar</Button>
                     )}
-                    {/* Remove "Cerrar Menú" button */}
                  </SheetFooter>
             </SheetContent>
         </Sheet>
