@@ -510,6 +510,13 @@ const orderedCategories = [
   'Colaciones', // Added back
 ];
 
+
+// Helper function to extract number from promo name
+const extractPromoNumber = (name: string): number => {
+    const match = name.match(/^Promo (\d+)/i);
+    return match ? parseInt(match[1], 10) : Infinity; // Place non-numbered promos last
+};
+
 // Sort menu items by category order first, then alphabetically by name
 const sortMenu = (menu: MenuItem[]): MenuItem[] => {
   return [...menu].sort((a, b) => {
@@ -523,6 +530,17 @@ const sortMenu = (menu: MenuItem[]): MenuItem[] => {
         if (categoryBIndex === -1) return -1;
         return categoryAIndex - categoryBIndex;
     }
+
+     // Special sorting for "Promociones" category
+     if (a.category === 'Promociones') {
+        const numA = extractPromoNumber(a.name);
+        const numB = extractPromoNumber(b.name);
+        if (numA !== numB) {
+            return numA - numB; // Sort numerically
+        }
+      }
+
+
     return a.name.localeCompare(b.name);
   });
 };
@@ -696,6 +714,7 @@ export default function ProductsPage() {
     </div>
   );
 }
+
 
 
 
