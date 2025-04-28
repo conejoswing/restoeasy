@@ -431,13 +431,13 @@ const mockMenu: MenuItem[] = [
     // --- Promo Mechada ---
     {
       id: 4,
-      name: 'Completo', // Changed name from Mechada Italiana
+      name: '2x Completo', // Changed name from Mechada Italiana to 2x Completo
       price: 8000, // Example price
       category: 'Promo Mechada', // Category already Promo Mechada
     },
     {
       id: 24, // New Promo Mechada
-      name: 'Italiano', // Changed name from Mechada Completa
+      name: '2x Italiano', // Changed name from Mechada Completa to 2x Italiano
       price: 7800, // Example price
       category: 'Promo Mechada', // Keep in Promotions category
     },
