@@ -381,8 +381,8 @@ export default function CashRegisterPage() {
             </Dialog>
         </div>
 
-         {/* Daily Summary Cards */}
-         <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-4">
+         {/* Daily Summary Cards - Removed Egresos Hoy */}
+         <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4"> {/* Changed sm:grid-cols-3 to sm:grid-cols-2 */}
              <Card className="text-center">
                  <CardHeader className="p-2 pb-0">
                      <CardTitle className="text-sm font-medium">Ingresos Hoy</CardTitle>
@@ -391,14 +391,7 @@ export default function CashRegisterPage() {
                      <p className="text-xl font-bold text-green-600">{formatCurrency(dailyIncome)}</p>
                  </CardContent>
              </Card>
-             <Card className="text-center">
-                 <CardHeader className="p-2 pb-0">
-                     <CardTitle className="text-sm font-medium">Egresos Hoy</CardTitle>
-                 </CardHeader>
-                 <CardContent className="p-2 pt-0">
-                     <p className="text-xl font-bold text-red-600">{formatCurrency(dailyExpenses)}</p>
-                 </CardContent>
-             </Card>
+             {/* Removed Egresos Hoy Card */}
              <Card className="text-center">
                  <CardHeader className="p-2 pb-0">
                      <CardTitle className="text-sm font-medium">Total Neto Hoy</CardTitle>
