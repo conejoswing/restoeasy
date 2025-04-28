@@ -55,7 +55,7 @@ const mockMenu: MenuItem[] = [
     // --- Completos Vienesas ---
     {
       id: 13,
-      name: 'Italiano Normal', // Changed from 'Completo Vienesa Italiana'
+      name: 'Italiano Normal',
       price: 4000,
       category: 'Completos Vienesas',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Agregado Queso'],
@@ -63,19 +63,91 @@ const mockMenu: MenuItem[] = [
     },
     {
       id: 14,
-      name: 'Italiano grande', // Changed from 'Completo Vienesa Dinámico'
+      name: 'Italiano grande',
       price: 4500,
       category: 'Completos Vienesas',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Salsa Verde', 'Americana', 'Agregado Queso'],
       modificationPrices: { 'Agregado Queso': 1000 } // Example: Add price for cheese here too if applicable
     },
      {
-      id: 15, // Example new item
-      name: 'Hot Dog Normal', // Changed from 'Completo Vienesa Completo'
+      id: 15,
+      name: 'Hot Dog Normal',
       price: 4200,
       category: 'Completos Vienesas',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Chucrut', 'Tomate', 'Americana', 'Agregado Queso'],
       modificationPrices: { 'Agregado Queso': 1000 } // Add price for cheese
+    },
+     {
+        id: 27,
+        name: 'Hot Dog Grande',
+        price: 4700,
+        category: 'Completos Vienesas',
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Chucrut', 'Tomate', 'Americana', 'Agregado Queso'],
+        modificationPrices: { 'Agregado Queso': 1000 }
+    },
+     {
+        id: 28,
+        name: 'Completo Normal',
+        price: 4300,
+        category: 'Completos Vienesas',
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Chucrut', 'Tomate', 'Americana', 'Salsa Verde', 'Ají Verde', 'Agregado Queso'],
+        modificationPrices: { 'Agregado Queso': 1000 }
+    },
+    {
+        id: 29,
+        name: 'Completo Grande',
+        price: 4800,
+        category: 'Completos Vienesas',
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Chucrut', 'Tomate', 'Americana', 'Salsa Verde', 'Ají Verde', 'Agregado Queso'],
+        modificationPrices: { 'Agregado Queso': 1000 }
+    },
+    {
+        id: 30,
+        name: 'Palta Normal',
+        price: 4100,
+        category: 'Completos Vienesas',
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Agregado Queso'],
+        modificationPrices: { 'Agregado Queso': 1000 }
+    },
+    {
+        id: 31,
+        name: 'Palta Grande',
+        price: 4600,
+        category: 'Completos Vienesas',
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Agregado Queso'],
+        modificationPrices: { 'Agregado Queso': 1000 }
+    },
+     {
+        id: 32,
+        name: 'Tomate Normal',
+        price: 4100,
+        category: 'Completos Vienesas',
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Agregado Queso'],
+        modificationPrices: { 'Agregado Queso': 1000 }
+    },
+    {
+        id: 33,
+        name: 'Tomate Grande',
+        price: 4600,
+        category: 'Completos Vienesas',
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Agregado Queso'],
+        modificationPrices: { 'Agregado Queso': 1000 }
+    },
+    {
+        id: 34,
+        name: 'Dinamico Normal',
+        price: 4400,
+        category: 'Completos Vienesas',
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Salsa Verde', 'Americana', 'Agregado Queso'],
+        modificationPrices: { 'Agregado Queso': 1000 }
+    },
+    {
+        id: 35,
+        name: 'Dinamico Grande',
+        price: 4900,
+        category: 'Completos Vienesas',
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Salsa Verde', 'Americana', 'Agregado Queso'],
+        modificationPrices: { 'Agregado Queso': 1000 }
     },
     // --- Completos As ---
     {
@@ -105,7 +177,7 @@ const mockMenu: MenuItem[] = [
     // --- Fajitas ---
     {
       id: 1,
-      name: 'Italiano chico', // Changed from 'Hamburguesa'
+      name: 'Italiano chico',
       price: 8990,
       category: 'Fajitas',
       modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají Verde', 'Agregado Queso'], // Simpler modifications + Ají Verde + Agregado Queso
@@ -113,7 +185,7 @@ const mockMenu: MenuItem[] = [
     },
     {
       id: 2,
-      name: 'Italiano grande', // Changed from 'Pizza'
+      name: 'Italiano grande',
       price: 12500,
       category: 'Fajitas',
       modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají', 'Ají Verde', 'Agregado Queso'], // + Ají Verde + Agregado Queso
@@ -181,7 +253,7 @@ const mockMenu: MenuItem[] = [
     // --- Café ---
     {
       id: 3,
-      name: 'Dinamico chico', // Changed from 'Ensalada'
+      name: 'Dinamico chico',
       price: 6500,
       category: 'Café',
     },
@@ -210,7 +282,7 @@ const mockMenu: MenuItem[] = [
     // --- Promo Mechada ---
     {
       id: 4,
-      name: 'Dinamico grande', // Changed from 'Papas Fritas'
+      name: 'Dinamico grande',
       price: 3000,
       category: 'Promo Mechada', // Category already Promo Mechada
     },
@@ -223,7 +295,7 @@ const mockMenu: MenuItem[] = [
     // --- Promociones ---
     {
       id: 6,
-      name: 'Completo grande', // Changed from 'Helado'
+      name: 'Completo grande',
       price: 4500,
       category: 'Promociones',
       modifications: ['Vienesa', 'As', 'Con Bebida Pequeña', 'Ají Verde', 'Agregado Queso'], // + Ají Verde + Agregado Queso
@@ -231,7 +303,7 @@ const mockMenu: MenuItem[] = [
     },
      {
       id: 5,
-      name: 'Completo chico', // Changed from 'Refresco'
+      name: 'Completo chico',
       price: 2000,
       category: 'Promociones',
       modifications: ['Vienesa', 'As', 'Con Bebida Pequeña', 'Ají Verde', 'Agregado Queso'], // + Ají Verde + Agregado Queso
