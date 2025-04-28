@@ -382,48 +382,59 @@ const mockMenu: MenuItem[] = [
     // --- Café ---
     {
       id: 3,
-      name: 'Dinamico chico',
-      price: 6500,
+      name: 'Café Americano', // Changed name
+      price: 2500, // Example price
       category: 'Café',
     },
     {
       id: 7,
-      name: 'Alitas de Pollo',
-      price: 9500,
+      name: 'Café Latte', // Changed name
+      price: 3000, // Example price
       category: 'Café',
     },
     // --- Promo Churrasco --- (Previously Colaciones)
     {
         id: 25,
         name: '2x Completo', // Updated name
-        price: 5500,
+        price: 5500, // Example price
         category: 'Promo Churrasco', // Updated Category
         // Add modifications if needed
     },
     {
         id: 26,
         name: '2x Italiano', // Updated name
-        price: 6000,
+        price: 6000, // Example price
         category: 'Promo Churrasco', // Updated Category
         // Add modifications if needed
     },
+    // --- Add new Promo Churrasco items --- Start ID from 73
+    { id: 73, name: '2x Chacarero', price: 7000, category: 'Promo Churrasco' },
+    { id: 74, name: '2x Queso', price: 6500, category: 'Promo Churrasco' },
+    { id: 75, name: '2x Palta', price: 6800, category: 'Promo Churrasco' },
+    { id: 76, name: '2x Tomate', price: 6800, category: 'Promo Churrasco' },
+    { id: 77, name: '2x Brasileño', price: 7200, category: 'Promo Churrasco' }, // Assuming Brasileño exists or add its definition
+    { id: 78, name: '2x Dinamico', price: 7300, category: 'Promo Churrasco' },
+    { id: 79, name: '2x Campestre', price: 7500, category: 'Promo Churrasco' },
+    { id: 80, name: '2x Queso Champiñon', price: 7800, category: 'Promo Churrasco' },
+    { id: 81, name: '2x Che milico', price: 8000, category: 'Promo Churrasco' },
+    // --- End of new Promo Churrasco items ---
     // --- Promo Mechada ---
     {
       id: 4,
-      name: 'Dinamico grande',
-      price: 3000,
+      name: 'Mechada Italiana', // Changed name
+      price: 8000, // Example price
       category: 'Promo Mechada', // Category already Promo Mechada
     },
     {
       id: 24, // New Promo Mechada
-      name: 'Promo Mechada', // Keep name for now, but ensure ID is unique
-      price: 7000, // Example price
+      name: 'Mechada Completa', // Changed name
+      price: 7800, // Example price
       category: 'Promo Mechada', // Keep in Promotions category
     },
     // --- Promociones ---
     {
       id: 6,
-      name: 'Completo grande',
+      name: 'Completo + Bebida', // Changed name
       price: 4500,
       category: 'Promociones',
       modifications: ['Vienesa', 'As', 'Con Bebida Pequeña', 'Ají Verde', 'Agregado Queso'], // + Ají Verde + Agregado Queso
@@ -431,8 +442,8 @@ const mockMenu: MenuItem[] = [
     },
      {
       id: 5,
-      name: 'Completo chico',
-      price: 2000,
+      name: 'Italiano + Bebida', // Changed name
+      price: 5000,
       category: 'Promociones',
       modifications: ['Vienesa', 'As', 'Con Bebida Pequeña', 'Ají Verde', 'Agregado Queso'], // + Ají Verde + Agregado Queso
       modificationPrices: { 'Agregado Queso': 1000 }, // + Cheese
@@ -663,5 +674,3 @@ export default function ProductsPage() {
     </div>
   );
 }
-
-    
