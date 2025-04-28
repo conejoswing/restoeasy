@@ -887,9 +887,8 @@ export default function TableDetailPage() {
             <SheetContent className="w-full sm:max-w-md flex flex-col" side="left"> {/* Use flex-col */}
                 <SheetHeader className="flex-shrink-0"> {/* Prevent header from growing */}
                   <SheetTitle className={cn(
-                      "text-center text-lg font-semibold py-2 rounded-md bg-muted text-muted-foreground",
-                      // Ensure title uses same border and hover styles as category items for consistency
-                      "border"
+                      "text-center text-lg font-semibold py-2 rounded-md bg-muted text-muted-foreground"
+                      // Removed border class
                    )}>
                     {menuSheetView === 'categories' ? 'Menú' : selectedCategoryForItemsView}
                   </SheetTitle>
@@ -920,4 +919,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-
