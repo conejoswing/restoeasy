@@ -184,31 +184,15 @@ const mockMenu: MenuItem[] = [
     { id: 51, name: 'Queso Champiñon Normal', price: 7000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Queso Fundido', 'Champiñones Salteados', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1200 } },
     { id: 52, name: 'Queso Champiñon Grande', price: 7500, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Queso Fundido', 'Champiñones Salteados', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1200 } },
     // --- End of newly added Completos As ---
-    // --- Fajitas ---
-    {
-      id: 1,
-      name: 'Italiano chico',
-      price: 8990,
-      category: 'Fajitas',
-      modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají Verde', 'Agregado Queso'], // Simpler modifications + Ají Verde + Agregado Queso
-      modificationPrices: { 'Con Queso': 500, 'Extra Carne': 1000, 'Agregado Queso': 1000 }, // Example prices + Cheese
-    },
-    {
-      id: 2,
-      name: 'Italiano grande',
-      price: 12500,
-      category: 'Fajitas',
-      modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají', 'Ají Verde', 'Agregado Queso'], // + Ají Verde + Agregado Queso
-      modificationPrices: { 'Con Queso': 800, 'Extra Carne': 1500, 'Agregado Queso': 1000 }, // + Cheese
-    },
-     {
-      id: 8,
-      name: 'Filete',
-      price: 18000,
-      category: 'Fajitas',
-      modifications: ['Ají Verde', 'Agregado Queso'], // Added modifications
-      modificationPrices: { 'Agregado Queso': 1000 }, // Added cheese price
-    },
+    // --- Fajitas --- (Updated)
+    { id: 104, name: 'Italiana', price: 9500, category: 'Fajitas', modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají Verde', 'Agregado Queso'], modificationPrices: { 'Con Queso': 500, 'Extra Carne': 1000, 'Agregado Queso': 1000 } },
+    { id: 105, name: 'Brasileño', price: 9200, category: 'Fajitas', modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají Verde', 'Agregado Queso'], modificationPrices: { 'Con Queso': 500, 'Extra Carne': 1000, 'Agregado Queso': 1000 } },
+    { id: 106, name: 'Chacarero', price: 9800, category: 'Fajitas', modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají Verde', 'Agregado Queso'], modificationPrices: { 'Con Queso': 500, 'Extra Carne': 1000, 'Agregado Queso': 1000 } },
+    { id: 107, name: 'Americana', price: 8900, category: 'Fajitas', modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají Verde', 'Agregado Queso'], modificationPrices: { 'Con Queso': 500, 'Extra Carne': 1000, 'Agregado Queso': 1000 } },
+    { id: 108, name: 'Primavera', price: 9000, category: 'Fajitas', modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají Verde', 'Agregado Queso'], modificationPrices: { 'Con Queso': 500, 'Extra Carne': 1000, 'Agregado Queso': 1000 } },
+    { id: 109, name: 'Golosasa', price: 10500, category: 'Fajitas', modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají Verde', 'Agregado Queso'], modificationPrices: { 'Con Queso': 500, 'Extra Carne': 1000, 'Agregado Queso': 1000 } },
+    { id: 110, name: '4 Ingredientes', price: 11000, category: 'Fajitas', modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají Verde', 'Agregado Queso'], modificationPrices: { 'Con Queso': 500, 'Extra Carne': 1000, 'Agregado Queso': 1000 } }, // Choose your 4
+    { id: 111, name: '6 Ingredientes', price: 12000, category: 'Fajitas', modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají Verde', 'Agregado Queso'], modificationPrices: { 'Con Queso': 500, 'Extra Carne': 1000, 'Agregado Queso': 1000 } }, // Choose your 6
     // --- Hamburguesas --- (New Category)
     {
         id: 17,
@@ -491,7 +475,7 @@ const mockMenu: MenuItem[] = [
     },
     // --- Colaciones --- (Added back)
     // Add items for Colaciones here if needed
-];
+].filter(item => !(item.category === 'Fajitas' && [1, 2, 8].includes(item.id))); // Filter out old fajitas
 
 // Define the desired order for categories
 const orderedCategories = [
@@ -712,9 +696,3 @@ export default function ProductsPage() {
     </div>
   );
 }
-
-
-
-
-
-

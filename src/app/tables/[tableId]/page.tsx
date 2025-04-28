@@ -194,31 +194,15 @@ const mockMenu: MenuItem[] = [
     { id: 51, name: 'Queso Champiñon Normal', price: 7000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Queso Fundido', 'Champiñones Salteados', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1200 } },
     { id: 52, name: 'Queso Champiñon Grande', price: 7500, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Queso Fundido', 'Champiñones Salteados', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1200 } },
     // --- End of newly added Completos As ---
-    // --- Fajitas ---
-    {
-      id: 1,
-      name: 'Italiano chico',
-      price: 8990,
-      category: 'Fajitas',
-      modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají Verde', 'Agregado Queso'], // Simpler modifications + Ají Verde + Agregado Queso
-      modificationPrices: { 'Con Queso': 500, 'Extra Carne': 1000, 'Agregado Queso': 1000 }, // Example prices + Cheese
-    },
-    {
-      id: 2,
-      name: 'Italiano grande',
-      price: 12500,
-      category: 'Fajitas',
-      modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají', 'Ají Verde', 'Agregado Queso'], // + Ají Verde + Agregado Queso
-      modificationPrices: { 'Con Queso': 800, 'Extra Carne': 1500, 'Agregado Queso': 1000 }, // + Cheese
-    },
-     {
-      id: 8,
-      name: 'Filete',
-      price: 18000,
-      category: 'Fajitas',
-      modifications: ['Ají Verde', 'Agregado Queso'], // Added modifications
-      modificationPrices: { 'Agregado Queso': 1000 }, // Added cheese price
-    },
+    // --- Fajitas --- (Updated)
+    { id: 104, name: 'Italiana', price: 9500, category: 'Fajitas', modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají Verde', 'Agregado Queso'], modificationPrices: { 'Con Queso': 500, 'Extra Carne': 1000, 'Agregado Queso': 1000 } },
+    { id: 105, name: 'Brasileño', price: 9200, category: 'Fajitas', modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají Verde', 'Agregado Queso'], modificationPrices: { 'Con Queso': 500, 'Extra Carne': 1000, 'Agregado Queso': 1000 } },
+    { id: 106, name: 'Chacarero', price: 9800, category: 'Fajitas', modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají Verde', 'Agregado Queso'], modificationPrices: { 'Con Queso': 500, 'Extra Carne': 1000, 'Agregado Queso': 1000 } },
+    { id: 107, name: 'Americana', price: 8900, category: 'Fajitas', modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají Verde', 'Agregado Queso'], modificationPrices: { 'Con Queso': 500, 'Extra Carne': 1000, 'Agregado Queso': 1000 } },
+    { id: 108, name: 'Primavera', price: 9000, category: 'Fajitas', modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají Verde', 'Agregado Queso'], modificationPrices: { 'Con Queso': 500, 'Extra Carne': 1000, 'Agregado Queso': 1000 } },
+    { id: 109, name: 'Golosasa', price: 10500, category: 'Fajitas', modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají Verde', 'Agregado Queso'], modificationPrices: { 'Con Queso': 500, 'Extra Carne': 1000, 'Agregado Queso': 1000 } },
+    { id: 110, name: '4 Ingredientes', price: 11000, category: 'Fajitas', modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají Verde', 'Agregado Queso'], modificationPrices: { 'Con Queso': 500, 'Extra Carne': 1000, 'Agregado Queso': 1000 } }, // Choose your 4
+    { id: 111, name: '6 Ingredientes', price: 12000, category: 'Fajitas', modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají Verde', 'Agregado Queso'], modificationPrices: { 'Con Queso': 500, 'Extra Carne': 1000, 'Agregado Queso': 1000 } }, // Choose your 6
     // --- Hamburguesas --- (New Category)
     {
         id: 17,
@@ -389,7 +373,6 @@ const mockMenu: MenuItem[] = [
     { id: 64, name: 'Chorrillana 2', price: 12000, category: 'Papas Fritas', modifications: ['Carne Mechada', 'Cebolla Caramelizada'], modificationPrices: { 'Carne Mechada': 2000 } },
     { id: 65, name: 'Chorrillana 4', price: 18000, category: 'Papas Fritas', modifications: ['Doble Carne', 'Extra Queso'], modificationPrices: { 'Doble Carne': 3000, 'Extra Queso': 1500 } },
     { id: 66, name: 'Box Cami', price: 15000, category: 'Papas Fritas', modifications: ['Alitas BBQ', 'Nuggets Pollo'], modificationPrices: { 'Alitas BBQ': 1000, 'Nuggets Pollo': 800 } },
-    // --- Colaciones --- (New Category - now empty after renaming below)
     // --- Promo Churrasco --- (Previously Colaciones)
     {
         id: 25,
@@ -429,40 +412,40 @@ const mockMenu: MenuItem[] = [
       price: 7800, // Example price
       category: 'Promo Mechada', // Keep in Promotions category
     },
-    // --- Add new Promo Mechada items --- Start ID from 82 (last used was 81)
-    { id: 82, name: '2x Chacarero', price: 9000, category: 'Promo Mechada' }, // Example price
-    { id: 83, name: '2x Queso', price: 8500, category: 'Promo Mechada' },
-    { id: 84, name: '2x Palta', price: 8800, category: 'Promo Mechada' },
-    { id: 85, name: '2x Tomate', price: 8800, category: 'Promo Mechada' },
-    { id: 86, name: '2x Brasileño', price: 9200, category: 'Promo Mechada' },
-    { id: 87, name: '2x Dinamico', price: 9300, category: 'Promo Mechada' },
-    { id: 88, name: '2x Campestre', price: 9500, category: 'Promo Mechada' },
-    { id: 89, name: '2x Queso Champiñon', price: 9800, category: 'Promo Mechada' },
-    { id: 90, name: '2x Che milico', price: 10000, category: 'Promo Mechada' },
-    // --- End of new Promo Mechada items ---
+     // --- Add new Promo Mechada items --- Start ID from 82 (last used was 81)
+     { id: 82, name: '2x Chacarero', price: 9000, category: 'Promo Mechada' }, // Example price
+     { id: 83, name: '2x Queso', price: 8500, category: 'Promo Mechada' },
+     { id: 84, name: '2x Palta', price: 8800, category: 'Promo Mechada' },
+     { id: 85, name: '2x Tomate', price: 8800, category: 'Promo Mechada' },
+     { id: 86, name: '2x Brasileño', price: 9200, category: 'Promo Mechada' },
+     { id: 87, name: '2x Dinamico', price: 9300, category: 'Promo Mechada' },
+     { id: 88, name: '2x Campestre', price: 9500, category: 'Promo Mechada' },
+     { id: 89, name: '2x Queso Champiñon', price: 9800, category: 'Promo Mechada' },
+     { id: 90, name: '2x Che milico', price: 10000, category: 'Promo Mechada' },
+     // --- End of new Promo Mechada items ---
     // --- Promociones ---
     {
-        id: 6,
-        name: 'Promo 1', // Changed name to Promo 1
-        price: 4500,
-        category: 'Promociones',
-        modifications: ['Vienesa', 'As', 'Con Bebida Pequeña', 'Ají Verde', 'Agregado Queso'], // + Ají Verde + Agregado Queso
-        modificationPrices: { 'Agregado Queso': 1000 }, // + Cheese
+      id: 6,
+      name: 'Promo 1', // Changed name to Promo 1
+      price: 4500,
+      category: 'Promociones',
+      modifications: ['Vienesa', 'As', 'Con Bebida Pequeña', 'Ají Verde', 'Agregado Queso'], // + Ají Verde + Agregado Queso
+      modificationPrices: { 'Agregado Queso': 1000 }, // + Cheese
+    },
+     {
+      id: 5,
+      name: 'Promo 2', // Changed name to Promo 2
+      price: 5000,
+      category: 'Promociones',
+      modifications: ['Vienesa', 'As', 'Con Bebida Pequeña', 'Ají Verde', 'Agregado Queso'], // + Ají Verde + Agregado Queso
+      modificationPrices: { 'Agregado Queso': 1000 }, // + Cheese
     },
     {
-        id: 5,
-        name: 'Promo 2', // Changed name to Promo 2
-        price: 5000,
-        category: 'Promociones',
-        modifications: ['Vienesa', 'As', 'Con Bebida Pequeña', 'Ají Verde', 'Agregado Queso'], // + Ají Verde + Agregado Queso
-        modificationPrices: { 'Agregado Queso': 1000 }, // + Cheese
-    },
-    {
-        id: 23,
-        name: 'Promo 3', // Changed name to Promo 3
-        price: 6000, // Example price
-        category: 'Promociones',
-        // No modifications by default for promos, unless specified
+      id: 23,
+      name: 'Promo 3', // Changed name to Promo 3
+      price: 6000, // Example price
+      category: 'Promociones',
+      // No modifications by default for promos, unless specified
     },
     // --- Add new Promotions --- Start ID from 91 (last used was 90)
     { id: 91, name: 'Promo 4', price: 6500, category: 'Promociones' }, // Example price
@@ -502,7 +485,8 @@ const mockMenu: MenuItem[] = [
     },
      // --- Colaciones --- (Added back)
     // Add items for Colaciones here if needed
-];
+].filter(item => !(item.category === 'Fajitas' && [1, 2, 8].includes(item.id))); // Filter out old fajitas
+
 
 // Define the desired order for categories
 const orderedCategories = [
@@ -1212,4 +1196,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-
