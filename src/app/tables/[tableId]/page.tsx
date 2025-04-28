@@ -246,7 +246,7 @@ const mockMenu: MenuItem[] = [
     },
     {
         id: 20,
-        name: 'Churrasco Luco',
+        name: 'Churrasco Completo', // Changed from Churrasco Luco
         price: 7200,
         category: 'Churrascos',
         modifications: ['Queso Fundido', 'Agregado Queso'],
@@ -992,9 +992,11 @@ export default function TableDetailPage() {
                  </div>
                  <SheetFooter className="mt-auto p-4 flex-shrink-0"> {/* Removed border-t */}
                     {/* Conditionally show Confirm button only when viewing items */}
+                    {/* Removed Confirm button
                     {menuSheetView === 'items' && (
                         <Button variant="default" onClick={closeMenuSheet}>Confirmar</Button>
                     )}
+                    */}
                  </SheetFooter>
             </SheetContent>
         </Sheet>
@@ -1012,6 +1014,7 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
 
 
 

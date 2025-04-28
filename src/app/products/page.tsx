@@ -237,7 +237,7 @@ const mockMenu: MenuItem[] = [
     },
     {
         id: 20,
-        name: 'Churrasco Luco',
+        name: 'Churrasco Completo', // Changed from Churrasco Luco
         price: 7200,
         category: 'Churrascos',
         modifications: ['Queso Fundido', 'Agregado Queso'],
@@ -544,6 +544,7 @@ export default function ProductsPage() {
     </div>
   );
 }
+
 
 
 
