@@ -15,7 +15,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button'; // Import buttonVariants
 import { Input } from '@/components/ui/input';
 import {
   Dialog,
@@ -449,7 +449,7 @@ export default function CashRegisterPage() {
                  </div>
                  <AlertDialogFooter className="mt-6">
                      <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                     <AlertDialogAction onClick={handleConfirmClosing} className={buttonVariants({ variant: "destructive" })}>Confirmar Cierre</AlertDialogAction>
+                     <AlertDialogAction onClick={handleConfirmClosing} className={cn(buttonVariants({ variant: "destructive" }))}>Confirmar Cierre</AlertDialogAction>
                  </AlertDialogFooter>
              </AlertDialogContent>
          </AlertDialog>
