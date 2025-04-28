@@ -235,7 +235,7 @@ const mockMenu: MenuItem[] = [
         modifications: ['Queso Azul', 'Cebolla Caramelizada', 'Rúcula', 'Agregado Queso'],
         modificationPrices: { 'Queso Azul': 1200, 'Agregado Queso': 1000 },
     },
-    // --- Churrascos --- (New Category)
+    // --- Churrascos --- (New Category & Items)
     {
         id: 19,
         name: 'Churrasco Italiano',
@@ -250,6 +250,70 @@ const mockMenu: MenuItem[] = [
         price: 7200,
         category: 'Churrascos',
         modifications: ['Queso Fundido', 'Agregado Queso'],
+        modificationPrices: { 'Agregado Queso': 1000 },
+    },
+    {
+        id: 53, // Start IDs after last Completos As ID
+        name: 'Churrasco Queso',
+        price: 7100,
+        category: 'Churrascos',
+        modifications: ['Agregado Queso'], // Can still add more cheese
+        modificationPrices: { 'Agregado Queso': 1000 },
+    },
+    {
+        id: 54,
+        name: 'Churrasco Tomate',
+        price: 7000,
+        category: 'Churrascos',
+        modifications: ['Mayonesa Casera', 'Ají Verde', 'Agregado Queso'],
+        modificationPrices: { 'Agregado Queso': 1000 },
+    },
+    {
+        id: 55,
+        name: 'Churrasco Palta',
+        price: 7300,
+        category: 'Churrascos',
+        modifications: ['Mayonesa Casera', 'Ají Verde', 'Agregado Queso'],
+        modificationPrices: { 'Agregado Queso': 1000 },
+    },
+    {
+        id: 56,
+        name: 'Churrasco Campestre',
+        price: 7800,
+        category: 'Churrascos',
+        modifications: ['Queso Fundido', 'Huevo Frito', 'Cebolla Frita', 'Ají Verde', 'Agregado Queso'],
+        modificationPrices: { 'Agregado Queso': 1000 },
+    },
+    {
+        id: 57,
+        name: 'Churrasco Dinamico',
+        price: 7600,
+        category: 'Churrascos',
+        modifications: ['Palta', 'Tomate', 'Mayonesa Casera', 'Salsa Verde', 'Ají Verde', 'Agregado Queso'],
+        modificationPrices: { 'Agregado Queso': 1000 },
+    },
+    {
+        id: 58,
+        name: 'Churrasco Napolitano',
+        price: 7900,
+        category: 'Churrascos',
+        modifications: ['Queso Fundido', 'Jamón', 'Tomate', 'Orégano', 'Ají Verde', 'Agregado Queso'],
+        modificationPrices: { 'Agregado Queso': 1000 },
+    },
+    {
+        id: 59,
+        name: 'Churrasco Che milico',
+        price: 8000,
+        category: 'Churrascos',
+        modifications: ['Queso Fundido', 'Huevo Frito', 'Cebolla Frita', 'Papas Fritas', 'Ají Verde', 'Agregado Queso'],
+        modificationPrices: { 'Agregado Queso': 1000 },
+    },
+    {
+        id: 60,
+        name: 'Churrasco Queso Champiñon',
+        price: 8100,
+        category: 'Churrascos',
+        modifications: ['Queso Fundido', 'Champiñones Salteados', 'Ají Verde', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
     },
     // --- Papas Fritas --- (New Category)
@@ -990,14 +1054,8 @@ export default function TableDetailPage() {
                  <div className="flex-grow overflow-hidden">
                     {renderMenuSheetContent()} {/* Render categories or items */}
                  </div>
-                 <SheetFooter className="mt-auto p-4 flex-shrink-0"> {/* Removed border-t */}
-                    {/* Conditionally show Confirm button only when viewing items */}
-                    {/* Removed Confirm button
-                    {menuSheetView === 'items' && (
-                        <Button variant="default" onClick={closeMenuSheet}>Confirmar</Button>
-                    )}
-                    */}
-                 </SheetFooter>
+                 {/* Removed footer and confirm button */}
+                 {/* <SheetFooter className="mt-auto p-4 flex-shrink-0"> </SheetFooter> */}
             </SheetContent>
         </Sheet>
 
@@ -1014,7 +1072,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-
-
-
-
