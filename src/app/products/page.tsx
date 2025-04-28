@@ -54,7 +54,7 @@ const mockMenu: MenuItem[] = [
     },
     {
       id: 14,
-      name: 'Completo Vienesa Dinámico',
+      name: 'Italiano grande', // Changed from 'Completo Vienesa Dinámico'
       price: 4500,
       category: 'Completos Vienesas',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Ají Verde', 'Salsa Verde', 'Americana', 'Agregado Queso'],
@@ -262,6 +262,7 @@ const orderedCategories = [
   'Promo Mechada',
   'Promociones',
   'Bebidas',
+  'Colaciones', // Added back
 ];
 
 // Sort menu items by category order first, then alphabetically by name
