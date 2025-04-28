@@ -226,6 +226,55 @@ const mockMenu: MenuItem[] = [
         modifications: ['Queso Azul', 'Cebolla Caramelizada', 'Rúcula', 'Agregado Queso'],
         modificationPrices: { 'Queso Azul': 1200, 'Agregado Queso': 1000 },
     },
+    { // Start new IDs after the last used ID (66)
+        id: 67,
+        name: 'Italiana',
+        price: 7800, // Example price
+        category: 'Hamburguesas',
+        modifications: ['Palta', 'Tomate', 'Mayonesa Casera', 'Ají Verde', 'Agregado Queso'],
+        modificationPrices: { 'Agregado Queso': 1000 },
+    },
+    {
+        id: 68,
+        name: 'Doble Italiana',
+        price: 9500, // Example price
+        category: 'Hamburguesas',
+        modifications: ['Doble Carne', 'Palta', 'Tomate', 'Mayonesa Casera', 'Ají Verde', 'Agregado Queso'],
+        modificationPrices: { 'Doble Carne': 2000, 'Agregado Queso': 1000 },
+    },
+    {
+        id: 69,
+        name: 'Tapa Arteria',
+        price: 10500, // Example price
+        category: 'Hamburguesas',
+        modifications: ['Queso Cheddar', 'Bacon', 'Huevo Frito', 'Cebolla Frita', 'Agregado Queso'],
+        modificationPrices: { 'Queso Cheddar': 800, 'Bacon': 1000, 'Huevo Frito': 800, 'Cebolla Frita': 500, 'Agregado Queso': 1000 },
+    },
+    {
+        id: 70,
+        name: 'Super Tapa Arteria',
+        price: 13000, // Example price
+        category: 'Hamburguesas',
+        modifications: ['Doble Carne', 'Doble Queso Cheddar', 'Doble Bacon', 'Huevo Frito', 'Cebolla Frita', 'Agregado Queso'],
+        modificationPrices: { 'Doble Carne': 2000, 'Doble Queso Cheddar': 1600, 'Doble Bacon': 2000, 'Huevo Frito': 800, 'Cebolla Frita': 500, 'Agregado Queso': 1000 },
+    },
+    {
+        id: 71,
+        name: 'Big Cami',
+        price: 9800, // Example price
+        category: 'Hamburguesas',
+        modifications: ['Triple Carne', 'Triple Queso', 'Pepinillos', 'Lechuga', 'Salsa Especial', 'Agregado Queso'],
+        modificationPrices: { 'Triple Carne': 3000, 'Triple Queso': 2400, 'Agregado Queso': 1000 },
+    },
+    {
+        id: 72,
+        name: 'Super Big Cami',
+        price: 12500, // Example price
+        category: 'Hamburguesas',
+        modifications: ['Cuádruple Carne', 'Cuádruple Queso', 'Pepinillos', 'Lechuga', 'Salsa Especial', 'Agregado Queso'],
+        modificationPrices: { 'Cuádruple Carne': 4000, 'Cuádruple Queso': 3200, 'Agregado Queso': 1000 },
+    },
+    // --- End of added Hamburguesas ---
     // --- Churrascos --- (New Category & Items)
     {
         id: 19,

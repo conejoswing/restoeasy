@@ -235,6 +235,55 @@ const mockMenu: MenuItem[] = [
         modifications: ['Queso Azul', 'Cebolla Caramelizada', 'Rúcula', 'Agregado Queso'],
         modificationPrices: { 'Queso Azul': 1200, 'Agregado Queso': 1000 },
     },
+    { // Start new IDs after the last used ID (66)
+        id: 67,
+        name: 'Italiana',
+        price: 7800, // Example price
+        category: 'Hamburguesas',
+        modifications: ['Palta', 'Tomate', 'Mayonesa Casera', 'Ají Verde', 'Agregado Queso'],
+        modificationPrices: { 'Agregado Queso': 1000 },
+    },
+    {
+        id: 68,
+        name: 'Doble Italiana',
+        price: 9500, // Example price
+        category: 'Hamburguesas',
+        modifications: ['Doble Carne', 'Palta', 'Tomate', 'Mayonesa Casera', 'Ají Verde', 'Agregado Queso'],
+        modificationPrices: { 'Doble Carne': 2000, 'Agregado Queso': 1000 },
+    },
+    {
+        id: 69,
+        name: 'Tapa Arteria',
+        price: 10500, // Example price
+        category: 'Hamburguesas',
+        modifications: ['Queso Cheddar', 'Bacon', 'Huevo Frito', 'Cebolla Frita', 'Agregado Queso'],
+        modificationPrices: { 'Queso Cheddar': 800, 'Bacon': 1000, 'Huevo Frito': 800, 'Cebolla Frita': 500, 'Agregado Queso': 1000 },
+    },
+    {
+        id: 70,
+        name: 'Super Tapa Arteria',
+        price: 13000, // Example price
+        category: 'Hamburguesas',
+        modifications: ['Doble Carne', 'Doble Queso Cheddar', 'Doble Bacon', 'Huevo Frito', 'Cebolla Frita', 'Agregado Queso'],
+        modificationPrices: { 'Doble Carne': 2000, 'Doble Queso Cheddar': 1600, 'Doble Bacon': 2000, 'Huevo Frito': 800, 'Cebolla Frita': 500, 'Agregado Queso': 1000 },
+    },
+    {
+        id: 71,
+        name: 'Big Cami',
+        price: 9800, // Example price
+        category: 'Hamburguesas',
+        modifications: ['Triple Carne', 'Triple Queso', 'Pepinillos', 'Lechuga', 'Salsa Especial', 'Agregado Queso'],
+        modificationPrices: { 'Triple Carne': 3000, 'Triple Queso': 2400, 'Agregado Queso': 1000 },
+    },
+    {
+        id: 72,
+        name: 'Super Big Cami',
+        price: 12500, // Example price
+        category: 'Hamburguesas',
+        modifications: ['Cuádruple Carne', 'Cuádruple Queso', 'Pepinillos', 'Lechuga', 'Salsa Especial', 'Agregado Queso'],
+        modificationPrices: { 'Cuádruple Carne': 4000, 'Cuádruple Queso': 3200, 'Agregado Queso': 1000 },
+    },
+    // --- End of added Hamburguesas ---
     // --- Churrascos --- (New Category & Items)
     {
         id: 19,
@@ -452,6 +501,23 @@ const compareModifications = (arr1?: string[], arr2?: string[]): boolean => {
 // Storage key for cash movements
 const CASH_MOVEMENTS_STORAGE_KEY = 'cashMovements';
 
+// Sort menu items by category order first, then alphabetically by name
+const sortMenu = (menu: MenuItem[]): MenuItem[] => {
+  return [...menu].sort((a, b) => {
+    const categoryAIndex = orderedCategories.indexOf(a.category);
+    const categoryBIndex = orderedCategories.indexOf(b.category);
+
+    if (categoryAIndex !== categoryBIndex) {
+        // Handle cases where a category might not be in orderedCategories (place them at the end)
+        if (categoryAIndex === -1 && categoryBIndex === -1) return a.name.localeCompare(b.name);
+        if (categoryAIndex === -1) return 1;
+        if (categoryBIndex === -1) return -1;
+        return categoryAIndex - categoryBIndex;
+    }
+    return a.name.localeCompare(b.name);
+  });
+};
+
 export default function TableDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -465,56 +531,48 @@ export default function TableDetailPage() {
   const [isInitialized, setIsInitialized] = useState(false); // Track initialization
   const [menuSheetView, setMenuSheetView] = useState<'categories' | 'items'>('categories'); // State for sheet view
   const [selectedCategoryForItemsView, setSelectedCategoryForItemsView] = useState<string | null>(null); // State for selected category in items view
+  const [menuData, setMenuData] = useState<MenuItem[]>([]); // State for menu data
 
 
-  // --- Load orders and status from sessionStorage on mount ---
+  // --- Load orders, status, and menu from sessionStorage/mock on mount ---
   useEffect(() => {
     if (!tableIdParam || isInitialized) return; // Avoid running multiple times or without ID
 
     console.log(`Initializing state for table ${tableIdParam}...`);
 
+    // --- Load Orders ---
     const storedCurrentOrder = sessionStorage.getItem(`table-${tableIdParam}-order`);
     const storedPendingOrder = sessionStorage.getItem(`table-${tableIdParam}-pending-order`);
-    const storedStatus = sessionStorage.getItem(`table-${tableIdParam}-status`);
-
     let parsedCurrentOrder: OrderItem[] = [];
     let parsedPendingOrder: OrderItem[] = [];
 
     if (storedCurrentOrder) {
       try {
         const parsed = JSON.parse(storedCurrentOrder);
-        if (Array.isArray(parsed)) {
-           parsedCurrentOrder = parsed;
-           console.log(`Loaded current order for table ${tableIdParam}:`, parsedCurrentOrder);
-        } else {
-           console.warn(`Invalid current order data found for table ${tableIdParam}, clearing.`);
-           sessionStorage.removeItem(`table-${tableIdParam}-order`);
-        }
+        if (Array.isArray(parsed)) parsedCurrentOrder = parsed;
+        else console.warn(`Invalid current order data for table ${tableIdParam}.`);
       } catch (error) {
         console.error(`Failed to parse stored current order for table ${tableIdParam}:`, error);
-        sessionStorage.removeItem(`table-${tableIdParam}-order`); // Clear invalid data
       }
     }
-
     if (storedPendingOrder) {
        try {
          const parsed = JSON.parse(storedPendingOrder);
-         if (Array.isArray(parsed)) {
-            parsedPendingOrder = parsed;
-            console.log(`Loaded pending order for table ${tableIdParam}:`, parsedPendingOrder);
-         } else {
-            console.warn(`Invalid pending order data found for table ${tableIdParam}, clearing.`);
-            sessionStorage.removeItem(`table-${tableIdParam}-pending-order`);
-         }
+         if (Array.isArray(parsed)) parsedPendingOrder = parsed;
+         else console.warn(`Invalid pending order data for table ${tableIdParam}.`);
        } catch (error) {
          console.error(`Failed to parse stored pending order for table ${tableIdParam}:`, error);
-         sessionStorage.removeItem(`table-${tableIdParam}-pending-order`); // Clear invalid data
        }
      }
-
-     // Set state *after* parsing
      setOrder(parsedCurrentOrder);
      setPendingPaymentOrder(parsedPendingOrder);
+
+     // --- Load Menu ---
+     // For now, we always load from mock data, but you could add storage logic here
+     const sortedInitialMenu = sortMenu(mockMenu);
+     setMenuData(sortedInitialMenu);
+     console.log("Loaded menu data.");
+
 
     // --- Determine and Update Table Status ---
     const hasCurrentItems = parsedCurrentOrder.length > 0;
@@ -524,8 +582,6 @@ export default function TableDetailPage() {
     if (hasCurrentItems || hasPendingItems) {
       newStatus = 'occupied';
     }
-
-    // Update status in sessionStorage if it doesn't match the derived status
     const currentStatus = sessionStorage.getItem(`table-${tableIdParam}-status`);
     if (currentStatus !== newStatus) {
        console.log(`Updating status for table ${tableIdParam} from ${currentStatus || 'none'} to ${newStatus}`);
@@ -834,7 +890,7 @@ export default function TableDetailPage() {
      };
 
   // Filter menu items based on the selected category (used in Items view)
-  const filteredMenu = mockMenu.filter(
+  const filteredMenu = menuData.filter( // Use menuData state here
     (item) => item.category === selectedCategoryForItemsView
   );
 
@@ -947,7 +1003,8 @@ export default function TableDetailPage() {
                           </Button>
                         <span className="font-medium w-4 text-center">{item.quantity}</span>
                         <Button variant="ghost" size="icon" className="h-6 w-6 text-primary" onClick={() => {
-                            const originalItem = mockMenu.find(menuItem => menuItem.id === item.id);
+                             // Use menuData state to find the original item
+                            const originalItem = menuData.find(menuItem => menuItem.id === item.id);
                             if (originalItem) {
                                 // Re-adding needs to consider modifications
                                 addToOrder(originalItem, item.selectedModifications);
