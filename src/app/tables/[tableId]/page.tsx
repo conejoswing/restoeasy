@@ -24,13 +24,14 @@ import {
   SheetDescription,
   SheetFooter,
 } from '@/components/ui/sheet';
-import { Utensils, PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard, ChevronRight, Banknote, Landmark } from 'lucide-react'; // Added ChevronRight, Banknote, Landmark
+import { Utensils, PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard, ChevronRight, Banknote, Landmark, Home, Phone, User, DollarSign } from 'lucide-react'; // Added more icons
 import {useToast} from '@/hooks/use-toast';
 import ModificationDialog from '@/components/app/modification-dialog';
 import PaymentDialog from '@/components/app/payment-dialog'; // Import the new PaymentDialog
 import { isEqual } from 'lodash';
 import { cn } from '@/lib/utils';
 import type { CashMovement } from '@/app/expenses/page'; // Import CashMovement type
+import type { DeliveryInfo } from '@/components/app/delivery-dialog'; // Import DeliveryInfo type
 
 interface MenuItem {
   id: number;
@@ -231,40 +232,40 @@ const mockMenu: MenuItem[] = [
         name: 'Doble Italiana',
         price: 9500,
         category: 'Hamburguesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Doble Carne'], // Removed Palta, Tomate
-        modificationPrices: { 'Doble Carne': 2000, 'Agregado Queso': 1000 },
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], // Removed Palta, Tomate
+        modificationPrices: { 'Agregado Queso': 1000 },
     },
     {
         id: 69,
         name: 'Tapa Arteria',
         price: 10500,
         category: 'Hamburguesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Queso Cheddar', 'Bacon', 'Huevo Frito', 'Cebolla Frita'], // Kept Tapa Arteria mods
-        modificationPrices: { 'Queso Cheddar': 800, 'Bacon': 1000, 'Huevo Frito': 800, 'Cebolla Frita': 500, 'Agregado Queso': 1000 },
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], // Kept Tapa Arteria mods
+        modificationPrices: { 'Agregado Queso': 1000 },
     },
     {
         id: 70,
         name: 'Super Tapa Arteria',
         price: 13000,
         category: 'Hamburguesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Doble Carne', 'Doble Queso Cheddar', 'Doble Bacon', 'Huevo Frito', 'Cebolla Frita'], // Kept Super Tapa Arteria mods
-        modificationPrices: { 'Doble Carne': 2000, 'Doble Queso Cheddar': 1600, 'Doble Bacon': 2000, 'Huevo Frito': 800, 'Cebolla Frita': 500, 'Agregado Queso': 1000 },
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], // Kept Super Tapa Arteria mods
+        modificationPrices: { 'Agregado Queso': 1000 },
     },
     {
         id: 71,
         name: 'Big Cami',
         price: 9800,
         category: 'Hamburguesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Triple Carne', 'Triple Queso', 'Pepinillos', 'Lechuga', 'Salsa Especial'], // Kept Big Cami mods
-        modificationPrices: { 'Triple Carne': 3000, 'Triple Queso': 2400, 'Agregado Queso': 1000 },
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], // Kept Big Cami mods
+        modificationPrices: { 'Agregado Queso': 1000 },
     },
     {
         id: 72,
         name: 'Super Big Cami',
         price: 12500,
         category: 'Hamburguesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Cuádruple Carne', 'Cuádruple Queso', 'Pepinillos', 'Lechuga', 'Salsa Especial'], // Kept Super Big Cami mods
-        modificationPrices: { 'Cuádruple Carne': 4000, 'Cuádruple Queso': 3200, 'Agregado Queso': 1000 },
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], // Kept Super Big Cami mods
+        modificationPrices: { 'Agregado Queso': 1000 },
     },
     // --- Churrascos --- (Updated Modifications)
     {
@@ -503,6 +504,9 @@ const compareModifications = (arr1?: string[], arr2?: string[]): boolean => {
 
 // Storage key for cash movements
 const CASH_MOVEMENTS_STORAGE_KEY = 'cashMovements';
+// Storage key for delivery info
+const DELIVERY_INFO_STORAGE_KEY = 'deliveryInfo';
+
 
 // Helper function to extract number from promo name
 const extractPromoNumber = (name: string): number => {
@@ -547,6 +551,7 @@ export default function TableDetailPage() {
   const router = useRouter();
   const { toast } = useToast();
   const tableIdParam = params.tableId as string;
+  const isDelivery = tableIdParam === 'delivery'; // Check if it's the delivery "table"
   const [order, setOrder] = useState<OrderItem[]>([]); // Current items being added
   const [pendingPaymentOrder, setPendingPaymentOrder] = useState<OrderItem[]>([]); // Items sent to print
   const [isModificationDialogOpen, setIsModificationDialogOpen] = useState(false);
@@ -558,14 +563,15 @@ export default function TableDetailPage() {
   const [menuData, setMenuData] = useState<MenuItem[]>([]); // State for menu data
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false); // State for Payment Dialog
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<PaymentMethod | null>(null); // State for selected payment method
+  const [isDeliveryDialogOpen, setIsDeliveryDialogOpen] = useState(false); // State for Delivery Dialog
+  const [deliveryInfo, setDeliveryInfo] = useState<DeliveryInfo | null>(null); // State for delivery info
 
 
-
-  // --- Load orders, status, and menu from sessionStorage/mock on mount ---
+  // --- Load orders, status, menu, and delivery info from sessionStorage/mock on mount ---
   useEffect(() => {
     if (!tableIdParam || isInitialized) return; // Avoid running multiple times or without ID
 
-    console.log(`Initializing state for table ${tableIdParam}...`);
+    console.log(`Initializing state for table/delivery ${tableIdParam}...`);
 
     // --- Load Orders ---
     const storedCurrentOrder = sessionStorage.getItem(`table-${tableIdParam}-order`);
@@ -577,22 +583,49 @@ export default function TableDetailPage() {
       try {
         const parsed = JSON.parse(storedCurrentOrder);
         if (Array.isArray(parsed)) parsedCurrentOrder = parsed;
-        else console.warn(`Invalid current order data for table ${tableIdParam}.`);
+        else console.warn(`Invalid current order data for ${tableIdParam}.`);
       } catch (error) {
-        console.error(`Failed to parse stored current order for table ${tableIdParam}:`, error);
+        console.error(`Failed to parse stored current order for ${tableIdParam}:`, error);
       }
     }
     if (storedPendingOrder) {
        try {
          const parsed = JSON.parse(storedPendingOrder);
          if (Array.isArray(parsed)) parsedPendingOrder = parsed;
-         else console.warn(`Invalid pending order data for table ${tableIdParam}.`);
+         else console.warn(`Invalid pending order data for ${tableIdParam}.`);
        } catch (error) {
-         console.error(`Failed to parse stored pending order for table ${tableIdParam}:`, error);
+         console.error(`Failed to parse stored pending order for ${tableIdParam}:`, error);
        }
      }
      setOrder(parsedCurrentOrder);
      setPendingPaymentOrder(parsedPendingOrder);
+
+     // --- Load Delivery Info (only for delivery) ---
+     let loadedDeliveryInfo: DeliveryInfo | null = null;
+     if (isDelivery) {
+        const storedDeliveryInfo = sessionStorage.getItem(`${DELIVERY_INFO_STORAGE_KEY}-${tableIdParam}`);
+        if (storedDeliveryInfo) {
+            try {
+                const parsed = JSON.parse(storedDeliveryInfo);
+                // Basic validation to ensure it has required fields
+                if (parsed && parsed.address && parsed.phone && parsed.name && typeof parsed.deliveryFee === 'number') {
+                    loadedDeliveryInfo = parsed;
+                    setDeliveryInfo(loadedDeliveryInfo);
+                    console.log(`Loaded delivery info for ${tableIdParam}.`);
+                } else {
+                    console.warn(`Invalid delivery info format for ${tableIdParam}.`);
+                    setIsDeliveryDialogOpen(true); // Re-open dialog if data is invalid/missing
+                }
+            } catch (error) {
+                console.error(`Failed to parse stored delivery info for ${tableIdParam}:`, error);
+                setIsDeliveryDialogOpen(true); // Re-open dialog on parse error
+            }
+        } else {
+             console.log(`No stored delivery info found for ${tableIdParam}, opening dialog.`);
+             setIsDeliveryDialogOpen(true); // Open dialog if no info exists
+        }
+     }
+
 
      // --- Load Menu ---
      // For now, we always load from mock data, but you could add storage logic here
@@ -604,31 +637,30 @@ export default function TableDetailPage() {
     // --- Determine and Update Table Status ---
     const hasCurrentItems = parsedCurrentOrder.length > 0;
     const hasPendingItems = parsedPendingOrder.length > 0;
-    let newStatus: 'available' | 'occupied' = 'available';
+    // For delivery, status depends on having delivery info *and* items
+    const isOccupied = (isDelivery && loadedDeliveryInfo) || hasCurrentItems || hasPendingItems;
+    let newStatus: 'available' | 'occupied' = isOccupied ? 'occupied' : 'available';
 
-    if (hasCurrentItems || hasPendingItems) {
-      newStatus = 'occupied';
-    }
     const currentStatus = sessionStorage.getItem(`table-${tableIdParam}-status`);
     if (currentStatus !== newStatus) {
-       console.log(`Updating status for table ${tableIdParam} from ${currentStatus || 'none'} to ${newStatus}`);
+       console.log(`Updating status for ${tableIdParam} from ${currentStatus || 'none'} to ${newStatus}`);
        sessionStorage.setItem(`table-${tableIdParam}-status`, newStatus);
     } else {
-       console.log(`Status for table ${tableIdParam} is already ${currentStatus}`);
+       console.log(`Status for ${tableIdParam} is already ${currentStatus}`);
     }
 
     setIsInitialized(true); // Mark initialization as complete
-    console.log(`Initialization complete for table ${tableIdParam}.`);
+    console.log(`Initialization complete for ${tableIdParam}.`);
 
-  }, [tableIdParam, isInitialized]); // Dependencies ensure this runs once per table ID
+  }, [tableIdParam, isInitialized, isDelivery]); // Dependencies ensure this runs once per table ID
 
 
-  // --- Save orders and update status to sessionStorage whenever they change ---
+  // --- Save orders, delivery info, and update status to sessionStorage whenever they change ---
    useEffect(() => {
      // Only run this effect *after* initial state is loaded
      if (!isInitialized || !tableIdParam) return;
 
-     console.log(`Saving state for table ${tableIdParam}...`);
+     console.log(`Saving state for ${tableIdParam}...`);
 
      const hasCurrentItems = order.length > 0;
      const hasPendingItems = pendingPaymentOrder.length > 0;
@@ -636,31 +668,41 @@ export default function TableDetailPage() {
      // Save current order
      if (hasCurrentItems) {
         sessionStorage.setItem(`table-${tableIdParam}-order`, JSON.stringify(order));
-        console.log(`Saved current order for table ${tableIdParam}.`);
+        console.log(`Saved current order for ${tableIdParam}.`);
      } else {
         sessionStorage.removeItem(`table-${tableIdParam}-order`);
-        console.log(`Removed current order for table ${tableIdParam}.`);
+        console.log(`Removed current order for ${tableIdParam}.`);
      }
 
       // Save pending order
      if (hasPendingItems) {
         sessionStorage.setItem(`table-${tableIdParam}-pending-order`, JSON.stringify(pendingPaymentOrder));
-         console.log(`Saved pending order for table ${tableIdParam}.`);
+         console.log(`Saved pending order for ${tableIdParam}.`);
      } else {
         sessionStorage.removeItem(`table-${tableIdParam}-pending-order`);
-         console.log(`Removed pending order for table ${tableIdParam}.`);
+         console.log(`Removed pending order for ${tableIdParam}.`);
      }
 
-     // Update table status based on whether items exist in either order
-     const newStatus = (hasCurrentItems || hasPendingItems) ? 'occupied' : 'available';
+     // Save delivery info (only if it's the delivery table and info exists)
+     if (isDelivery && deliveryInfo) {
+        sessionStorage.setItem(`${DELIVERY_INFO_STORAGE_KEY}-${tableIdParam}`, JSON.stringify(deliveryInfo));
+        console.log(`Saved delivery info for ${tableIdParam}.`);
+     } else if (isDelivery && !deliveryInfo) {
+         // If delivery info is cleared, remove it from storage
+         sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY}-${tableIdParam}`);
+         console.log(`Removed delivery info for ${tableIdParam}.`);
+     }
+
+     // Update table status based on whether items exist OR if it's delivery with info
+     const newStatus = (hasCurrentItems || hasPendingItems || (isDelivery && !!deliveryInfo)) ? 'occupied' : 'available';
      const currentStatus = sessionStorage.getItem(`table-${tableIdParam}-status`);
 
      if (currentStatus !== newStatus) {
         sessionStorage.setItem(`table-${tableIdParam}-status`, newStatus);
-        console.log(`Updated status for table ${tableIdParam} to ${newStatus}.`);
+        console.log(`Updated status for ${tableIdParam} to ${newStatus}.`);
      }
 
-   }, [order, pendingPaymentOrder, tableIdParam, isInitialized]);
+   }, [order, pendingPaymentOrder, deliveryInfo, tableIdParam, isInitialized, isDelivery]);
 
 
   // Helper to format currency
@@ -792,12 +834,15 @@ export default function TableDetailPage() {
    }
 
 
-  // Calculate total based on finalPrice of each OrderItem
-  const calculateTotal = (items: OrderItem[]) => {
-    return items.reduce(
+  // Calculate total based on finalPrice of each OrderItem, plus delivery fee if applicable
+  const calculateTotal = (items: OrderItem[], includeDeliveryFee: boolean = false) => {
+    const itemsTotal = items.reduce(
       (total, item) => total + item.finalPrice * item.quantity,
       0
     );
+    // Add delivery fee only if requested and it's a delivery order with info
+    const fee = (includeDeliveryFee && isDelivery && deliveryInfo) ? deliveryInfo.deliveryFee : 0;
+    return itemsTotal + fee;
   };
 
   const handlePrintOrder = () => {
@@ -806,7 +851,18 @@ export default function TableDetailPage() {
        return;
      }
 
+     // Check for delivery info if it's a delivery order
+     if (isDelivery && !deliveryInfo) {
+        toast({ title: "Información Requerida", description: "Ingrese los datos de envío antes de imprimir la comanda.", variant: "destructive" });
+        setIsDeliveryDialogOpen(true); // Re-open delivery dialog
+        return;
+     }
+
+
      console.log('Imprimiendo Comanda (Pedido Actual):', order);
+     if (isDelivery && deliveryInfo) {
+         console.log('Datos de Envío:', deliveryInfo);
+     }
 
      // --- Merge current order into pending payment order ---
      // Create deep copies to avoid state mutation issues
@@ -835,8 +891,8 @@ export default function TableDetailPage() {
 
      // Status update is handled by the save useEffect hook
 
-     // Calculate total of *new combined pending order*
-     const newPendingTotal = calculateTotal(currentPendingCopy);
+     // Calculate total of *new combined pending order*, including delivery fee
+     const newPendingTotal = calculateTotal(currentPendingCopy, true); // Include delivery fee
 
      toast({
        title: "¡Comanda Enviada!",
@@ -866,10 +922,14 @@ export default function TableDetailPage() {
         setSelectedPaymentMethod(method); // Store the selected method (optional, could be used in toast or logs)
 
         // Now proceed with the original print logic
-        const finalTotalToPay = calculateTotal(pendingPaymentOrder); // Calculate final total here
+        const finalTotalToPay = calculateTotal(pendingPaymentOrder, true); // Calculate final total *including delivery fee*
 
         console.log(`Imprimiendo Boleta/Factura (Pedido Pendiente) - Método: ${method}`);
         console.log('Pedido:', pendingPaymentOrder);
+        if (isDelivery && deliveryInfo) {
+            console.log('Datos de Envío:', deliveryInfo);
+            console.log('Costo de Envío:', formatCurrency(deliveryInfo.deliveryFee));
+        }
         console.log('Total a Pagar:', formatCurrency(finalTotalToPay));
 
        // --- Add sale to cash movements in sessionStorage ---
@@ -885,11 +945,14 @@ export default function TableDetailPage() {
             }
 
             const newMovementId = getNextMovementId(currentMovements);
+            const saleDescription = isDelivery
+                ? `Venta ${getPageTitle()} a ${deliveryInfo?.name} (${deliveryInfo?.address})`
+                : `Venta ${getPageTitle()}`;
             const saleMovement: CashMovement = {
                 id: newMovementId,
                 date: new Date(), // Use current date/time for the sale
                 category: 'Ingreso Venta',
-                description: `Venta ${getPageTitle()}`, // Removed payment method from description here, added below
+                description: saleDescription, // Add delivery info to description if applicable
                 amount: finalTotalToPay, // Positive amount for income
                 paymentMethod: method // Add the selected payment method
             };
@@ -913,17 +976,30 @@ export default function TableDetailPage() {
        }
 
 
-       // --- Clear pending order and update status ---
+       // --- Clear pending order and delivery info (for delivery) ---
        setPendingPaymentOrder([]); // Clear the pending order state immediately
+       if (isDelivery) {
+           setDeliveryInfo(null); // Clear delivery info after payment
+           sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY}-${tableIdParam}`); // Remove from storage
+       }
+
 
        // Status update is handled by the save useEffect hook
 
        toast({
          title: "¡Pago Impreso!",
-         description: `Boleta/Factura por ${formatCurrency(finalTotalToPay)} (${method}) impresa. Venta registrada en caja. Mesa disponible si no hay pedido actual.`,
+         description: `Boleta/Factura por ${formatCurrency(finalTotalToPay)} (${method}) impresa. Venta registrada en caja. ${isDelivery ? 'Datos de envío limpiados.' : 'Mesa disponible si no hay pedido actual.'}`,
          variant: "default",
          className: "bg-blue-200 text-blue-800 border-blue-400" // Using direct colors for payment success
        });
+    };
+
+    // Function to handle saving delivery info from the dialog
+    const handleSaveDeliveryInfo = (info: DeliveryInfo) => {
+        setDeliveryInfo(info);
+        setIsDeliveryDialogOpen(false);
+        toast({ title: "Datos de Envío Guardados", description: `Costo de envío: ${formatCurrency(info.deliveryFee)}.` });
+        // Status update is handled by the save useEffect hook
     };
 
 
@@ -933,7 +1009,7 @@ export default function TableDetailPage() {
   );
 
   const currentOrderTotal = calculateTotal(order); // Calculate current order total (though not displayed directly)
-  const pendingOrderTotal = calculateTotal(pendingPaymentOrder); // Calculate pending total
+  const pendingOrderTotal = calculateTotal(pendingPaymentOrder, true); // Calculate pending total *including delivery fee*
 
   const getPageTitle = () => {
       if (!tableIdParam) return 'Cargando...'; // Handle case where param might be missing initially
@@ -1072,7 +1148,7 @@ export default function TableDetailPage() {
 
   // Show loading indicator until initialization is complete
   if (!isInitialized) {
-    return <div className="flex items-center justify-center min-h-screen">Cargando datos de la mesa...</div>;
+    return <div className="flex items-center justify-center min-h-screen">Cargando datos...</div>;
   }
 
   return (
@@ -1082,13 +1158,37 @@ export default function TableDetailPage() {
            <ArrowLeft className="h-6 w-6" />
          </Button>
          <h1 className="text-3xl font-bold">{getPageTitle()} - Pedido</h1>
+         {/* Button to edit Delivery Info, only shown for delivery */}
+          {isDelivery && (
+             <Button variant="outline" size="sm" className="ml-auto" onClick={() => setIsDeliveryDialogOpen(true)}>
+                  Editar Datos Envío
+             </Button>
+          )}
        </div>
+
+        {/* Delivery Info Display (only for delivery and if info exists) */}
+        {isDelivery && deliveryInfo && (
+            <Card className="mb-4 border-primary bg-secondary/20">
+                 <CardHeader className="p-3 pb-2">
+                     <CardTitle className="text-md flex items-center">
+                        <Home className="mr-2 h-4 w-4" /> Datos de Envío
+                     </CardTitle>
+                 </CardHeader>
+                <CardContent className="p-3 pt-0 text-sm grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-1">
+                     <div className="flex items-center"><User className="mr-1.5 h-3 w-3 text-muted-foreground"/>{deliveryInfo.name}</div>
+                     <div className="flex items-center"><Phone className="mr-1.5 h-3 w-3 text-muted-foreground"/>{deliveryInfo.phone}</div>
+                     <div className="sm:col-span-2 flex items-center"><Home className="mr-1.5 h-3 w-3 text-muted-foreground"/>{deliveryInfo.address}</div>
+                    <div className="flex items-center font-semibold"><DollarSign className="mr-1.5 h-3 w-3 text-muted-foreground"/>Costo Envío: {formatCurrency(deliveryInfo.deliveryFee)}</div>
+                 </CardContent>
+            </Card>
+        )}
 
         {/* Menu Button Centered Above */}
         <div className="flex justify-center mb-4">
             <Button
                 onClick={() => setIsMenuSheetOpen(true)}
                 className="h-12 text-md bg-primary hover:bg-primary/90" // Adjusted size/text
+                disabled={isDelivery && !deliveryInfo} // Disable menu if delivery info is missing
             >
                 <Utensils className="mr-2 h-5 w-5" /> Ver Menú
             </Button>
@@ -1125,6 +1225,16 @@ export default function TableDetailPage() {
           <CardContent className="flex-grow overflow-hidden p-0">
             <ScrollArea className="h-full p-4">
               {renderOrderItems(pendingPaymentOrder, true)}
+              {/* Show delivery fee in pending section if applicable */}
+              {isDelivery && deliveryInfo && pendingPaymentOrder.length > 0 && (
+                <>
+                  <Separator className="my-2" />
+                  <div className="flex justify-between items-center text-sm font-medium pt-1">
+                    <span>Costo de Envío:</span>
+                    <span className='font-mono'>{formatCurrency(deliveryInfo.deliveryFee)}</span>
+                  </div>
+                </>
+              )}
             </ScrollArea>
           </CardContent>
           <Separator />
@@ -1179,6 +1289,24 @@ export default function TableDetailPage() {
             totalAmount={pendingOrderTotal}
             onConfirm={handleConfirmPayment}
         />
+
+       {/* Delivery Info Dialog (only for delivery table) */}
+       {isDelivery && (
+           <DeliveryDialog
+               isOpen={isDeliveryDialogOpen}
+               onOpenChange={setIsDeliveryDialogOpen}
+               initialData={deliveryInfo} // Pass existing data for editing
+               onConfirm={handleSaveDeliveryInfo}
+               onCancel={() => {
+                 // Only allow cancelling if info already exists, otherwise force entry
+                 if (!deliveryInfo) {
+                    toast({title: "Información Requerida", description: "Debe ingresar los datos de envío para continuar.", variant: "destructive"});
+                 } else {
+                    setIsDeliveryDialogOpen(false); // Allow closing if info exists
+                 }
+               }}
+           />
+       )}
     </div>
   );
 }

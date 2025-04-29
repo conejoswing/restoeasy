@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -29,6 +30,7 @@ const specialTables: Table[] = [
 ];
 
 const initialTables: Table[] = [...numberedTables, ...specialTables];
+const DELIVERY_INFO_STORAGE_KEY = 'deliveryInfo'; // Add storage key constant
 
 
 export default function TablesPage() {
@@ -45,36 +47,48 @@ export default function TablesPage() {
         const storedStatus = sessionStorage.getItem(`table-${table.id}-status`);
         const storedOrder = sessionStorage.getItem(`table-${table.id}-order`);
         const storedPendingOrder = sessionStorage.getItem(`table-${table.id}-pending-order`);
+        const storedDeliveryInfo = table.id === 'delivery' ? sessionStorage.getItem(`${DELIVERY_INFO_STORAGE_KEY}-${table.id}`) : null; // Check delivery info only for delivery
         let currentStatus: 'available' | 'occupied' = 'available'; // Default
 
         // Determine status based on stored info
         if (storedStatus === 'occupied') {
             currentStatus = 'occupied'; // Explicitly occupied
         } else {
-            // Check if there's a valid current or pending order
-            let hasOrder = false;
+            // Check if there's a valid current or pending order OR delivery info
+            let hasOrderOrInfo = false;
             try {
                 const parsedOrder = storedOrder ? JSON.parse(storedOrder) : null;
                 const parsedPendingOrder = storedPendingOrder ? JSON.parse(storedPendingOrder) : null;
+                 const parsedDeliveryInfo = storedDeliveryInfo ? JSON.parse(storedDeliveryInfo) : null;
+
                 if ((Array.isArray(parsedOrder) && parsedOrder.length > 0) ||
-                    (Array.isArray(parsedPendingOrder) && parsedPendingOrder.length > 0)) {
-                    hasOrder = true;
+                    (Array.isArray(parsedPendingOrder) && parsedPendingOrder.length > 0) ||
+                    (table.id === 'delivery' && parsedDeliveryInfo)) { // Check delivery info existence
+                    hasOrderOrInfo = true;
                 }
             } catch (e) {
-                console.error(`Error parsing stored order for table ${table.id}:`, e);
+                console.error(`Error parsing stored data for ${table.id}:`, e);
                 // Optionally clear invalid data
                 sessionStorage.removeItem(`table-${table.id}-order`);
                 sessionStorage.removeItem(`table-${table.id}-pending-order`);
+                if (table.id === 'delivery') sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY}-${table.id}`);
             }
 
-            if (hasOrder) {
-                currentStatus = 'occupied'; // Occupied due to existing orders
+            if (hasOrderOrInfo) {
+                currentStatus = 'occupied'; // Occupied due to existing orders or delivery info
             }
         }
 
+         // If derived status is available but orders/info still exist, clear them
+         if (currentStatus === 'available') {
+             if (storedOrder) sessionStorage.removeItem(`table-${table.id}-order`);
+             if (storedPendingOrder) sessionStorage.removeItem(`table-${table.id}-pending-order`);
+             if (table.id === 'delivery' && storedDeliveryInfo) sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY}-${table.id}`);
+         }
+
         // If derived status doesn't match stored status, update storage
         if (storedStatus !== currentStatus) {
-           console.log(`Initializing/Updating status for table ${table.id} from ${storedStatus || 'none'} to ${currentStatus}`);
+           console.log(`Initializing/Updating status for ${table.id} from ${storedStatus || 'none'} to ${currentStatus}`);
            sessionStorage.setItem(`table-${table.id}-status`, currentStatus);
         }
 
@@ -100,8 +114,8 @@ export default function TablesPage() {
   };
 
   // Loading state is handled by AuthProvider wrapper in layout.tsx
-  if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">Cargando...</div>; // Or a minimal loading indicator if preferred
+  if (isLoading || !isInitialized) { // Wait for both loading and initialization
+    return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
   }
   // If not authenticated AuthProvider will redirect
   if (!isAuthenticated) {
