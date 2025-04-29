@@ -3,8 +3,8 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation'; // Import useRouter
-import { useAuth } from '@/context/AuthContext'; // Import useAuth
+// import { useRouter } from 'next/navigation'; // No longer needed
+// import { useAuth } from '@/context/AuthContext'; // Removed auth import
 import {
   Table,
   TableBody,
@@ -518,9 +518,9 @@ const sortMenu = (menu: MenuItem[]): MenuItem[] => {
 
 
 export default function ProductsPage() {
-  // Role checks and redirection are handled by AuthProvider
-  const { isAuthenticated, isLoading, userRole } = useAuth();
-  const router = useRouter();
+  // No longer need auth hooks
+  // const { isAuthenticated, isLoading, userRole } = useAuth();
+  // const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [menu, setMenu] = useState<MenuItem[]>(sortMenu(mockMenu)); // State for menu items
   const [isEditPriceDialogOpen, setIsEditPriceDialogOpen] = useState(false); // Renamed state for clarity
@@ -533,14 +533,9 @@ export default function ProductsPage() {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
   };
 
-   // Loading state is handled by AuthProvider wrapper in layout.tsx
-   if (isLoading) {
-     return <div className="flex items-center justify-center min-h-screen">Cargando...</div>; // Or a minimal loading indicator if preferred
-   }
-   // If not authenticated or not admin, AuthProvider will redirect
-   if (!isAuthenticated || userRole !== 'admin') {
-     return null; // Prevent rendering content before redirect
-   }
+   // No loading or auth check needed
+   // if (isLoading) { ... }
+   // if (!isAuthenticated || userRole !== 'admin') { ... }
 
    // Filter products based on search term
    const filteredProducts = menu.filter(product =>

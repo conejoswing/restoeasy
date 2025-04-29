@@ -3,8 +3,8 @@
 
 import * as React from 'react';
 import { useState, useEffect } from 'react'; // Import useEffect
-import { useRouter } from 'next/navigation'; // Import useRouter
-import { useAuth } from '@/context/AuthContext'; // Import useAuth
+// import { useRouter } from 'next/navigation'; // No longer needed
+// import { useAuth } from '@/context/AuthContext'; // Removed auth import
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -44,10 +44,10 @@ export type AccessLevel = 'admin' | 'worker' | 'none'; // Export for use in Auth
 export interface StaffMember { // Export for potential use in AuthContext
   id: number;
   name: string; // Full name for display
-  username: string; // Username for login
+  username: string; // Username for login (still keep for display/reference)
   role: string; // Job title (e.g., 'Mesera')
   avatarUrl?: string; // Optional avatar URL
-  accessLevel?: AccessLevel; // Optional: 'admin', 'worker', or 'none' for login privileges
+  accessLevel?: AccessLevel; // Optional: 'admin', 'worker', or 'none' for display
   // Password should NOT be stored directly in the main state for security.
   // It will only be handled temporarily in the dialog state.
 }
@@ -65,15 +65,15 @@ const initialStaff: StaffMember[] = [
 const STAFF_STORAGE_KEY = 'restaurantStaff';
 
 export default function StaffPage() {
-  // Role checks and redirection are now handled by AuthProvider
-  const { isAuthenticated, isLoading, userRole, updatePasswordForUser } = useAuth(); // Get updatePassword function
-  const router = useRouter();
+  // Removed auth state and related functions
+  // const { isAuthenticated, isLoading, userRole, updatePasswordForUser } = useAuth();
+  // const router = useRouter();
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [isStaffInitialized, setIsStaffInitialized] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentStaffMember, setCurrentStaffMember] = useState<StaffMember | null>(null);
-  // Updated state to include username, accessLevel, and password
+  // State still used for the dialog, but accessLevel/password are only for UI now
   const [newStaffData, setNewStaffData] = useState<{ name: string; role: string; username: string; accessLevel: AccessLevel; password?: string }>({ name: '', role: '', username: '', accessLevel: 'none', password: '' });
   const { toast } = useToast();
 
@@ -107,10 +107,7 @@ export default function StaffPage() {
        try {
             localStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(loadedStaff));
             console.log("Saved initial staff data to localStorage.");
-            // Initialize passwords for fallback users in AuthContext when saving fallback
-            // Ensure using 'admin1' for the username
-            updatePasswordForUser('admin1', 'admin1');
-            updatePasswordForUser('worker', 'worker');
+            // No need to initialize passwords in AuthContext anymore
        } catch (saveError) {
             console.error("Failed to save initial staff data:", saveError);
        }
@@ -120,7 +117,7 @@ export default function StaffPage() {
      setIsStaffInitialized(true); // Mark as initialized
      console.log("Staff initialization complete.");
 
-   }, [isStaffInitialized, updatePasswordForUser]); // Add updatePasswordForUser to dependency array
+   }, [isStaffInitialized]); // Removed updatePasswordForUser dependency
 
    // Save staff to localStorage whenever it changes
    useEffect(() => {
@@ -137,16 +134,11 @@ export default function StaffPage() {
    }, [staff, isStaffInitialized]); // Save when staff state changes
 
 
-  // Loading state is handled by AuthProvider wrapper in layout.tsx
-  if (isLoading || !isStaffInitialized) {
+  // No loading or auth check needed
+  if (!isStaffInitialized) {
       return <div className="flex items-center justify-center min-h-screen">Cargando...</div>; // Added loading indicator
   }
-  // If not authenticated or not admin, AuthProvider will redirect
-  if (!isAuthenticated || userRole !== 'admin') {
-    // Redirect logic is now within AuthProvider useEffect
-    // Return null or a placeholder if needed while redirecting
-    return null;
-  }
+  // if (!isAuthenticated || userRole !== 'admin') { ... }
 
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, key: keyof Omit<typeof newStaffData, 'accessLevel'>) => {
@@ -159,12 +151,12 @@ export default function StaffPage() {
   };
 
   const handleAddOrEditStaff = () => {
-    // Check required fields based on access level
+    // Check required fields based on access level (username still needed if accessLevel != none for display)
     let requiredFieldsMissing = false;
     if (!newStaffData.name || !newStaffData.role) {
         requiredFieldsMissing = true;
     }
-    // Username required if access is not 'none'
+    // Username still required for display if access is not 'none'
     if (newStaffData.accessLevel !== 'none' && !newStaffData.username) {
         requiredFieldsMissing = true;
     }
@@ -174,27 +166,15 @@ export default function StaffPage() {
       return;
     }
 
-    // Password validation (required when adding a user with privileges, or when changing it during edit)
-     if (!isEditing && newStaffData.accessLevel !== 'none' && !newStaffData.password) {
-         toast({ title: "Error", description: "Se requiere contraseña para usuarios nuevos con privilegios.", variant: "destructive" });
-         return;
-     }
-     // Password required on edit *only if* it's being changed and user has privileges
-     if (isEditing && newStaffData.accessLevel !== 'none' && newStaffData.password && newStaffData.password.trim() === '') {
-         // Allow saving without changing password if the field is left empty during edit
-     } else if (isEditing && newStaffData.accessLevel !== 'none' && !newStaffData.password) {
-         // If editing a privileged user but password field is empty, don't require it (means no change)
-     } else if (newStaffData.accessLevel !== 'none' && !newStaffData.password) {
-         // If adding a privileged user, password is required
-          toast({ title: "Error", description: "Se requiere contraseña para usuarios con privilegios.", variant: "destructive" });
-         return;
-     }
+    // Password validation is no longer relevant for actual login, just for UI state
+     // if (!isEditing && newStaffData.accessLevel !== 'none' && !newStaffData.password) { ... }
+     // ... other password checks removed ...
 
 
-    // Check for duplicate username (only when adding or changing username)
+    // Check for duplicate username (only when adding or changing username) - Still useful for uniqueness
     // Ensure username check is case-insensitive
     const isUsernameChanging = isEditing && currentStaffMember && currentStaffMember.username.toLowerCase() !== newStaffData.username.toLowerCase();
-    if ((!isEditing || isUsernameChanging) && newStaffData.accessLevel !== 'none') { // Only check if user will have login
+    if ((!isEditing || isUsernameChanging) && newStaffData.accessLevel !== 'none') { // Check if user *would* have login conceptually
         const existingUser = staff.find(member => member.username.toLowerCase() === newStaffData.username.toLowerCase() && member.id !== currentStaffMember?.id);
         if (existingUser) {
             toast({ title: "Error", description: `El nombre de usuario "${newStaffData.username}" ya existe.`, variant: "destructive" });
@@ -202,17 +182,12 @@ export default function StaffPage() {
         }
     }
 
-    // Update password in AuthContext (session storage for demo) if provided
-    if (newStaffData.accessLevel !== 'none' && newStaffData.password && newStaffData.password.trim() !== '') { // Only update if password is provided and not just whitespace
-        updatePasswordForUser(newStaffData.username, newStaffData.password);
-        // Don't log the password here anymore
-        // console.log(`Password for ${newStaffData.username} set/updated (DEMO ONLY).`);
-        toast({ title: "Éxito", description: `Contraseña para ${newStaffData.username} actualizada (simulado).` });
-    }
+    // No need to update password in AuthContext
+    // if (newStaffData.accessLevel !== 'none' && newStaffData.password && newStaffData.password.trim() !== '') { ... }
 
 
     if (isEditing && currentStaffMember) {
-      // Edit existing staff member - include username and accessLevel
+      // Edit existing staff member - include username and accessLevel for display
       setStaff(prevStaff =>
          prevStaff.map(member =>
            member.id === currentStaffMember.id
@@ -221,18 +196,15 @@ export default function StaffPage() {
              : member
          ).sort((a, b) => a.name.localeCompare(b.name)) // Re-sort after update
       );
-       // If password was entered during edit, show a generic success message.
-       // Actual password update logic would happen server-side/in AuthContext for this demo.
-      // Removed redundant password updated toast here, handled above
        toast({ title: "Éxito", description: "Miembro del personal actualizado." });
 
     } else {
-      // Add new staff member - include username and accessLevel
+      // Add new staff member - include username and accessLevel for display
       const newId = staff.length > 0 ? Math.max(...staff.map(s => s.id)) + 1 : 1;
       const newMember: StaffMember = {
         id: newId,
         name: newStaffData.name,
-         // Store username only if accessLevel is not 'none'
+         // Store username only if accessLevel is not 'none' for display
         username: newStaffData.accessLevel !== 'none' ? newStaffData.username : '',
         role: newStaffData.role,
         accessLevel: newStaffData.accessLevel, // Save the selected access level
@@ -249,7 +221,7 @@ export default function StaffPage() {
   const openEditDialog = (member: StaffMember) => {
     setIsEditing(true);
     setCurrentStaffMember(member);
-    // Pre-fill with existing data, including username, leave password blank for editing for security.
+    // Pre-fill with existing data, including username, leave password blank for editing.
     setNewStaffData({ name: member.name, role: member.role, username: member.username, accessLevel: member.accessLevel ?? 'none', password: '' });
     setIsDialogOpen(true);
   };
@@ -324,6 +296,24 @@ export default function StaffPage() {
                   placeholder="Ej: Mesera, Cocinero"
                 />
               </div>
+               {/* Add Username Input - Conditionally shown if accessLevel is not 'none' (for display) */}
+               {(newStaffData.accessLevel !== 'none') && ( // Show if has privileges conceptually
+                 <div className="grid grid-cols-4 items-center gap-4">
+                     <Label htmlFor="username" className="text-right">
+                         Usuario {/* Username */}
+                     </Label>
+                     <Input
+                         id="username"
+                         type="text"
+                         value={newStaffData.username}
+                         onChange={(e) => handleInputChange(e, 'username')}
+                         className="col-span-3"
+                         placeholder="Usuario (para referencia)"
+                         required={newStaffData.accessLevel !== 'none'} // Required only when adding/editing a privileged user concept
+                         autoComplete="off"
+                     />
+                 </div>
+               )}
               {/* Add Access Level Selection */}
               <div className="grid grid-cols-4 items-center gap-4">
                  <Label htmlFor="accessLevel" className="text-right">
@@ -343,26 +333,8 @@ export default function StaffPage() {
                    </SelectContent>
                  </Select>
               </div>
-               {/* Add Username Input - Conditionally shown if accessLevel is not 'none' */}
-               {(newStaffData.accessLevel !== 'none') && ( // Show if has privileges
-                 <div className="grid grid-cols-4 items-center gap-4">
-                     <Label htmlFor="username" className="text-right">
-                         Usuario {/* Username */}
-                     </Label>
-                     <Input
-                         id="username"
-                         type="text"
-                         value={newStaffData.username}
-                         onChange={(e) => handleInputChange(e, 'username')}
-                         className="col-span-3"
-                         placeholder="Usuario para inicio de sesión"
-                         required={newStaffData.accessLevel !== 'none'} // Required only when adding/editing a privileged user
-                         autoComplete="off"
-                     />
-                 </div>
-               )}
-               {/* Add Password Input - Conditionally shown if accessLevel is not 'none' */}
-               {(newStaffData.accessLevel !== 'none') && ( // Show if has privileges
+               {/* Add Password Input - Conditionally shown if accessLevel is not 'none' (UI only) */}
+               {(newStaffData.accessLevel !== 'none') && ( // Show if has privileges concept
                  <div className="grid grid-cols-4 items-center gap-4">
                      <Label htmlFor="password" className="text-right">
                          Contraseña {/* Password */}
@@ -373,9 +345,9 @@ export default function StaffPage() {
                          value={newStaffData.password ?? ''}
                          onChange={(e) => handleInputChange(e, 'password')}
                          className="col-span-3"
-                         placeholder={isEditing ? "Dejar en blanco para no cambiar" : "Requerida si tiene privilegios"}
-                         // Required only when *adding* a privileged user unless editing
-                         required={!isEditing && newStaffData.accessLevel !== 'none'}
+                         placeholder={isEditing ? "Dejar en blanco para no cambiar" : "Opcional (no se usa para iniciar sesión)"}
+                         // No longer required for login
+                         // required={!isEditing && newStaffData.accessLevel !== 'none'}
                          autoComplete="new-password" // Help browser password managers
                      />
                  </div>
@@ -452,7 +424,7 @@ export default function StaffPage() {
                  {/* Display if user has no access */}
                 {(!member.accessLevel || member.accessLevel === 'none') && (
                     <span className="mt-1 text-xs px-1.5 py-0.5 rounded bg-gray-200 text-gray-600">
-                        Sin Acceso
+                        Sin Privilegios
                     </span>
                 )}
             </CardContent>

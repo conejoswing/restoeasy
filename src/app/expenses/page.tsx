@@ -3,8 +3,8 @@
 
 import * as React from 'react';
 import { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
+// import { useRouter } from 'next/navigation'; // No longer needed for redirection
+// import { useAuth } from '@/context/AuthContext'; // Removed AuthContext import
 import { format, isToday, startOfDay } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
@@ -74,8 +74,8 @@ const initialMovements: CashMovement[] = []; // Start with empty initial movemen
 const CASH_MOVEMENTS_STORAGE_KEY = 'cashMovements';
 
 export default function CashRegisterPage() {
-  const { isAuthenticated, isLoading, userRole } = useAuth();
-  const router = useRouter();
+  // const { isAuthenticated, isLoading, userRole } = useAuth(); // Removed auth state
+  // const router = useRouter(); // Removed router
   const [cashMovements, setCashMovements] = useState<CashMovement[]>([]);
   const [isInitialized, setIsInitialized] = useState(false); // Track initialization
   const [newMovement, setNewMovement] = useState<{
@@ -302,14 +302,12 @@ export default function CashRegisterPage() {
     toast({ title: "Cierre de Caja Impreso y Realizado", description: "Se han borrado todos los movimientos registrados.", variant: "default"});
   }
 
-   // Loading state is handled by AuthProvider wrapper in layout.tsx
-   if (isLoading || !isInitialized) { // Wait for auth and local state init
+   // Loading state no longer needed from AuthProvider
+   if (!isInitialized) { // Wait for local state init
      return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
    }
-   // If not authenticated or not admin, AuthProvider will redirect
-   if (!isAuthenticated || userRole !== 'admin') {
-     return null; // Prevent rendering content before redirect
-   }
+   // No longer need to check authentication or role
+   // if (!isAuthenticated || userRole !== 'admin') { ... }
 
   return (
     <div className="container mx-auto p-4">
@@ -610,5 +608,3 @@ export default function CashRegisterPage() {
     </div>
   );
 }
-
-    

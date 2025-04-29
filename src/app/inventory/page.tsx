@@ -3,8 +3,8 @@
 
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/context/AuthContext';
+// import { useRouter } from 'next/navigation'; // No longer needed
+// import { useAuth } from '@/context/AuthContext'; // Removed auth context
 import {
   Table,
   TableBody,
@@ -74,8 +74,8 @@ const INVENTORY_STORAGE_KEY = 'restaurantInventory';
 
 
 export default function InventoryPage() {
-  const { isAuthenticated, isLoading, userRole } = useAuth();
-  const router = useRouter();
+  // const { isAuthenticated, isLoading, userRole } = useAuth(); // Removed auth state
+  // const router = useRouter(); // Removed router
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [isInventoryInitialized, setIsInventoryInitialized] = useState(false);
   const [newProductData, setNewProductData] = useState<{ name: string; stock: string }>({ name: '', stock: '' });
@@ -138,12 +138,12 @@ export default function InventoryPage() {
     }
   }, [inventory, isInventoryInitialized]);
 
-   if (isLoading || !isInventoryInitialized) {
+   // No loading state from AuthProvider needed
+   if (!isInventoryInitialized) {
      return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
    }
-   if (!isAuthenticated || userRole !== 'admin') {
-     return null;
-   }
+   // No auth check needed
+   // if (!isAuthenticated || userRole !== 'admin') { ... }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, key: keyof typeof newProductData) => {
     setNewProductData((prev) => ({ ...prev, [key]: e.target.value }));
@@ -194,12 +194,7 @@ export default function InventoryPage() {
                     : item
             )
         );
-        // const itemName = inventory.find(item => item.id === id)?.name;
-        // toast({
-        //     title: "Inventario Actualizado",
-        //     description: `Cantidad de "${itemName}" ${amount > 0 ? 'aumentada' : 'disminuida'} en ${Math.abs(amount)}.`,
-        //     variant: "default",
-        // });
+        // Removed toast message for stock adjustment
    };
 
 

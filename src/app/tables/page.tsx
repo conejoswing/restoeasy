@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -8,8 +7,8 @@ import Link from 'next/link';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {cn} from '@/lib/utils';
-import { Store, Truck, Utensils, LogOut } from 'lucide-react'; // Added Utensils & LogOut
-import { useAuth } from '@/context/AuthContext'; // Import useAuth
+import { Store, Truck, Utensils } from 'lucide-react'; // Removed LogOut
+// import { useAuth } from '@/context/AuthContext'; // No longer needed for this page
 
 interface Table {
   id: number | string; // Allow string IDs for Mezon and Delivery
@@ -35,7 +34,7 @@ const DELIVERY_INFO_STORAGE_KEY = 'deliveryInfo'; // Add storage key constant
 
 export default function TablesPage() {
   const [tables, setTables] = useState<Table[]>(initialTables);
-  const { logout, isAuthenticated, isLoading, userRole } = useAuth(); // Get auth state and logout
+  // const { logout, isAuthenticated, isLoading, userRole } = useAuth(); // Removed auth hooks
   const [isInitialized, setIsInitialized] = useState(false); // Track initialization
 
   // --- Dynamic Table Status Update ---
@@ -102,24 +101,18 @@ export default function TablesPage() {
 
 
   const getIcon = (tableId: number | string) => {
-      if (tableId === 'mezon') return <Store className="h-6 w-6 mb-1 mx-auto"/>;
-      if (tableId === 'delivery') return <Truck className="h-6 w-6 mb-1 mx-auto"/>;
+      if (tableId === 'mezon') return <Store className="h-6 w-6 mb-1 mx-auto text-foreground"/>; // Keep icons black
+      if (tableId === 'delivery') return <Truck className="h-6 w-6 mb-1 mx-auto text-foreground"/>; // Keep icons black
       // Add icon for regular tables
-      return <Utensils className="h-6 w-6 mb-1 mx-auto group-hover:text-foreground transition-colors"/>;
+      return <Utensils className="h-6 w-6 mb-1 mx-auto text-foreground"/>; // Keep icons black
   }
 
-  const handleLogout = () => {
-    logout();
-    // Navigation is handled by AuthContext
-  };
+  // Remove logout handler
+  // const handleLogout = () => { ... };
 
-  // Loading state is handled by AuthProvider wrapper in layout.tsx
-  if (isLoading || !isInitialized) { // Wait for both loading and initialization
+  // No loading state needed from auth context
+  if (!isInitialized) {
     return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
-  }
-  // If not authenticated AuthProvider will redirect
-  if (!isAuthenticated) {
-    return null; // Prevent rendering content before redirect
   }
 
 
@@ -127,12 +120,8 @@ export default function TablesPage() {
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Gestión de Mesas</h1>
-         {/* Show logout for all logged-in users */}
-         {isAuthenticated && (
-             <Button variant="outline" onClick={handleLogout}>
-                 <LogOut className="mr-2 h-4 w-4" /> Cerrar Sesión
-             </Button>
-         )}
+         {/* Remove logout button */}
+         {/* {isAuthenticated && ( ... )} */}
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
         {tables.map((table) => (
