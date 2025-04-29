@@ -37,11 +37,11 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Label } from '@/components/ui/label';
-import { PlusCircle, Trash2 } from 'lucide-react'; // Added Trash2 icon
+import { PlusCircle, Trash2, MinusCircle } from 'lucide-react'; // Added MinusCircle
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { buttonVariants } from '@/components/ui/button'; // Import buttonVariants
+import { buttonVariants } from '@/components/ui/button';
 
 interface InventoryItem {
   id: number;
@@ -49,13 +49,17 @@ interface InventoryItem {
   stock: number;
 }
 
-// Predefined items for initial inventory state (name only) - Removed specified items
+// Predefined items for initial inventory state (name only)
 const predefinedItemNames: string[] = [
   'Pan especial grande',
   'Pan especial chico',
   'Pan de marraqueta',
   'Pan de hamburguesa chico',
   'Pan de hamburguesa grande',
+  'Bebida 1.5Lt', // Added from menu
+  'Lata', // Added from menu
+  'Cafe Chico', // Added from menu
+  'Cafe Grande', // Added from menu
 ];
 
 // Initialize inventory state with predefined items having 0 stock
@@ -70,19 +74,17 @@ const INVENTORY_STORAGE_KEY = 'restaurantInventory';
 
 
 export default function InventoryPage() {
-  // Role checks and redirection are now handled by AuthProvider
   const { isAuthenticated, isLoading, userRole } = useAuth();
   const router = useRouter();
-  // Initialize state with empty array, will be populated from localStorage or initialInventory
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
-  const [isInventoryInitialized, setIsInventoryInitialized] = useState(false); // Track initialization
+  const [isInventoryInitialized, setIsInventoryInitialized] = useState(false);
   const [newProductData, setNewProductData] = useState<{ name: string; stock: string }>({ name: '', stock: '' });
   const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
   const { toast } = useToast();
 
   // Load inventory from localStorage on mount
   useEffect(() => {
-    if (isInventoryInitialized) return; // Prevent re-running
+    if (isInventoryInitialized) return;
 
     console.log("Initializing inventory from localStorage...");
     const storedInventory = localStorage.getItem(INVENTORY_STORAGE_KEY);
@@ -92,33 +94,39 @@ export default function InventoryPage() {
       try {
         const parsed = JSON.parse(storedInventory);
         if (Array.isArray(parsed)) {
-          // Basic validation for item structure could be added here
           loadedInventory = parsed;
-          console.log("Loaded inventory:", loadedInventory);
+           // Add any predefined items that are missing from storage
+           const storedNames = new Set(loadedInventory.map(item => item.name.toLowerCase()));
+           predefinedItemNames.forEach((name, index) => {
+               if (!storedNames.has(name.toLowerCase())) {
+                    const newId = loadedInventory.length > 0 ? Math.max(...loadedInventory.map(item => item.id)) + 1 : index + 1;
+                   loadedInventory.push({ id: newId, name: name, stock: 0 });
+               }
+           });
+          console.log("Loaded and merged inventory:", loadedInventory);
         } else {
           console.warn("Invalid inventory data found in localStorage, using initial data.");
           loadedInventory = initialInventory;
         }
       } catch (error) {
         console.error("Failed to parse stored inventory:", error);
-        loadedInventory = initialInventory; // Fallback to initial on error
+        loadedInventory = initialInventory;
       }
     } else {
       console.log("No inventory found in localStorage, using initial data.");
-      loadedInventory = initialInventory; // Use initial if nothing in storage
+      loadedInventory = initialInventory;
     }
 
-    // Sort loaded or initial inventory alphabetically by name
     loadedInventory.sort((a, b) => a.name.localeCompare(b.name));
     setInventory(loadedInventory);
-    setIsInventoryInitialized(true); // Mark as initialized
+    setIsInventoryInitialized(true);
     console.log("Inventory initialization complete.");
 
-  }, [isInventoryInitialized]); // Run only once
+  }, [isInventoryInitialized]);
 
   // Save inventory to localStorage whenever it changes
   useEffect(() => {
-    if (!isInventoryInitialized) return; // Only save after initial load
+    if (!isInventoryInitialized) return;
 
     console.log("Saving inventory to localStorage...");
     try {
@@ -128,15 +136,13 @@ export default function InventoryPage() {
       console.error("Failed to save inventory to localStorage:", error);
       toast({ title: "Error", description: "No se pudo guardar el inventario.", variant: "destructive" });
     }
-  }, [inventory, isInventoryInitialized]); // Run when inventory or initialization state changes
+  }, [inventory, isInventoryInitialized]);
 
-   // Loading state is handled by AuthProvider wrapper in layout.tsx
-   if (isLoading || !isInventoryInitialized) { // Wait for auth and local state init
+   if (isLoading || !isInventoryInitialized) {
      return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
    }
-   // If not authenticated or not admin, AuthProvider will redirect
    if (!isAuthenticated || userRole !== 'admin') {
-     return null; // Prevent rendering content before redirect
+     return null;
    }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, key: keyof typeof newProductData) => {
@@ -155,13 +161,11 @@ export default function InventoryPage() {
        return;
      }
 
-      // Check if product name already exists (case-insensitive)
      const existingItem = inventory.find(item => item.name.toLowerCase() === newProductData.name.toLowerCase());
      if (existingItem) {
          toast({ title: "Error", description: `El producto "${newProductData.name}" ya existe.`, variant: "destructive" });
          return;
      }
-
 
      const newId = inventory.length > 0 ? Math.max(...inventory.map(item => item.id)) + 1 : 1;
      const newProduct: InventoryItem = {
@@ -170,18 +174,32 @@ export default function InventoryPage() {
        stock: stockValue,
      };
 
-     // Update state, which will trigger the useEffect to save to localStorage
      setInventory(prevInventory => [...prevInventory, newProduct].sort((a, b) => a.name.localeCompare(b.name)));
-     setNewProductData({ name: '', stock: '' }); // Reset form
-     setIsAddProductDialogOpen(false); // Close dialog
+     setNewProductData({ name: '', stock: '' });
+     setIsAddProductDialogOpen(false);
      toast({ title: "Éxito", description: `Producto "${newProduct.name}" añadido con ${newProduct.stock} unidades.` });
    };
 
    const handleDeleteProduct = (idToDelete: number) => {
         const productToDelete = inventory.find(item => item.id === idToDelete);
-        // Update state, which will trigger the useEffect to save to localStorage
         setInventory(prevInventory => prevInventory.filter(item => item.id !== idToDelete));
         toast({ title: "Eliminado", description: `Producto "${productToDelete?.name}" eliminado.`, variant: "destructive" });
+   };
+
+   const handleAdjustStock = (id: number, amount: number) => {
+        setInventory(prevInventory =>
+            prevInventory.map(item =>
+                item.id === id
+                    ? { ...item, stock: Math.max(0, item.stock + amount) } // Ensure stock doesn't go below 0
+                    : item
+            )
+        );
+        const itemName = inventory.find(item => item.id === id)?.name;
+        toast({
+            title: "Inventario Actualizado",
+            description: `Cantidad de "${itemName}" ${amount > 0 ? 'aumentada' : 'disminuida'} en ${Math.abs(amount)}.`,
+            variant: "default",
+        });
    };
 
 
@@ -189,7 +207,6 @@ export default function InventoryPage() {
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Gestión del Inventario</h1>
-         {/* Add Product Button and Dialog */}
         <Dialog open={isAddProductDialogOpen} onOpenChange={setIsAddProductDialogOpen}>
             <DialogTrigger asChild>
                 <Button>
@@ -248,19 +265,34 @@ export default function InventoryPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Producto</TableHead>
-              <TableHead className="text-center">Cantidad</TableHead>
-              <TableHead className="text-right w-20">Eliminar</TableHead>{/* Added Delete Header */}
+              {/* Changed header to reflect adjustment actions */}
+              <TableHead className="text-center w-48">Cantidad / Ajustar</TableHead>
+              <TableHead className="text-right w-20">Eliminar</TableHead>
             </TableRow>
           </TableHeader>
-          {/* Render TableBody only on the client after initialization */}
           {isInventoryInitialized && (
             <TableBody>
                 {inventory.map((item) => (
                 <TableRow key={item.id}>
                     <TableCell className="font-medium">{item.name}</TableCell>
-                    <TableCell className="text-center w-24">{item.stock}</TableCell>
+                    {/* Cell for Quantity and Adjustment Buttons */}
+                    <TableCell className="text-center w-48">
+                       <div className="flex items-center justify-center gap-2">
+                            {/* Decrease Button */}
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleAdjustStock(item.id, -1)} disabled={item.stock <= 0}>
+                                <MinusCircle className="h-4 w-4" />
+                                <span className="sr-only">Disminuir</span>
+                            </Button>
+                            {/* Quantity Display */}
+                            <span className="font-medium w-10 text-center">{item.stock}</span>
+                            {/* Increase Button */}
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-primary" onClick={() => handleAdjustStock(item.id, 1)}>
+                                <PlusCircle className="h-4 w-4" />
+                                <span className="sr-only">Aumentar</span>
+                            </Button>
+                       </div>
+                    </TableCell>
                     <TableCell className="text-right">
-                        {/* Delete Button with Confirmation Dialog */}
                         <AlertDialog>
                             <AlertDialogTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive/90" title="Eliminar Producto">
@@ -291,7 +323,6 @@ export default function InventoryPage() {
                 ))}
                 {inventory.length === 0 && (
                 <TableRow>
-                    {/* Adjusted colSpan to 3 */}
                     <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
                     No hay productos en el inventario.
                     </TableCell>
