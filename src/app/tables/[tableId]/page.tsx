@@ -1443,9 +1443,3 @@ export default function TableDetailPage() {
   );
 }
 
-
-
-
-
-
-
