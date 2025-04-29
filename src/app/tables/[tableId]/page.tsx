@@ -52,6 +52,13 @@ interface OrderItem extends Omit<MenuItem, 'price' | 'modificationPrices' | 'mod
   finalPrice: number; // Store the calculated price (base + modifications)
 }
 
+// Interface for inventory items (matching inventory page)
+interface InventoryItem {
+  id: number;
+  name: string;
+  stock: number;
+}
+
 
 // Mock data - replace with actual API calls - Updated prices to CLP
 const mockMenu: MenuItem[] = [
@@ -503,10 +510,10 @@ const compareModifications = (arr1?: string[], arr2?: string[]): boolean => {
     return isEqual(sortedArr1, sortedArr2); // Use lodash isEqual for deep comparison
 };
 
-// Storage key for cash movements
+// Storage keys
 const CASH_MOVEMENTS_STORAGE_KEY = 'cashMovements';
-// Storage key for delivery info
 const DELIVERY_INFO_STORAGE_KEY = 'deliveryInfo';
+const INVENTORY_STORAGE_KEY = 'restaurantInventory'; // Add inventory key
 
 
 // Helper function to extract number from promo name
@@ -976,6 +983,82 @@ export default function TableDetailPage() {
             // return; // Option: Stop here if saving fails
        }
 
+       // --- Update Inventory ---
+        try {
+            const storedInventory = localStorage.getItem(INVENTORY_STORAGE_KEY);
+            let currentInventory: InventoryItem[] = [];
+            if (storedInventory) {
+                const parsed = JSON.parse(storedInventory);
+                if (Array.isArray(parsed)) {
+                    currentInventory = parsed;
+                }
+            }
+
+            // Create a map for faster inventory lookup
+            const inventoryMap = new Map(currentInventory.map(item => [item.name.toLowerCase(), item]));
+
+            // Iterate through the paid items and decrease stock
+            pendingPaymentOrder.forEach(orderItem => {
+                // Simple mapping logic (can be expanded)
+                let inventoryItemName = '';
+                switch (orderItem.category) {
+                    case 'Bebidas':
+                        inventoryItemName = orderItem.name.toLowerCase(); // Match exact name like "bebida 1.5lt" or "lata"
+                        break;
+                    // Add cases for other categories and map them to inventory item names
+                    // Example: A specific burger might use 'pan de hamburguesa grande'
+                    // if (orderItem.name === 'Super Big Cami') { inventoryItemName = 'pan de hamburguesa grande'; }
+                    default:
+                        // Try to find a generic match (e.g., if item name contains 'grande' or 'chico')
+                        if (orderItem.name.toLowerCase().includes('grande')) {
+                            inventoryItemName = orderItem.category.includes('hamburguesa') ? 'pan de hamburguesa grande' : 'pan especial grande';
+                        } else if (orderItem.name.toLowerCase().includes('normal') || orderItem.name.toLowerCase().includes('chico')) {
+                             inventoryItemName = orderItem.category.includes('hamburguesa') ? 'pan de hamburguesa chico' : 'pan especial chico';
+                        } else if (orderItem.category === 'Completos Vienesas' || orderItem.category === 'Completos As' || orderItem.category === 'Churrascos') {
+                            // Fallback for items without size indication, assume 'chico' or 'marraqueta' if available
+                             inventoryItemName = 'pan de marraqueta'; // Default to marraqueta if specific size pan not found
+                             if (!inventoryMap.has(inventoryItemName)) {
+                                inventoryItemName = 'pan especial chico'; // Fallback further if marraqueta not in inventory
+                             }
+                        }
+                        // Add more complex mapping if needed based on ingredients
+                        break;
+                }
+
+
+                if (inventoryItemName) {
+                    const inventoryItem = inventoryMap.get(inventoryItemName);
+                    if (inventoryItem) {
+                        const newStock = Math.max(0, inventoryItem.stock - orderItem.quantity); // Ensure stock doesn't go below 0
+                        if (inventoryItem.stock !== newStock) {
+                             inventoryItem.stock = newStock;
+                             console.log(`Updated inventory for ${inventoryItem.name}: ${newStock}`);
+                             // Update the map (important if the same item is used multiple times in the order)
+                             inventoryMap.set(inventoryItemName, inventoryItem);
+                        } else if (inventoryItem.stock === 0) {
+                             console.warn(`Inventory item ${inventoryItem.name} is already at 0 stock.`);
+                             toast({ title: "Inventario Bajo", description: `El producto "${inventoryItem.name}" está agotado.`, variant: "destructive" });
+                        }
+                    } else {
+                        console.warn(`Inventory item not found for product: ${orderItem.name} (Mapped to: ${inventoryItemName})`);
+                         toast({ title: "Advertencia Inventario", description: `No se encontró "${inventoryItemName}" en el inventario para descontar.`, variant: "destructive" });
+                    }
+                } else {
+                     console.warn(`No inventory mapping defined for product: ${orderItem.name} in category ${orderItem.category}`);
+                }
+            });
+
+            // Convert map back to array and save
+            const updatedInventory = Array.from(inventoryMap.values());
+             updatedInventory.sort((a, b) => a.name.localeCompare(b.name)); // Keep sorted
+            localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify(updatedInventory));
+            console.log("Inventory updated successfully.");
+
+        } catch (error) {
+             console.error("Error updating inventory:", error);
+             toast({ title: "Error Interno", description: "No se pudo actualizar el inventario.", variant: "destructive" });
+        }
+
 
        // --- Clear pending order and delivery info (for delivery) ---
        setPendingPaymentOrder([]); // Clear the pending order state immediately
@@ -989,7 +1072,7 @@ export default function TableDetailPage() {
 
        toast({
          title: "¡Pago Impreso!",
-         description: `Boleta/Factura por ${formatCurrency(finalTotalToPay)} (${method}) impresa. Venta registrada en caja. ${isDelivery ? 'Datos de envío limpiados.' : 'Mesa disponible si no hay pedido actual.'}`,
+         description: `Boleta/Factura por ${formatCurrency(finalTotalToPay)} (${method}) impresa. Venta registrada en caja. Inventario actualizado. ${isDelivery ? 'Datos de envío limpiados.' : 'Mesa disponible si no hay pedido actual.'}`,
          variant: "default",
          className: "bg-blue-200 text-blue-800 border-blue-400" // Using direct colors for payment success
        });
@@ -1311,4 +1394,6 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
+
 
