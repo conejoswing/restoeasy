@@ -451,7 +451,7 @@ const mockMenu: MenuItem[] = [
     // --- Bebidas --- (No modifications)
     {
       id: 100,
-      name: 'Bebida 1.5L',
+      name: 'Bebida 1.5Lt', // Changed L to Lt
       price: 2000,
       category: 'Bebidas',
     },
@@ -1311,3 +1311,4 @@ export default function TableDetailPage() {
     </div>
   );
 }
+

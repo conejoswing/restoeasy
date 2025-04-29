@@ -222,40 +222,40 @@ const mockMenu: MenuItem[] = [
         name: 'Doble Italiana',
         price: 9500,
         category: 'Hamburguesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Doble Carne'], // Removed Palta, Tomate
-        modificationPrices: { 'Doble Carne': 2000, 'Agregado Queso': 1000 },
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], // Removed Palta, Tomate
+        modificationPrices: { 'Agregado Queso': 1000 },
     },
     {
         id: 69,
         name: 'Tapa Arteria',
         price: 10500,
         category: 'Hamburguesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Queso Cheddar', 'Bacon', 'Huevo Frito', 'Cebolla Frita'], // Kept Tapa Arteria mods
-        modificationPrices: { 'Queso Cheddar': 800, 'Bacon': 1000, 'Huevo Frito': 800, 'Cebolla Frita': 500, 'Agregado Queso': 1000 },
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], // Kept Tapa Arteria mods
+        modificationPrices: { 'Agregado Queso': 1000 },
     },
     {
         id: 70,
         name: 'Super Tapa Arteria',
         price: 13000,
         category: 'Hamburguesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Doble Carne', 'Doble Queso Cheddar', 'Doble Bacon', 'Huevo Frito', 'Cebolla Frita'], // Kept Super Tapa Arteria mods
-        modificationPrices: { 'Doble Carne': 2000, 'Doble Queso Cheddar': 1600, 'Doble Bacon': 2000, 'Huevo Frito': 800, 'Cebolla Frita': 500, 'Agregado Queso': 1000 },
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], // Kept Super Tapa Arteria mods
+        modificationPrices: { 'Agregado Queso': 1000 },
     },
     {
         id: 71,
         name: 'Big Cami',
         price: 9800,
         category: 'Hamburguesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Triple Carne', 'Triple Queso', 'Pepinillos', 'Lechuga', 'Salsa Especial'], // Kept Big Cami mods
-        modificationPrices: { 'Triple Carne': 3000, 'Triple Queso': 2400, 'Agregado Queso': 1000 },
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], // Kept Big Cami mods
+        modificationPrices: { 'Agregado Queso': 1000 },
     },
     {
         id: 72,
         name: 'Super Big Cami',
         price: 12500,
         category: 'Hamburguesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Cuádruple Carne', 'Cuádruple Queso', 'Pepinillos', 'Lechuga', 'Salsa Especial'], // Kept Super Big Cami mods
-        modificationPrices: { 'Cuádruple Carne': 4000, 'Cuádruple Queso': 3200, 'Agregado Queso': 1000 },
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], // Kept Super Big Cami mods
+        modificationPrices: { 'Agregado Queso': 1000 },
     },
     // --- Churrascos --- (Updated Modifications)
     {
@@ -440,7 +440,7 @@ const mockMenu: MenuItem[] = [
     // --- Bebidas --- (No modifications)
     {
       id: 100,
-      name: 'Bebida 1.5L',
+      name: 'Bebida 1.5Lt', // Changed L to Lt
       price: 2000,
       category: 'Bebidas',
     },
