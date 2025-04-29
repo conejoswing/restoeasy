@@ -14,19 +14,18 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input'; // Keep Input for potential future use or other features
-// Removed Dialog imports as they are no longer needed
-// import {
-//   Dialog,
-//   DialogContent,
-//   DialogDescription,
-//   DialogFooter,
-//   DialogHeader,
-//   DialogTitle,
-//   DialogTrigger,
-//   DialogClose,
-// } from '@/components/ui/dialog';
-// import { Label } from '@/components/ui/label'; // Removed Label import
+import { Input } from '@/components/ui/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from '@/components/ui/dialog'; // Import Dialog components
+import { Label } from '@/components/ui/label'; // Import Label
 import { PlusCircle, MinusCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
@@ -59,9 +58,8 @@ export default function InventoryPage() {
   const { isAuthenticated, isLoading, userRole } = useAuth();
   const router = useRouter();
   const [inventory, setInventory] = useState<InventoryItem[]>(initialInventory);
-  // Removed state related to adding new products
-  // const [newProductData, setNewProductData] = useState<{ name: string; stock: string }>({ name: '', stock: '' });
-  // const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
+  const [newProductData, setNewProductData] = useState<{ name: string; stock: string }>({ name: '', stock: '' });
+  const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
   const { toast } = useToast();
 
   // Loading state is handled by AuthProvider wrapper in layout.tsx
@@ -104,11 +102,100 @@ export default function InventoryPage() {
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, key: keyof typeof newProductData) => {
+    setNewProductData((prev) => ({ ...prev, [key]: e.target.value }));
+  };
+
+  const handleAddProduct = () => {
+     if (!newProductData.name || !newProductData.stock) {
+       toast({ title: "Error", description: "Por favor, complete nombre y cantidad.", variant: "destructive" });
+       return;
+     }
+
+     const stockValue = parseInt(newProductData.stock, 10);
+     if (isNaN(stockValue) || stockValue < 0) {
+       toast({ title: "Error", description: "La cantidad debe ser un número válido y no negativo.", variant: "destructive" });
+       return;
+     }
+
+      // Check if product name already exists (case-insensitive)
+     const existingItem = inventory.find(item => item.name.toLowerCase() === newProductData.name.toLowerCase());
+     if (existingItem) {
+         toast({ title: "Error", description: `El producto "${newProductData.name}" ya existe.`, variant: "destructive" });
+         return;
+     }
+
+
+     const newId = inventory.length > 0 ? Math.max(...inventory.map(item => item.id)) + 1 : 1;
+     const newProduct: InventoryItem = {
+       id: newId,
+       name: newProductData.name,
+       stock: stockValue,
+     };
+
+     setInventory(prevInventory => [...prevInventory, newProduct].sort((a, b) => a.name.localeCompare(b.name))); // Sort alphabetically
+     setNewProductData({ name: '', stock: '' }); // Reset form
+     setIsAddProductDialogOpen(false); // Close dialog
+     toast({ title: "Éxito", description: `Producto "${newProduct.name}" añadido con ${newProduct.stock} unidades.` });
+   };
+
+
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Gestión del Inventario</h1>
-        {/* Removed Add Product Button and Dialog */}
+         {/* Add Product Button and Dialog */}
+        <Dialog open={isAddProductDialogOpen} onOpenChange={setIsAddProductDialogOpen}>
+            <DialogTrigger asChild>
+                <Button>
+                    <PlusCircle className="mr-2 h-4 w-4" /> Añadir Productos
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>Añadir Nuevo Producto</DialogTitle>
+                    <DialogDescription>
+                        Ingrese el nombre y la cantidad inicial del nuevo producto.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="product-name" className="text-right">
+                            Nombre
+                        </Label>
+                        <Input
+                            id="product-name"
+                            value={newProductData.name}
+                            onChange={(e) => handleInputChange(e, 'name')}
+                            className="col-span-3"
+                            required
+                            placeholder="Nombre del producto"
+                        />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="product-stock" className="text-right">
+                            Cantidad
+                        </Label>
+                        <Input
+                            id="product-stock"
+                            type="number"
+                            value={newProductData.stock}
+                            onChange={(e) => handleInputChange(e, 'stock')}
+                            className="col-span-3"
+                            required
+                            min="0"
+                            placeholder="0"
+                        />
+                    </div>
+                </div>
+                <DialogFooter>
+                    <DialogClose asChild>
+                        <Button type="button" variant="secondary">Cancelar</Button>
+                    </DialogClose>
+                    <Button type="button" onClick={handleAddProduct}>Añadir Producto</Button> {/* Changed button text */}
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
       </div>
 
       <Card>
