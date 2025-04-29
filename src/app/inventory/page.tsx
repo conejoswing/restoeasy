@@ -65,19 +65,74 @@ const initialInventory: InventoryItem[] = predefinedItemNames.map((name, index) 
   stock: 0,
 }));
 
+// Storage key for localStorage
+const INVENTORY_STORAGE_KEY = 'restaurantInventory';
+
 
 export default function InventoryPage() {
   // Role checks and redirection are now handled by AuthProvider
   const { isAuthenticated, isLoading, userRole } = useAuth();
   const router = useRouter();
-  const [inventory, setInventory] = useState<InventoryItem[]>(initialInventory);
+  // Initialize state with empty array, will be populated from localStorage or initialInventory
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [isInventoryInitialized, setIsInventoryInitialized] = useState(false); // Track initialization
   const [newProductData, setNewProductData] = useState<{ name: string; stock: string }>({ name: '', stock: '' });
   const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  // Loading state is handled by AuthProvider wrapper in layout.tsx
-   if (isLoading) {
-     return null; // Or a minimal loading indicator if preferred
+  // Load inventory from localStorage on mount
+  useEffect(() => {
+    if (isInventoryInitialized) return; // Prevent re-running
+
+    console.log("Initializing inventory from localStorage...");
+    const storedInventory = localStorage.getItem(INVENTORY_STORAGE_KEY);
+    let loadedInventory: InventoryItem[] = [];
+
+    if (storedInventory) {
+      try {
+        const parsed = JSON.parse(storedInventory);
+        if (Array.isArray(parsed)) {
+          // Basic validation for item structure could be added here
+          loadedInventory = parsed;
+          console.log("Loaded inventory:", loadedInventory);
+        } else {
+          console.warn("Invalid inventory data found in localStorage, using initial data.");
+          loadedInventory = initialInventory;
+        }
+      } catch (error) {
+        console.error("Failed to parse stored inventory:", error);
+        loadedInventory = initialInventory; // Fallback to initial on error
+      }
+    } else {
+      console.log("No inventory found in localStorage, using initial data.");
+      loadedInventory = initialInventory; // Use initial if nothing in storage
+    }
+
+    // Sort loaded or initial inventory alphabetically by name
+    loadedInventory.sort((a, b) => a.name.localeCompare(b.name));
+    setInventory(loadedInventory);
+    setIsInventoryInitialized(true); // Mark as initialized
+    console.log("Inventory initialization complete.");
+
+  }, [isInventoryInitialized]); // Run only once
+
+  // Save inventory to localStorage whenever it changes
+  useEffect(() => {
+    if (!isInventoryInitialized) return; // Only save after initial load
+
+    console.log("Saving inventory to localStorage...");
+    try {
+      localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify(inventory));
+      console.log("Inventory saved.");
+    } catch (error) {
+      console.error("Failed to save inventory to localStorage:", error);
+      toast({ title: "Error", description: "No se pudo guardar el inventario.", variant: "destructive" });
+    }
+  }, [inventory, isInventoryInitialized]); // Run when inventory or initialization state changes
+
+   // Loading state is handled by AuthProvider wrapper in layout.tsx
+   if (isLoading || !isInventoryInitialized) { // Wait for auth and local state init
+     return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
    }
    // If not authenticated or not admin, AuthProvider will redirect
    if (!isAuthenticated || userRole !== 'admin') {
@@ -115,7 +170,8 @@ export default function InventoryPage() {
        stock: stockValue,
      };
 
-     setInventory(prevInventory => [...prevInventory, newProduct].sort((a, b) => a.name.localeCompare(b.name))); // Sort alphabetically
+     // Update state, which will trigger the useEffect to save to localStorage
+     setInventory(prevInventory => [...prevInventory, newProduct].sort((a, b) => a.name.localeCompare(b.name)));
      setNewProductData({ name: '', stock: '' }); // Reset form
      setIsAddProductDialogOpen(false); // Close dialog
      toast({ title: "Éxito", description: `Producto "${newProduct.name}" añadido con ${newProduct.stock} unidades.` });
@@ -123,6 +179,7 @@ export default function InventoryPage() {
 
    const handleDeleteProduct = (idToDelete: number) => {
         const productToDelete = inventory.find(item => item.id === idToDelete);
+        // Update state, which will trigger the useEffect to save to localStorage
         setInventory(prevInventory => prevInventory.filter(item => item.id !== idToDelete));
         toast({ title: "Eliminado", description: `Producto "${productToDelete?.name}" eliminado.`, variant: "destructive" });
    };
@@ -136,7 +193,7 @@ export default function InventoryPage() {
         <Dialog open={isAddProductDialogOpen} onOpenChange={setIsAddProductDialogOpen}>
             <DialogTrigger asChild>
                 <Button>
-                    <PlusCircle className="mr-2 h-4 w-4" /> Añadir Productos
+                    <PlusCircle className="mr-2 h-4 w-4" /> Añadir Producto
                 </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[425px]">
@@ -195,50 +252,53 @@ export default function InventoryPage() {
               <TableHead className="text-right w-20">Eliminar</TableHead> {/* Added Delete Header */}
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {inventory.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell className="font-medium">{item.name}</TableCell>
-                <TableCell className="text-center w-24">{item.stock}</TableCell>
-                <TableCell className="text-right">
-                    {/* Delete Button with Confirmation Dialog */}
-                    <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                           <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive/90" title="Eliminar Producto">
-                              <Trash2 className="h-4 w-4" />
-                              <span className="sr-only">Eliminar</span>
-                           </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                            <AlertDialogHeader>
-                                <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                    Esta acción no se puede deshacer. Esto eliminará permanentemente el producto "{item.name}" del inventario.
-                                </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction
-                                    onClick={() => handleDeleteProduct(item.id)}
-                                    className={cn(buttonVariants({ variant: "destructive" }))}
-                                >
-                                    Eliminar
-                                </AlertDialogAction>
-                            </AlertDialogFooter>
-                        </AlertDialogContent>
-                    </AlertDialog>
-                </TableCell>
-              </TableRow>
-            ))}
-            {inventory.length === 0 && (
-              <TableRow>
-                 {/* Adjusted colSpan to 3 */}
-                <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
-                  No hay productos en el inventario.
-                </TableCell>
-              </TableRow>
-            )}
-          </TableBody>
+          {/* Render TableBody only on the client after initialization */}
+          {isInventoryInitialized && (
+            <TableBody>
+                {inventory.map((item) => (
+                <TableRow key={item.id}>
+                    <TableCell className="font-medium">{item.name}</TableCell>
+                    <TableCell className="text-center w-24">{item.stock}</TableCell>
+                    <TableCell className="text-right">
+                        {/* Delete Button with Confirmation Dialog */}
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive/90" title="Eliminar Producto">
+                                <Trash2 className="h-4 w-4" />
+                                <span className="sr-only">Eliminar</span>
+                            </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        Esta acción no se puede deshacer. Esto eliminará permanentemente el producto "{item.name}" del inventario.
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                    <AlertDialogAction
+                                        onClick={() => handleDeleteProduct(item.id)}
+                                        className={cn(buttonVariants({ variant: "destructive" }))}
+                                    >
+                                        Eliminar
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    </TableCell>
+                </TableRow>
+                ))}
+                {inventory.length === 0 && (
+                <TableRow>
+                    {/* Adjusted colSpan to 3 */}
+                    <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
+                    No hay productos en el inventario.
+                    </TableCell>
+                </TableRow>
+                )}
+            </TableBody>
+          )}
         </Table>
       </Card>
     </div>
