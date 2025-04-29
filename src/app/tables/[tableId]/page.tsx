@@ -1009,16 +1009,16 @@ export default function TableDetailPage() {
                     // Example: A specific burger might use 'pan de hamburguesa grande'
                     // if (orderItem.name === 'Super Big Cami') { inventoryItemName = 'pan de hamburguesa grande'; }
                     default:
-                        // Try to find a generic match (e.g., if item name contains 'grande' or 'chico')
+                        // Try to find a generic match (e.g., if item name contains 'grande' or 'normal')
                         if (orderItem.name.toLowerCase().includes('grande')) {
                             inventoryItemName = orderItem.category.includes('hamburguesa') ? 'pan de hamburguesa grande' : 'pan especial grande';
-                        } else if (orderItem.name.toLowerCase().includes('normal') || orderItem.name.toLowerCase().includes('chico')) {
-                             inventoryItemName = orderItem.category.includes('hamburguesa') ? 'pan de hamburguesa chico' : 'pan especial chico';
+                        } else if (orderItem.name.toLowerCase().includes('normal')) {
+                             inventoryItemName = orderItem.category.includes('hamburguesa') ? 'pan de hamburguesa normal' : 'pan especial normal'; // Use 'normal' names
                         } else if (orderItem.category === 'Completos Vienesas' || orderItem.category === 'Completos As' || orderItem.category === 'Churrascos') {
-                            // Fallback for items without size indication, assume 'chico' or 'marraqueta' if available
+                            // Fallback for items without size indication, assume 'normal' or 'marraqueta' if available
                              inventoryItemName = 'pan de marraqueta'; // Default to marraqueta if specific size pan not found
                              if (!inventoryMap.has(inventoryItemName)) {
-                                inventoryItemName = 'pan especial chico'; // Fallback further if marraqueta not in inventory
+                                inventoryItemName = 'pan especial normal'; // Fallback further if marraqueta not in inventory
                              }
                         }
                         // Add more complex mapping if needed based on ingredients
@@ -1394,6 +1394,7 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
 
 
 

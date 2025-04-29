@@ -52,9 +52,9 @@ interface InventoryItem {
 // Predefined items for initial inventory state (name only)
 const predefinedItemNames: string[] = [
   'Pan especial grande',
-  'Pan especial chico',
+  'Pan especial normal', // Changed from 'Pan especial chico'
   'Pan de marraqueta',
-  'Pan de hamburguesa chico',
+  'Pan de hamburguesa normal', // Changed from 'Pan de hamburguesa chico'
   'Pan de hamburguesa grande',
   'Bebida 1.5Lt', // Added from menu
   'Lata', // Added from menu
