@@ -997,15 +997,27 @@ export default function TableDetailPage() {
             // Create a map for faster inventory lookup
             const inventoryMap = new Map(currentInventory.map(item => [item.name.toLowerCase(), item]));
 
-            // Items that use 'pan especial normal'
-            const normalEspecialItems = [
+            // Items that use 'pan especial normal' in Completos Vienesas
+            const vienesasNormalEspecialItems = [
                 'completo normal', 'dinamico normal', 'hot dog normal',
                 'italiano normal', 'palta normal', 'tomate normal'
             ];
-            // Items that use 'pan especial grande'
-             const grandeEspecialItems = [
+            // Items that use 'pan especial grande' in Completos Vienesas
+             const vienesasGrandeEspecialItems = [
                 'completo grande', 'dinamico grande', 'hot dog grande',
                 'italiano grande', 'palta grande', 'tomate grande'
+            ];
+             // Items that use 'pan especial normal' in Completos As
+            const asNormalEspecialItems = [
+                'completo normal', 'dinamico normal', 'chacarero normal', 'italiano normal',
+                'palta normal', 'tomate normal', 'napolitano normal', 'queso champiñon normal',
+                'queso normal', 'solo carne normal'
+            ];
+             // Items that use 'pan especial grande' in Completos As
+            const asGrandeEspecialItems = [
+                'completo grande', 'dinamico grande', 'chacarero grande', 'italiano grande',
+                'palta grande', 'tomate grande', 'napolitano grande', 'queso champiñon grande',
+                'queso grande', 'solo carne grande'
             ];
 
 
@@ -1020,14 +1032,19 @@ export default function TableDetailPage() {
                         inventoryItemName = orderItemNameLower; // Match exact name like "bebida 1.5lt" or "lata"
                         break;
                     case 'Completos Vienesas':
-                        // Map normal-sized items to 'pan especial normal'
-                        if (normalEspecialItems.includes(orderItemNameLower)) {
+                        if (vienesasNormalEspecialItems.includes(orderItemNameLower)) {
                             inventoryItemName = 'pan especial normal';
-                        } else if (grandeEspecialItems.includes(orderItemNameLower)) { // Map large-sized items to 'pan especial grande'
+                        } else if (vienesasGrandeEspecialItems.includes(orderItemNameLower)) {
                             inventoryItemName = 'pan especial grande';
                         }
                         break;
                     case 'Completos As':
+                         if (asNormalEspecialItems.includes(orderItemNameLower)) {
+                            inventoryItemName = 'pan especial normal';
+                         } else if (asGrandeEspecialItems.includes(orderItemNameLower)) {
+                            inventoryItemName = 'pan especial grande';
+                         }
+                         break;
                     case 'Churrascos':
                     case 'Promo Churrasco':
                     case 'Promo Mechada':
@@ -1425,6 +1442,7 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
 
 
 
