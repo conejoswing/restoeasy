@@ -33,9 +33,12 @@ interface StaffMember {
   role: string; // Job title (e.g., 'Mesera')
   avatarUrl?: string; // Optional avatar URL
   accessLevel?: AccessLevel; // Optional: 'admin', 'worker', or 'none' for login privileges
+  // Password should NOT be stored directly in the main state for security.
+  // It will only be handled temporarily in the dialog state.
 }
 
 // Mock data for staff members - Added accessLevel
+// DO NOT add passwords here.
 const initialStaff: StaffMember[] = [
   { id: 1, name: 'Camila Pérez', role: 'Dueña / Gerente', avatarUrl: 'https://picsum.photos/id/237/50', accessLevel: 'admin' },
   { id: 2, name: 'Juan García', role: 'Cocinero Principal', avatarUrl: 'https://picsum.photos/id/238/50', accessLevel: 'worker' },
@@ -51,8 +54,8 @@ export default function StaffPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentStaffMember, setCurrentStaffMember] = useState<StaffMember | null>(null);
-  // Updated state to include accessLevel
-  const [newStaffData, setNewStaffData] = useState<{ name: string; role: string; accessLevel: AccessLevel }>({ name: '', role: '', accessLevel: 'none' });
+  // Updated state to include accessLevel and password
+  const [newStaffData, setNewStaffData] = useState<{ name: string; role: string; accessLevel: AccessLevel; password?: string }>({ name: '', role: '', accessLevel: 'none', password: '' });
   const { toast } = useToast();
 
   // Loading state is handled by AuthProvider wrapper in layout.tsx
@@ -81,16 +84,33 @@ export default function StaffPage() {
       toast({ title: "Error", description: "Por favor, complete nombre y cargo.", variant: "destructive" });
       return;
     }
-    // Access level is optional to force setting, default is 'none'
+    // Password validation (optional, e.g., check if adding a user with privileges)
+    if (!isEditing && newStaffData.accessLevel !== 'none' && !newStaffData.password) {
+        toast({ title: "Error", description: "Se requiere contraseña para usuarios con privilegios.", variant: "destructive" });
+        return;
+    }
+    // Add more robust password validation if needed (length, complexity)
+
+    // Security Warning: In a real application, HASH the password here before saving!
+    // const hashedPassword = await hashPassword(newStaffData.password); // Example
 
     if (isEditing && currentStaffMember) {
       // Edit existing staff member - include accessLevel
+      // We don't update the password in the main staff state for display/security reasons.
+      // Password changes would typically involve a separate secure process.
       setStaff(staff.map(member =>
         member.id === currentStaffMember.id
           ? { ...member, name: newStaffData.name, role: newStaffData.role, accessLevel: newStaffData.accessLevel }
           : member
       ));
-      toast({ title: "Éxito", description: "Miembro del personal actualizado." });
+       // If password was entered during edit, show a generic success message.
+       // Actual password update logic would happen server-side.
+      if (newStaffData.password) {
+           toast({ title: "Éxito", description: "Miembro del personal actualizado. La contraseña se actualizó (simulado)." });
+       } else {
+           toast({ title: "Éxito", description: "Miembro del personal actualizado." });
+       }
+
     } else {
       // Add new staff member - include accessLevel
       const newId = staff.length > 0 ? Math.max(...staff.map(s => s.id)) + 1 : 1;
@@ -99,10 +119,14 @@ export default function StaffPage() {
         name: newStaffData.name,
         role: newStaffData.role,
         accessLevel: newStaffData.accessLevel, // Save the selected access level
-        // Optionally add a default or random avatar
-        avatarUrl: `https://picsum.photos/seed/${newId}/50` // Use ID for consistent random image
+        // DO NOT store the plaintext password in the main staff state.
+        // avatarUrl: `https://picsum.photos/seed/${newId}/50` // Use ID for consistent random image
+        // Use a placeholder or leave empty
+        avatarUrl: `https://picsum.photos/seed/${newStaffData.name}/50` // Use name for consistent random image based on name
       };
       setStaff([...staff, newMember]);
+      // Log the password temporarily for demo purposes - DO NOT DO THIS IN PRODUCTION
+      console.log(`Adding user: ${newStaffData.name}, Password (plaintext): ${newStaffData.password}`);
       toast({ title: "Éxito", description: "Nuevo miembro del personal añadido." });
     }
 
@@ -112,16 +136,16 @@ export default function StaffPage() {
   const openEditDialog = (member: StaffMember) => {
     setIsEditing(true);
     setCurrentStaffMember(member);
-    // Pre-fill with existing data, including accessLevel or default to 'none'
-    setNewStaffData({ name: member.name, role: member.role, accessLevel: member.accessLevel ?? 'none' });
+    // Pre-fill with existing data, leave password blank for editing for security.
+    setNewStaffData({ name: member.name, role: member.role, accessLevel: member.accessLevel ?? 'none', password: '' });
     setIsDialogOpen(true);
   };
 
   const openAddDialog = () => {
     setIsEditing(false);
     setCurrentStaffMember(null);
-    // Reset state including accessLevel
-    setNewStaffData({ name: '', role: '', accessLevel: 'none' });
+    // Reset state including accessLevel and password
+    setNewStaffData({ name: '', role: '', accessLevel: 'none', password: '' });
     setIsDialogOpen(true);
   };
 
@@ -129,8 +153,8 @@ export default function StaffPage() {
     setIsDialogOpen(false);
     setIsEditing(false);
     setCurrentStaffMember(null);
-    // Reset state including accessLevel
-    setNewStaffData({ name: '', role: '', accessLevel: 'none' });
+    // Reset state including accessLevel and password
+    setNewStaffData({ name: '', role: '', accessLevel: 'none', password: '' });
   };
 
   const handleDeleteStaff = (id: number) => {
@@ -172,6 +196,7 @@ export default function StaffPage() {
                   onChange={(e) => handleInputChange(e, 'name')}
                   className="col-span-3"
                   required
+                  autoComplete="off"
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
@@ -184,6 +209,7 @@ export default function StaffPage() {
                   onChange={(e) => handleInputChange(e, 'role')}
                   className="col-span-3"
                   required
+                  autoComplete="off"
                 />
               </div>
               {/* Add Access Level Selection */}
@@ -205,13 +231,29 @@ export default function StaffPage() {
                    </SelectContent>
                  </Select>
               </div>
+               {/* Add Password Input - Conditionally required if accessLevel is not 'none' */}
+               {(newStaffData.accessLevel !== 'none' || isEditing) && ( // Show if has privileges or editing (optional update)
+                 <div className="grid grid-cols-4 items-center gap-4">
+                     <Label htmlFor="password" className="text-right">
+                         Contraseña {/* Password */}
+                     </Label>
+                     <Input
+                         id="password"
+                         type="password"
+                         value={newStaffData.password ?? ''}
+                         onChange={(e) => handleInputChange(e, 'password')}
+                         className="col-span-3"
+                         placeholder={isEditing ? "Dejar en blanco para no cambiar" : "Requerida si tiene privilegios"}
+                         required={!isEditing && newStaffData.accessLevel !== 'none'} // Required only when adding a privileged user
+                         autoComplete="new-password" // Help browser password managers
+                     />
+                 </div>
+               )}
               {/* Add Avatar URL input if needed */}
             </div>
             <DialogFooter>
-              {/* Use DialogClose for the Cancel button - Removed asChild */}
-              <DialogClose>
-                 <Button type="button" variant="secondary" onClick={closeDialog}>Cancelar</Button> {/* Added onClick to ensure state reset */}
-               </DialogClose>
+              {/* Use DialogClose for the Cancel button */}
+               <Button type="button" variant="secondary" onClick={closeDialog}>Cancelar</Button>
               <Button type="submit" onClick={handleAddOrEditStaff}>
                 {isEditing ? 'Guardar Cambios' : 'Añadir Personal'} {/* Save Changes / Add Staff */}
               </Button>
@@ -239,7 +281,8 @@ export default function StaffPage() {
             </CardHeader>
             <CardContent className="flex flex-col items-center text-center">
               <Avatar className="h-16 w-16 mb-2">
-                <AvatarImage src={member.avatarUrl || '/placeholder-avatar.png'} alt={member.name} />
+                 {/* Use name as seed for picsum for consistency */}
+                 <AvatarImage src={member.avatarUrl || `https://picsum.photos/seed/${member.name}/50`} alt={member.name} />
                 <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('')}</AvatarFallback> {/* Initials */}
               </Avatar>
               <p className="text-xs text-muted-foreground">{member.role}</p>
@@ -259,4 +302,3 @@ export default function StaffPage() {
     </div>
   );
 }
-
