@@ -997,31 +997,55 @@ export default function TableDetailPage() {
             // Create a map for faster inventory lookup
             const inventoryMap = new Map(currentInventory.map(item => [item.name.toLowerCase(), item]));
 
+            // Items that use 'pan especial normal'
+            const normalEspecialItems = [
+                'completo normal', 'dinamico normal', 'hot dog normal',
+                'italiano normal', 'palta normal', 'tomate normal'
+            ];
+
             // Iterate through the paid items and decrease stock
             pendingPaymentOrder.forEach(orderItem => {
                 // Simple mapping logic (can be expanded)
                 let inventoryItemName = '';
+                const orderItemNameLower = orderItem.name.toLowerCase();
+
                 switch (orderItem.category) {
                     case 'Bebidas':
-                        inventoryItemName = orderItem.name.toLowerCase(); // Match exact name like "bebida 1.5lt" or "lata"
+                        inventoryItemName = orderItemNameLower; // Match exact name like "bebida 1.5lt" or "lata"
                         break;
-                    // Add cases for other categories and map them to inventory item names
-                    // Example: A specific burger might use 'pan de hamburguesa grande'
-                    // if (orderItem.name === 'Super Big Cami') { inventoryItemName = 'pan de hamburguesa grande'; }
-                    default:
-                        // Try to find a generic match (e.g., if item name contains 'grande' or 'normal')
-                        if (orderItem.name.toLowerCase().includes('grande')) {
-                            inventoryItemName = orderItem.category.includes('hamburguesa') ? 'pan de hamburguesa grande' : 'pan especial grande';
-                        } else if (orderItem.name.toLowerCase().includes('normal')) {
-                             inventoryItemName = orderItem.category.includes('hamburguesa') ? 'pan de hamburguesa normal' : 'pan especial normal'; // Use 'normal' names
-                        } else if (orderItem.category === 'Completos Vienesas' || orderItem.category === 'Completos As' || orderItem.category === 'Churrascos') {
-                            // Fallback for items without size indication, assume 'normal' or 'marraqueta' if available
-                             inventoryItemName = 'pan de marraqueta'; // Default to marraqueta if specific size pan not found
-                             if (!inventoryMap.has(inventoryItemName)) {
-                                inventoryItemName = 'pan especial normal'; // Fallback further if marraqueta not in inventory
-                             }
+                    case 'Completos Vienesas':
+                        // Map normal-sized items to 'pan especial normal'
+                        if (normalEspecialItems.includes(orderItemNameLower)) {
+                            inventoryItemName = 'pan especial normal';
+                        } else if (orderItemNameLower.includes('grande')) {
+                            inventoryItemName = 'pan especial grande';
                         }
-                        // Add more complex mapping if needed based on ingredients
+                        break;
+                    case 'Completos As':
+                    case 'Churrascos':
+                    case 'Promo Churrasco':
+                    case 'Promo Mechada':
+                         if (orderItemNameLower.includes('grande')) {
+                            inventoryItemName = 'pan especial grande';
+                        } else if (orderItemNameLower.includes('normal')) {
+                             inventoryItemName = 'pan especial normal';
+                        } else {
+                            // Default logic for other items in these categories (e.g., specific promos)
+                            inventoryItemName = 'pan de marraqueta';
+                            if (!inventoryMap.has(inventoryItemName)) {
+                               inventoryItemName = 'pan especial normal';
+                            }
+                        }
+                        break;
+                    case 'Hamburguesas':
+                        if (orderItemNameLower.includes('grande') || orderItemNameLower.includes('doble') || orderItemNameLower.includes('super')) {
+                           inventoryItemName = 'pan de hamburguesa grande';
+                        } else {
+                           inventoryItemName = 'pan de hamburguesa normal';
+                        }
+                        break;
+                    default:
+                        // Fallback or specific mapping for other categories if needed
                         break;
                 }
 
@@ -1394,6 +1418,7 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
 
 
 
