@@ -609,9 +609,9 @@ export default function ProductsPage() {
                 <TableRow>
                 <TableHead>Producto</TableHead>
                 <TableHead>Categoría</TableHead>
-                <TableHead>Descripción</TableHead> {/* Changed header */}
+                <TableHead>Descripción</TableHead>{/* Changed header */}
                 <TableHead className="text-right">Precio Base</TableHead>
-                 <TableHead className="text-center w-20">Editar</TableHead> {/* Adjusted width for one button */}
+                 <TableHead className="text-center w-20">Editar</TableHead>{/* Adjusted width for one button */}
                 </TableRow>
             </TableHeader>
             <TableBody>
@@ -642,7 +642,7 @@ export default function ProductsPage() {
                 ))}
                 {filteredProducts.length === 0 && (
                 <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground"> {/* Increased colSpan */}
+                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">{/* Increased colSpan */}
                      {searchTerm ? 'No se encontraron productos.' : 'No hay productos para mostrar.'}
                     </TableCell>
                 </TableRow>

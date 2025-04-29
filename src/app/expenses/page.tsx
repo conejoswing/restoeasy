@@ -546,7 +546,7 @@ export default function CashRegisterPage() {
               <TableHead>Categoría</TableHead>
               <TableHead>Descripción</TableHead>
               <TableHead className="text-right">Monto</TableHead>
-              <TableHead className="text-right">Método</TableHead> {/* Added Payment Method Column */}
+              <TableHead className="text-right">Método</TableHead>{/* Added Payment Method Column */}
               {/* <TableHead className="text-right">Acciones</TableHead> */}
             </TableRow>
           </TableHeader>
@@ -571,7 +571,7 @@ export default function CashRegisterPage() {
               ))}
               {cashMovements.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center text-muted-foreground"> {/* Increased colSpan to 5 */}
+                  <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">{/* Increased colSpan to 5 */}
                     Aún no se han registrado movimientos de caja hoy. ¡Registre algunos!
                   </TableCell>
                 </TableRow>

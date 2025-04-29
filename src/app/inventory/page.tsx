@@ -249,7 +249,7 @@ export default function InventoryPage() {
             <TableRow>
               <TableHead>Producto</TableHead>
               <TableHead className="text-center">Cantidad</TableHead>
-              <TableHead className="text-right w-20">Eliminar</TableHead> {/* Added Delete Header */}
+              <TableHead className="text-right w-20">Eliminar</TableHead>{/* Added Delete Header */}
             </TableRow>
           </TableHeader>
           {/* Render TableBody only on the client after initialization */}
