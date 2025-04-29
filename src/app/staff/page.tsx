@@ -109,7 +109,8 @@ export default function StaffPage() {
 
   const handleDeleteStaff = (id: number) => {
      const memberToDelete = staff.find(m => m.id === id);
-     if (confirm(`¿Está seguro de que desea eliminar a ${memberToDelete?.name}?`)) { // Confirmation dialog
+     // Use browser confirm for simplicity, consider a confirmation dialog for better UX
+     if (confirm(`¿Está seguro de que desea eliminar a ${memberToDelete?.name}?`)) {
         setStaff(staff.filter(member => member.id !== id));
         toast({ title: "Eliminado", description: `${memberToDelete?.name} eliminado del personal.`, variant: "destructive" });
      }
@@ -128,7 +129,8 @@ export default function StaffPage() {
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Gestión de Personal</h1> {/* Staff Management */}
-        <Dialog open={isDialogOpen} onOpenChange={closeDialog}>
+        {/* Wrap the Add button with DialogTrigger */}
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={openAddDialog}>
               <PlusCircle className="mr-2 h-4 w-4" /> Añadir Personal {/* Add Staff */}
@@ -169,8 +171,8 @@ export default function StaffPage() {
               {/* Add Avatar URL input if needed */}
             </div>
             <DialogFooter>
-               {/* Wrap Button in DialogClose */}
-               <DialogClose asChild>
+              {/* Use DialogClose for the Cancel button */}
+              <DialogClose asChild>
                  <Button type="button" variant="secondary">Cancelar</Button>
                </DialogClose>
               <Button type="submit" onClick={handleAddOrEditStaff}>
@@ -187,6 +189,7 @@ export default function StaffPage() {
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">{member.name}</CardTitle>
               <div className="flex items-center space-x-1">
+                 {/* Edit Button now opens the same dialog but in edit mode */}
                  <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => openEditDialog(member)}>
                    <Edit className="h-4 w-4" />
                    <span className="sr-only">Editar</span>
@@ -213,3 +216,4 @@ export default function StaffPage() {
     </div>
   );
 }
+
