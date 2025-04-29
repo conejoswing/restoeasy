@@ -2,9 +2,9 @@
 'use client';
 
 import * as React from 'react';
-import { useState, useEffect } from 'react'; // Import useEffect
-import { useRouter } from 'next/navigation'; // Import useRouter
-import { useAuth } from '@/context/AuthContext'; // Import useAuth
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
 import {
   Table,
   TableBody,
@@ -24,11 +24,24 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogClose,
-} from '@/components/ui/dialog'; // Import Dialog components
-import { Label } from '@/components/ui/label'; // Import Label
-import { PlusCircle, MinusCircle } from 'lucide-react';
+} from '@/components/ui/dialog';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { Label } from '@/components/ui/label';
+import { PlusCircle, Trash2 } from 'lucide-react'; // Added Trash2 icon
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
+import { buttonVariants } from '@/components/ui/button'; // Import buttonVariants
 
 interface InventoryItem {
   id: number;
@@ -71,37 +84,6 @@ export default function InventoryPage() {
      return null; // Prevent rendering content before redirect
    }
 
-
-  const handleIncreaseStock = (id: number) => {
-    setInventory(inventory.map(item =>
-      item.id === id ? { ...item, stock: item.stock + 1 } : item
-    ));
-    const itemName = inventory.find(item => item.id === id)?.name;
-    toast({ title: "Stock Incrementado", description: `+1 unidad de ${itemName}.` });
-  };
-
-  const handleDecreaseStock = (id: number) => {
-    let itemName = '';
-    setInventory(inventory.map(item => {
-      if (item.id === id) {
-        itemName = item.name;
-        if (item.stock > 0) {
-          return { ...item, stock: item.stock - 1 };
-        }
-      }
-      return item;
-    }));
-    const updatedItem = inventory.find(item => item.id === id);
-    if (updatedItem && updatedItem.stock >= 0) {
-      const originalItem = inventory.find(item => item.id === id);
-      if (originalItem && originalItem.stock > 0) {
-        toast({ title: "Stock Reducido", description: `-1 unidad de ${itemName}.`, variant: "destructive" });
-      } else {
-        toast({ title: "Sin Stock", description: `${itemName} ya no tiene existencias.`, variant: "destructive" });
-      }
-    }
-  };
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, key: keyof typeof newProductData) => {
     setNewProductData((prev) => ({ ...prev, [key]: e.target.value }));
   };
@@ -137,6 +119,12 @@ export default function InventoryPage() {
      setNewProductData({ name: '', stock: '' }); // Reset form
      setIsAddProductDialogOpen(false); // Close dialog
      toast({ title: "Éxito", description: `Producto "${newProduct.name}" añadido con ${newProduct.stock} unidades.` });
+   };
+
+   const handleDeleteProduct = (idToDelete: number) => {
+        const productToDelete = inventory.find(item => item.id === idToDelete);
+        setInventory(prevInventory => prevInventory.filter(item => item.id !== idToDelete));
+        toast({ title: "Eliminado", description: `Producto "${productToDelete?.name}" eliminado.`, variant: "destructive" });
    };
 
 
@@ -204,7 +192,7 @@ export default function InventoryPage() {
             <TableRow>
               <TableHead>Producto</TableHead>
               <TableHead className="text-center">Cantidad</TableHead>
-              {/* Removed Acciones column */}
+              <TableHead className="text-right w-20">Eliminar</TableHead> {/* Added Delete Header */}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -212,13 +200,40 @@ export default function InventoryPage() {
               <TableRow key={item.id}>
                 <TableCell className="font-medium">{item.name}</TableCell>
                 <TableCell className="text-center w-24">{item.stock}</TableCell>
-                {/* Removed Acciones cell */}
+                <TableCell className="text-right">
+                    {/* Delete Button with Confirmation Dialog */}
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                           <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive/90" title="Eliminar Producto">
+                              <Trash2 className="h-4 w-4" />
+                              <span className="sr-only">Eliminar</span>
+                           </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    Esta acción no se puede deshacer. Esto eliminará permanentemente el producto "{item.name}" del inventario.
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction
+                                    onClick={() => handleDeleteProduct(item.id)}
+                                    className={cn(buttonVariants({ variant: "destructive" }))}
+                                >
+                                    Eliminar
+                                </AlertDialogAction>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                </TableCell>
               </TableRow>
             ))}
             {inventory.length === 0 && (
               <TableRow>
-                 {/* Adjusted colSpan to 2 */}
-                <TableCell colSpan={2} className="h-24 text-center text-muted-foreground">
+                 {/* Adjusted colSpan to 3 */}
+                <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
                   No hay productos en el inventario.
                 </TableCell>
               </TableRow>
