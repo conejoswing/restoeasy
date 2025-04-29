@@ -12,7 +12,7 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-  CardFooter,
+  CardFooter, // Make sure CardFooter is imported
 } from '@/components/ui/card';
 import {ScrollArea} from '@/components/ui/scroll-area';
 import {Separator} from '@/components/ui/separator';
@@ -32,6 +32,7 @@ import { isEqual } from 'lodash';
 import { cn } from '@/lib/utils';
 import type { CashMovement } from '@/app/expenses/page'; // Import CashMovement type
 import type { DeliveryInfo } from '@/components/app/delivery-dialog'; // Import DeliveryInfo type
+import DeliveryDialog from '@/components/app/delivery-dialog'; // Import DeliveryDialog
 
 interface MenuItem {
   id: number;
