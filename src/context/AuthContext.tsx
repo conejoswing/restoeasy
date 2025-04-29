@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import type { ReactNode } from 'react';
@@ -10,12 +11,14 @@ import { useToast } from '@/hooks/use-toast';
 type AccessLevel = 'admin' | 'worker' | 'none';
 
 // Define StaffMember interface (copied from StaffPage)
+// Note: This is used for demo login logic. Passwords are NOT stored securely.
 interface StaffMember {
   id: number;
   name: string;
   role: string; // Job title (e.g., 'Mesera')
   avatarUrl?: string; // Optional avatar URL
   accessLevel?: AccessLevel; // Optional: 'admin', 'worker', or 'none' for login privileges
+  // Password should NOT be stored directly in the main state for security.
 }
 
 // Use the same initial staff data as StaffPage for login checks
@@ -109,20 +112,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     let success = false;
     let role: UserRole = null;
 
-    // Find the user by name in the staff list
-    foundUser = initialStaff.find(member => member.name === user);
+    // --- Specific check for admin/admin credentials ---
+    if (user === 'admin' && pass === 'admin') {
+      success = true;
+      role = 'admin';
+    } else {
+      // --- Check against the initialStaff list for other users ---
+      // Find the user by name in the staff list
+      // IMPORTANT: In a real app, password checks should be secure (hashing)
+      foundUser = initialStaff.find(member => member.name === user);
 
-    if (foundUser) {
-      // Check password based on accessLevel
-      if (foundUser.accessLevel === 'admin' && pass === 'admin') {
-        success = true;
-        role = 'admin';
-      } else if (foundUser.accessLevel === 'worker' && pass === 'worker') { // Changed password check for worker
-        success = true;
-        role = 'worker';
+      if (foundUser) {
+        // Check password based on accessLevel (DEMO ONLY - insecure)
+        if (foundUser.accessLevel === 'admin' && pass === 'admin') { // Example admin password
+          success = true;
+          role = 'admin';
+        } else if (foundUser.accessLevel === 'worker' && pass === 'worker') { // Example worker password
+          success = true;
+          role = 'worker';
+        }
+        // Users with 'none' access level or incorrect password will fail
       }
-      // Users with 'none' access level or incorrect password will fail
     }
+
 
     // Handle login success or failure
     if (success && role) {
