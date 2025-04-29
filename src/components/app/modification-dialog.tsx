@@ -73,10 +73,15 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
 
   if (!item) return null;
 
-  // Filter out 'Porotos Verdes' if the item belongs to 'Completos As', 'Promo Churrasco', or 'Promo Mechada'
+  // Filter out specific modifications based on category
   const availableModifications = item.modifications?.filter(mod => {
+    // Exclude 'Porotos Verdes' for specific categories
     if (['Completos As', 'Promo Churrasco', 'Promo Mechada', 'Fajitas'].includes(item.category) && mod === 'Porotos Verdes') {
-      return false; // Exclude 'Porotos Verdes' for these categories
+      return false;
+    }
+    // Exclude 'Palta' and 'Tomate' for 'Hamburguesas' category
+    if (item.category === 'Hamburguesas' && (mod === 'Palta' || mod === 'Tomate')) {
+      return false;
     }
     return true; // Include all other modifications
   }) ?? [];
