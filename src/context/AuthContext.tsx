@@ -9,28 +9,26 @@ import type { StaffMember, AccessLevel } from '@/app/staff/page'; // Import Staf
 
 // Storage key for staff data
 const STAFF_STORAGE_KEY = 'restaurantStaff';
+// Storage key for passwords (session storage)
+const DEMO_PASSWORDS_KEY = 'demoPasswords';
 
 // Initial staff data ONLY used if localStorage is empty or invalid
-// Changed admin username to admin1
 const initialStaffFallback: StaffMember[] = [
   { id: 1, name: 'Camila Pérez', username: 'admin1', role: 'Dueña / Gerente', avatarUrl: 'https://picsum.photos/id/237/50', accessLevel: 'admin' },
   { id: 2, name: 'Juan García', username: 'worker', role: 'Cocinero Principal', avatarUrl: 'https://picsum.photos/id/238/50', accessLevel: 'worker' },
   { id: 4, name: 'Carlos López', username: 'carlos', role: 'Ayudante de Cocina', avatarUrl: 'https://picsum.photos/id/240/50', accessLevel: 'none' }, // Example with no login access
 ];
 
-// Demo passwords (replace with secure backend logic in production)
-// We store passwords in session storage for demo persistence within a session.
-const DEMO_PASSWORDS_KEY = 'demoPasswords'; // Session storage key
 
 // Function to get passwords, preferring session storage, then defaults
 const getDemoPasswords = (): Record<string, string> => {
-    console.log("AuthContext: Getting demo passwords...");
-    // Changed default admin password mapping to admin1: admin1
+    // Default admin password mapping: admin1: admin1
     let passwords: Record<string, string> = {
         admin1: 'admin1', // Default admin password
         worker: 'worker', // Default worker password
     };
-     // Try loading from session storage
+
+    // Try loading from session storage
     const storedPasswords = sessionStorage.getItem(DEMO_PASSWORDS_KEY);
     if (storedPasswords) {
         try {
@@ -38,7 +36,6 @@ const getDemoPasswords = (): Record<string, string> => {
             if (typeof parsed === 'object' && parsed !== null) {
                 // Ensure defaults exist if they were somehow removed from storage
                 passwords = { ...passwords, ...parsed }; // Merge stored over defaults
-                 console.log("AuthContext: Loaded passwords from session storage:", passwords);
             } else {
                 console.warn("AuthContext: Invalid password data in session storage, using defaults.");
             }
@@ -46,18 +43,19 @@ const getDemoPasswords = (): Record<string, string> => {
             console.error("AuthContext: Failed to parse stored passwords from session storage:", e);
             // Keep default passwords if parsing fails
         }
-    } else {
+    } else { // Line 46 where the error was reported
         console.log("AuthContext: No passwords found in session storage, initializing defaults.");
         // If nothing in session storage, save the defaults
         try {
             sessionStorage.setItem(DEMO_PASSWORDS_KEY, JSON.stringify(passwords));
             console.log("AuthContext: Saved default passwords to session storage.");
-        } catch (e) {
-            console.error("AuthContext: Failed to save default passwords to session storage:", e);
+        } catch (saveError) {
+            console.error("AuthContext: Failed to save default passwords to session storage:", saveError);
         }
     }
     return passwords;
 };
+
 
 // Function to update/add a password for a specific user
 const updateDemoPassword = (username: string, pass: string) => {
@@ -67,7 +65,7 @@ const updateDemoPassword = (username: string, pass: string) => {
     currentPasswords[usernameLower] = pass;
     try {
         sessionStorage.setItem(DEMO_PASSWORDS_KEY, JSON.stringify(currentPasswords));
-        console.log(`AuthContext: Password for ${usernameLower} updated in session storage (DEMO ONLY).`);
+        console.log(`AuthContext: Password updated for ${usernameLower} in session storage.`);
     } catch (e) {
          console.error("AuthContext: Failed to save updated passwords to session storage:", e);
     }
@@ -98,7 +96,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Load staff data from localStorage on initial mount
   useEffect(() => {
-     console.log("AuthContext: Loading staff from localStorage...");
      const storedStaff = localStorage.getItem(STAFF_STORAGE_KEY); // Read from localStorage
      let loadedStaff: StaffMember[] = [];
      let shouldInitializePasswords = false;
@@ -108,7 +105,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
          const parsed = JSON.parse(storedStaff);
          if (Array.isArray(parsed)) {
            loadedStaff = parsed; // Use stored data
-           console.log("AuthContext: Staff loaded successfully from localStorage.");
          } else {
            console.warn("AuthContext: Invalid staff data found in localStorage, using fallback.");
            loadedStaff = initialStaffFallback; // Fallback
@@ -125,7 +121,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
        shouldInitializePasswords = true; // Need to initialize passwords for fallback data
        // Attempt to save fallback data if nothing was found
        try {
-           localStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(loadedStaff));
+            localStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(loadedStaff));
             console.log("AuthContext: Saved fallback staff data to localStorage.");
        } catch (saveError) {
             console.error("AuthContext: Failed to save fallback staff data to localStorage:", saveError);
@@ -136,38 +132,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
      // Load/Initialize passwords after staff list is set/determined
      const currentPasswords = getDemoPasswords(); // Ensure passwords map is loaded/initialized
      if (shouldInitializePasswords) {
-          console.log("AuthContext: Initializing passwords for fallback staff...");
           // Initialize passwords for fallback users if needed
-          // Check for new admin username 'admin1'
+          // Ensure 'admin1' has a password
           if (!currentPasswords['admin1']) {
             updateDemoPassword('admin1', 'admin1');
           }
+          // Ensure 'worker' has a password
           if (!currentPasswords['worker']) {
-            // Initialize worker password ONLY if it doesn't exist. If it was set, keep it.
             updateDemoPassword('worker', 'worker');
           }
           // Add other initializations if necessary
      }
      console.log("AuthContext: Staff list and passwords initialization complete.");
+     setIsLoading(false); // Staff loaded, passwords initialized, set loading to false
   }, []); // Run only once on mount
 
 
   // Check authentication status and perform redirects
   useEffect(() => {
-     // Check if staff list is loaded (important for login logic and session validation)
-     if (staffList.length === 0) {
-         console.log("AuthContext: Waiting for staff list to initialize for session check...");
-         // Still loading if staff list is empty (might not be loaded from storage yet)
-         // Keep isLoading true until staff list is populated
+     // Don't run redirection logic until staff list is loaded AND initial loading is false
+     if (isLoading) {
          return;
      }
 
-     // Ensure password map is initialized before checking session
-     getDemoPasswords();
-
-     console.log("AuthContext: Checking session storage for authentication...");
     // Check session storage for authentication state
     const storedAuth = sessionStorage.getItem('isAuthenticated');
+    // Cast to UserRole is safe here as we validate against StaffMember type below
     const storedRole = sessionStorage.getItem('userRole') as UserRole;
     const storedUsername = sessionStorage.getItem('username'); // Get stored username
     let sessionValid = false;
@@ -175,21 +165,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (storedAuth === 'true' && storedRole && storedUsername) {
         console.log(`AuthContext: Found session data for user: ${storedUsername}, role: ${storedRole}`);
         // Check if the user stored in session still exists in the current staff list with the same role/privileges
+        // Username check is case insensitive
         const userExists = staffList.some(s =>
             s.username.toLowerCase() === storedUsername.toLowerCase() &&
-            s.accessLevel === storedRole &&
+            // Ensure the access level is one of the allowed login roles and matches the stored role
+            (s.accessLevel === 'admin' || s.accessLevel === 'worker') && // Check allowed access levels
+            s.accessLevel === storedRole && // Check if the *stored* role matches the current staff member's allowed access level
             s.accessLevel !== 'none' // Ensure they still have privileges
         );
 
         if (userExists) {
              console.log(`AuthContext: User ${storedUsername} validated from session.`);
-             setIsAuthenticated(true);
-             setUserRole(storedRole);
+             // Only set state if it's different from current state to avoid loops
+             if (!isAuthenticated) setIsAuthenticated(true);
+             if (userRole !== storedRole) setUserRole(storedRole);
              sessionValid = true;
         } else {
              console.warn(`AuthContext: Stored user (${storedUsername}) not found or role/privileges mismatch. Invalidating session.`);
-             setIsAuthenticated(false);
-             setUserRole(null);
+             if (isAuthenticated) setIsAuthenticated(false); // Only update if needed
+             if (userRole !== null) setUserRole(null); // Only update if needed
              sessionStorage.removeItem('isAuthenticated');
              sessionStorage.removeItem('userRole');
              sessionStorage.removeItem('username'); // Clear username too
@@ -197,64 +191,58 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     } else {
         console.log("AuthContext: No valid session data found.");
-        setIsAuthenticated(false);
-        setUserRole(null);
+        if (isAuthenticated) setIsAuthenticated(false); // Only update if needed
+        if (userRole !== null) setUserRole(null); // Only update if needed
     }
-    setIsLoading(false); // Finished checking initial state
 
     // --- Role-based Redirection Logic ---
-    // Only redirect *after* loading is complete and session state is determined
-    if (!isLoading) {
-      console.log(`AuthContext: Applying redirection logic. Path: ${pathname}, Auth: ${isAuthenticated}, Role: ${userRole}`);
-      const adminRoutes = ['/inventory', '/expenses', '/staff', '/products'];
-      const publicRoutes = ['/login'];
-      // Allow access to /tables and specific table IDs (/tables/*)
-      const allowedRoutesRegex = /^\/tables(\/[^/]+)?$/;
+    console.log(`AuthContext: Applying redirection logic. Path: ${pathname}, Auth: ${isAuthenticated}, Role: ${userRole}`);
+    const adminRoutes = ['/inventory', '/expenses', '/staff', '/products'];
+    const publicRoutes = ['/login'];
+    // Allow access to /tables and specific table IDs (/tables/*)
+    const allowedRoutesRegex = /^\/tables(\/[^/]+)?$/;
 
-      // Redirect authenticated users away from login
-      if (isAuthenticated && pathname === '/login') {
-         console.log("AuthContext: Redirecting authenticated user from /login to /tables");
-        router.push('/tables'); // Redirect logged-in users to tables page
+    // Redirect authenticated users away from login
+    if (isAuthenticated && pathname === '/login') {
+        console.log("AuthContext: Redirecting authenticated user from /login to /tables");
+        router.push('/tables');
         return;
-      }
-
-      // Redirect non-authenticated users to login if not on a public route or allowed route
-      // Allow non-auth users to stay on login page
-      if (!isAuthenticated && !publicRoutes.includes(pathname)) {
-         console.log(`AuthContext: Redirecting non-authenticated user from ${pathname} to /login`);
-        router.push('/login');
-        return;
-      }
-
-
-      // Role-specific redirects for authenticated users
-      if (isAuthenticated) {
-        if (userRole === 'worker' && !allowedRoutesRegex.test(pathname)) {
-           // If worker tries to access a non-allowed route
-           console.log(`AuthContext: Worker attempting to access restricted route ${pathname}. Redirecting to /tables.`);
-           toast({ title: 'Acceso Denegado', description: 'No tiene permiso para acceder a esta página.', variant: 'destructive' });
-           router.push('/tables'); // Redirect worker to tables page
-           return;
-        } else if (userRole === 'admin') {
-             // Admin can access admin routes and allowed routes
-             if (!adminRoutes.includes(pathname) && !allowedRoutesRegex.test(pathname)) {
-                 // If admin somehow ends up on an unknown route (e.g., typo), redirect to tables
-                 console.log(`AuthContext: Admin on unknown route ${pathname}. Redirecting to /tables.`);
-                 router.push('/tables');
-                 return;
-             }
-        }
-        console.log(`AuthContext: User is authenticated (${userRole}) and on an allowed route (${pathname}). No redirect needed.`);
-      }
     }
 
-  }, [pathname, router, isLoading, staffList]); // Rerun check if path, loading state, or staffList changes
+    // Redirect non-authenticated users to login if not on a public route
+    if (!isAuthenticated && !publicRoutes.includes(pathname)) {
+        console.log(`AuthContext: Redirecting non-authenticated user from ${pathname} to /login`);
+        router.push('/login');
+        return;
+    }
+
+    // Role-specific redirects for authenticated users
+    if (isAuthenticated) {
+      if (userRole === 'worker' && !allowedRoutesRegex.test(pathname)) {
+          // If worker tries to access a non-allowed route
+          console.log(`AuthContext: Worker attempting to access restricted route ${pathname}. Redirecting to /tables.`);
+          toast({ title: 'Acceso Denegado', description: 'No tiene permiso para acceder a esta página.', variant: 'destructive' });
+          router.push('/tables');
+          return;
+      } else if (userRole === 'admin') {
+            // Admin can access admin routes and allowed routes
+            if (!adminRoutes.includes(pathname) && !allowedRoutesRegex.test(pathname)) {
+                // If admin somehow ends up on an unknown route (e.g., typo), redirect to tables
+                console.log(`AuthContext: Admin on unknown route ${pathname}. Redirecting to /tables.`);
+                router.push('/tables');
+                return;
+            }
+      }
+      console.log(`AuthContext: User is authenticated (${userRole}) and on an allowed route (${pathname}). No redirect needed.`);
+    }
+
+  }, [pathname, router, isLoading, isAuthenticated, userRole, staffList]); // Rerun check if path, loading state, auth state, or staffList changes
 
   const login = (user: string, pass: string): boolean => {
     console.log(`AuthContext: Attempting login for user: ${user}`);
     // Ensure staff list is loaded before attempting login
-    if (staffList.length === 0) {
-        console.error("AuthContext: Login attempt failed - Staff list not loaded.");
+    if (isLoading || staffList.length === 0) {
+        console.error("AuthContext: Login attempt failed - Staff list not loaded or still loading.");
         toast({ title: 'Error', description: 'Error al cargar datos de personal. Intente de nuevo.', variant: 'destructive' });
         return false; // Prevent login if staff list isn't ready
     }
@@ -265,26 +253,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Find user by username (case-insensitive) from the loaded staff list
     const usernameLower = user.toLowerCase();
-    console.log("AuthContext: Current staff list:", staffList);
     foundUser = staffList.find(member => member.username.toLowerCase() === usernameLower);
-    console.log(`AuthContext: Lookup result for username '${usernameLower}':`, foundUser);
 
     // Check if user exists and has login privileges ('admin' or 'worker')
-    if (foundUser && foundUser.accessLevel && foundUser.accessLevel !== 'none') {
-        console.log(`AuthContext: User '${foundUser.username}' found with access level '${foundUser.accessLevel}'.`);
+    if (foundUser && foundUser.accessLevel && (foundUser.accessLevel === 'admin' || foundUser.accessLevel === 'worker')) {
+        role = foundUser.accessLevel; // Assign the role
         // Use the getDemoPasswords function to retrieve current passwords
         const DEMO_PASSWORDS = getDemoPasswords();
-        console.log("AuthContext: Current passwords being checked against:", DEMO_PASSWORDS);
         // Look up password based on the found user's username (lowercase)
-        const expectedPassword = DEMO_PASSWORDS[foundUser.username.toLowerCase()];
-        console.log(`AuthContext: Expected password for '${foundUser.username.toLowerCase()}': '${expectedPassword}'`);
+        const expectedPassword = DEMO_PASSWORDS[usernameLower]; // Case-insensitive lookup
+        console.log(`AuthContext: Found user '${foundUser.username}' with role '${role}'.`);
+        console.log(`AuthContext: Expected password for '${usernameLower}': '${expectedPassword}'`);
         console.log(`AuthContext: Password provided: '${pass}'`);
 
         // Simple password check (replace with secure hashing in production)
         if (expectedPassword && pass === expectedPassword) {
             console.log("AuthContext: Password matches.");
             success = true;
-            role = foundUser.accessLevel; // Assign role based on found user's level
         } else {
              console.log("AuthContext: Password does not match.");
         }
@@ -292,12 +277,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (!foundUser) {
             console.log(`AuthContext: User '${usernameLower}' not found in staff list.`);
         } else {
-            console.log(`AuthContext: User '${foundUser.username}' found but has access level '${foundUser.accessLevel ?? 'none'}'. Login denied.`);
+            console.log(`AuthContext: User '${foundUser.username}' found but has access level '${foundUser.accessLevel || 'none'}', which is not allowed for login.`);
         }
     }
 
     // Handle login success or failure
-    if (success && role && foundUser) { // Ensure foundUser is defined
+    if (success && role && foundUser) { // Ensure foundUser and role are defined
       console.log(`AuthContext: Login successful for ${foundUser.username} with role ${role}. Setting session.`);
       setIsAuthenticated(true);
       setUserRole(role);
@@ -305,7 +290,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       sessionStorage.setItem('userRole', role);
       sessionStorage.setItem('username', foundUser.username); // Store the actual username
       toast({ title: 'Éxito', description: `Inicio de sesión exitoso como ${foundUser.name} (${role}).` }); // More specific success message
-      router.push('/tables'); // Redirect to tables after successful login
+      // Do not redirect here, let the useEffect handle redirection based on state change
       return true;
     } else {
       console.log("AuthContext: Login failed.");
@@ -326,7 +311,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     sessionStorage.removeItem('isAuthenticated');
     sessionStorage.removeItem('userRole');
     sessionStorage.removeItem('username'); // Clear username on logout
-    router.push('/login');
+    // Redirect is handled by useEffect when isAuthenticated changes
     toast({ title: 'Sesión Cerrada', description: 'Has cerrado sesión exitosamente.' });
   };
 
