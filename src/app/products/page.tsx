@@ -29,8 +29,9 @@ import {
 } from '@/components/ui/dialog'; // Import Dialog components
 import { Label } from '@/components/ui/label'; // Import Label
 import { useState } from 'react';
-import { Edit } from 'lucide-react'; // Import Edit icon
+import { Edit, FileEdit } from 'lucide-react'; // Import Edit and FileEdit icons
 import { useToast } from '@/hooks/use-toast'; // Import useToast
+import EditModificationsDialog from '@/components/app/edit-modifications-dialog'; // Import the new dialog
 
 interface MenuItem {
   id: number;
@@ -42,6 +43,7 @@ interface MenuItem {
 }
 
 // Mock data - reused from table detail page (Consider moving to a shared service)
+// Keep the existing mockMenu data
 const mockMenu: MenuItem[] = [
     // --- Completos Vienesas ---
     {
@@ -189,8 +191,8 @@ const mockMenu: MenuItem[] = [
     { id: 107, name: 'Americana', price: 8900, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 } },
     { id: 108, name: 'Primavera', price: 9000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 } },
     { id: 109, name: 'Golosasa', price: 10500, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 } },
-    { id: 110, name: '4 Ingredientes', price: 11000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 } },
-    { id: 111, name: '6 Ingredientes', price: 12000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 } },
+    { id: 110, name: '4 Ingredientes', price: 11000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 } }, // Choose your 4
+    { id: 111, name: '6 Ingredientes', price: 12000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 } }, // Choose your 6
     // --- Hamburguesas --- (Updated Modifications)
     {
         id: 17,
@@ -522,7 +524,8 @@ export default function ProductsPage() {
   const router = useRouter();
   const [searchTerm, setSearchTerm] = useState('');
   const [menu, setMenu] = useState<MenuItem[]>(sortMenu(mockMenu)); // State for menu items
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isEditPriceDialogOpen, setIsEditPriceDialogOpen] = useState(false); // Renamed state for clarity
+  const [isEditModificationsDialogOpen, setIsEditModificationsDialogOpen] = useState(false); // New state for mods dialog
   const [editingProduct, setEditingProduct] = useState<MenuItem | null>(null);
   const [newPrice, setNewPrice] = useState('');
   const { toast } = useToast(); // Toast hook
@@ -547,11 +550,16 @@ export default function ProductsPage() {
      product.category.toLowerCase().includes(searchTerm.toLowerCase())
    );
 
-   const openEditDialog = (product: MenuItem) => {
+   const openEditPriceDialog = (product: MenuItem) => {
      setEditingProduct(product);
      setNewPrice(product.price.toString()); // Pre-fill with current price
-     setIsEditDialogOpen(true);
+     setIsEditPriceDialogOpen(true); // Open price edit dialog
    };
+
+   const openEditModificationsDialog = (product: MenuItem) => {
+      setEditingProduct(product);
+      setIsEditModificationsDialogOpen(true); // Open modifications edit dialog
+   }
 
    const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
      setNewPrice(e.target.value);
@@ -578,9 +586,32 @@ export default function ProductsPage() {
      );
 
      toast({ title: "Precio Actualizado", description: `El precio de ${editingProduct.name} se actualizó a ${formatCurrency(priceValue)}.`});
-     setIsEditDialogOpen(false); // Close dialog
+     setIsEditPriceDialogOpen(false); // Close price dialog
      setEditingProduct(null); // Reset editing state
      setNewPrice(''); // Clear price input
+   };
+
+    // Handle updating modifications
+   const handleUpdateModifications = (updatedMods: string[], updatedPrices: { [key: string]: number }) => {
+     if (!editingProduct) return;
+
+     setMenu(prevMenu =>
+       sortMenu(
+         prevMenu.map(item =>
+           item.id === editingProduct.id
+             ? {
+                 ...item,
+                 modifications: updatedMods,
+                 modificationPrices: updatedPrices,
+               }
+             : item
+         )
+       )
+     );
+
+     toast({ title: "Modificaciones Actualizadas", description: `Las modificaciones para ${editingProduct.name} se han actualizado.` });
+     setIsEditModificationsDialogOpen(false); // Close modifications dialog
+     setEditingProduct(null); // Reset editing state
    };
 
   return (
@@ -607,9 +638,9 @@ export default function ProductsPage() {
                 <TableRow>
                 <TableHead>Producto</TableHead>
                 <TableHead>Categoría</TableHead>
-                <TableHead>Descripción</TableHead>
+                <TableHead>Descripción (Modificaciones)</TableHead> {/* Changed header */}
                 <TableHead className="text-right">Precio Base</TableHead>
-                 <TableHead className="text-center w-20">Editar</TableHead> {/* Add Edit column */}
+                 <TableHead className="text-center w-40">Editar</TableHead> {/* Increased width for two buttons */}
                 </TableRow>
             </TableHeader>
             <TableBody>
@@ -617,7 +648,7 @@ export default function ProductsPage() {
                 <TableRow key={item.id}>
                     <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell><Badge variant="secondary">{item.category}</Badge></TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
+                    <TableCell className="text-xs text-muted-foreground max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
                         {item.modifications && item.modifications.length > 0
                         ? item.modifications.map(mod => {
                             const price = item.modificationPrices?.[mod];
@@ -627,10 +658,20 @@ export default function ProductsPage() {
                     </TableCell>
                     <TableCell className="text-right font-mono">{formatCurrency(item.price)}</TableCell>
                     <TableCell className="text-center">
-                       <Button variant="ghost" size="icon" onClick={() => openEditDialog(item)} className="h-7 w-7">
-                          <Edit className="h-4 w-4" />
-                          <span className="sr-only">Editar Precio</span>
-                       </Button>
+                        <div className="flex justify-center gap-1"> {/* Flex container for buttons */}
+                           {/* Edit Price Button */}
+                           <Button variant="ghost" size="icon" onClick={() => openEditPriceDialog(item)} className="h-7 w-7" title="Editar Precio">
+                              <Edit className="h-4 w-4" />
+                              <span className="sr-only">Editar Precio</span>
+                           </Button>
+                           {/* Edit Modifications Button - Conditionally render if item has modifications */}
+                            {(item.modifications && item.modifications.length > 0) && (
+                                <Button variant="ghost" size="icon" onClick={() => openEditModificationsDialog(item)} className="h-7 w-7" title="Editar Modificaciones">
+                                <FileEdit className="h-4 w-4" /> {/* New Icon */}
+                                <span className="sr-only">Editar Modificaciones</span>
+                                </Button>
+                            )}
+                        </div>
                     </TableCell>
                 </TableRow>
                 ))}
@@ -647,7 +688,7 @@ export default function ProductsPage() {
       </Card>
 
       {/* Edit Price Dialog */}
-       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+       <Dialog open={isEditPriceDialogOpen} onOpenChange={setIsEditPriceDialogOpen}>
          <DialogContent className="sm:max-w-[425px]">
            <DialogHeader>
              <DialogTitle>Editar Precio de {editingProduct?.name}</DialogTitle>
@@ -680,6 +721,17 @@ export default function ProductsPage() {
            </DialogFooter>
          </DialogContent>
        </Dialog>
+
+      {/* Edit Modifications Dialog */}
+        {editingProduct && (
+            <EditModificationsDialog
+            isOpen={isEditModificationsDialogOpen}
+            onOpenChange={setIsEditModificationsDialogOpen}
+            item={editingProduct}
+            onConfirm={handleUpdateModifications}
+            onCancel={() => setEditingProduct(null)} // Reset item on cancel
+            />
+        )}
 
     </div>
   );
