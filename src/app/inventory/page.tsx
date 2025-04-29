@@ -192,7 +192,7 @@ export default function InventoryPage() {
                     <DialogClose asChild>
                         <Button type="button" variant="secondary">Cancelar</Button>
                     </DialogClose>
-                    <Button type="button" onClick={handleAddProduct}>Añadir Producto</Button> {/* Changed button text */}
+                    <Button type="button" onClick={handleAddProduct}>Añadir Producto</Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>
@@ -203,8 +203,8 @@ export default function InventoryPage() {
           <TableHeader>
             <TableRow>
               <TableHead>Producto</TableHead>
-              <TableHead className="text-center">Cantidad</TableHead> {/* Changed from 'Existencia' */}
-              <TableHead className="text-center">Acciones</TableHead>
+              <TableHead className="text-center">Cantidad</TableHead>
+              {/* Removed Acciones column */}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -212,32 +212,13 @@ export default function InventoryPage() {
               <TableRow key={item.id}>
                 <TableCell className="font-medium">{item.name}</TableCell>
                 <TableCell className="text-center w-24">{item.stock}</TableCell>
-                <TableCell className="text-center w-32">
-                  <div className="flex justify-center items-center gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 text-destructive hover:bg-destructive/10"
-                      onClick={() => handleDecreaseStock(item.id)}
-                      disabled={item.stock <= 0}
-                    >
-                      <MinusCircle className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-7 w-7 text-primary hover:bg-primary/10"
-                      onClick={() => handleIncreaseStock(item.id)}
-                    >
-                      <PlusCircle className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </TableCell>
+                {/* Removed Acciones cell */}
               </TableRow>
             ))}
             {inventory.length === 0 && (
               <TableRow>
-                <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
+                 {/* Adjusted colSpan to 2 */}
+                <TableCell colSpan={2} className="h-24 text-center text-muted-foreground">
                   No hay productos en el inventario.
                 </TableCell>
               </TableRow>
