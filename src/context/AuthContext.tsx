@@ -23,6 +23,7 @@ const DEMO_PASSWORDS_KEY = 'demoPasswords'; // Session storage key
 
 // Function to get passwords, preferring session storage, then defaults
 const getDemoPasswords = (): Record<string, string> => {
+    console.log("AuthContext: Getting demo passwords...");
     let passwords: Record<string, string> = {
         admin: 'admin', // Default admin password
         // Default worker password is not used anymore, specific user passwords take precedence
@@ -34,17 +35,22 @@ const getDemoPasswords = (): Record<string, string> => {
             const parsed = JSON.parse(storedPasswords);
             if (typeof parsed === 'object' && parsed !== null) {
                 passwords = { ...passwords, ...parsed }; // Merge stored over defaults
+                 console.log("AuthContext: Loaded passwords from session storage:", passwords);
+            } else {
+                console.warn("AuthContext: Invalid password data in session storage, using defaults.");
             }
         } catch (e) {
-            console.error("Failed to parse stored passwords from session storage:", e);
+            console.error("AuthContext: Failed to parse stored passwords from session storage:", e);
+            // Keep default passwords if parsing fails
         }
     } else {
+        console.log("AuthContext: No passwords found in session storage, initializing defaults.");
         // If nothing in session storage, save the defaults
         try {
             sessionStorage.setItem(DEMO_PASSWORDS_KEY, JSON.stringify(passwords));
-            console.log("Saved default passwords to session storage.");
+            console.log("AuthContext: Saved default passwords to session storage.");
         } catch (e) {
-            console.error("Failed to save default passwords to session storage:", e);
+            console.error("AuthContext: Failed to save default passwords to session storage:", e);
         }
     }
     return passwords;
@@ -54,12 +60,13 @@ const getDemoPasswords = (): Record<string, string> => {
 const updateDemoPassword = (username: string, pass: string) => {
     const currentPasswords = getDemoPasswords();
     // Store username in lowercase for consistency in password lookup
-    currentPasswords[username.toLowerCase()] = pass;
+    const usernameLower = username.toLowerCase();
+    currentPasswords[usernameLower] = pass;
     try {
         sessionStorage.setItem(DEMO_PASSWORDS_KEY, JSON.stringify(currentPasswords));
-        console.log(`Password for ${username} updated in session storage (DEMO ONLY).`);
+        console.log(`AuthContext: Password for ${usernameLower} updated in session storage (DEMO ONLY).`);
     } catch (e) {
-         console.error("Failed to save updated passwords to session storage:", e);
+         console.error("AuthContext: Failed to save updated passwords to session storage:", e);
     }
 };
 
@@ -91,38 +98,53 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
      console.log("AuthContext: Loading staff from localStorage...");
      const storedStaff = localStorage.getItem(STAFF_STORAGE_KEY); // Read from localStorage
      let loadedStaff: StaffMember[] = [];
+     let shouldInitializePasswords = false;
+
      if (storedStaff) {
        try {
          const parsed = JSON.parse(storedStaff);
          if (Array.isArray(parsed)) {
            loadedStaff = parsed; // Use stored data
-           console.log("AuthContext: Staff loaded successfully.");
+           console.log("AuthContext: Staff loaded successfully from localStorage.");
          } else {
-           console.warn("AuthContext: Invalid staff data found, using fallback.");
+           console.warn("AuthContext: Invalid staff data found in localStorage, using fallback.");
            loadedStaff = initialStaffFallback; // Fallback
+           shouldInitializePasswords = true; // Need to initialize passwords for fallback data
          }
        } catch (error) {
-         console.error("AuthContext: Failed to parse stored staff:", error);
+         console.error("AuthContext: Failed to parse stored staff from localStorage:", error);
          loadedStaff = initialStaffFallback; // Fallback on error
+         shouldInitializePasswords = true; // Need to initialize passwords for fallback data
        }
      } else {
-       console.log("AuthContext: No staff found, using fallback and saving.");
+       console.log("AuthContext: No staff found in localStorage, using fallback and saving.");
        loadedStaff = initialStaffFallback; // Fallback if nothing stored
+       shouldInitializePasswords = true; // Need to initialize passwords for fallback data
        // Attempt to save fallback data if nothing was found
        try {
            localStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(loadedStaff));
             console.log("AuthContext: Saved fallback staff data to localStorage.");
-            // Also initialize passwords for fallback users if storage was empty
-            updateDemoPassword('admin', 'admin');
-            updateDemoPassword('worker', 'worker'); // Ensure fallback worker has a password entry
        } catch (saveError) {
-            console.error("AuthContext: Failed to save fallback staff data:", saveError);
+            console.error("AuthContext: Failed to save fallback staff data to localStorage:", saveError);
        }
      }
      setStaffList(loadedStaff); // Set state based on loaded/fallback data
-     // Load passwords after staff list is set
-     getDemoPasswords(); // Ensure passwords are loaded/initialized in session storage
-     console.log("AuthContext: Staff list initialized.");
+
+     // Load/Initialize passwords after staff list is set/determined
+     const currentPasswords = getDemoPasswords(); // Ensure passwords map is loaded/initialized
+     if (shouldInitializePasswords) {
+          console.log("AuthContext: Initializing passwords for fallback staff...");
+          // Initialize passwords for fallback users if needed
+          if (!currentPasswords['admin']) {
+            updateDemoPassword('admin', 'admin');
+          }
+          if (!currentPasswords['worker']) {
+            // Initialize worker password ONLY if it doesn't exist. If it was set, keep it.
+            updateDemoPassword('worker', 'worker');
+          }
+          // Add other initializations if necessary
+     }
+     console.log("AuthContext: Staff list and passwords initialization complete.");
   }, []); // Run only once on mount
 
 
@@ -237,18 +259,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Find user by username (case-insensitive) from the loaded staff list
     const usernameLower = user.toLowerCase();
+    console.log("AuthContext: Current staff list:", staffList);
     foundUser = staffList.find(member => member.username.toLowerCase() === usernameLower);
-    console.log("AuthContext: Staff list used for lookup:", staffList);
-    console.log(`AuthContext: Found user in staff list for '${usernameLower}':`, foundUser);
+    console.log(`AuthContext: Lookup result for username '${usernameLower}':`, foundUser);
 
     // Check if user exists and has login privileges ('admin' or 'worker')
     if (foundUser && foundUser.accessLevel && foundUser.accessLevel !== 'none') {
+        console.log(`AuthContext: User '${foundUser.username}' found with access level '${foundUser.accessLevel}'.`);
         // Use the getDemoPasswords function to retrieve current passwords
         const DEMO_PASSWORDS = getDemoPasswords();
-        console.log("AuthContext: Passwords used for check:", DEMO_PASSWORDS);
+        console.log("AuthContext: Current passwords being checked against:", DEMO_PASSWORDS);
         // Look up password based on the found user's username (lowercase)
         const expectedPassword = DEMO_PASSWORDS[foundUser.username.toLowerCase()];
-        console.log(`AuthContext: Expected password for ${foundUser.username.toLowerCase()}: ${expectedPassword}`);
+        console.log(`AuthContext: Expected password for '${foundUser.username.toLowerCase()}': '${expectedPassword}'`);
+        console.log(`AuthContext: Password provided: '${pass}'`);
 
         // Simple password check (replace with secure hashing in production)
         if (expectedPassword && pass === expectedPassword) {
@@ -259,12 +283,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
              console.log("AuthContext: Password does not match.");
         }
     } else {
-        console.log(`AuthContext: User ${user} not found or does not have login privileges.`);
+        if (!foundUser) {
+            console.log(`AuthContext: User '${usernameLower}' not found in staff list.`);
+        } else {
+            console.log(`AuthContext: User '${foundUser.username}' found but has access level '${foundUser.accessLevel}'. Login denied.`);
+        }
     }
 
     // Handle login success or failure
     if (success && role && foundUser) { // Ensure foundUser is defined
-      console.log(`AuthContext: Login successful for ${foundUser.username} with role ${role}.`);
+      console.log(`AuthContext: Login successful for ${foundUser.username} with role ${role}. Setting session.`);
       setIsAuthenticated(true);
       setUserRole(role);
       sessionStorage.setItem('isAuthenticated', 'true');
