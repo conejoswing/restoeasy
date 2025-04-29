@@ -14,7 +14,7 @@ const STAFF_STORAGE_KEY = 'restaurantStaff';
 const initialStaffFallback: StaffMember[] = [
   { id: 1, name: 'Camila Pérez', username: 'admin', role: 'Dueña / Gerente', avatarUrl: 'https://picsum.photos/id/237/50', accessLevel: 'admin' },
   { id: 2, name: 'Juan García', username: 'worker', role: 'Cocinero Principal', avatarUrl: 'https://picsum.photos/id/238/50', accessLevel: 'worker' },
-  { id: 4, name: 'Carlos López', username: 'carlos', role: 'Ayudante de Cocina', avatarUrl: 'https://picsum.photos/id/240/50', accessLevel: 'none' },
+  { id: 4, name: 'Carlos López', username: 'carlos', role: 'Ayudante de Cocina', avatarUrl: 'https://picsum.photos/id/240/50', accessLevel: 'none' }, // Example with no login access
 ];
 
 // Demo passwords (replace with secure backend logic in production)
@@ -25,8 +25,8 @@ const DEMO_PASSWORDS_KEY = 'demoPasswords'; // Session storage key
 // Function to get passwords, preferring session storage, then defaults
 const getDemoPasswords = (): Record<string, string> => {
     let passwords: Record<string, string> = {
-        admin: 'admin',
-        worker: 'worker',
+        admin: 'admin', // Default admin password
+        // Default worker password is not used anymore, specific user passwords take precedence
     };
      // Try loading from session storage
     const storedPasswords = sessionStorage.getItem(DEMO_PASSWORDS_KEY);
@@ -50,9 +50,10 @@ const getDemoPasswords = (): Record<string, string> => {
     return passwords;
 };
 
-// Function to update/add a password
+// Function to update/add a password for a specific user
 const updateDemoPassword = (username: string, pass: string) => {
     const currentPasswords = getDemoPasswords();
+    // Store username in lowercase for consistency
     currentPasswords[username.toLowerCase()] = pass;
     try {
         sessionStorage.setItem(DEMO_PASSWORDS_KEY, JSON.stringify(currentPasswords));
@@ -111,6 +112,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
        try {
            localStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(loadedStaff));
             console.log("AuthContext: Saved fallback staff data to localStorage.");
+            // Also initialize passwords for fallback users if storage was empty
+            updateDemoPassword('admin', 'admin');
+            updateDemoPassword('worker', 'worker'); // Ensure fallback worker has a password entry
        } catch (saveError) {
             console.error("AuthContext: Failed to save fallback staff data:", saveError);
        }
@@ -127,25 +131,32 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
      if (staffList.length === 0 && !localStorage.getItem(STAFF_STORAGE_KEY)) {
          console.log("AuthContext: Waiting for staff list to initialize...");
          // Return early if staff data hasn't been loaded yet (prevents premature redirects)
+         setIsLoading(true); // Keep loading until staff is ready
          return;
      }
 
     // Check session storage for authentication state
     const storedAuth = sessionStorage.getItem('isAuthenticated');
     const storedRole = sessionStorage.getItem('userRole') as UserRole;
+    const storedUsername = sessionStorage.getItem('username'); // Get stored username
     let currentAuth = false;
     let currentRole: UserRole = null;
 
-    if (storedAuth === 'true' && storedRole) {
+    if (storedAuth === 'true' && storedRole && storedUsername) {
         currentAuth = true;
         currentRole = storedRole;
-        // Check if the role still exists in the current staff list for validation
-        const userExists = staffList.some(s => s.username.toLowerCase() === sessionStorage.getItem('username')?.toLowerCase() && s.accessLevel === storedRole);
+        // Check if the user stored in session still exists in the current staff list with the same role
+        const userExists = staffList.some(s =>
+            s.username.toLowerCase() === storedUsername.toLowerCase() &&
+            s.accessLevel === storedRole &&
+            s.accessLevel !== 'none' // Ensure they still have privileges
+        );
         if (userExists) {
              setIsAuthenticated(true);
              setUserRole(storedRole);
+             console.log(`AuthContext: User ${storedUsername} validated from session.`);
         } else {
-             console.warn(`AuthContext: Stored user role (${storedRole}) not found or doesn't match staff list. Logging out.`);
+             console.warn(`AuthContext: Stored user (${storedUsername}) not found or role/privileges mismatch. Logging out.`);
              setIsAuthenticated(false);
              setUserRole(null);
              sessionStorage.removeItem('isAuthenticated');
@@ -199,6 +210,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [pathname, router, isLoading, staffList]); // Rerun check if path, loading state, or staffList changes
 
   const login = (user: string, pass: string): boolean => {
+    if (staffList.length === 0) {
+        toast({ title: 'Error', description: 'Lista de personal no cargada. Intente de nuevo.', variant: 'destructive' });
+        return false; // Prevent login if staff list isn't ready
+    }
+
     let foundUser: StaffMember | undefined = undefined;
     let success = false;
     let role: UserRole = null;
@@ -206,10 +222,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     // Find user by username (case-insensitive) from the loaded staff list
     foundUser = staffList.find(member => member.username.toLowerCase() === user.toLowerCase());
 
+    // Check if user exists and has login privileges ('admin' or 'worker')
     if (foundUser && foundUser.accessLevel && foundUser.accessLevel !== 'none') {
         // Use the getDemoPasswords function to retrieve current passwords
         const DEMO_PASSWORDS = getDemoPasswords();
-        const expectedPassword = DEMO_PASSWORDS[foundUser.username.toLowerCase()]; // Check password based on username
+        // Look up password based on the found user's username (lowercase)
+        const expectedPassword = DEMO_PASSWORDS[foundUser.username.toLowerCase()];
 
         // Simple password check (replace with secure hashing in production)
         if (expectedPassword && pass === expectedPassword) {
@@ -219,13 +237,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
 
     // Handle login success or failure
-    if (success && role) {
+    if (success && role && foundUser) { // Ensure foundUser is defined
       setIsAuthenticated(true);
       setUserRole(role);
       sessionStorage.setItem('isAuthenticated', 'true');
       sessionStorage.setItem('userRole', role);
-      sessionStorage.setItem('username', foundUser!.username); // Store username for validation later
-      toast({ title: 'Éxito', description: 'Inicio de sesión exitoso.' });
+      sessionStorage.setItem('username', foundUser.username); // Store the actual username
+      toast({ title: 'Éxito', description: `Inicio de sesión exitoso como ${foundUser.name} (${role}).` }); // More specific success message
       router.push('/tables'); // Redirect to tables after successful login
       return true;
     } else {
@@ -244,11 +262,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUserRole(null);
     sessionStorage.removeItem('isAuthenticated');
     sessionStorage.removeItem('userRole');
-    sessionStorage.removeItem('username'); // Clear username
+    sessionStorage.removeItem('username'); // Clear username on logout
     router.push('/login');
     toast({ title: 'Sesión Cerrada', description: 'Has cerrado sesión exitosamente.' });
   };
 
+  // Function to update password in session storage (for demo)
   const updatePasswordForUser = (username: string, pass: string) => {
      updateDemoPassword(username, pass); // Use the helper function
   };
@@ -263,10 +282,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     updatePasswordForUser, // Expose the update function
   };
 
-  // Render children only after loading is complete
+  // Render children only after loading is complete and staff is potentially loaded
   return (
       <AuthContext.Provider value={value}>
-        {!isLoading ? children : <div className="flex items-center justify-center min-h-screen">Cargando...</div>}
+        {isLoading ? <div className="flex items-center justify-center min-h-screen">Cargando...</div> : children}
       </AuthContext.Provider>
   );
 };

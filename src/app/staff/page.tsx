@@ -65,7 +65,7 @@ const STAFF_STORAGE_KEY = 'restaurantStaff';
 
 export default function StaffPage() {
   // Role checks and redirection are now handled by AuthProvider
-  const { isAuthenticated, isLoading, userRole } = useAuth();
+  const { isAuthenticated, isLoading, userRole, updatePasswordForUser } = useAuth(); // Get updatePassword function
   const router = useRouter();
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [isStaffInitialized, setIsStaffInitialized] = useState(false);
@@ -106,6 +106,9 @@ export default function StaffPage() {
        try {
             localStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(loadedStaff));
             console.log("Saved initial staff data to localStorage.");
+            // Initialize passwords for fallback users in AuthContext when saving fallback
+            updatePasswordForUser('admin', 'admin');
+            updatePasswordForUser('worker', 'worker');
        } catch (saveError) {
             console.error("Failed to save initial staff data:", saveError);
        }
@@ -115,7 +118,7 @@ export default function StaffPage() {
      setIsStaffInitialized(true); // Mark as initialized
      console.log("Staff initialization complete.");
 
-   }, [isStaffInitialized]); // Dependency array ensures it runs once
+   }, [isStaffInitialized, updatePasswordForUser]); // Add updatePasswordForUser to dependency array
 
    // Save staff to localStorage whenever it changes
    useEffect(() => {
@@ -177,7 +180,8 @@ export default function StaffPage() {
     // Add more robust password validation if needed (length, complexity)
 
     // Check for duplicate username (only when adding or changing username)
-    const isUsernameChanging = isEditing && currentStaffMember && currentStaffMember.username !== newStaffData.username;
+    // Ensure username check is case-insensitive
+    const isUsernameChanging = isEditing && currentStaffMember && currentStaffMember.username.toLowerCase() !== newStaffData.username.toLowerCase();
     if ((!isEditing || isUsernameChanging) && newStaffData.accessLevel !== 'none') { // Only check if user will have login
         const existingUser = staff.find(member => member.username.toLowerCase() === newStaffData.username.toLowerCase() && member.id !== currentStaffMember?.id);
         if (existingUser) {
@@ -186,26 +190,29 @@ export default function StaffPage() {
         }
     }
 
-    // Security Warning: In a real application, HASH the password here before saving!
-    // Never store plaintext passwords. This demo uses fixed passwords checked during login.
+    // Update password in AuthContext (session storage for demo) if provided
+    if (newStaffData.accessLevel !== 'none' && newStaffData.password) {
+        updatePasswordForUser(newStaffData.username, newStaffData.password);
+        // Don't log the password here anymore
+        // console.log(`Password for ${newStaffData.username} set/updated (DEMO ONLY).`);
+        toast({ title: "Éxito", description: `Contraseña para ${newStaffData.username} actualizada (simulado).` });
+    }
+
 
     if (isEditing && currentStaffMember) {
       // Edit existing staff member - include username and accessLevel
       setStaff(prevStaff =>
          prevStaff.map(member =>
            member.id === currentStaffMember.id
+             // Update username and accessLevel, ensure username is stored lowercase if desired, or keep original case
              ? { ...member, name: newStaffData.name, role: newStaffData.role, username: newStaffData.username, accessLevel: newStaffData.accessLevel }
              : member
          ).sort((a, b) => a.name.localeCompare(b.name)) // Re-sort after update
       );
        // If password was entered during edit, show a generic success message.
        // Actual password update logic would happen server-side/in AuthContext for this demo.
-      if (newStaffData.password) {
-           toast({ title: "Éxito", description: "Miembro del personal actualizado. Contraseña actualizada (simulado)." });
-            // Note: AuthContext needs to handle the actual password logic check during login.
-       } else {
-           toast({ title: "Éxito", description: "Miembro del personal actualizado." });
-       }
+      // Removed redundant password updated toast here, handled above
+       toast({ title: "Éxito", description: "Miembro del personal actualizado." });
 
     } else {
       // Add new staff member - include username and accessLevel
@@ -221,10 +228,6 @@ export default function StaffPage() {
         avatarUrl: `https://picsum.photos/seed/${newStaffData.name}/50` // Use name for consistent random image based on name
       };
       setStaff(prevStaff => [...prevStaff, newMember].sort((a, b) => a.name.localeCompare(b.name))); // Add and sort
-      // Log the password temporarily for demo purposes - REMOVE IN PRODUCTION
-      if (newStaffData.password && newStaffData.accessLevel !== 'none') {
-         console.log(`Adding/Updating user: ${newStaffData.username}, Access Level: ${newStaffData.accessLevel}, Password (plaintext - DEMO ONLY): ${newStaffData.password}`);
-      }
       toast({ title: "Éxito", description: "Nuevo miembro del personal añadido." });
     }
 
@@ -369,7 +372,7 @@ export default function StaffPage() {
             </div>
             <DialogFooter>
               {/* Use DialogClose for the Cancel button */}
-                 <Button type="button" variant="secondary" onClick={closeDialog}>Cancelar</Button> {/* Removed DialogClose wrapper, use onClick */}
+              <Button type="button" variant="secondary" onClick={closeDialog}>Cancelar</Button> {/* Removed DialogClose wrapper, use onClick */}
               <Button type="submit" onClick={handleAddOrEditStaff}>
                 {isEditing ? 'Guardar Cambios' : 'Añadir Personal'} {/* Save Changes / Add Staff */}
               </Button>
