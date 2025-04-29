@@ -194,12 +194,12 @@ export default function InventoryPage() {
                     : item
             )
         );
-        const itemName = inventory.find(item => item.id === id)?.name;
-        toast({
-            title: "Inventario Actualizado",
-            description: `Cantidad de "${itemName}" ${amount > 0 ? 'aumentada' : 'disminuida'} en ${Math.abs(amount)}.`,
-            variant: "default",
-        });
+        // const itemName = inventory.find(item => item.id === id)?.name;
+        // toast({
+        //     title: "Inventario Actualizado",
+        //     description: `Cantidad de "${itemName}" ${amount > 0 ? 'aumentada' : 'disminuida'} en ${Math.abs(amount)}.`,
+        //     variant: "default",
+        // });
    };
 
 
