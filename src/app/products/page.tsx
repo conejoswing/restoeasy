@@ -29,9 +29,9 @@ import {
 } from '@/components/ui/dialog'; // Import Dialog components
 import { Label } from '@/components/ui/label'; // Import Label
 import { useState } from 'react';
-import { Edit, FileEdit } from 'lucide-react'; // Import Edit and FileEdit icons
+import { Edit } from 'lucide-react'; // Import Edit icon (remove FileEdit)
 import { useToast } from '@/hooks/use-toast'; // Import useToast
-import EditModificationsDialog from '@/components/app/edit-modifications-dialog'; // Import the new dialog
+// Removed import for EditModificationsDialog as it's no longer used
 
 interface MenuItem {
   id: number;
@@ -525,7 +525,6 @@ export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [menu, setMenu] = useState<MenuItem[]>(sortMenu(mockMenu)); // State for menu items
   const [isEditPriceDialogOpen, setIsEditPriceDialogOpen] = useState(false); // Renamed state for clarity
-  const [isEditModificationsDialogOpen, setIsEditModificationsDialogOpen] = useState(false); // New state for mods dialog
   const [editingProduct, setEditingProduct] = useState<MenuItem | null>(null);
   const [newPrice, setNewPrice] = useState('');
   const { toast } = useToast(); // Toast hook
@@ -555,11 +554,6 @@ export default function ProductsPage() {
      setNewPrice(product.price.toString()); // Pre-fill with current price
      setIsEditPriceDialogOpen(true); // Open price edit dialog
    };
-
-   const openEditModificationsDialog = (product: MenuItem) => {
-      setEditingProduct(product);
-      setIsEditModificationsDialogOpen(true); // Open modifications edit dialog
-   }
 
    const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
      setNewPrice(e.target.value);
@@ -591,28 +585,6 @@ export default function ProductsPage() {
      setNewPrice(''); // Clear price input
    };
 
-    // Handle updating modifications
-   const handleUpdateModifications = (updatedMods: string[], updatedPrices: { [key: string]: number }) => {
-     if (!editingProduct) return;
-
-     setMenu(prevMenu =>
-       sortMenu(
-         prevMenu.map(item =>
-           item.id === editingProduct.id
-             ? {
-                 ...item,
-                 modifications: updatedMods,
-                 modificationPrices: updatedPrices,
-               }
-             : item
-         )
-       )
-     );
-
-     toast({ title: "Modificaciones Actualizadas", description: `Las modificaciones para ${editingProduct.name} se han actualizado.` });
-     setIsEditModificationsDialogOpen(false); // Close modifications dialog
-     setEditingProduct(null); // Reset editing state
-   };
 
   return (
     <div className="container mx-auto p-4">
@@ -638,9 +610,9 @@ export default function ProductsPage() {
                 <TableRow>
                 <TableHead>Producto</TableHead>
                 <TableHead>Categoría</TableHead>
-                <TableHead>Descripción (Modificaciones)</TableHead> {/* Changed header */}
+                <TableHead>Descripción</TableHead> {/* Changed header */}
                 <TableHead className="text-right">Precio Base</TableHead>
-                 <TableHead className="text-center w-40">Editar</TableHead> {/* Increased width for two buttons */}
+                 <TableHead className="text-center w-20">Editar</TableHead> {/* Adjusted width for one button */}
                 </TableRow>
             </TableHeader>
             <TableBody>
@@ -664,13 +636,7 @@ export default function ProductsPage() {
                               <Edit className="h-4 w-4" />
                               <span className="sr-only">Editar Precio</span>
                            </Button>
-                           {/* Edit Modifications Button - Conditionally render if item has modifications */}
-                            {(item.modifications && item.modifications.length > 0) && (
-                                <Button variant="ghost" size="icon" onClick={() => openEditModificationsDialog(item)} className="h-7 w-7" title="Editar Modificaciones">
-                                <FileEdit className="h-4 w-4" /> {/* New Icon */}
-                                <span className="sr-only">Editar Modificaciones</span>
-                                </Button>
-                            )}
+                           {/* Edit Modifications Button Removed */}
                         </div>
                     </TableCell>
                 </TableRow>
@@ -722,16 +688,7 @@ export default function ProductsPage() {
          </DialogContent>
        </Dialog>
 
-      {/* Edit Modifications Dialog */}
-        {editingProduct && (
-            <EditModificationsDialog
-            isOpen={isEditModificationsDialogOpen}
-            onOpenChange={setIsEditModificationsDialogOpen}
-            item={editingProduct}
-            onConfirm={handleUpdateModifications}
-            onCancel={() => setEditingProduct(null)} // Reset item on cancel
-            />
-        )}
+      {/* Edit Modifications Dialog Removed */}
 
     </div>
   );
