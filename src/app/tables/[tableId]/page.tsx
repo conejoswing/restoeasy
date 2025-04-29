@@ -963,7 +963,8 @@ export default function TableDetailPage() {
                 category: 'Ingreso Venta',
                 description: saleDescription, // Add delivery info to description if applicable
                 amount: finalTotalToPay, // Positive amount for income
-                paymentMethod: method // Add the selected payment method
+                paymentMethod: method, // Add the selected payment method
+                deliveryFee: isDelivery ? deliveryInfo?.deliveryFee : undefined, // Add delivery fee if applicable
             };
 
             // Add the new sale and sort (most recent first)
@@ -1443,3 +1444,5 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
+    

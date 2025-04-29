@@ -46,7 +46,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { PlusCircle, Calendar as CalendarIcon, FileCheck, Banknote, CreditCard, Landmark } from 'lucide-react'; // Added Banknote, CreditCard, Landmark
+import { PlusCircle, Calendar as CalendarIcon, FileCheck, Banknote, CreditCard, Landmark, Truck } from 'lucide-react'; // Added Truck icon
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
@@ -62,6 +62,7 @@ export interface CashMovement { // Export interface for use in table page
   description: string;
   amount: number;
   paymentMethod?: PaymentMethod; // Optional: Track payment method for sales
+  deliveryFee?: number; // Optional: Track delivery fee for sales
 }
 
 const movementCategories = ['Ingreso Venta', 'Suministros', 'Mantenimiento', 'Servicios', 'Alquiler', 'Salarios', 'Marketing', 'Otros Egresos', 'Otros Ingresos'];
@@ -145,12 +146,13 @@ export default function CashRegisterPage() {
      }
    }, [cashMovements, isInitialized]);
 
-   // Calculate daily totals per payment method
+   // Calculate daily totals per payment method and delivery fees
    const {
        dailyCashIncome,
        dailyDebitCardIncome,
        dailyCreditCardIncome,
        dailyTransferIncome,
+       dailyDeliveryFees, // Added delivery fees
        dailyTotalIncome,
        dailyExpenses,
        dailyNetTotal
@@ -160,6 +162,7 @@ export default function CashRegisterPage() {
         let debit = 0;
         let credit = 0;
         let transfer = 0;
+        let deliveryFees = 0; // Initialize delivery fees
         let expenses = 0;
 
         cashMovements.forEach(movement => {
@@ -168,12 +171,17 @@ export default function CashRegisterPage() {
             if (isToday(movementDate)) {
                 if (movement.amount > 0 && movement.category === 'Ingreso Venta') {
                     // Sum income based on payment method
+                    // Note: The 'amount' for 'Ingreso Venta' already includes the delivery fee
                     switch(movement.paymentMethod) {
                         case 'Efectivo': cash += movement.amount; break;
                         case 'Tarjeta Débito': debit += movement.amount; break;
                         case 'Tarjeta Crédito': credit += movement.amount; break;
                         case 'Transferencia': transfer += movement.amount; break;
                         default: cash += movement.amount; // Default to cash if method is missing
+                    }
+                     // Sum delivery fees separately
+                    if (movement.deliveryFee && movement.deliveryFee > 0) {
+                         deliveryFees += movement.deliveryFee;
                     }
                 } else if (movement.amount > 0 && movement.category === 'Otros Ingresos') {
                     // Assume 'Otros Ingresos' are cash for simplicity, or adjust if needed
@@ -185,6 +193,7 @@ export default function CashRegisterPage() {
             }
         });
 
+        // Total income includes delivery fees as they are part of the sale amount
         const totalIncome = cash + debit + credit + transfer;
 
         return {
@@ -192,8 +201,10 @@ export default function CashRegisterPage() {
             dailyDebitCardIncome: debit,
             dailyCreditCardIncome: credit,
             dailyTransferIncome: transfer,
+            dailyDeliveryFees: deliveryFees, // Return calculated delivery fees
             dailyTotalIncome: totalIncome,
             dailyExpenses: expenses,
+            // Net total calculation remains the same (Total Income - Total Expenses)
             dailyNetTotal: totalIncome - expenses,
         };
    }, [cashMovements]);
@@ -256,7 +267,7 @@ export default function CashRegisterPage() {
       category: newMovement.category,
       description: newMovement.description,
       amount: finalAmount,
-      // Payment method is only added for sales from table detail page
+      // Payment method and delivery fee only added for sales from table detail page
     }
 
     // Update state, which will trigger the useEffect to save to storage
@@ -277,6 +288,7 @@ export default function CashRegisterPage() {
     console.log(`Total Ingresos (T. Débito): ${formatCurrency(dailyDebitCardIncome)}`);
     console.log(`Total Ingresos (T. Crédito): ${formatCurrency(dailyCreditCardIncome)}`);
     console.log(`Total Ingresos (Transferencia): ${formatCurrency(dailyTransferIncome)}`);
+    console.log(`Total Costo Envío: ${formatCurrency(dailyDeliveryFees)}`); // Print delivery fees
     console.log(`Total Ingresos (General): ${formatCurrency(dailyTotalIncome)}`);
     console.log(`Total Egresos: ${formatCurrency(dailyExpenses)}`);
     console.log(`Total Neto: ${formatCurrency(dailyNetTotal)}`);
@@ -424,7 +436,7 @@ export default function CashRegisterPage() {
         </div>
 
          {/* Daily Summary Cards */}
-         <div className="md:col-span-2 grid grid-cols-2 sm:grid-cols-4 gap-2"> {/* Adjusted grid for 4 cards */}
+         <div className="md:col-span-2 grid grid-cols-2 sm:grid-cols-5 gap-2"> {/* Adjusted grid for 5 cards */}
              <Card className="text-center">
                  <CardHeader className="p-2 pb-0 flex flex-row items-center justify-center space-x-2">
                     <Banknote className="h-4 w-4 text-muted-foreground" />
@@ -461,6 +473,16 @@ export default function CashRegisterPage() {
                       <p className="text-lg font-bold text-indigo-600">{formatCurrency(dailyTransferIncome)}</p>
                   </CardContent>
              </Card>
+              {/* Delivery Fee Card */}
+              <Card className="text-center">
+                   <CardHeader className="p-2 pb-0 flex flex-row items-center justify-center space-x-2">
+                      <Truck className="h-4 w-4 text-muted-foreground" />
+                      <CardTitle className="text-xs font-medium">Costo Envío</CardTitle>
+                   </CardHeader>
+                   <CardContent className="p-2 pt-0">
+                       <p className="text-lg font-bold text-orange-600">{formatCurrency(dailyDeliveryFees)}</p>
+                   </CardContent>
+              </Card>
          </div>
       </div>
 
@@ -496,6 +518,11 @@ export default function CashRegisterPage() {
                       <div className="flex justify-between">
                          <span>Total Ingresos (Transferencia):</span>
                          <span className="font-medium text-indigo-600">{formatCurrency(dailyTransferIncome)}</span>
+                     </div>
+                     {/* Display Delivery Fees */}
+                      <div className="flex justify-between">
+                         <span>Total Costo Envío:</span>
+                         <span className="font-medium text-orange-600">{formatCurrency(dailyDeliveryFees)}</span>
                      </div>
                      <div className="flex justify-between font-semibold">
                          <span>Total Ingresos (General):</span>
@@ -583,3 +610,5 @@ export default function CashRegisterPage() {
     </div>
   );
 }
+
+    
