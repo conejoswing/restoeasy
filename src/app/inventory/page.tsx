@@ -37,21 +37,21 @@ interface InventoryItem {
   stock: number;
 }
 
-// Predefined items for initial inventory state (name only)
+// Predefined items for initial inventory state (name only) - Removed specified items
 const predefinedItemNames: string[] = [
   'Pan especial grande',
   'Pan especial chico',
   'Pan de marraqueta',
   'Pan de hamburguesa chico',
   'Pan de hamburguesa grande',
-  'Carne de Res',
-  'Masa de Pizza',
-  'Salsa de Tomate',
-  'Queso',
-  'Lechuga',
-  'Patatas',
-  'Jarabe de Refresco',
-  'Granos de Café',
+  // 'Carne de Res', // Removed
+  // 'Masa de Pizza', // Removed
+  // 'Salsa de Tomate', // Removed
+  // 'Queso', // Removed
+  // 'Lechuga', // Removed
+  // 'Patatas', // Removed
+  // 'Jarabe de Refresco', // Removed
+  // 'Granos de Café', // Removed
 ];
 
 // Initialize inventory state with predefined items having 0 stock
