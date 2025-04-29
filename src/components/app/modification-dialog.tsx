@@ -32,7 +32,8 @@ interface ModificationDialogProps {
 
 // Helper to format currency
 const formatCurrency = (amount: number) => {
-    return `CLP ${amount.toFixed(0)}`; // Format as CLP with no decimals
+    // Format as CLP with no decimals
+    return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
 };
 
 const ModificationDialog: React.FC<ModificationDialogProps> = ({
@@ -72,6 +73,15 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
 
   if (!item) return null;
 
+  // Filter out 'Porotos Verdes' if the item belongs to 'Completos As', 'Promo Churrasco', or 'Promo Mechada'
+  const availableModifications = item.modifications?.filter(mod => {
+    if (['Completos As', 'Promo Churrasco', 'Promo Mechada', 'Fajitas'].includes(item.category) && mod === 'Porotos Verdes') {
+      return false; // Exclude 'Porotos Verdes' for these categories
+    }
+    return true; // Include all other modifications
+  }) ?? [];
+
+
   // Calculate total additional cost for selected modifications
   const totalModificationCost = selectedModifications.reduce((acc, mod) => {
     return acc + (item.modificationPrices?.[mod] ?? 0);
@@ -83,30 +93,29 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
         <DialogHeader>
           <DialogTitle>Seleccionar Modificaciones para {item.name}</DialogTitle>
           <DialogDescription>
-            Elige las opciones deseadas para este artículo. Precio Base: {formatCurrency(item.price)} {/* Format base price */}
+            Elige las opciones deseadas para este artículo. Precio Base: {formatCurrency(item.price)}
             {selectedModifications.length > 0 && (
               <span className="block mt-1">
-                Costo Adicional: +{formatCurrency(totalModificationCost)} (Total: {formatCurrency(item.price + totalModificationCost)}) {/* Format additional and total cost */}
+                Costo Adicional: +{formatCurrency(totalModificationCost)} (Total: {formatCurrency(item.price + totalModificationCost)})
               </span>
             )}
           </DialogDescription>
         </DialogHeader>
         <ScrollArea className="max-h-[300px] p-1">
           <div className="grid gap-4 py-4 px-3">
-            {/* Display "Ninguno / Por defecto" implicitly if nothing is checked */}
-            {!item.modifications || item.modifications.length === 0 ? (
+            {!availableModifications || availableModifications.length === 0 ? (
                  <p className="text-sm text-muted-foreground">No hay modificaciones disponibles.</p>
             ) : (
-                item.modifications.map((mod) => {
+                availableModifications.map((mod) => { // Use the filtered list
                 const modificationCost = item.modificationPrices?.[mod];
-                const costString = modificationCost ? ` (+ ${formatCurrency(modificationCost)})` : ''; {/* Format modification cost */}
+                const costString = modificationCost ? ` (+ ${formatCurrency(modificationCost)})` : '';
                 const checkboxId = `mod-${mod.replace(/\s+/g, '-')}`;
                 return (
                     <div key={mod} className="flex items-center space-x-2">
                     <Checkbox
                         id={checkboxId}
                         checked={selectedModifications.includes(mod)}
-                        onCheckedChange={(checked) => handleCheckboxChange(mod, !!checked)} // Pass boolean
+                        onCheckedChange={(checked) => handleCheckboxChange(mod, !!checked)}
                     />
                     <Label htmlFor={checkboxId} className="flex-grow cursor-pointer">
                         {mod}
@@ -122,9 +131,8 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
           <Button type="button" variant="secondary" onClick={handleCancel}>
             Cancelar
           </Button>
-          {/* The primary button now acts as the confirmation */}
           <Button type="button" onClick={handleConfirm}>
-            Añadir al Pedido {/* Changed text to reflect action */}
+            Añadir al Pedido
           </Button>
         </DialogFooter>
       </DialogContent>
