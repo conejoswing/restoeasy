@@ -21,7 +21,8 @@ export default function LoginPage() {
      e.preventDefault(); // Prevent default form submission
     if (login(username, password)) {
       // Redirect to a default page after successful login, e.g., tables
-      router.push('/tables');
+      // Login function handles the redirection based on role
+      // router.push('/tables'); // Redirection is handled by AuthContext now
     }
     // Error handling is done within the login function using toast
   };
@@ -42,7 +43,7 @@ export default function LoginPage() {
                 <Input
                   id="username"
                   type="text"
-                  placeholder="admin"
+                  // placeholder="admin" // Removed placeholder
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   required
@@ -54,7 +55,7 @@ export default function LoginPage() {
                 <Input
                   id="password"
                   type="password"
-                  placeholder="admin"
+                  // placeholder="admin" // Removed placeholder
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
