@@ -19,11 +19,49 @@ const initialStaffFallback: StaffMember[] = [
 
 // Demo passwords (replace with secure backend logic in production)
 // These should ideally be set per user, not just per role, but using this for demo simplicity.
-const DEMO_PASSWORDS: Record<string, string> = {
-    admin: 'admin',
-    worker: 'worker',
-    // Add other usernames and their specific passwords here if needed
+// We store passwords in session storage for demo persistence within a session.
+const DEMO_PASSWORDS_KEY = 'demoPasswords'; // Session storage key
+
+// Function to get passwords, preferring session storage, then defaults
+const getDemoPasswords = (): Record<string, string> => {
+    let passwords: Record<string, string> = {
+        admin: 'admin',
+        worker: 'worker',
+    };
+     // Try loading from session storage
+    const storedPasswords = sessionStorage.getItem(DEMO_PASSWORDS_KEY);
+    if (storedPasswords) {
+        try {
+            const parsed = JSON.parse(storedPasswords);
+            if (typeof parsed === 'object' && parsed !== null) {
+                passwords = { ...passwords, ...parsed }; // Merge stored over defaults
+            }
+        } catch (e) {
+            console.error("Failed to parse stored passwords from session storage:", e);
+        }
+    } else {
+        // If nothing in session storage, save the defaults
+        try {
+            sessionStorage.setItem(DEMO_PASSWORDS_KEY, JSON.stringify(passwords));
+        } catch (e) {
+            console.error("Failed to save default passwords to session storage:", e);
+        }
+    }
+    return passwords;
 };
+
+// Function to update/add a password
+const updateDemoPassword = (username: string, pass: string) => {
+    const currentPasswords = getDemoPasswords();
+    currentPasswords[username.toLowerCase()] = pass;
+    try {
+        sessionStorage.setItem(DEMO_PASSWORDS_KEY, JSON.stringify(currentPasswords));
+        console.log(`Password for ${username} updated in session storage (DEMO ONLY).`);
+    } catch (e) {
+         console.error("Failed to save updated passwords to session storage:", e);
+    }
+};
+
 
 type UserRole = 'admin' | 'worker' | null;
 
@@ -33,6 +71,7 @@ interface AuthContextType {
   login: (user: string, pass: string) => boolean;
   logout: () => void;
   isLoading: boolean;
+  updatePasswordForUser: (username: string, pass: string) => void; // Expose function to update password
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -49,43 +88,47 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Load staff data from localStorage on initial mount
   useEffect(() => {
      console.log("AuthContext: Loading staff from localStorage...");
-     const storedStaff = localStorage.getItem(STAFF_STORAGE_KEY);
+     const storedStaff = localStorage.getItem(STAFF_STORAGE_KEY); // Read from localStorage
      let loadedStaff: StaffMember[] = [];
      if (storedStaff) {
        try {
          const parsed = JSON.parse(storedStaff);
          if (Array.isArray(parsed)) {
-           loadedStaff = parsed;
+           loadedStaff = parsed; // Use stored data
            console.log("AuthContext: Staff loaded successfully.");
          } else {
            console.warn("AuthContext: Invalid staff data found, using fallback.");
-           loadedStaff = initialStaffFallback;
+           loadedStaff = initialStaffFallback; // Fallback
          }
        } catch (error) {
          console.error("AuthContext: Failed to parse stored staff:", error);
-         loadedStaff = initialStaffFallback;
+         loadedStaff = initialStaffFallback; // Fallback on error
        }
      } else {
        console.log("AuthContext: No staff found, using fallback and saving.");
-       loadedStaff = initialStaffFallback;
-       // Save the fallback data if nothing was found
+       loadedStaff = initialStaffFallback; // Fallback if nothing stored
+       // Attempt to save fallback data if nothing was found
        try {
            localStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(loadedStaff));
+            console.log("AuthContext: Saved fallback staff data to localStorage.");
        } catch (saveError) {
             console.error("AuthContext: Failed to save fallback staff data:", saveError);
        }
      }
-     setStaffList(loadedStaff);
+     setStaffList(loadedStaff); // Set state based on loaded/fallback data
+     // Load passwords after staff list is set
+     getDemoPasswords(); // Ensure passwords are loaded/initialized in session storage
   }, []); // Run only once on mount
 
 
   // Check authentication status and perform redirects
   useEffect(() => {
-    if (staffList.length === 0 && !localStorage.getItem(STAFF_STORAGE_KEY)) {
-         // Wait until staff list is potentially populated from storage or fallback
+     // Check if staff list is loaded (important for login logic)
+     if (staffList.length === 0 && !localStorage.getItem(STAFF_STORAGE_KEY)) {
          console.log("AuthContext: Waiting for staff list to initialize...");
+         // Return early if staff data hasn't been loaded yet (prevents premature redirects)
          return;
-    }
+     }
 
     // Check session storage for authentication state
     const storedAuth = sessionStorage.getItem('isAuthenticated');
@@ -96,8 +139,20 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (storedAuth === 'true' && storedRole) {
         currentAuth = true;
         currentRole = storedRole;
-        setIsAuthenticated(true);
-        setUserRole(storedRole);
+        // Check if the role still exists in the current staff list for validation
+        const userExists = staffList.some(s => s.username.toLowerCase() === sessionStorage.getItem('username')?.toLowerCase() && s.accessLevel === storedRole);
+        if (userExists) {
+             setIsAuthenticated(true);
+             setUserRole(storedRole);
+        } else {
+             console.warn(`AuthContext: Stored user role (${storedRole}) not found or doesn't match staff list. Logging out.`);
+             setIsAuthenticated(false);
+             setUserRole(null);
+             sessionStorage.removeItem('isAuthenticated');
+             sessionStorage.removeItem('userRole');
+             sessionStorage.removeItem('username'); // Clear username too
+        }
+
     } else {
         setIsAuthenticated(false);
         setUserRole(null);
@@ -108,7 +163,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!isLoading) { // Ensure state is loaded before redirecting
       const adminRoutes = ['/inventory', '/expenses', '/staff', '/products'];
       const publicRoutes = ['/login'];
-      const workerRouteRegex = /^\/tables(\/.*)?$/; // Workers can only access /tables and its subpaths
+      // Allow access to /tables and specific table IDs (/tables/*)
+      const allowedRoutesRegex = /^\/tables(\/[^/]+)?$/;
 
       // Redirect authenticated users away from login
       if (currentAuth && pathname === '/login') {
@@ -124,15 +180,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       // Role-specific redirects for authenticated users
       if (currentAuth) {
-        if (currentRole === 'worker' && !workerRouteRegex.test(pathname)) {
+        if (currentRole === 'worker' && !allowedRoutesRegex.test(pathname)) {
            // If worker tries to access a non-allowed route
            toast({ title: 'Acceso Denegado', description: 'No tiene permiso para acceder a esta página.', variant: 'destructive' });
-           router.push('/tables');
+           router.push('/tables'); // Redirect worker to tables page
            return;
-        } else if (currentRole === 'admin' && adminRoutes.includes(pathname)) {
-           // Admin is allowed, do nothing specific
+        } else if (currentRole === 'admin' && (adminRoutes.includes(pathname) || allowedRoutesRegex.test(pathname))) {
+           // Admin is allowed on admin routes AND tables routes
+           // Do nothing specific
+        } else if (currentRole === 'admin' && !adminRoutes.includes(pathname) && !allowedRoutesRegex.test(pathname)) {
+             // If admin somehow ends up on an unknown route (e.g., typo), redirect to tables
+             router.push('/tables');
+             return;
         }
-        // Admins are implicitly allowed on /tables as well
       }
     }
 
@@ -147,7 +207,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     foundUser = staffList.find(member => member.username.toLowerCase() === user.toLowerCase());
 
     if (foundUser && foundUser.accessLevel && foundUser.accessLevel !== 'none') {
-        // Use the DEMO_PASSWORDS map for password checking
+        // Use the getDemoPasswords function to retrieve current passwords
+        const DEMO_PASSWORDS = getDemoPasswords();
         const expectedPassword = DEMO_PASSWORDS[foundUser.username.toLowerCase()]; // Check password based on username
 
         // Simple password check (replace with secure hashing in production)
@@ -163,6 +224,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUserRole(role);
       sessionStorage.setItem('isAuthenticated', 'true');
       sessionStorage.setItem('userRole', role);
+      sessionStorage.setItem('username', foundUser!.username); // Store username for validation later
       toast({ title: 'Éxito', description: 'Inicio de sesión exitoso.' });
       router.push('/tables'); // Redirect to tables after successful login
       return true;
@@ -172,6 +234,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUserRole(null);
       sessionStorage.removeItem('isAuthenticated');
       sessionStorage.removeItem('userRole');
+      sessionStorage.removeItem('username');
       return false;
     }
   };
@@ -181,16 +244,23 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUserRole(null);
     sessionStorage.removeItem('isAuthenticated');
     sessionStorage.removeItem('userRole');
+    sessionStorage.removeItem('username'); // Clear username
     router.push('/login');
     toast({ title: 'Sesión Cerrada', description: 'Has cerrado sesión exitosamente.' });
   };
 
-  const value = {
+  const updatePasswordForUser = (username: string, pass: string) => {
+     updateDemoPassword(username, pass); // Use the helper function
+  };
+
+
+  const value: AuthContextType = {
     isAuthenticated,
     userRole,
     login,
     logout,
     isLoading,
+    updatePasswordForUser, // Expose the update function
   };
 
   // Render children only after loading is complete

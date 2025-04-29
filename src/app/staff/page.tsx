@@ -79,21 +79,21 @@ export default function StaffPage() {
 
   // Load staff from localStorage on mount
    useEffect(() => {
-     if (isStaffInitialized) return;
+     if (isStaffInitialized) return; // Prevent re-running
 
      console.log("Initializing staff from localStorage...");
-     const storedStaff = localStorage.getItem(STAFF_STORAGE_KEY);
+     const storedStaff = localStorage.getItem(STAFF_STORAGE_KEY); // Read from localStorage
      let loadedStaff: StaffMember[] = [];
 
      if (storedStaff) {
        try {
          const parsed = JSON.parse(storedStaff);
          if (Array.isArray(parsed)) {
-           loadedStaff = parsed;
+           loadedStaff = parsed; // Use stored data
            console.log("Loaded staff:", loadedStaff);
          } else {
            console.warn("Invalid staff data found in localStorage, using initial data.");
-           loadedStaff = initialStaff;
+           loadedStaff = initialStaff; // Fallback
          }
        } catch (error) {
          console.error("Failed to parse stored staff:", error);
@@ -101,14 +101,21 @@ export default function StaffPage() {
        }
      } else {
        console.log("No staff found in localStorage, using initial data.");
-       loadedStaff = initialStaff; // Use initial if nothing in storage
+       loadedStaff = initialStaff; // Fallback if nothing stored
+       // Attempt to save initial data if nothing was found
+       try {
+            localStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(loadedStaff));
+            console.log("Saved initial staff data to localStorage.");
+       } catch (saveError) {
+            console.error("Failed to save initial staff data:", saveError);
+       }
      }
 
-     setStaff(loadedStaff.sort((a, b) => a.name.localeCompare(b.name))); // Sort by name
-     setIsStaffInitialized(true);
+     setStaff(loadedStaff.sort((a, b) => a.name.localeCompare(b.name))); // Set state
+     setIsStaffInitialized(true); // Mark as initialized
      console.log("Staff initialization complete.");
 
-   }, [isStaffInitialized]);
+   }, [isStaffInitialized]); // Dependency array ensures it runs once
 
    // Save staff to localStorage whenever it changes
    useEffect(() => {
@@ -116,13 +123,13 @@ export default function StaffPage() {
 
      console.log("Saving staff to localStorage...");
      try {
-       localStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(staff));
+       localStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(staff)); // Save current state
        console.log("Staff saved.");
      } catch (error) {
        console.error("Failed to save staff to localStorage:", error);
        toast({ title: "Error", description: "No se pudo guardar la lista de personal.", variant: "destructive" });
      }
-   }, [staff, isStaffInitialized]);
+   }, [staff, isStaffInitialized]); // Save when staff state changes
 
 
   // Loading state is handled by AuthProvider wrapper in layout.tsx
@@ -152,6 +159,7 @@ export default function StaffPage() {
     if (!newStaffData.name || !newStaffData.role) {
         requiredFieldsMissing = true;
     }
+    // Username required if access is not 'none'
     if (newStaffData.accessLevel !== 'none' && !newStaffData.username) {
         requiredFieldsMissing = true;
     }
@@ -361,7 +369,7 @@ export default function StaffPage() {
             </div>
             <DialogFooter>
               {/* Use DialogClose for the Cancel button */}
-                <Button type="button" variant="secondary" onClick={closeDialog}>Cancelar</Button> {/* Removed DialogClose wrapper */}
+                 <Button type="button" variant="secondary" onClick={closeDialog}>Cancelar</Button> {/* Removed DialogClose wrapper, use onClick */}
               <Button type="submit" onClick={handleAddOrEditStaff}>
                 {isEditing ? 'Guardar Cambios' : 'Añadir Personal'} {/* Save Changes / Add Staff */}
               </Button>
