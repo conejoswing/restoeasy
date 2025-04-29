@@ -270,13 +270,24 @@ export default function CashRegisterPage() {
   };
 
   const handleConfirmClosing = () => {
+    // Here you would normally trigger a print action
+    console.log("Imprimiendo resumen de cierre de caja:");
+    console.log(`Fecha: ${format(new Date(), 'dd/MM/yyyy')}`);
+    console.log(`Total Ingresos (Efectivo): ${formatCurrency(dailyCashIncome)}`);
+    console.log(`Total Ingresos (T. Débito): ${formatCurrency(dailyDebitCardIncome)}`);
+    console.log(`Total Ingresos (T. Crédito): ${formatCurrency(dailyCreditCardIncome)}`);
+    console.log(`Total Ingresos (Transferencia): ${formatCurrency(dailyTransferIncome)}`);
+    console.log(`Total Ingresos (General): ${formatCurrency(dailyTotalIncome)}`);
+    console.log(`Total Egresos: ${formatCurrency(dailyExpenses)}`);
+    console.log(`Total Neto: ${formatCurrency(dailyNetTotal)}`);
+
     // Clear the movements in state
     setCashMovements([]);
     // Clear the movements in sessionStorage
     sessionStorage.removeItem(CASH_MOVEMENTS_STORAGE_KEY);
 
     setIsClosingDialogOpen(false); // Close the dialog
-    toast({ title: "Cierre de Caja Realizado", description: "Se han borrado todos los movimientos registrados.", variant: "default"});
+    toast({ title: "Cierre de Caja Impreso y Realizado", description: "Se han borrado todos los movimientos registrados.", variant: "default"});
   }
 
    // Loading state is handled by AuthProvider wrapper in layout.tsx
@@ -466,7 +477,7 @@ export default function CashRegisterPage() {
                   <AlertDialogHeader>
                       <AlertDialogTitle>Resumen del Cierre de Caja - {format(new Date(), 'dd/MM/yyyy')}</AlertDialogTitle>
                       <AlertDialogDescription>
-                          Revisa los totales del día antes de confirmar el cierre. Al confirmar, se borrarán todos los movimientos registrados hoy.
+                          Revisa los totales del día antes de confirmar el cierre. Al confirmar, se imprimirán los totales y se borrarán todos los movimientos registrados hoy.
                       </AlertDialogDescription>
                   </AlertDialogHeader>
                   <div className="grid gap-2 text-sm mt-4">
@@ -504,7 +515,8 @@ export default function CashRegisterPage() {
                   </div>
                   <AlertDialogFooter className="mt-6">
                       <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      <AlertDialogAction onClick={handleConfirmClosing} className={cn(buttonVariants({ variant: "destructive" }))}>Confirmar Cierre</AlertDialogAction>
+                      {/* Changed button text */}
+                      <AlertDialogAction onClick={handleConfirmClosing} className={cn(buttonVariants({ variant: "default" }))}>Imprimir Cierre de Caja</AlertDialogAction>
                   </AlertDialogFooter>
               </AlertDialogContent>
           </AlertDialog>
@@ -571,3 +583,4 @@ export default function CashRegisterPage() {
     </div>
   );
 }
+
