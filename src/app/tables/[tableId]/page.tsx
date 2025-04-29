@@ -193,15 +193,15 @@ const mockMenu: MenuItem[] = [
     { id: 51, name: 'Queso Champiñon Normal', price: 7000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Queso Fundido', 'Champiñones Salteados'], modificationPrices: { 'Agregado Queso': 1200 } }, // Kept Champiñon specific mods
     { id: 52, name: 'Queso Champiñon Grande', price: 7500, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Queso Fundido', 'Champiñones Salteados'], modificationPrices: { 'Agregado Queso': 1200 } }, // Kept Champiñon specific mods
     // --- End of newly added Completos As ---
-    // --- Fajitas --- (No standard modifications applied as they are usually custom)
-    { id: 104, name: 'Italiana', price: 9500, category: 'Fajitas', modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají Verde', 'Agregado Queso'], modificationPrices: { 'Con Queso': 500, 'Extra Carne': 1000, 'Agregado Queso': 1000 } },
-    { id: 105, name: 'Brasileño', price: 9200, category: 'Fajitas', modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají Verde', 'Agregado Queso'], modificationPrices: { 'Con Queso': 500, 'Extra Carne': 1000, 'Agregado Queso': 1000 } },
-    { id: 106, name: 'Chacarero', price: 9800, category: 'Fajitas', modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají Verde', 'Agregado Queso'], modificationPrices: { 'Con Queso': 500, 'Extra Carne': 1000, 'Agregado Queso': 1000 } },
-    { id: 107, name: 'Americana', price: 8900, category: 'Fajitas', modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají Verde', 'Agregado Queso'], modificationPrices: { 'Con Queso': 500, 'Extra Carne': 1000, 'Agregado Queso': 1000 } },
-    { id: 108, name: 'Primavera', price: 9000, category: 'Fajitas', modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají Verde', 'Agregado Queso'], modificationPrices: { 'Con Queso': 500, 'Extra Carne': 1000, 'Agregado Queso': 1000 } },
-    { id: 109, name: 'Golosasa', price: 10500, category: 'Fajitas', modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají Verde', 'Agregado Queso'], modificationPrices: { 'Con Queso': 500, 'Extra Carne': 1000, 'Agregado Queso': 1000 } },
-    { id: 110, name: '4 Ingredientes', price: 11000, category: 'Fajitas', modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají Verde', 'Agregado Queso'], modificationPrices: { 'Con Queso': 500, 'Extra Carne': 1000, 'Agregado Queso': 1000 } }, // Choose your 4
-    { id: 111, name: '6 Ingredientes', price: 12000, category: 'Fajitas', modifications: ['Con Queso', 'Sin Cebolla', 'Extra Carne', 'Ají Verde', 'Agregado Queso'], modificationPrices: { 'Con Queso': 500, 'Extra Carne': 1000, 'Agregado Queso': 1000 } }, // Choose your 6
+    // --- Fajitas --- (Updated to standard modifications)
+    { id: 104, name: 'Italiana', price: 9500, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 } },
+    { id: 105, name: 'Brasileño', price: 9200, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 } },
+    { id: 106, name: 'Chacarero', price: 9800, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Porotos Verdes'], modificationPrices: { 'Agregado Queso': 1000 } }, // Kept Porotos Verdes for Chacarero
+    { id: 107, name: 'Americana', price: 8900, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 } },
+    { id: 108, name: 'Primavera', price: 9000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 } },
+    { id: 109, name: 'Golosasa', price: 10500, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 } },
+    { id: 110, name: '4 Ingredientes', price: 11000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 } }, // Choose your 4
+    { id: 111, name: '6 Ingredientes', price: 12000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 } }, // Choose your 6
     // --- Hamburguesas --- (Updated Modifications)
     {
         id: 17,
@@ -355,23 +355,19 @@ const mockMenu: MenuItem[] = [
         name: 'Papas Fritas Normal',
         price: 3500,
         category: 'Papas Fritas',
-        // modifications: ['Agregar Queso Fundido', 'Agregar Salsa Cheddar'], // Removed
-        // modificationPrices: { 'Agregar Queso Fundido': 1500, 'Agregar Salsa Cheddar': 1200 }, // Removed
     },
     {
         id: 22,
         name: 'Papas Fritas Mediana',
         price: 5000,
         category: 'Papas Fritas',
-        // modifications: ['Queso Cheddar', 'Bacon', 'Cebolla Crispy', 'Salsa BBQ'], // Removed
-        // modificationPrices: { 'Queso Cheddar': 1200, 'Bacon': 1000 }, // Removed
     },
-    { id: 61, name: 'Papas Fritas Grande', price: 6500, category: 'Papas Fritas' }, // Removed mods
-    { id: 62, name: 'Papas Fritas XL', price: 8000, category: 'Papas Fritas' }, // Removed mods
-    { id: 63, name: 'Salchipapas', price: 7000, category: 'Papas Fritas' }, // Removed mods
-    { id: 64, name: 'Chorrillana 2', price: 12000, category: 'Papas Fritas' }, // Removed mods
-    { id: 65, name: 'Chorrillana 4', price: 18000, category: 'Papas Fritas' }, // Removed mods
-    { id: 66, name: 'Box Cami', price: 15000, category: 'Papas Fritas' }, // Removed mods
+    { id: 61, name: 'Papas Fritas Grande', price: 6500, category: 'Papas Fritas' },
+    { id: 62, name: 'Papas Fritas XL', price: 8000, category: 'Papas Fritas' },
+    { id: 63, name: 'Salchipapas', price: 7000, category: 'Papas Fritas' },
+    { id: 64, name: 'Chorrillana 2', price: 12000, category: 'Papas Fritas' },
+    { id: 65, name: 'Chorrillana 4', price: 18000, category: 'Papas Fritas' },
+    { id: 66, name: 'Box Cami', price: 15000, category: 'Papas Fritas' },
     // --- Promo Churrasco --- (Updated Modifications where applicable)
     {
         id: 25,
@@ -432,16 +428,12 @@ const mockMenu: MenuItem[] = [
       name: 'Promo 1',
       price: 4500,
       category: 'Promociones',
-      // modifications: ['Vienesa', 'As', 'Con Bebida Pequeña', 'Ají Verde', 'Agregado Queso'], // Removed
-      // modificationPrices: { 'Agregado Queso': 1000 }, // Removed
     },
      {
       id: 5,
       name: 'Promo 2',
       price: 5000,
       category: 'Promociones',
-      // modifications: ['Vienesa', 'As', 'Con Bebida Pequeña', 'Ají Verde', 'Agregado Queso'], // Removed
-      // modificationPrices: { 'Agregado Queso': 1000 }, // Removed
     },
     {
       id: 23,
@@ -1197,3 +1189,4 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
