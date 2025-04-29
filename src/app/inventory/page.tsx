@@ -29,7 +29,7 @@ import { Label } from '@/components/ui/label';
 import { PlusCircle, MinusCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+// Removed RadioGroup import as it's no longer needed
 
 interface InventoryItem {
   id: number;
@@ -67,77 +67,53 @@ export default function InventoryPage() {
   const { isAuthenticated, isLoading, userRole } = useAuth();
   const router = useRouter();
   const [inventory, setInventory] = useState<InventoryItem[]>(initialInventory);
-  const [newManualProduct, setNewManualProduct] = useState<{ name: string; stock: string }>({ name: '', stock: '' });
-  const [selectedPredefinedItem, setSelectedPredefinedItem] = useState<string | null>(null);
-  const [predefinedItemStock, setPredefinedItemStock] = useState<string>('');
+  // Renamed state for clarity
+  const [newProductData, setNewProductData] = useState<{ name: string; stock: string }>({ name: '', stock: '' });
+  // Removed states related to predefined mode
+  // const [selectedPredefinedItem, setSelectedPredefinedItem] = useState<string | null>(null);
+  // const [predefinedItemStock, setPredefinedItemStock] = useState<string>('');
   const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
-  const [addProductMode, setAddProductMode] = useState<'predefined' | 'manual'>('predefined');
+  // Removed addProductMode state
+  // const [addProductMode, setAddProductMode] = useState<'predefined' | 'manual'>('predefined');
   const { toast } = useToast();
 
   // No need for explicit redirect here, AuthProvider handles it
 
-  const handleManualProductInputChange = (
+  // Renamed handler for clarity
+  const handleNewProductInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
-    key: keyof typeof newManualProduct
+    key: keyof typeof newProductData
   ) => {
-    setNewManualProduct((prev) => ({ ...prev, [key]: e.target.value }));
+    setNewProductData((prev) => ({ ...prev, [key]: e.target.value }));
   };
 
-  const handlePredefinedStockChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPredefinedItemStock(e.target.value);
-  }
-
-  const handlePredefinedItemSelect = (value: string) => {
-    setSelectedPredefinedItem(value);
-  }
-
-  const handleAddOrUpdateStock = () => {
-    if (addProductMode === 'manual') {
-      if (!newManualProduct.name || !newManualProduct.stock) {
-        toast({ title: "Error", description: "Por favor, complete todos los campos del producto.", variant: "destructive" });
-        return;
-      }
-      const stockValue = parseInt(newManualProduct.stock, 10);
-      if (isNaN(stockValue) || stockValue < 0) {
-        toast({ title: "Error", description: "La cantidad debe ser un número válido y no negativo.", variant: "destructive" });
-        return;
-      }
-      if (inventory.some(item => item.name.toLowerCase() === newManualProduct.name.toLowerCase())) {
-        toast({ title: "Error", description: "Este producto ya existe en el inventario.", variant: "destructive" });
-        return;
-      }
-      const newId = inventory.length > 0 ? Math.max(...inventory.map(item => item.id)) + 1 : 1;
-      const addedProduct: InventoryItem = {
-        id: newId,
-        name: newManualProduct.name,
-        stock: stockValue,
-      };
-      setInventory([...inventory, addedProduct].sort((a, b) => a.name.localeCompare(b.name)));
-      toast({ title: "Producto Añadido", description: `${addedProduct.name} añadido al inventario.` });
-      setNewManualProduct({ name: '', stock: '' });
-      setIsAddProductDialogOpen(false);
-    } else {
-      if (!selectedPredefinedItem || !predefinedItemStock) {
-        toast({ title: "Error", description: "Seleccione un producto y especifique la cantidad.", variant: "destructive" });
-        return;
-      }
-      const stockToAdd = parseInt(predefinedItemStock, 10);
-      if (isNaN(stockToAdd) || stockToAdd <= 0) {
-        toast({ title: "Error", description: "La cantidad debe ser un número positivo válido.", variant: "destructive" });
-        return;
-      }
-      setInventory(inventory.map(item => {
-        if (item.name === selectedPredefinedItem) {
-          return { ...item, stock: item.stock + stockToAdd };
-        }
-        return item;
-      }).sort((a, b) => a.name.localeCompare(b.name)));
-      toast({ title: "Stock Actualizado", description: `Se añadieron ${stockToAdd} unidades de ${selectedPredefinedItem}.` });
-      setSelectedPredefinedItem(null);
-      setPredefinedItemStock('');
-      setIsAddProductDialogOpen(false);
+  // Simplified function to only add new products
+  const handleAddProduct = () => {
+    if (!newProductData.name || !newProductData.stock) {
+      toast({ title: "Error", description: "Por favor, complete el nombre y la cantidad del producto.", variant: "destructive" });
+      return;
     }
+    const stockValue = parseInt(newProductData.stock, 10);
+    if (isNaN(stockValue) || stockValue < 0) {
+      toast({ title: "Error", description: "La cantidad debe ser un número válido y no negativo.", variant: "destructive" });
+      return;
+    }
+    if (inventory.some(item => item.name.toLowerCase() === newProductData.name.toLowerCase())) {
+      toast({ title: "Error", description: "Este producto ya existe en el inventario.", variant: "destructive" });
+      return;
+    }
+    const newId = inventory.length > 0 ? Math.max(...inventory.map(item => item.id)) + 1 : 1;
+    const addedProduct: InventoryItem = {
+      id: newId,
+      name: newProductData.name,
+      stock: stockValue,
+    };
+    setInventory([...inventory, addedProduct].sort((a, b) => a.name.localeCompare(b.name)));
+    toast({ title: "Producto Añadido", description: `${addedProduct.name} añadido al inventario con ${addedProduct.stock} unidades.` });
+    setNewProductData({ name: '', stock: '' }); // Reset form
+    setIsAddProductDialogOpen(false); // Close dialog
   };
+
 
   const handleIncreaseStock = (id: number) => {
     setInventory(inventory.map(item =>
@@ -171,10 +147,8 @@ export default function InventoryPage() {
 
   const handleDialogClose = () => {
     setIsAddProductDialogOpen(false);
-    setAddProductMode('predefined');
-    setSelectedPredefinedItem(null);
-    setPredefinedItemStock('');
-    setNewManualProduct({ name: '', stock: '' });
+    // Reset form on close
+    setNewProductData({ name: '', stock: '' });
   };
 
    // Loading state is handled by AuthProvider wrapper in layout.tsx
@@ -199,90 +173,53 @@ export default function InventoryPage() {
           </DialogTrigger>
           <DialogContent className="sm:max-w-lg">
             <DialogHeader>
-              <DialogTitle>Añadir Producto</DialogTitle>
+              {/* Updated Dialog Title and Description */}
+              <DialogTitle>Añadir Nuevo Producto</DialogTitle>
               <DialogDescription>
-                Seleccione un producto predefinido para añadir stock o agregue un nuevo producto manualmente.
+                Ingrese el nombre y la cantidad inicial del nuevo producto.
               </DialogDescription>
             </DialogHeader>
-            <RadioGroup defaultValue="predefined" value={addProductMode} onValueChange={(value: 'predefined' | 'manual') => setAddProductMode(value)} className="flex space-x-4 py-2">
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="predefined" id="r-predefined" />
-                <Label htmlFor="r-predefined">Usar Producto Predefinido</Label>
+            {/* Removed RadioGroup and conditional rendering */}
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="product-name" className="text-right">
+                  Nombre
+                </Label>
+                <Input
+                  id="product-name"
+                  value={newProductData.name}
+                  onChange={(e) => handleNewProductInputChange(e, 'name')}
+                  className="col-span-3"
+                  placeholder="Nombre del producto"
+                  required
+                />
               </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="manual" id="r-manual" />
-                <Label htmlFor="r-manual">Añadir Producto Manualmente</Label>
+              <div className="grid grid-cols-4 items-center gap-4">
+                 {/* Updated Label */}
+                <Label htmlFor="product-stock" className="text-right">
+                  Cantidad
+                </Label>
+                <Input
+                  id="product-stock"
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={newProductData.stock}
+                  onChange={(e) => handleNewProductInputChange(e, 'stock')}
+                  className="col-span-3"
+                  placeholder="0"
+                  required
+                />
               </div>
-            </RadioGroup>
-
-            {addProductMode === 'predefined' ? (
-              <div className="grid gap-4 py-4">
-                <Label>Seleccione Producto Predefinido</Label>
-                <RadioGroup value={selectedPredefinedItem ?? ''} onValueChange={handlePredefinedItemSelect} className="grid grid-cols-2 gap-2 max-h-60 overflow-y-auto p-2 border rounded">
-                  {predefinedItemNames.map((name) => (
-                    <div key={name} className="flex items-center space-x-2">
-                      <RadioGroupItem value={name} id={`radio-${name.replace(/\s+/g, '-')}`} />
-                      <Label htmlFor={`radio-${name.replace(/\s+/g, '-')}`}>{name}</Label>
-                    </div>
-                  ))}
-                </RadioGroup>
-                <div className="grid grid-cols-4 items-center gap-4 mt-4">
-                  <Label htmlFor="predefined-stock" className="text-right col-span-1">
-                    Cantidad a Añadir
-                  </Label>
-                  <Input
-                    id="predefined-stock"
-                    type="number"
-                    min="1"
-                    step="1"
-                    value={predefinedItemStock}
-                    onChange={handlePredefinedStockChange}
-                    className="col-span-3"
-                    placeholder="0"
-                    required
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="manual-product-name" className="text-right">
-                    Nombre
-                  </Label>
-                  <Input
-                    id="manual-product-name"
-                    value={newManualProduct.name}
-                    onChange={(e) => handleManualProductInputChange(e, 'name')}
-                    className="col-span-3"
-                    placeholder="Nombre del producto"
-                    required
-                  />
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="manual-product-stock" className="text-right">
-                    Cantidad Inicial
-                  </Label>
-                  <Input
-                    id="manual-product-stock"
-                    type="number"
-                    min="0"
-                    step="1"
-                    value={newManualProduct.stock}
-                    onChange={(e) => handleManualProductInputChange(e, 'stock')}
-                    className="col-span-3"
-                    placeholder="0"
-                    required
-                  />
-                </div>
-              </div>
-            )}
+            </div>
 
             <DialogFooter>
               <DialogClose asChild>
                 <Button type="button" variant="secondary">Cancelar</Button>
               </DialogClose>
-              <Button type="submit" onClick={handleAddOrUpdateStock}>
-                {addProductMode === 'predefined' ? 'Añadir Stock' : 'Añadir Producto'}
+              {/* Updated submit button text */}
+              <Button type="submit" onClick={handleAddProduct}>
+                Añadir Producto
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -339,3 +276,4 @@ export default function InventoryPage() {
     </div>
   );
 }
+
