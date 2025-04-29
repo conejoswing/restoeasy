@@ -555,7 +555,7 @@ export default function CashRegisterPage() {
             <TableBody>
               {cashMovements.map((movement) => (
                 <TableRow key={movement.id}>
-                  <TableCell>{format(new Date(movement.date), 'dd/MM/yyyy HH:mm')}</TableCell> {/* Ensure date is Date object, added time */}
+                  <TableCell>{format(new Date(movement.date), 'dd/MM/yyyy HH:mm')}</TableCell>{/* Ensure date is Date object, added time */}
                   <TableCell>{movement.category}</TableCell>
                   <TableCell className="font-medium">{movement.description}</TableCell>
                   <TableCell className={cn(
