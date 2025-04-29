@@ -55,7 +55,17 @@ export default function StaffPage() {
   const [newStaffData, setNewStaffData] = useState<{ name: string; role: string; accessLevel: AccessLevel }>({ name: '', role: '', accessLevel: 'none' });
   const { toast } = useToast();
 
-  // No need for explicit redirect here, AuthProvider handles it
+  // Loading state is handled by AuthProvider wrapper in layout.tsx
+  if (isLoading) {
+      return <div className="flex items-center justify-center min-h-screen">Cargando...</div>; // Added loading indicator
+  }
+  // If not authenticated or not admin, AuthProvider will redirect
+  if (!isAuthenticated || userRole !== 'admin') {
+    // Redirect logic is now within AuthProvider useEffect
+    // Return null or a placeholder if needed while redirecting
+    return null;
+  }
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, key: keyof Omit<typeof newStaffData, 'accessLevel'>) => {
     setNewStaffData((prev) => ({ ...prev, [key]: e.target.value }));
@@ -132,14 +142,6 @@ export default function StaffPage() {
      }
   };
 
-   // Loading state is handled by AuthProvider wrapper in layout.tsx
-   if (isLoading) {
-     return null; // Or a minimal loading indicator if preferred
-   }
-   // If not authenticated or not admin, AuthProvider will redirect
-   if (!isAuthenticated || userRole !== 'admin') {
-     return null; // Prevent rendering content before redirect
-   }
 
   return (
     <div className="container mx-auto p-4">
@@ -206,8 +208,8 @@ export default function StaffPage() {
               {/* Add Avatar URL input if needed */}
             </div>
             <DialogFooter>
-              {/* Use DialogClose for the Cancel button */}
-              <DialogClose asChild>
+              {/* Use DialogClose for the Cancel button - Removed asChild */}
+              <DialogClose>
                  <Button type="button" variant="secondary" onClick={closeDialog}>Cancelar</Button> {/* Added onClick to ensure state reset */}
                </DialogClose>
               <Button type="submit" onClick={handleAddOrEditStaff}>
