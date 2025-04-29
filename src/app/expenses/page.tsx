@@ -453,23 +453,8 @@ export default function CashRegisterPage() {
          </div>
       </div>
 
-      {/* Cash Closing Button & Net Total Summary (Moved below cards) */}
+      {/* Cash Closing Button & Net Total Summary (Swapped positions) */}
       <div className="flex justify-between items-center mb-6 gap-4">
-          {/* Net Total Summary Card */}
-           <Card className="text-center flex-grow max-w-xs"> {/* Added flex-grow and max-w-xs */}
-                 <CardHeader className="p-2 pb-0">
-                     <CardTitle className="text-sm font-medium">Total Neto Hoy</CardTitle>
-                 </CardHeader>
-                 <CardContent className="p-2 pt-0">
-                     <p className={cn(
-                        "text-xl font-bold",
-                         dailyNetTotal >= 0 ? "text-green-600" : "text-red-600"
-                     )}>
-                         {formatCurrency(dailyNetTotal)}
-                     </p>
-                 </CardContent>
-           </Card>
-
            {/* Cash Closing Button */}
           <AlertDialog open={isClosingDialogOpen} onOpenChange={setIsClosingDialogOpen}>
               <AlertDialogTrigger asChild>
@@ -523,6 +508,21 @@ export default function CashRegisterPage() {
                   </AlertDialogFooter>
               </AlertDialogContent>
           </AlertDialog>
+
+            {/* Net Total Summary Card */}
+           <Card className="text-center flex-grow max-w-xs"> {/* Added flex-grow and max-w-xs */}
+                 <CardHeader className="p-2 pb-0">
+                     <CardTitle className="text-sm font-medium">Total Neto Hoy</CardTitle>
+                 </CardHeader>
+                 <CardContent className="p-2 pt-0">
+                     <p className={cn(
+                        "text-xl font-bold",
+                         dailyNetTotal >= 0 ? "text-green-600" : "text-red-600"
+                     )}>
+                         {formatCurrency(dailyNetTotal)}
+                     </p>
+                 </CardContent>
+           </Card>
       </div>
 
 
