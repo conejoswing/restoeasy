@@ -1,34 +1,27 @@
 
-
 'use client';
 
 import type { ReactNode } from 'react';
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
+import type { StaffMember, AccessLevel } from '@/app/staff/page'; // Import StaffMember type
 
-// Define possible access levels explicitly (copied from StaffPage)
-type AccessLevel = 'admin' | 'worker' | 'none';
-
-// Define StaffMember interface (copied from StaffPage)
-// Note: This is used for demo login logic. Passwords are NOT stored securely.
-interface StaffMember {
-  id: number;
-  name: string;
-  role: string; // Job title (e.g., 'Mesera')
-  avatarUrl?: string; // Optional avatar URL
-  accessLevel?: AccessLevel; // Optional: 'admin', 'worker', or 'none' for login privileges
-  // Password should NOT be stored directly in the main state for security.
-}
-
-// Use the same initial staff data as StaffPage for login checks
-// In a real app, this would likely come from a shared data source or API
+// --- Mock Staff Data (Should match staff page, loaded dynamically in real app) ---
+// In a real app, fetch this from your backend/database
 const initialStaff: StaffMember[] = [
-  { id: 1, name: 'Camila Pérez', role: 'Dueña / Gerente', avatarUrl: 'https://picsum.photos/id/237/50', accessLevel: 'admin' },
-  { id: 2, name: 'Juan García', role: 'Cocinero Principal', avatarUrl: 'https://picsum.photos/id/238/50', accessLevel: 'worker' },
-  { id: 3, name: 'María Rodríguez', role: 'Mesera', avatarUrl: 'https://picsum.photos/id/239/50', accessLevel: 'worker' },
-  { id: 4, name: 'Carlos López', role: 'Ayudante de Cocina', avatarUrl: 'https://picsum.photos/id/240/50', accessLevel: 'none' }, // Example with no login access
+  { id: 1, name: 'Camila Pérez', username: 'cami', role: 'Dueña / Gerente', avatarUrl: 'https://picsum.photos/id/237/50', accessLevel: 'admin' },
+  { id: 2, name: 'Juan García', username: 'juan', role: 'Cocinero Principal', avatarUrl: 'https://picsum.photos/id/238/50', accessLevel: 'worker' },
+  { id: 3, name: 'María Rodríguez', username: 'maria', role: 'Mesera', avatarUrl: 'https://picsum.photos/id/239/50', accessLevel: 'worker' },
+  { id: 4, name: 'Carlos López', username: 'carlos', role: 'Ayudante de Cocina', avatarUrl: 'https://picsum.photos/id/240/50', accessLevel: 'none' }, // Example with no login access
 ];
+// In a real app, passwords would be hashed and stored securely.
+// For demo purposes, we use simple fixed passwords per role.
+const DEMO_PASSWORDS: Record<AccessLevel, string | null> = {
+    admin: 'admin',
+    worker: 'worker',
+    none: null, // No password for 'none' access
+};
 
 
 type UserRole = 'admin' | 'worker' | null;
@@ -112,27 +105,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     let success = false;
     let role: UserRole = null;
 
-    // --- Specific check for admin/admin credentials ---
-    if (user === 'admin' && pass === 'admin') {
-      success = true;
-      role = 'admin';
-    } else {
-      // --- Check against the initialStaff list for other users ---
-      // Find the user by name in the staff list
-      // IMPORTANT: In a real app, password checks should be secure (hashing)
-      foundUser = initialStaff.find(member => member.name === user);
+    // Find user by username (case-insensitive for robustness)
+    foundUser = initialStaff.find(member => member.username.toLowerCase() === user.toLowerCase());
 
-      if (foundUser) {
-        // Check password based on accessLevel (DEMO ONLY - insecure)
-        if (foundUser.accessLevel === 'admin' && pass === 'admin') { // Example admin password
-          success = true;
-          role = 'admin';
-        } else if (foundUser.accessLevel === 'worker' && pass === 'worker') { // Example worker password
-          success = true;
-          role = 'worker';
+    if (foundUser && foundUser.accessLevel && foundUser.accessLevel !== 'none') {
+        // Get the expected password based on the user's access level
+        const expectedPassword = DEMO_PASSWORDS[foundUser.accessLevel];
+
+        // Check if the provided password matches the expected password for that role
+        if (expectedPassword && pass === expectedPassword) {
+            success = true;
+            role = foundUser.accessLevel; // Assign role based on found user's level
         }
-        // Users with 'none' access level or incorrect password will fail
-      }
     }
 
 
@@ -187,4 +171,3 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
-
