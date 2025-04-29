@@ -76,17 +76,21 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
   // Filter out specific modifications based on category
   const availableModifications = item.modifications?.filter(mod => {
     // Exclude 'Porotos Verdes' for specific categories
-    if (['Completos As', 'Promo Churrasco', 'Promo Mechada', 'Fajitas'].includes(item.category) && mod === 'Porotos Verdes') {
+    if (['Completos As', 'Promo Churrasco', 'Fajitas'].includes(item.category) && mod === 'Porotos Verdes') {
       return false;
     }
     // Exclude 'Palta' and 'Tomate' for 'Hamburguesas' category
     if (item.category === 'Hamburguesas' && (mod === 'Palta' || mod === 'Tomate')) {
       return false;
     }
-    // Exclude 'Queso Fundido', 'Huevo Frito', 'Cebolla Frita', 'Palta', 'Tomate' for 'Churrascos' category
+    // Exclude 'Queso Fundido', 'Huevo Frito', 'Cebolla Frita', 'Jamón', 'Orégano', 'Salsa Verde', 'Champiñones Salteados', 'Papas Fritas', 'Palta', 'Tomate' for 'Churrascos' category
     if (item.category === 'Churrascos' && ['Queso Fundido', 'Huevo Frito', 'Cebolla Frita', 'Jamón', 'Orégano', 'Salsa Verde', 'Champiñones Salteados', 'Papas Fritas', 'Palta', 'Tomate'].includes(mod)) {
         return false;
     }
+     // Exclude specific mods for 'Promo Mechada'
+     if (item.category === 'Promo Mechada' && ['Queso Fundido', 'Huevo Frito', 'Cebolla Frita', 'Papas Fritas', 'Tomate', 'Palta', 'Salsa Verde', 'Champiñones Salteados', 'Porotos Verdes'].includes(mod)) {
+        return false;
+     }
     return true; // Include all other modifications
   }) ?? [];
 
