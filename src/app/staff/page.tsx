@@ -22,20 +22,25 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'; // Import Select components
+
+// Define possible access levels explicitly
+type AccessLevel = 'admin' | 'worker' | 'none';
 
 interface StaffMember {
   id: number;
   name: string;
-  role: string;
+  role: string; // Job title (e.g., 'Mesera')
   avatarUrl?: string; // Optional avatar URL
+  accessLevel?: AccessLevel; // Optional: 'admin', 'worker', or 'none' for login privileges
 }
 
-// Mock data for staff members
+// Mock data for staff members - Added accessLevel
 const initialStaff: StaffMember[] = [
-  { id: 1, name: 'Camila Pérez', role: 'Dueña / Gerente', avatarUrl: 'https://picsum.photos/id/237/50' },
-  { id: 2, name: 'Juan García', role: 'Cocinero Principal', avatarUrl: 'https://picsum.photos/id/238/50' },
-  { id: 3, name: 'María Rodríguez', role: 'Mesera', avatarUrl: 'https://picsum.photos/id/239/50' },
-  { id: 4, name: 'Carlos López', role: 'Ayudante de Cocina', avatarUrl: 'https://picsum.photos/id/240/50' },
+  { id: 1, name: 'Camila Pérez', role: 'Dueña / Gerente', avatarUrl: 'https://picsum.photos/id/237/50', accessLevel: 'admin' },
+  { id: 2, name: 'Juan García', role: 'Cocinero Principal', avatarUrl: 'https://picsum.photos/id/238/50', accessLevel: 'worker' },
+  { id: 3, name: 'María Rodríguez', role: 'Mesera', avatarUrl: 'https://picsum.photos/id/239/50', accessLevel: 'worker' },
+  { id: 4, name: 'Carlos López', role: 'Ayudante de Cocina', avatarUrl: 'https://picsum.photos/id/240/50', accessLevel: 'none' }, // Example with no login access
 ];
 
 export default function StaffPage() {
@@ -46,13 +51,19 @@ export default function StaffPage() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentStaffMember, setCurrentStaffMember] = useState<StaffMember | null>(null);
-  const [newStaffData, setNewStaffData] = useState<{ name: string; role: string }>({ name: '', role: '' });
+  // Updated state to include accessLevel
+  const [newStaffData, setNewStaffData] = useState<{ name: string; role: string; accessLevel: AccessLevel }>({ name: '', role: '', accessLevel: 'none' });
   const { toast } = useToast();
 
   // No need for explicit redirect here, AuthProvider handles it
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, key: keyof typeof newStaffData) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, key: keyof Omit<typeof newStaffData, 'accessLevel'>) => {
     setNewStaffData((prev) => ({ ...prev, [key]: e.target.value }));
+  };
+
+  // Handler for access level Select component
+  const handleAccessLevelChange = (value: AccessLevel) => {
+      setNewStaffData((prev) => ({ ...prev, accessLevel: value }));
   };
 
   const handleAddOrEditStaff = () => {
@@ -60,22 +71,24 @@ export default function StaffPage() {
       toast({ title: "Error", description: "Por favor, complete nombre y cargo.", variant: "destructive" });
       return;
     }
+    // Access level is optional to force setting, default is 'none'
 
     if (isEditing && currentStaffMember) {
-      // Edit existing staff member
+      // Edit existing staff member - include accessLevel
       setStaff(staff.map(member =>
         member.id === currentStaffMember.id
-          ? { ...member, name: newStaffData.name, role: newStaffData.role }
+          ? { ...member, name: newStaffData.name, role: newStaffData.role, accessLevel: newStaffData.accessLevel }
           : member
       ));
       toast({ title: "Éxito", description: "Miembro del personal actualizado." });
     } else {
-      // Add new staff member
+      // Add new staff member - include accessLevel
       const newId = staff.length > 0 ? Math.max(...staff.map(s => s.id)) + 1 : 1;
       const newMember: StaffMember = {
         id: newId,
         name: newStaffData.name,
         role: newStaffData.role,
+        accessLevel: newStaffData.accessLevel, // Save the selected access level
         // Optionally add a default or random avatar
         avatarUrl: `https://picsum.photos/seed/${newId}/50` // Use ID for consistent random image
       };
@@ -89,14 +102,16 @@ export default function StaffPage() {
   const openEditDialog = (member: StaffMember) => {
     setIsEditing(true);
     setCurrentStaffMember(member);
-    setNewStaffData({ name: member.name, role: member.role });
+    // Pre-fill with existing data, including accessLevel or default to 'none'
+    setNewStaffData({ name: member.name, role: member.role, accessLevel: member.accessLevel ?? 'none' });
     setIsDialogOpen(true);
   };
 
   const openAddDialog = () => {
     setIsEditing(false);
     setCurrentStaffMember(null);
-    setNewStaffData({ name: '', role: '' });
+    // Reset state including accessLevel
+    setNewStaffData({ name: '', role: '', accessLevel: 'none' });
     setIsDialogOpen(true);
   };
 
@@ -104,7 +119,8 @@ export default function StaffPage() {
     setIsDialogOpen(false);
     setIsEditing(false);
     setCurrentStaffMember(null);
-    setNewStaffData({ name: '', role: '' });
+    // Reset state including accessLevel
+    setNewStaffData({ name: '', role: '', accessLevel: 'none' });
   };
 
   const handleDeleteStaff = (id: number) => {
@@ -168,12 +184,31 @@ export default function StaffPage() {
                   required
                 />
               </div>
+              {/* Add Access Level Selection */}
+              <div className="grid grid-cols-4 items-center gap-4">
+                 <Label htmlFor="accessLevel" className="text-right">
+                   Privilegios {/* Privileges */}
+                 </Label>
+                 <Select
+                   value={newStaffData.accessLevel}
+                   onValueChange={handleAccessLevelChange} // Use the specific handler
+                 >
+                   <SelectTrigger className="col-span-3">
+                     <SelectValue placeholder="Seleccionar Nivel de Acceso" /> {/* Select Access Level */}
+                   </SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value="admin">Administrador</SelectItem> {/* Administrator */}
+                     <SelectItem value="worker">Trabajador</SelectItem> {/* Worker */}
+                     <SelectItem value="none">Ninguno</SelectItem> {/* None */}
+                   </SelectContent>
+                 </Select>
+              </div>
               {/* Add Avatar URL input if needed */}
             </div>
             <DialogFooter>
               {/* Use DialogClose for the Cancel button */}
               <DialogClose asChild>
-                 <Button type="button" variant="secondary">Cancelar</Button>
+                 <Button type="button" variant="secondary" onClick={closeDialog}>Cancelar</Button> {/* Added onClick to ensure state reset */}
                </DialogClose>
               <Button type="submit" onClick={handleAddOrEditStaff}>
                 {isEditing ? 'Guardar Cambios' : 'Añadir Personal'} {/* Save Changes / Add Staff */}
@@ -206,6 +241,12 @@ export default function StaffPage() {
                 <AvatarFallback>{member.name.split(' ').map(n => n[0]).join('')}</AvatarFallback> {/* Initials */}
               </Avatar>
               <p className="text-xs text-muted-foreground">{member.role}</p>
+               {/* Optionally display access level visually */}
+               {member.accessLevel && member.accessLevel !== 'none' && (
+                   <span className={`mt-1 text-xs px-1.5 py-0.5 rounded ${member.accessLevel === 'admin' ? 'bg-red-200 text-red-800' : 'bg-blue-200 text-blue-800'}`}>
+                       {member.accessLevel === 'admin' ? 'Admin' : 'Trabajador'}
+                   </span>
+               )}
             </CardContent>
           </Card>
         ))}
