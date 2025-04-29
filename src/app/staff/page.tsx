@@ -53,8 +53,9 @@ export interface StaffMember { // Export for potential use in AuthContext
 }
 
 // Mock data for initial staff members - Used only if localStorage is empty
+// Changed default admin username to 'admin1'
 const initialStaff: StaffMember[] = [
-  { id: 1, name: 'Camila Pérez', username: 'admin', role: 'Dueña / Gerente', avatarUrl: 'https://picsum.photos/id/237/50', accessLevel: 'admin' },
+  { id: 1, name: 'Camila Pérez', username: 'admin1', role: 'Dueña / Gerente', avatarUrl: 'https://picsum.photos/id/237/50', accessLevel: 'admin' },
   { id: 2, name: 'Juan García', username: 'worker', role: 'Cocinero Principal', avatarUrl: 'https://picsum.photos/id/238/50', accessLevel: 'worker' },
   // { id: 3, name: 'María Rodríguez', username: 'maria', role: 'Mesera', avatarUrl: 'https://picsum.photos/id/239/50', accessLevel: 'worker' },
   { id: 4, name: 'Carlos López', username: 'carlos', role: 'Ayudante de Cocina', avatarUrl: 'https://picsum.photos/id/240/50', accessLevel: 'none' }, // Example with no login access
@@ -107,7 +108,8 @@ export default function StaffPage() {
             localStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(loadedStaff));
             console.log("Saved initial staff data to localStorage.");
             // Initialize passwords for fallback users in AuthContext when saving fallback
-            updatePasswordForUser('admin', 'admin');
+            // Ensure using 'admin1' for the username
+            updatePasswordForUser('admin1', 'admin1');
             updatePasswordForUser('worker', 'worker');
        } catch (saveError) {
             console.error("Failed to save initial staff data:", saveError);
@@ -172,12 +174,22 @@ export default function StaffPage() {
       return;
     }
 
-    // Password validation (required when adding a user with privileges)
-    if (!isEditing && newStaffData.accessLevel !== 'none' && !newStaffData.password) {
-        toast({ title: "Error", description: "Se requiere contraseña para usuarios nuevos con privilegios.", variant: "destructive" });
-        return;
-    }
-    // Add more robust password validation if needed (length, complexity)
+    // Password validation (required when adding a user with privileges, or when changing it during edit)
+     if (!isEditing && newStaffData.accessLevel !== 'none' && !newStaffData.password) {
+         toast({ title: "Error", description: "Se requiere contraseña para usuarios nuevos con privilegios.", variant: "destructive" });
+         return;
+     }
+     // Password required on edit *only if* it's being changed and user has privileges
+     if (isEditing && newStaffData.accessLevel !== 'none' && newStaffData.password && newStaffData.password.trim() === '') {
+         // Allow saving without changing password if the field is left empty during edit
+     } else if (isEditing && newStaffData.accessLevel !== 'none' && !newStaffData.password) {
+         // If editing a privileged user but password field is empty, don't require it (means no change)
+     } else if (newStaffData.accessLevel !== 'none' && !newStaffData.password) {
+         // If adding a privileged user, password is required
+          toast({ title: "Error", description: "Se requiere contraseña para usuarios con privilegios.", variant: "destructive" });
+         return;
+     }
+
 
     // Check for duplicate username (only when adding or changing username)
     // Ensure username check is case-insensitive
@@ -191,7 +203,7 @@ export default function StaffPage() {
     }
 
     // Update password in AuthContext (session storage for demo) if provided
-    if (newStaffData.accessLevel !== 'none' && newStaffData.password) {
+    if (newStaffData.accessLevel !== 'none' && newStaffData.password && newStaffData.password.trim() !== '') { // Only update if password is provided and not just whitespace
         updatePasswordForUser(newStaffData.username, newStaffData.password);
         // Don't log the password here anymore
         // console.log(`Password for ${newStaffData.username} set/updated (DEMO ONLY).`);
@@ -362,7 +374,7 @@ export default function StaffPage() {
                          onChange={(e) => handleInputChange(e, 'password')}
                          className="col-span-3"
                          placeholder={isEditing ? "Dejar en blanco para no cambiar" : "Requerida si tiene privilegios"}
-                         // Required only when *adding* a privileged user
+                         // Required only when *adding* a privileged user unless editing
                          required={!isEditing && newStaffData.accessLevel !== 'none'}
                          autoComplete="new-password" // Help browser password managers
                      />
@@ -372,7 +384,7 @@ export default function StaffPage() {
             </div>
             <DialogFooter>
               {/* Use DialogClose for the Cancel button */}
-              <Button type="button" variant="secondary" onClick={closeDialog}>Cancelar</Button> {/* Removed DialogClose wrapper, use onClick */}
+               <Button type="button" variant="secondary" onClick={closeDialog}>Cancelar</Button> {/* Cancel */}
               <Button type="submit" onClick={handleAddOrEditStaff}>
                 {isEditing ? 'Guardar Cambios' : 'Añadir Personal'} {/* Save Changes / Add Staff */}
               </Button>

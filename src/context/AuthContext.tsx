@@ -11,8 +11,9 @@ import type { StaffMember, AccessLevel } from '@/app/staff/page'; // Import Staf
 const STAFF_STORAGE_KEY = 'restaurantStaff';
 
 // Initial staff data ONLY used if localStorage is empty or invalid
+// Changed admin username to admin1
 const initialStaffFallback: StaffMember[] = [
-  { id: 1, name: 'Camila Pérez', username: 'admin', role: 'Dueña / Gerente', avatarUrl: 'https://picsum.photos/id/237/50', accessLevel: 'admin' },
+  { id: 1, name: 'Camila Pérez', username: 'admin1', role: 'Dueña / Gerente', avatarUrl: 'https://picsum.photos/id/237/50', accessLevel: 'admin' },
   { id: 2, name: 'Juan García', username: 'worker', role: 'Cocinero Principal', avatarUrl: 'https://picsum.photos/id/238/50', accessLevel: 'worker' },
   { id: 4, name: 'Carlos López', username: 'carlos', role: 'Ayudante de Cocina', avatarUrl: 'https://picsum.photos/id/240/50', accessLevel: 'none' }, // Example with no login access
 ];
@@ -24,9 +25,10 @@ const DEMO_PASSWORDS_KEY = 'demoPasswords'; // Session storage key
 // Function to get passwords, preferring session storage, then defaults
 const getDemoPasswords = (): Record<string, string> => {
     console.log("AuthContext: Getting demo passwords...");
+    // Changed default admin password mapping to admin1: admin1
     let passwords: Record<string, string> = {
-        admin: 'admin', // Default admin password
-        // Default worker password is not used anymore, specific user passwords take precedence
+        admin1: 'admin1', // Default admin password
+        worker: 'worker', // Default worker password
     };
      // Try loading from session storage
     const storedPasswords = sessionStorage.getItem(DEMO_PASSWORDS_KEY);
@@ -34,6 +36,7 @@ const getDemoPasswords = (): Record<string, string> => {
         try {
             const parsed = JSON.parse(storedPasswords);
             if (typeof parsed === 'object' && parsed !== null) {
+                // Ensure defaults exist if they were somehow removed from storage
                 passwords = { ...passwords, ...parsed }; // Merge stored over defaults
                  console.log("AuthContext: Loaded passwords from session storage:", passwords);
             } else {
@@ -135,8 +138,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
      if (shouldInitializePasswords) {
           console.log("AuthContext: Initializing passwords for fallback staff...");
           // Initialize passwords for fallback users if needed
-          if (!currentPasswords['admin']) {
-            updateDemoPassword('admin', 'admin');
+          // Check for new admin username 'admin1'
+          if (!currentPasswords['admin1']) {
+            updateDemoPassword('admin1', 'admin1');
           }
           if (!currentPasswords['worker']) {
             // Initialize worker password ONLY if it doesn't exist. If it was set, keep it.
@@ -214,12 +218,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
 
-      // Redirect non-authenticated users to login if not on a public route
+      // Redirect non-authenticated users to login if not on a public route or allowed route
+      // Allow non-auth users to stay on login page
       if (!isAuthenticated && !publicRoutes.includes(pathname)) {
          console.log(`AuthContext: Redirecting non-authenticated user from ${pathname} to /login`);
         router.push('/login');
         return;
       }
+
 
       // Role-specific redirects for authenticated users
       if (isAuthenticated) {
@@ -286,7 +292,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (!foundUser) {
             console.log(`AuthContext: User '${usernameLower}' not found in staff list.`);
         } else {
-            console.log(`AuthContext: User '${foundUser.username}' found but has access level '${foundUser.accessLevel}'. Login denied.`);
+            console.log(`AuthContext: User '${foundUser.username}' found but has access level '${foundUser.accessLevel ?? 'none'}'. Login denied.`);
         }
     }
 
