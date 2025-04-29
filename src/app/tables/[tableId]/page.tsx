@@ -1002,6 +1002,12 @@ export default function TableDetailPage() {
                 'completo normal', 'dinamico normal', 'hot dog normal',
                 'italiano normal', 'palta normal', 'tomate normal'
             ];
+            // Items that use 'pan especial grande'
+             const grandeEspecialItems = [
+                'completo grande', 'dinamico grande', 'hot dog grande',
+                'italiano grande', 'palta grande', 'tomate grande'
+            ];
+
 
             // Iterate through the paid items and decrease stock
             pendingPaymentOrder.forEach(orderItem => {
@@ -1017,7 +1023,7 @@ export default function TableDetailPage() {
                         // Map normal-sized items to 'pan especial normal'
                         if (normalEspecialItems.includes(orderItemNameLower)) {
                             inventoryItemName = 'pan especial normal';
-                        } else if (orderItemNameLower.includes('grande')) {
+                        } else if (grandeEspecialItems.includes(orderItemNameLower)) { // Map large-sized items to 'pan especial grande'
                             inventoryItemName = 'pan especial grande';
                         }
                         break;
@@ -1031,6 +1037,7 @@ export default function TableDetailPage() {
                              inventoryItemName = 'pan especial normal';
                         } else {
                             // Default logic for other items in these categories (e.g., specific promos)
+                            // Try marraqueta first, then fall back to normal especial
                             inventoryItemName = 'pan de marraqueta';
                             if (!inventoryMap.has(inventoryItemName)) {
                                inventoryItemName = 'pan especial normal';
@@ -1418,6 +1425,7 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
 
 
 
