@@ -19,13 +19,26 @@ import {
   DialogTrigger,
   DialogClose,
 } from '@/components/ui/dialog';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'; // Import Select components
+import { cn } from '@/lib/utils'; // Import cn
+import { buttonVariants } from '@/components/ui/button'; // Import buttonVariants
 
 // Define possible access levels explicitly
-type AccessLevel = 'admin' | 'worker' | 'none';
+export type AccessLevel = 'admin' | 'worker' | 'none'; // Export for use in AuthContext
 
 // Update StaffMember interface to include username
 export interface StaffMember { // Export for potential use in AuthContext
@@ -39,21 +52,23 @@ export interface StaffMember { // Export for potential use in AuthContext
   // It will only be handled temporarily in the dialog state.
 }
 
-// Mock data for staff members - Added username and accessLevel
-// DO NOT add passwords here. Use simple username logic for demo.
+// Mock data for initial staff members - Used only if localStorage is empty
 const initialStaff: StaffMember[] = [
-  { id: 1, name: 'Camila Pérez', username: 'cami', role: 'Dueña / Gerente', avatarUrl: 'https://picsum.photos/id/237/50', accessLevel: 'admin' },
-  { id: 2, name: 'Juan García', username: 'juan', role: 'Cocinero Principal', avatarUrl: 'https://picsum.photos/id/238/50', accessLevel: 'worker' },
-  { id: 3, name: 'María Rodríguez', username: 'maria', role: 'Mesera', avatarUrl: 'https://picsum.photos/id/239/50', accessLevel: 'worker' },
+  { id: 1, name: 'Camila Pérez', username: 'admin', role: 'Dueña / Gerente', avatarUrl: 'https://picsum.photos/id/237/50', accessLevel: 'admin' },
+  { id: 2, name: 'Juan García', username: 'worker', role: 'Cocinero Principal', avatarUrl: 'https://picsum.photos/id/238/50', accessLevel: 'worker' },
+  // { id: 3, name: 'María Rodríguez', username: 'maria', role: 'Mesera', avatarUrl: 'https://picsum.photos/id/239/50', accessLevel: 'worker' },
   { id: 4, name: 'Carlos López', username: 'carlos', role: 'Ayudante de Cocina', avatarUrl: 'https://picsum.photos/id/240/50', accessLevel: 'none' }, // Example with no login access
 ];
 
+// Storage key for localStorage
+const STAFF_STORAGE_KEY = 'restaurantStaff';
 
 export default function StaffPage() {
   // Role checks and redirection are now handled by AuthProvider
   const { isAuthenticated, isLoading, userRole } = useAuth();
   const router = useRouter();
-  const [staff, setStaff] = useState<StaffMember[]>(initialStaff);
+  const [staff, setStaff] = useState<StaffMember[]>([]);
+  const [isStaffInitialized, setIsStaffInitialized] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentStaffMember, setCurrentStaffMember] = useState<StaffMember | null>(null);
@@ -61,8 +76,57 @@ export default function StaffPage() {
   const [newStaffData, setNewStaffData] = useState<{ name: string; role: string; username: string; accessLevel: AccessLevel; password?: string }>({ name: '', role: '', username: '', accessLevel: 'none', password: '' });
   const { toast } = useToast();
 
+
+  // Load staff from localStorage on mount
+   useEffect(() => {
+     if (isStaffInitialized) return;
+
+     console.log("Initializing staff from localStorage...");
+     const storedStaff = localStorage.getItem(STAFF_STORAGE_KEY);
+     let loadedStaff: StaffMember[] = [];
+
+     if (storedStaff) {
+       try {
+         const parsed = JSON.parse(storedStaff);
+         if (Array.isArray(parsed)) {
+           loadedStaff = parsed;
+           console.log("Loaded staff:", loadedStaff);
+         } else {
+           console.warn("Invalid staff data found in localStorage, using initial data.");
+           loadedStaff = initialStaff;
+         }
+       } catch (error) {
+         console.error("Failed to parse stored staff:", error);
+         loadedStaff = initialStaff; // Fallback on error
+       }
+     } else {
+       console.log("No staff found in localStorage, using initial data.");
+       loadedStaff = initialStaff; // Use initial if nothing in storage
+     }
+
+     setStaff(loadedStaff.sort((a, b) => a.name.localeCompare(b.name))); // Sort by name
+     setIsStaffInitialized(true);
+     console.log("Staff initialization complete.");
+
+   }, [isStaffInitialized]);
+
+   // Save staff to localStorage whenever it changes
+   useEffect(() => {
+     if (!isStaffInitialized) return; // Only save after initial load
+
+     console.log("Saving staff to localStorage...");
+     try {
+       localStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(staff));
+       console.log("Staff saved.");
+     } catch (error) {
+       console.error("Failed to save staff to localStorage:", error);
+       toast({ title: "Error", description: "No se pudo guardar la lista de personal.", variant: "destructive" });
+     }
+   }, [staff, isStaffInitialized]);
+
+
   // Loading state is handled by AuthProvider wrapper in layout.tsx
-  if (isLoading) {
+  if (isLoading || !isStaffInitialized) {
       return <div className="flex items-center justify-center min-h-screen">Cargando...</div>; // Added loading indicator
   }
   // If not authenticated or not admin, AuthProvider will redirect
@@ -83,21 +147,30 @@ export default function StaffPage() {
   };
 
   const handleAddOrEditStaff = () => {
-    // Check required fields
-    if (!newStaffData.name || !newStaffData.role || !newStaffData.username) {
-      toast({ title: "Error", description: "Por favor, complete nombre, cargo y usuario.", variant: "destructive" });
+    // Check required fields based on access level
+    let requiredFieldsMissing = false;
+    if (!newStaffData.name || !newStaffData.role) {
+        requiredFieldsMissing = true;
+    }
+    if (newStaffData.accessLevel !== 'none' && !newStaffData.username) {
+        requiredFieldsMissing = true;
+    }
+
+    if (requiredFieldsMissing) {
+      toast({ title: "Error", description: "Por favor, complete nombre y cargo. Si tiene privilegios, también el usuario.", variant: "destructive" });
       return;
     }
+
     // Password validation (required when adding a user with privileges)
     if (!isEditing && newStaffData.accessLevel !== 'none' && !newStaffData.password) {
-        toast({ title: "Error", description: "Se requiere contraseña para usuarios con privilegios.", variant: "destructive" });
+        toast({ title: "Error", description: "Se requiere contraseña para usuarios nuevos con privilegios.", variant: "destructive" });
         return;
     }
     // Add more robust password validation if needed (length, complexity)
 
     // Check for duplicate username (only when adding or changing username)
     const isUsernameChanging = isEditing && currentStaffMember && currentStaffMember.username !== newStaffData.username;
-    if (!isEditing || isUsernameChanging) {
+    if ((!isEditing || isUsernameChanging) && newStaffData.accessLevel !== 'none') { // Only check if user will have login
         const existingUser = staff.find(member => member.username.toLowerCase() === newStaffData.username.toLowerCase() && member.id !== currentStaffMember?.id);
         if (existingUser) {
             toast({ title: "Error", description: `El nombre de usuario "${newStaffData.username}" ya existe.`, variant: "destructive" });
@@ -105,23 +178,23 @@ export default function StaffPage() {
         }
     }
 
-
     // Security Warning: In a real application, HASH the password here before saving!
-    // const hashedPassword = await hashPassword(newStaffData.password); // Example
+    // Never store plaintext passwords. This demo uses fixed passwords checked during login.
 
     if (isEditing && currentStaffMember) {
       // Edit existing staff member - include username and accessLevel
-      // We don't update the password in the main staff state for display/security reasons.
-      // Password changes would typically involve a separate secure process.
-      setStaff(staff.map(member =>
-        member.id === currentStaffMember.id
-          ? { ...member, name: newStaffData.name, role: newStaffData.role, username: newStaffData.username, accessLevel: newStaffData.accessLevel }
-          : member
-      ));
+      setStaff(prevStaff =>
+         prevStaff.map(member =>
+           member.id === currentStaffMember.id
+             ? { ...member, name: newStaffData.name, role: newStaffData.role, username: newStaffData.username, accessLevel: newStaffData.accessLevel }
+             : member
+         ).sort((a, b) => a.name.localeCompare(b.name)) // Re-sort after update
+      );
        // If password was entered during edit, show a generic success message.
-       // Actual password update logic would happen server-side.
+       // Actual password update logic would happen server-side/in AuthContext for this demo.
       if (newStaffData.password) {
-           toast({ title: "Éxito", description: "Miembro del personal actualizado. La contraseña se actualizó (simulado)." });
+           toast({ title: "Éxito", description: "Miembro del personal actualizado. Contraseña actualizada (simulado)." });
+            // Note: AuthContext needs to handle the actual password logic check during login.
        } else {
            toast({ title: "Éxito", description: "Miembro del personal actualizado." });
        }
@@ -132,17 +205,18 @@ export default function StaffPage() {
       const newMember: StaffMember = {
         id: newId,
         name: newStaffData.name,
-        username: newStaffData.username, // Save username
+         // Store username only if accessLevel is not 'none'
+        username: newStaffData.accessLevel !== 'none' ? newStaffData.username : '',
         role: newStaffData.role,
         accessLevel: newStaffData.accessLevel, // Save the selected access level
         // DO NOT store the plaintext password in the main staff state.
-        // avatarUrl: `https://picsum.photos/seed/${newId}/50` // Use ID for consistent random image
-        // Use a placeholder or leave empty
         avatarUrl: `https://picsum.photos/seed/${newStaffData.name}/50` // Use name for consistent random image based on name
       };
-      setStaff([...staff, newMember]);
-      // Log the password temporarily for demo purposes - DO NOT DO THIS IN PRODUCTION
-      console.log(`Adding user: ${newStaffData.username}, Password (plaintext): ${newStaffData.password}`);
+      setStaff(prevStaff => [...prevStaff, newMember].sort((a, b) => a.name.localeCompare(b.name))); // Add and sort
+      // Log the password temporarily for demo purposes - REMOVE IN PRODUCTION
+      if (newStaffData.password && newStaffData.accessLevel !== 'none') {
+         console.log(`Adding/Updating user: ${newStaffData.username}, Access Level: ${newStaffData.accessLevel}, Password (plaintext - DEMO ONLY): ${newStaffData.password}`);
+      }
       toast({ title: "Éxito", description: "Nuevo miembro del personal añadido." });
     }
 
@@ -173,14 +247,11 @@ export default function StaffPage() {
     setNewStaffData({ name: '', role: '', username: '', accessLevel: 'none', password: '' });
   };
 
-  const handleDeleteStaff = (id: number) => {
-     const memberToDelete = staff.find(m => m.id === id);
-     // Use browser confirm for simplicity, consider a confirmation dialog for better UX
-     if (confirm(`¿Está seguro de que desea eliminar a ${memberToDelete?.name}?`)) {
-        setStaff(staff.filter(member => member.id !== id));
+  const handleDeleteStaff = (idToDelete: number) => {
+        const memberToDelete = staff.find(item => item.id === idToDelete);
+        setStaff(prevStaff => prevStaff.filter(item => item.id !== idToDelete)); // Update state which triggers save
         toast({ title: "Eliminado", description: `${memberToDelete?.name} eliminado del personal.`, variant: "destructive" });
-     }
-  };
+   };
 
 
   return (
@@ -249,7 +320,7 @@ export default function StaffPage() {
                    </SelectContent>
                  </Select>
               </div>
-               {/* Add Username Input - Conditionally required if accessLevel is not 'none' */}
+               {/* Add Username Input - Conditionally shown if accessLevel is not 'none' */}
                {(newStaffData.accessLevel !== 'none') && ( // Show if has privileges
                  <div className="grid grid-cols-4 items-center gap-4">
                      <Label htmlFor="username" className="text-right">
@@ -261,13 +332,13 @@ export default function StaffPage() {
                          value={newStaffData.username}
                          onChange={(e) => handleInputChange(e, 'username')}
                          className="col-span-3"
-                         placeholder="Nombre de usuario para login"
+                         placeholder="Usuario para inicio de sesión"
                          required={newStaffData.accessLevel !== 'none'} // Required only when adding/editing a privileged user
                          autoComplete="off"
                      />
                  </div>
                )}
-               {/* Add Password Input - Conditionally required if accessLevel is not 'none' */}
+               {/* Add Password Input - Conditionally shown if accessLevel is not 'none' */}
                {(newStaffData.accessLevel !== 'none') && ( // Show if has privileges
                  <div className="grid grid-cols-4 items-center gap-4">
                      <Label htmlFor="password" className="text-right">
@@ -280,7 +351,8 @@ export default function StaffPage() {
                          onChange={(e) => handleInputChange(e, 'password')}
                          className="col-span-3"
                          placeholder={isEditing ? "Dejar en blanco para no cambiar" : "Requerida si tiene privilegios"}
-                         required={!isEditing && newStaffData.accessLevel !== 'none'} // Required only when adding a privileged user
+                         // Required only when *adding* a privileged user
+                         required={!isEditing && newStaffData.accessLevel !== 'none'}
                          autoComplete="new-password" // Help browser password managers
                      />
                  </div>
@@ -289,9 +361,7 @@ export default function StaffPage() {
             </div>
             <DialogFooter>
               {/* Use DialogClose for the Cancel button */}
-              <DialogClose asChild>
-                 <Button type="button" variant="secondary" onClick={closeDialog}>Cancelar</Button>
-              </DialogClose>
+                <Button type="button" variant="secondary" onClick={closeDialog}>Cancelar</Button> {/* Removed DialogClose wrapper */}
               <Button type="submit" onClick={handleAddOrEditStaff}>
                 {isEditing ? 'Guardar Cambios' : 'Añadir Personal'} {/* Save Changes / Add Staff */}
               </Button>
@@ -312,11 +382,32 @@ export default function StaffPage() {
                    <Edit className="h-4 w-4" />
                    <span className="sr-only">Editar</span>
                  </Button>
-                 {/* Delete Button */}
-                 <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive hover:text-destructive/90" onClick={() => handleDeleteStaff(member.id)}>
-                    <Trash2 className="h-4 w-4" />
-                   <span className="sr-only">Eliminar</span>
-                 </Button>
+                 {/* Delete Button with Confirmation Dialog */}
+                  <AlertDialog>
+                       <AlertDialogTrigger asChild>
+                            <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive hover:text-destructive/90" title="Eliminar Personal">
+                               <Trash2 className="h-4 w-4" />
+                               <span className="sr-only">Eliminar</span>
+                            </Button>
+                       </AlertDialogTrigger>
+                       <AlertDialogContent>
+                           <AlertDialogHeader>
+                               <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
+                               <AlertDialogDescription>
+                                   Esta acción no se puede deshacer. Esto eliminará permanentemente a {member.name} de la lista de personal.
+                               </AlertDialogDescription>
+                           </AlertDialogHeader>
+                           <AlertDialogFooter>
+                               <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                               <AlertDialogAction
+                                   onClick={() => handleDeleteStaff(member.id)}
+                                   className={cn(buttonVariants({ variant: "destructive" }))}
+                               >
+                                   Eliminar
+                               </AlertDialogAction>
+                           </AlertDialogFooter>
+                       </AlertDialogContent>
+                  </AlertDialog>
               </div>
             </CardHeader>
             <CardContent className="flex flex-col items-center text-center pt-2"> {/* Adjusted padding top */}
