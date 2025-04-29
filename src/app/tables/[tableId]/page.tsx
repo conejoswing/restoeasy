@@ -349,29 +349,29 @@ const mockMenu: MenuItem[] = [
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Queso Fundido', 'Champiñones Salteados'], // Kept Champiñon mods
         modificationPrices: { 'Agregado Queso': 1000 },
     },
-    // --- Papas Fritas --- (No standard modifications applied)
+    // --- Papas Fritas --- (Removed standard modifications)
     {
         id: 21,
         name: 'Papas Fritas Normal',
         price: 3500,
         category: 'Papas Fritas',
-        modifications: ['Agregar Queso Fundido', 'Agregar Salsa Cheddar'],
-        modificationPrices: { 'Agregar Queso Fundido': 1500, 'Agregar Salsa Cheddar': 1200 },
+        // modifications: ['Agregar Queso Fundido', 'Agregar Salsa Cheddar'], // Removed
+        // modificationPrices: { 'Agregar Queso Fundido': 1500, 'Agregar Salsa Cheddar': 1200 }, // Removed
     },
     {
         id: 22,
         name: 'Papas Fritas Mediana',
         price: 5000,
         category: 'Papas Fritas',
-        modifications: ['Queso Cheddar', 'Bacon', 'Cebolla Crispy', 'Salsa BBQ'],
-        modificationPrices: { 'Queso Cheddar': 1200, 'Bacon': 1000 },
+        // modifications: ['Queso Cheddar', 'Bacon', 'Cebolla Crispy', 'Salsa BBQ'], // Removed
+        // modificationPrices: { 'Queso Cheddar': 1200, 'Bacon': 1000 }, // Removed
     },
-    { id: 61, name: 'Papas Fritas Grande', price: 6500, category: 'Papas Fritas', modifications: ['Queso Cheddar', 'Bacon'], modificationPrices: { 'Queso Cheddar': 1500, 'Bacon': 1200 } },
-    { id: 62, name: 'Papas Fritas XL', price: 8000, category: 'Papas Fritas', modifications: ['Queso Cheddar', 'Bacon'], modificationPrices: { 'Queso Cheddar': 2000, 'Bacon': 1500 } },
-    { id: 63, name: 'Salchipapas', price: 7000, category: 'Papas Fritas', modifications: ['Agregar Huevo Frito'], modificationPrices: { 'Agregar Huevo Frito': 800 } },
-    { id: 64, name: 'Chorrillana 2', price: 12000, category: 'Papas Fritas', modifications: ['Carne Mechada', 'Cebolla Caramelizada'], modificationPrices: { 'Carne Mechada': 2000 } },
-    { id: 65, name: 'Chorrillana 4', price: 18000, category: 'Papas Fritas', modifications: ['Doble Carne', 'Extra Queso'], modificationPrices: { 'Doble Carne': 3000, 'Extra Queso': 1500 } },
-    { id: 66, name: 'Box Cami', price: 15000, category: 'Papas Fritas', modifications: ['Alitas BBQ', 'Nuggets Pollo'], modificationPrices: { 'Alitas BBQ': 1000, 'Nuggets Pollo': 800 } },
+    { id: 61, name: 'Papas Fritas Grande', price: 6500, category: 'Papas Fritas' }, // Removed mods
+    { id: 62, name: 'Papas Fritas XL', price: 8000, category: 'Papas Fritas' }, // Removed mods
+    { id: 63, name: 'Salchipapas', price: 7000, category: 'Papas Fritas' }, // Removed mods
+    { id: 64, name: 'Chorrillana 2', price: 12000, category: 'Papas Fritas' }, // Removed mods
+    { id: 65, name: 'Chorrillana 4', price: 18000, category: 'Papas Fritas' }, // Removed mods
+    { id: 66, name: 'Box Cami', price: 15000, category: 'Papas Fritas' }, // Removed mods
     // --- Promo Churrasco --- (Updated Modifications where applicable)
     {
         id: 25,
@@ -426,22 +426,22 @@ const mockMenu: MenuItem[] = [
      { id: 89, name: '2x Queso Champiñon', price: 9800, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Queso Fundido', 'Champiñones Salteados'], modificationPrices: { 'Agregado Queso': 1000 } }, // Kept Champiñon mods
      { id: 90, name: '2x Che milico', price: 10000, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Queso Fundido', 'Huevo Frito', 'Cebolla Frita', 'Papas Fritas'], modificationPrices: { 'Agregado Queso': 1000 } }, // Kept Che milico mods
      // --- End of new Promo Mechada items ---
-    // --- Promociones --- (No standard modifications applied)
+    // --- Promociones --- (Removed standard modifications)
     {
       id: 6,
       name: 'Promo 1',
       price: 4500,
       category: 'Promociones',
-      modifications: ['Vienesa', 'As', 'Con Bebida Pequeña', 'Ají Verde', 'Agregado Queso'],
-      modificationPrices: { 'Agregado Queso': 1000 },
+      // modifications: ['Vienesa', 'As', 'Con Bebida Pequeña', 'Ají Verde', 'Agregado Queso'], // Removed
+      // modificationPrices: { 'Agregado Queso': 1000 }, // Removed
     },
      {
       id: 5,
       name: 'Promo 2',
       price: 5000,
       category: 'Promociones',
-      modifications: ['Vienesa', 'As', 'Con Bebida Pequeña', 'Ají Verde', 'Agregado Queso'],
-      modificationPrices: { 'Agregado Queso': 1000 },
+      // modifications: ['Vienesa', 'As', 'Con Bebida Pequeña', 'Ají Verde', 'Agregado Queso'], // Removed
+      // modificationPrices: { 'Agregado Queso': 1000 }, // Removed
     },
     {
       id: 23,
