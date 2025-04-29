@@ -6,6 +6,28 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useToast } from '@/hooks/use-toast';
 
+// Define possible access levels explicitly (copied from StaffPage)
+type AccessLevel = 'admin' | 'worker' | 'none';
+
+// Define StaffMember interface (copied from StaffPage)
+interface StaffMember {
+  id: number;
+  name: string;
+  role: string; // Job title (e.g., 'Mesera')
+  avatarUrl?: string; // Optional avatar URL
+  accessLevel?: AccessLevel; // Optional: 'admin', 'worker', or 'none' for login privileges
+}
+
+// Use the same initial staff data as StaffPage for login checks
+// In a real app, this would likely come from a shared data source or API
+const initialStaff: StaffMember[] = [
+  { id: 1, name: 'Camila Pérez', role: 'Dueña / Gerente', avatarUrl: 'https://picsum.photos/id/237/50', accessLevel: 'admin' },
+  { id: 2, name: 'Juan García', role: 'Cocinero Principal', avatarUrl: 'https://picsum.photos/id/238/50', accessLevel: 'worker' },
+  { id: 3, name: 'María Rodríguez', role: 'Mesera', avatarUrl: 'https://picsum.photos/id/239/50', accessLevel: 'worker' },
+  { id: 4, name: 'Carlos López', role: 'Ayudante de Cocina', avatarUrl: 'https://picsum.photos/id/240/50', accessLevel: 'none' }, // Example with no login access
+];
+
+
 type UserRole = 'admin' | 'worker' | null;
 
 interface AuthContextType {
@@ -46,7 +68,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // --- Role-based Redirection Logic ---
     if (!isLoading) { // Ensure state is loaded before redirecting
-      const adminRoutes = ['/inventory', '/expenses', '/staff'];
+      const adminRoutes = ['/inventory', '/expenses', '/staff', '/products']; // Added /products
       const workerAllowedPaths = ['/tables']; // Workers can only access /tables and its subpaths
       const publicRoutes = ['/login'];
 
@@ -83,18 +105,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, [pathname, router, isLoading]); // Rerun check if path or loading state changes
 
   const login = (user: string, pass: string): boolean => {
-    let role: UserRole = null;
+    let foundUser: StaffMember | undefined = undefined;
     let success = false;
+    let role: UserRole = null;
 
-    // Simple hardcoded check
-    if (user === 'admin' && pass === 'admin') {
-      role = 'admin';
-      success = true;
-    } else if (user === '12345' && pass === '12345') {
-      role = 'worker';
-      success = true;
+    // Find the user by name in the staff list
+    foundUser = initialStaff.find(member => member.name === user);
+
+    if (foundUser) {
+      // Check password based on accessLevel
+      if (foundUser.accessLevel === 'admin' && pass === 'admin') {
+        success = true;
+        role = 'admin';
+      } else if (foundUser.accessLevel === 'worker' && pass === 'worker') { // Changed password check for worker
+        success = true;
+        role = 'worker';
+      }
+      // Users with 'none' access level or incorrect password will fail
     }
 
+    // Handle login success or failure
     if (success && role) {
       setIsAuthenticated(true);
       setUserRole(role);
@@ -145,3 +175,4 @@ export const useAuth = (): AuthContextType => {
   }
   return context;
 };
+
