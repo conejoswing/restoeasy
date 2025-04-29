@@ -954,8 +954,9 @@ export default function TableDetailPage() {
 
             const newMovementId = getNextMovementId(currentMovements);
             const saleDescription = isDelivery
-                ? `Venta ${getPageTitle()} a ${deliveryInfo?.name} (${deliveryInfo?.address})`
+                ? `Venta ${getPageTitle()} a ${deliveryInfo?.name} (${deliveryInfo?.address}) (Envío: ${formatCurrency(deliveryInfo?.deliveryFee ?? 0)})`
                 : `Venta ${getPageTitle()}`;
+
             const saleMovement: CashMovement = {
                 id: newMovementId,
                 date: new Date(), // Use current date/time for the sale
@@ -1442,4 +1443,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-
