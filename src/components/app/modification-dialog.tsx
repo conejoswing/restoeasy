@@ -83,6 +83,10 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
     if (item.category === 'Hamburguesas' && (mod === 'Palta' || mod === 'Tomate')) {
       return false;
     }
+    // Exclude 'Queso Fundido', 'Huevo Frito', 'Cebolla Frita' for 'Churrascos' category
+    if (item.category === 'Churrascos' && ['Queso Fundido', 'Huevo Frito', 'Cebolla Frita', 'Jamón', 'Orégano', 'Salsa Verde', 'Champiñones Salteados', 'Papas Fritas'].includes(mod)) {
+        return false;
+    }
     return true; // Include all other modifications
   }) ?? [];
 
