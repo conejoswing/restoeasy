@@ -1022,6 +1022,31 @@ export default function TableDetailPage() {
                 'queso grande', 'solo carne grande'
             ];
 
+            // Items that use 'pan de marraqueta'
+            const marraquetaItems = [
+                 'churrasco campestre', 'churrasco che milico', 'churrasco completo',
+                 'churrasco dinamico', 'churrasco italiano', 'churrasco napolitano',
+                 'churrasco palta', 'churrasco queso', 'churrasco queso champiñon',
+                 'churrasco tomate'
+            ];
+             // Items that use 'pan de hamburguesa normal'
+            const hamburguesaNormalItems = ['simple', 'italiana', 'big cami'];
+             // Items that use 'pan de hamburguesa grande'
+            const hamburguesaGrandeItems = ['doble', 'doble italiana', 'tapa arteria', 'super tapa arteria', 'super big cami'];
+
+            // Promo Churrasco items map to 'pan de marraqueta'
+            const promoChurrascoItems = [
+                '2x campestre', '2x chacarero', '2x che milico', '2x completo',
+                '2x dinamico', '2x italiano', '2x palta', '2x queso', '2x queso champiñon',
+                '2x tomate', '2x brasileño' // Assuming brasileño also uses marraqueta
+            ];
+            // Promo Mechada items map to 'pan de marraqueta'
+             const promoMechadaItems = [
+                '2x campestre', '2x chacarero', '2x che milico', '2x completo',
+                '2x dinamico', '2x italiano', '2x palta', '2x queso', '2x queso champiñon',
+                '2x tomate', '2x brasileño' // Assuming brasileño also uses marraqueta
+            ];
+
 
             // Iterate through the paid items and decrease stock
             pendingPaymentOrder.forEach(orderItem => {
@@ -1048,33 +1073,44 @@ export default function TableDetailPage() {
                          }
                          break;
                     case 'Churrascos':
-                    case 'Promo Churrasco':
-                    case 'Promo Mechada':
-                         if (orderItemNameLower.includes('grande')) {
-                            inventoryItemName = 'pan especial grande';
-                        } else if (orderItemNameLower.includes('normal')) {
-                             inventoryItemName = 'pan especial normal';
-                        } else {
-                            // Default logic for other items in these categories (e.g., specific promos)
-                            // Try marraqueta first, then fall back to normal especial
+                         if (marraquetaItems.includes(orderItemNameLower)) {
                             inventoryItemName = 'pan de marraqueta';
-                            if (!inventoryMap.has(inventoryItemName)) {
-                               inventoryItemName = 'pan especial normal';
+                             // Fallback if marraqueta is out of stock or not found
+                             if (!inventoryMap.has(inventoryItemName) || inventoryMap.get(inventoryItemName)?.stock === 0) {
+                                inventoryItemName = 'pan especial normal';
                             }
-                        }
+                         }
                         break;
+                     case 'Promo Churrasco':
+                         if (promoChurrascoItems.includes(orderItemNameLower)) {
+                            inventoryItemName = 'pan de marraqueta';
+                            // Fallback
+                             if (!inventoryMap.has(inventoryItemName) || inventoryMap.get(inventoryItemName)?.stock === 0) {
+                                inventoryItemName = 'pan especial normal';
+                            }
+                         }
+                         break;
+                    case 'Promo Mechada':
+                         if (promoMechadaItems.includes(orderItemNameLower)) {
+                           inventoryItemName = 'pan de marraqueta';
+                            // Fallback
+                            if (!inventoryMap.has(inventoryItemName) || inventoryMap.get(inventoryItemName)?.stock === 0) {
+                               inventoryItemName = 'pan especial normal';
+                           }
+                         }
+                         break;
                     case 'Hamburguesas':
-                        if (orderItemNameLower.includes('grande') || orderItemNameLower.includes('doble') || orderItemNameLower.includes('super')) {
-                           inventoryItemName = 'pan de hamburguesa grande';
-                        } else {
+                        if (hamburguesaNormalItems.includes(orderItemNameLower)) {
                            inventoryItemName = 'pan de hamburguesa normal';
+                        } else if (hamburguesaGrandeItems.includes(orderItemNameLower)) {
+                           inventoryItemName = 'pan de hamburguesa grande';
                         }
                         break;
                     case 'Fajitas':
                         // All Fajitas use 'pan de marraqueta'
                          inventoryItemName = 'pan de marraqueta';
-                         // Add a fallback in case 'pan de marraqueta' is not in inventory
-                         if (!inventoryMap.has(inventoryItemName)) {
+                         // Add a fallback in case 'pan de marraqueta' is not in inventory or stock is 0
+                         if (!inventoryMap.has(inventoryItemName) || inventoryMap.get(inventoryItemName)?.stock === 0) {
                             inventoryItemName = 'pan especial normal'; // Or another suitable bread type
                          }
                         break;
@@ -1452,7 +1488,4 @@ export default function TableDetailPage() {
     </div>
   );
 }
-
-
-
 
