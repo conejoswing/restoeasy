@@ -1038,7 +1038,7 @@ export default function TableDetailPage() {
             const promoChurrascoItems = [
                 '2x campestre', '2x chacarero', '2x che milico', '2x completo',
                 '2x dinamico', '2x italiano', '2x palta', '2x queso', '2x queso champiñon',
-                '2x tomate', '2x brasileño' // Assuming brasileño also uses marraqueta
+                '2x tomate', '2x brasileño'
             ];
             // Promo Mechada items map to 'pan de marraqueta'
              const promoMechadaItems = [
@@ -1047,12 +1047,18 @@ export default function TableDetailPage() {
                 '2x tomate', '2x brasileño' // Assuming brasileño also uses marraqueta
             ];
 
+            // Fajita items map to 'pan de marraqueta'
+            const fajitaItems = [
+                'italiana', 'brasileño', 'chacarero', 'americana', 'primavera', 'golosasa', '4 ingredientes', '6 ingredientes'
+            ];
+
 
             // Iterate through the paid items and decrease stock
             pendingPaymentOrder.forEach(orderItem => {
                 // Simple mapping logic (can be expanded)
                 let inventoryItemName = '';
                 const orderItemNameLower = orderItem.name.toLowerCase();
+                let quantityToDeduct = orderItem.quantity; // Default quantity
 
                 switch (orderItem.category) {
                     case 'Bebidas':
@@ -1084,6 +1090,7 @@ export default function TableDetailPage() {
                      case 'Promo Churrasco':
                          if (promoChurrascoItems.includes(orderItemNameLower)) {
                             inventoryItemName = 'pan de marraqueta';
+                             quantityToDeduct *= 2; // Deduct 2 breads per promo item
                             // Fallback
                              if (!inventoryMap.has(inventoryItemName) || inventoryMap.get(inventoryItemName)?.stock === 0) {
                                 inventoryItemName = 'pan especial normal';
@@ -1093,6 +1100,7 @@ export default function TableDetailPage() {
                     case 'Promo Mechada':
                          if (promoMechadaItems.includes(orderItemNameLower)) {
                            inventoryItemName = 'pan de marraqueta';
+                           quantityToDeduct *= 2; // Deduct 2 breads per promo item
                             // Fallback
                             if (!inventoryMap.has(inventoryItemName) || inventoryMap.get(inventoryItemName)?.stock === 0) {
                                inventoryItemName = 'pan especial normal';
@@ -1107,11 +1115,12 @@ export default function TableDetailPage() {
                         }
                         break;
                     case 'Fajitas':
-                        // All Fajitas use 'pan de marraqueta'
-                         inventoryItemName = 'pan de marraqueta';
-                         // Add a fallback in case 'pan de marraqueta' is not in inventory or stock is 0
-                         if (!inventoryMap.has(inventoryItemName) || inventoryMap.get(inventoryItemName)?.stock === 0) {
-                            inventoryItemName = 'pan especial normal'; // Or another suitable bread type
+                         if (fajitaItems.includes(orderItemNameLower)) {
+                            inventoryItemName = 'pan de marraqueta';
+                            // Add a fallback in case 'pan de marraqueta' is not in inventory or stock is 0
+                            if (!inventoryMap.has(inventoryItemName) || inventoryMap.get(inventoryItemName)?.stock === 0) {
+                                inventoryItemName = 'pan especial normal'; // Or another suitable bread type
+                            }
                          }
                         break;
                     default:
@@ -1123,7 +1132,7 @@ export default function TableDetailPage() {
                 if (inventoryItemName) {
                     const inventoryItem = inventoryMap.get(inventoryItemName);
                     if (inventoryItem) {
-                        const newStock = Math.max(0, inventoryItem.stock - orderItem.quantity); // Ensure stock doesn't go below 0
+                        const newStock = Math.max(0, inventoryItem.stock - quantityToDeduct); // Use quantityToDeduct
                         if (inventoryItem.stock !== newStock) {
                              inventoryItem.stock = newStock;
                              console.log(`Updated inventory for ${inventoryItem.name}: ${newStock}`);
@@ -1237,7 +1246,7 @@ export default function TableDetailPage() {
                                 onClick={() => handleItemClick(item)} // Use handleItemClick
                             >
                                 <span className="font-medium">{item.name}</span>
-                                <span className="text-sm text-muted-foreground">{formatCurrency(item.price)}</span>
+                                {/* Removed price display from item list */}
                             </li>
                         ))}
                         {filteredMenu.length === 0 && (
@@ -1488,4 +1497,5 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
 
