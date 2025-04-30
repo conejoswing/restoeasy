@@ -1070,6 +1070,14 @@ export default function TableDetailPage() {
                            inventoryItemName = 'pan de hamburguesa normal';
                         }
                         break;
+                    case 'Fajitas':
+                        // All Fajitas use 'pan de marraqueta'
+                         inventoryItemName = 'pan de marraqueta';
+                         // Add a fallback in case 'pan de marraqueta' is not in inventory
+                         if (!inventoryMap.has(inventoryItemName)) {
+                            inventoryItemName = 'pan especial normal'; // Or another suitable bread type
+                         }
+                        break;
                     default:
                         // Fallback or specific mapping for other categories if needed
                         break;
@@ -1445,4 +1453,6 @@ export default function TableDetailPage() {
   );
 }
 
-    
+
+
+
