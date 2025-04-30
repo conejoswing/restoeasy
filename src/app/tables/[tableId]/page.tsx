@@ -427,34 +427,40 @@ const mockMenu: MenuItem[] = [
      { id: 88, name: '2x Campestre', price: 9500, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 } }, // Removed specific mods
      { id: 89, name: '2x Queso Champiñon', price: 9800, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 } }, // Removed specific mods
      { id: 90, name: '2x Che milico', price: 10000, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 } }, // Removed specific mods
-    // --- Promociones --- (No modifications)
+    // --- Promociones --- (Adding modifications)
     {
       id: 6,
       name: 'Promo 1',
       price: 4500,
       category: 'Promociones',
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
+      modificationPrices: { 'Agregado Queso': 1000 }
     },
      {
       id: 5,
       name: 'Promo 2',
       price: 5000,
       category: 'Promociones',
+       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
+       modificationPrices: { 'Agregado Queso': 1000 }
     },
     {
       id: 23,
       name: 'Promo 3',
       price: 6000,
       category: 'Promociones',
+       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
+       modificationPrices: { 'Agregado Queso': 1000 }
     },
-    { id: 91, name: 'Promo 4', price: 6500, category: 'Promociones' },
-    { id: 92, name: 'Promo 5', price: 7000, category: 'Promociones' },
-    { id: 93, name: 'Promo 6', price: 7500, category: 'Promociones' },
-    { id: 94, name: 'Promo 7', price: 8000, category: 'Promociones' },
-    { id: 95, name: 'Promo 8', price: 8500, category: 'Promociones' },
-    { id: 96, name: 'Promo 9', price: 9000, category: 'Promociones' },
-    { id: 97, name: 'Promo 10', price: 9500, category: 'Promociones' },
-    { id: 98, name: 'Promo 11', price: 10000, category: 'Promociones' },
-    { id: 99, name: 'Promo 12', price: 10500, category: 'Promociones' },
+    { id: 91, name: 'Promo 4', price: 6500, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 } },
+    { id: 92, name: 'Promo 5', price: 7000, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 } },
+    { id: 93, name: 'Promo 6', price: 7500, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 } },
+    { id: 94, name: 'Promo 7', price: 8000, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 } },
+    { id: 95, name: 'Promo 8', price: 8500, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 } },
+    { id: 96, name: 'Promo 9', price: 9000, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 } },
+    { id: 97, name: 'Promo 10', price: 9500, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 } },
+    { id: 98, name: 'Promo 11', price: 10000, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 } },
+    { id: 99, name: 'Promo 12', price: 10500, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 } },
     // --- Bebidas --- (No modifications)
     {
       id: 100,
@@ -728,7 +734,7 @@ export default function TableDetailPage() {
   // Function to handle clicking a menu item (from Items view in Sheet)
   const handleItemClick = (item: MenuItem) => {
      // Check if the item's category allows modifications
-     const categoriesWithoutModifications = ['Papas Fritas', 'Promociones', 'Bebidas', 'Colaciones'];
+     const categoriesWithoutModifications = ['Papas Fritas', 'Bebidas', 'Colaciones']; // Removed 'Promociones'
      if (!categoriesWithoutModifications.includes(item.category) && item.modifications && item.modifications.length > 0) {
         setCurrentItemForModification(item);
         setIsModificationDialogOpen(true); // Open modification dialog
@@ -1497,4 +1503,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-

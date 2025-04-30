@@ -79,10 +79,6 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
     if (['Completos As', 'Promo Churrasco', 'Fajitas'].includes(item.category) && mod === 'Porotos Verdes') {
       return false;
     }
-    // Exclude 'Palta' and 'Tomate' for 'Hamburguesas' category (Handled below)
-    // if (item.category === 'Hamburguesas' && (mod === 'Palta' || mod === 'Tomate')) {
-    //   return false;
-    // }
     // Exclude specific mods for 'Churrascos' category
     if (item.category === 'Churrascos' && ['Queso Fundido', 'Huevo Frito', 'Cebolla Frita', 'Jamón', 'Orégano', 'Salsa Verde', 'Champiñones Salteados', 'Papas Fritas', 'Palta', 'Tomate'].includes(mod)) {
         return false;
@@ -100,6 +96,7 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
      ].includes(mod)) {
         return false;
      }
+    // Removed the check for 'Promociones' category, allowing modifications
     return true; // Include all other modifications
   }) ?? [];
 
@@ -126,7 +123,7 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
         <ScrollArea className="max-h-[300px] p-1">
           <div className="grid gap-4 py-4 px-3">
             {!availableModifications || availableModifications.length === 0 ? (
-                 <p className="text-sm text-muted-foreground">No hay modificaciones disponibles.</p>
+                 <p className="text-sm text-muted-foreground">No hay modificaciones disponibles para este producto.</p>
             ) : (
                 availableModifications.map((mod) => { // Use the filtered list
                 const modificationCost = item.modificationPrices?.[mod];
