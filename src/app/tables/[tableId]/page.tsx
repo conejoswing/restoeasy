@@ -1047,7 +1047,7 @@ export default function TableDetailPage() {
                 '2x tomate', '2x brasileño' // Assuming brasileño also uses marraqueta
             ];
 
-            // Fajita items map to 'pan de marraqueta'
+            // Fajita items map to 'pan de marraqueta' by default, with fallback
             const fajitaItems = [
                 'italiana', 'brasileño', 'chacarero', 'americana', 'primavera', 'golosasa', '4 ingredientes', '6 ingredientes'
             ];
@@ -1116,7 +1116,7 @@ export default function TableDetailPage() {
                         break;
                     case 'Fajitas':
                          if (fajitaItems.includes(orderItemNameLower)) {
-                            inventoryItemName = 'pan de marraqueta';
+                            inventoryItemName = 'pan de marraqueta'; // Default to marraqueta for fajitas
                             // Add a fallback in case 'pan de marraqueta' is not in inventory or stock is 0
                             if (!inventoryMap.has(inventoryItemName) || inventoryMap.get(inventoryItemName)?.stock === 0) {
                                 inventoryItemName = 'pan especial normal'; // Or another suitable bread type
@@ -1497,5 +1497,4 @@ export default function TableDetailPage() {
     </div>
   );
 }
-
 
