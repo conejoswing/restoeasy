@@ -1300,9 +1300,15 @@ export default function TableDetailPage() {
              <li key={item.orderItemId} className="flex items-center justify-between">
                <div className='flex items-center gap-2'>
                  <div>
-                   <span className="font-medium text-sm">{item.name}</span>
+                   <span className={cn(
+                       "text-sm",
+                       !isPendingSection && "font-bold" // Apply bold only if not in pending section
+                   )}>{item.name}</span>
                     {item.selectedModifications && item.selectedModifications.length > 0 && (
-                      <p className="text-xs text-muted-foreground">({item.selectedModifications.join(', ')})</p>
+                      <p className={cn(
+                          "text-xs text-muted-foreground",
+                          !isPendingSection && "font-bold" // Apply bold only if not in pending section
+                      )}>({item.selectedModifications.join(', ')})</p>
                     )}
                     {/* Show final price only in pending section */}
                     {isPendingSection && (
@@ -1317,7 +1323,7 @@ export default function TableDetailPage() {
                         <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => removeFromOrder(item.orderItemId)}>
                             <MinusCircle className="h-4 w-4" />
                           </Button>
-                        <span className="font-medium w-4 text-center">{item.quantity}</span>
+                        <span className="font-bold w-4 text-center">{item.quantity}</span> {/* Quantity also bold */}
                         <Button variant="ghost" size="icon" className="h-6 w-6 text-primary" onClick={() => {
                              // Use menuData state to find the original item
                             const originalItem = menuData.find(menuItem => menuItem.id === item.id);
