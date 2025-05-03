@@ -7,8 +7,10 @@ import Link from 'next/link';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {cn} from '@/lib/utils';
-import { Store, Truck, Utensils } from 'lucide-react'; // Removed LogOut
-// import { useAuth } from '@/context/AuthContext'; // No longer needed for this page
+import { Store, Truck, Utensils, LogOut } from 'lucide-react'; // Added LogOut
+import { useAuth } from '@/context/AuthContext'; // Import useAuth
+import { useRouter } from 'next/navigation'; // Import useRouter
+
 
 interface Table {
   id: number | string; // Allow string IDs for Mezon and Delivery
@@ -34,8 +36,9 @@ const DELIVERY_INFO_STORAGE_KEY = 'deliveryInfo'; // Add storage key constant
 
 export default function TablesPage() {
   const [tables, setTables] = useState<Table[]>(initialTables);
-  // const { logout, isAuthenticated, isLoading, userRole } = useAuth(); // Removed auth hooks
+  const { logout, isAuthenticated, isLoading } = useAuth(); // Get logout and auth state
   const [isInitialized, setIsInitialized] = useState(false); // Track initialization
+  const router = useRouter(); // Initialize router
 
   // --- Dynamic Table Status Update ---
   // This useEffect checks sessionStorage on mount and updates table status locally.
@@ -107,11 +110,15 @@ export default function TablesPage() {
       return <Utensils className="h-6 w-6 mb-1 mx-auto text-foreground"/>; // Keep icons black
   }
 
-  // Remove logout handler
-  // const handleLogout = () => { ... };
+   // Logout handler
+   const handleLogout = () => {
+     logout();
+     router.push('/login'); // Redirect to login after logout
+   };
 
-  // No loading state needed from auth context
-  if (!isInitialized) {
+
+  // Wait for auth context and table initialization
+  if (isLoading || !isInitialized) {
     return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
   }
 
@@ -120,8 +127,12 @@ export default function TablesPage() {
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Gestión de Mesas</h1>
-         {/* Remove logout button */}
-         {/* {isAuthenticated && ( ... )} */}
+         {/* Logout button */}
+         {isAuthenticated && (
+            <Button variant="outline" onClick={handleLogout}>
+              <LogOut className="mr-2 h-4 w-4" /> Cerrar Sesión
+            </Button>
+         )}
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
         {tables.map((table) => (
@@ -146,8 +157,8 @@ export default function TablesPage() {
                   className={cn(
                     'text-sm font-medium px-2 py-1 rounded-full',
                     table.status === 'available'
-                      ? 'bg-green-200 text-green-800' // Use direct colors temporarily for visibility
-                      : 'bg-orange-200 text-orange-800' // Use direct colors temporarily for visibility
+                      ? 'bg-green-200 text-green-800'
+                      : 'bg-orange-200 text-orange-800'
                   )}
                 >
                   {table.status === 'available' ? 'Disponible' : 'Ocupada'}

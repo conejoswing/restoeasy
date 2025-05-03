@@ -1,10 +1,8 @@
 
-
 'use client';
 
 import * as React from 'react';
-// import { useRouter } from 'next/navigation'; // No longer needed
-// import { useAuth } from '@/context/AuthContext'; // Removed auth import
+// Removed auth import
 import {
   Table,
   TableBody,
@@ -29,7 +27,7 @@ import {
 } from '@/components/ui/dialog'; // Import Dialog components
 import { Label } from '@/components/ui/label'; // Import Label
 import { useState } from 'react';
-import { Edit } from 'lucide-react'; // Import Edit icon (remove FileEdit)
+import { Edit } from 'lucide-react'; // Import Edit icon
 import { useToast } from '@/hooks/use-toast'; // Import useToast
 
 interface MenuItem {
@@ -42,7 +40,6 @@ interface MenuItem {
 }
 
 // Mock data - reused from table detail page (Consider moving to a shared service)
-// Keep the existing mockMenu data
 const mockMenu: MenuItem[] = [
     // --- Completos Vienesas ---
     {
@@ -480,8 +477,8 @@ const orderedCategories = [
   'Hamburguesas', // Added
   'Churrascos',   // Added
   'Papas Fritas', // Added
-  'Promo Churrasco', // Changed from Colaciones
-  'Promo Mechada', // Added
+  'Promo Churrasco',
+  'Promo Mechada',
   'Promociones',
   'Bebidas',
   'Colaciones', // Added back
@@ -524,9 +521,7 @@ const sortMenu = (menu: MenuItem[]): MenuItem[] => {
 
 
 export default function ProductsPage() {
-  // No longer need auth hooks
-  // const { isAuthenticated, isLoading, userRole } = useAuth();
-  // const router = useRouter();
+  // Removed auth hooks
   const [searchTerm, setSearchTerm] = useState('');
   const [menu, setMenu] = useState<MenuItem[]>(sortMenu(mockMenu)); // State for menu items
   const [isEditPriceDialogOpen, setIsEditPriceDialogOpen] = useState(false); // Renamed state for clarity
@@ -540,8 +535,6 @@ export default function ProductsPage() {
   };
 
    // No loading or auth check needed
-   // if (isLoading) { ... }
-   // if (!isAuthenticated || userRole !== 'admin') { ... }
 
    // Filter products based on search term
    const filteredProducts = menu.filter(product =>

@@ -3,8 +3,7 @@
 
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-// import { useRouter } from 'next/navigation'; // No longer needed
-// import { useAuth } from '@/context/AuthContext'; // Removed auth context
+// Removed auth context and router imports
 import {
   Table,
   TableBody,
@@ -43,7 +42,7 @@ import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 
-interface InventoryItem {
+export interface InventoryItem { // Export interface
   id: number;
   name: string;
   stock: number;
@@ -74,8 +73,7 @@ const INVENTORY_STORAGE_KEY = 'restaurantInventory';
 
 
 export default function InventoryPage() {
-  // const { isAuthenticated, isLoading, userRole } = useAuth(); // Removed auth state
-  // const router = useRouter(); // Removed router
+  // Removed auth state
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [isInventoryInitialized, setIsInventoryInitialized] = useState(false);
   const [newProductData, setNewProductData] = useState<{ name: string; stock: string }>({ name: '', stock: '' });
@@ -136,14 +134,13 @@ export default function InventoryPage() {
       console.error("Failed to save inventory to localStorage:", error);
       toast({ title: "Error", description: "No se pudo guardar el inventario.", variant: "destructive" });
     }
-  }, [inventory, isInventoryInitialized]);
+  }, [inventory, isInventoryInitialized, toast]); // Added toast to dependency array
 
    // No loading state from AuthProvider needed
    if (!isInventoryInitialized) {
      return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
    }
    // No auth check needed
-   // if (!isAuthenticated || userRole !== 'admin') { ... }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, key: keyof typeof newProductData) => {
     setNewProductData((prev) => ({ ...prev, [key]: e.target.value }));

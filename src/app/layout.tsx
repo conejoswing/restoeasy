@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar';
 import AppSidebar from '@/components/app/app-sidebar';
 import { Toaster } from '@/components/ui/toaster';
-import { AuthProvider, useAuth } from '@/context/AuthContext'; // Import AuthProvider
+import { AuthProvider } from '@/context/AuthContext'; // Import AuthProvider
 import { Geist, Geist_Mono } from 'next/font/google';
 import * as React from 'react';
 
@@ -21,14 +21,14 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
-// Inner component to access auth context after provider is set up
+// Inner component to conditionally render Sidebar and use usePathname
 function AppContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  // const { isAuthenticated, isLoading, userRole } = useAuth(); // No longer needed for layout logic
 
   // Determine if the sidebar should be shown
   // Show sidebar everywhere except table detail pages
   const isTableDetailPage = pathname.startsWith('/tables/') && pathname !== '/tables';
+  // No need to check for login page anymore as it's removed
   const displaySidebar = !isTableDetailPage;
 
   // Default to collapsed state (icons only) when displayed
@@ -64,10 +64,10 @@ export default function RootLayout({
           'antialiased'
         )}
       >
-        {/* AuthProvider still wraps AppContent but doesn't handle loading/redirects */}
-        <AuthProvider>
-           <AppContent>{children}</AppContent>
-        </AuthProvider>
+         {/* Wrap AppContent with AuthProvider */}
+         <AuthProvider>
+            <AppContent>{children}</AppContent>
+         </AuthProvider>
       </body>
     </html>
   );

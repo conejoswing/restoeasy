@@ -1,11 +1,9 @@
 
-
 'use client';
 
 import * as React from 'react';
 import { useState, useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation'; // Keep for potential future use or redirection needs
-// import { useAuth } from '@/context/AuthContext'; // Auth context is no longer used for auth checks
+// Removed auth context import
 import { format, isToday, startOfDay } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
@@ -47,7 +45,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { PlusCircle, Calendar as CalendarIcon, FileCheck, Banknote, CreditCard, Landmark, Truck } from 'lucide-react'; // Added Truck icon
+import { PlusCircle, Calendar as CalendarIcon, FileCheck, Banknote, CreditCard, Landmark, Truck, DollarSign } from 'lucide-react'; // Added Truck, DollarSign icons
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
@@ -76,8 +74,7 @@ const initialMovements: CashMovement[] = []; // Start with empty initial movemen
 const CASH_MOVEMENTS_STORAGE_KEY = 'cashMovements';
 
 export default function CashRegisterPage() {
-  // const { isLoading } = useAuth(); // Only keep isLoading if needed for other reasons, otherwise remove
-  const router = useRouter();
+  // Removed auth context usage
   const [cashMovements, setCashMovements] = useState<CashMovement[]>([]);
   const [isInitialized, setIsInitialized] = useState(false); // Track initialization
   const [newMovement, setNewMovement] = useState<{
@@ -301,11 +298,11 @@ export default function CashRegisterPage() {
     sessionStorage.removeItem(CASH_MOVEMENTS_STORAGE_KEY);
 
     setIsClosingDialogOpen(false); // Close the dialog
-    toast({ title: "Cierre de Caja Impreso y Realizado", description: "Se han borrado todos los movimientos registrados.", variant: "default"});
+    toast({ title: "Cierre de Caja Impreso y Realizado", description: "Se han borrado todos los movimientos registrados hoy.", variant: "default"});
   }
 
-   // Loading state no longer needed from AuthProvider or for local state init
-   if (!isInitialized) { // Wait for local state init
+   // Wait for local state init
+   if (!isInitialized) {
      return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
    }
 
@@ -573,7 +570,6 @@ export default function CashRegisterPage() {
               <TableHead>Descripción</TableHead>
               <TableHead className="text-right">Monto</TableHead>
               <TableHead className="text-right">Método</TableHead>{/* Added Payment Method Column */}
-              {/* <TableHead className="text-right">Acciones</TableHead> */}
             </TableRow>
           </TableHeader>
           {/* Render TableBody only on the client after initialization */}
