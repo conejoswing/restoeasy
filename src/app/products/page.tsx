@@ -608,11 +608,11 @@ export default function ProductsPage() {
             <Table>
             <TableHeader>
                 <TableRow>
-                <TableHead>Producto</TableHead>
-                <TableHead>Categoría</TableHead>
-                <TableHead>Descripción</TableHead>{/* Changed header */}
-                <TableHead className="text-right">Precio Base</TableHead>
-                 <TableHead className="text-center w-20">Editar</TableHead>{/* Adjusted width for one button */}
+                  <TableHead>Producto</TableHead>
+                  <TableHead>Categoría</TableHead>
+                  <TableHead>Descripción</TableHead>{/* Changed header */}
+                  <TableHead className="text-right">Precio Base</TableHead>
+                  <TableHead className="text-center w-20">Editar</TableHead>{/* Adjusted width for one button */}
                 </TableRow>
             </TableHeader>
             <TableBody>
