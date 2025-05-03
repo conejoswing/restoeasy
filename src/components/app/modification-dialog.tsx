@@ -80,19 +80,18 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
       return false;
     }
     // Exclude specific mods for 'Churrascos' category
-    if (item.category === 'Churrascos' && ['Queso Fundido', 'Huevo Frito', 'Cebolla Frita', 'Jamón', 'Orégano', 'Salsa Verde', 'Champiñones Salteados', 'Papas Fritas', 'Palta', 'Tomate'].includes(mod)) {
+    if (item.category === 'Churrascos' && ['Queso Fundido', 'Huevo Frito', 'Cebolla Frita'].includes(mod)) {
         return false;
     }
      // Exclude specific mods for 'Promo Mechada'
-     if (item.category === 'Promo Mechada' && ['Queso Fundido', 'Huevo Frito', 'Cebolla Frita', 'Papas Fritas', 'Tomate', 'Palta', 'Salsa Verde', 'Champiñones Salteados', 'Porotos Verdes'].includes(mod)) {
+     if (item.category === 'Promo Mechada' && ['Queso Fundido', 'Huevo Frito', 'Cebolla Frita', 'Papas Fritas', 'Salsa Verde', 'Champiñones Salteados', 'Porotos Verdes'].includes(mod)) {
         return false;
      }
      // Exclude specific mods for 'Hamburguesas' category
      if (item.category === 'Hamburguesas' && [
         'Triple Carne', 'Triple Queso', 'Pepinillos', 'Lechuga', 'Salsa Especial',
         'Doble Carne', 'Cuádruple Carne', 'Cuádruple Queso', 'Doble Queso Cheddar',
-        'Cebolla Frita', 'Huevo Frito', 'Doble Bacon', 'Bacon', 'Queso Cheddar',
-        'Palta', 'Tomate' // Also exclude Palta and Tomate here
+        'Cebolla Frita', 'Huevo Frito', 'Doble Bacon', 'Bacon', 'Queso Cheddar'
      ].includes(mod)) {
         return false;
      }
