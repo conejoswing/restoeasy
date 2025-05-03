@@ -34,6 +34,7 @@ import type { CashMovement } from '@/app/expenses/page'; // Import CashMovement 
 import type { DeliveryInfo } from '@/components/app/delivery-dialog'; // Import DeliveryInfo type
 import DeliveryDialog from '@/components/app/delivery-dialog'; // Import DeliveryDialog
 import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml } from '@/lib/printUtils'; // Import printing utilities
+import type { InventoryItem } from '@/app/inventory/page'; // Import InventoryItem type
 
 interface MenuItem {
   id: number;
@@ -51,13 +52,6 @@ export interface OrderItem extends Omit<MenuItem, 'price' | 'modificationPrices'
   selectedModifications?: string[]; // Array of selected mods
   basePrice: number; // Store the original base price
   finalPrice: number; // Store the calculated price (base + modifications)
-}
-
-// Interface for inventory items (matching inventory page)
-interface InventoryItem {
-  id: number;
-  name: string;
-  stock: number;
 }
 
 
@@ -1521,3 +1515,5 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
+    
