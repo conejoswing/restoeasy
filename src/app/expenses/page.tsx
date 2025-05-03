@@ -3,7 +3,6 @@
 
 import * as React from 'react';
 import { useState, useEffect, useMemo } from 'react';
-// Removed auth context import
 import { format, isToday, startOfDay } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
@@ -74,7 +73,6 @@ const initialMovements: CashMovement[] = []; // Start with empty initial movemen
 const CASH_MOVEMENTS_STORAGE_KEY = 'cashMovements';
 
 export default function CashRegisterPage() {
-  // Removed auth context usage
   const [cashMovements, setCashMovements] = useState<CashMovement[]>([]);
   const [isInitialized, setIsInitialized] = useState(false); // Track initialization
   const [newMovement, setNewMovement] = useState<{
@@ -240,7 +238,9 @@ export default function CashRegisterPage() {
 
   // Helper to get the next available ID
   const getNextMovementId = (currentMovements: CashMovement[]): number => {
-      return currentMovements.length > 0 ? Math.max(...currentMovements.map((m) => m.id)) + 1 : 1;
+      // Ensure IDs are numbers before finding the max
+      const maxId = currentMovements.reduce((max, m) => Math.max(max, typeof m.id === 'number' ? m.id : 0), 0);
+      return maxId + 1;
   };
 
   const handleAddMovement = () => {
@@ -301,9 +301,9 @@ export default function CashRegisterPage() {
     toast({ title: "Cierre de Caja Impreso y Realizado", description: "Se han borrado todos los movimientos registrados hoy.", variant: "default"});
   }
 
-   // Wait for local state init
+   // Wait for local state init - AuthGuard handles loading/auth checks
    if (!isInitialized) {
-     return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
+     return <div className="flex items-center justify-center min-h-screen">Cargando Caja...</div>;
    }
 
 

@@ -3,7 +3,6 @@
 
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-// Removed auth context and router imports
 import {
   Table,
   TableBody,
@@ -73,7 +72,6 @@ const INVENTORY_STORAGE_KEY = 'restaurantInventory';
 
 
 export default function InventoryPage() {
-  // Removed auth state
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [isInventoryInitialized, setIsInventoryInitialized] = useState(false);
   const [newProductData, setNewProductData] = useState<{ name: string; stock: string }>({ name: '', stock: '' });
@@ -97,7 +95,9 @@ export default function InventoryPage() {
            const storedNames = new Set(loadedInventory.map(item => item.name.toLowerCase()));
            predefinedItemNames.forEach((name, index) => {
                if (!storedNames.has(name.toLowerCase())) {
-                    const newId = loadedInventory.length > 0 ? Math.max(...loadedInventory.map(item => item.id)) + 1 : index + 1;
+                    // Ensure unique ID generation even if initialInventory wasn't used
+                    const maxId = loadedInventory.reduce((max, item) => Math.max(max, item.id), 0);
+                    const newId = maxId + 1;
                    loadedInventory.push({ id: newId, name: name, stock: 0 });
                }
            });
@@ -136,11 +136,12 @@ export default function InventoryPage() {
     }
   }, [inventory, isInventoryInitialized, toast]); // Added toast to dependency array
 
-   // No loading state from AuthProvider needed
+   // No loading state from AuthProvider needed - AuthGuard handles loading
+   // No auth check needed - AuthGuard handles redirection
    if (!isInventoryInitialized) {
-     return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
+     return <div className="flex items-center justify-center min-h-screen">Cargando Inventario...</div>;
    }
-   // No auth check needed
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, key: keyof typeof newProductData) => {
     setNewProductData((prev) => ({ ...prev, [key]: e.target.value }));
@@ -164,7 +165,10 @@ export default function InventoryPage() {
          return;
      }
 
-     const newId = inventory.length > 0 ? Math.max(...inventory.map(item => item.id)) + 1 : 1;
+     // Ensure unique ID generation even if initialInventory wasn't used
+     const maxId = inventory.reduce((max, item) => Math.max(max, item.id), 0);
+     const newId = maxId + 1;
+
      const newProduct: InventoryItem = {
        id: newId,
        name: newProductData.name,

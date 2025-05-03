@@ -12,7 +12,7 @@ import {
   SidebarMenu,
   SidebarMenuItem,
   SidebarMenuButton,
-   SidebarSeparator, // Keep if other items remain at bottom, remove otherwise
+   SidebarSeparator,
 } from '@/components/ui/sidebar';
 import { useAuth } from '@/context/AuthContext';
 
@@ -26,8 +26,10 @@ export default function AppSidebar() {
 
   const handleLogout = () => {
     logout();
-    router.push('/login'); // Redirect to login after logout
+    // AuthGuard will redirect to login
   };
+
+  // AuthGuard handles loading, so no need for loading check here
 
   return (
     <>
@@ -96,7 +98,7 @@ export default function AppSidebar() {
           {/* Spacer to push potential bottom items down */}
           <div className="flex-grow" />
 
-          {/* Logout Button */}
+          {/* Logout Button - Only show if authenticated */}
           {isAuthenticated && (
              <>
                  <SidebarSeparator />
@@ -113,4 +115,3 @@ export default function AppSidebar() {
     </>
   );
 }
-

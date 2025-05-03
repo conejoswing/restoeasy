@@ -2,7 +2,6 @@
 'use client';
 
 import * as React from 'react';
-// Removed auth import
 import {
   Table,
   TableBody,
@@ -521,7 +520,6 @@ const sortMenu = (menu: MenuItem[]): MenuItem[] => {
 
 
 export default function ProductsPage() {
-  // Removed auth hooks
   const [searchTerm, setSearchTerm] = useState('');
   const [menu, setMenu] = useState<MenuItem[]>(sortMenu(mockMenu)); // State for menu items
   const [isEditPriceDialogOpen, setIsEditPriceDialogOpen] = useState(false); // Renamed state for clarity
@@ -534,7 +532,7 @@ export default function ProductsPage() {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
   };
 
-   // No loading or auth check needed
+   // No loading or auth check needed - AuthGuard handles this
 
    // Filter products based on search term
    const filteredProducts = menu.filter(product =>

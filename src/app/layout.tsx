@@ -8,6 +8,7 @@ import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar'
 import AppSidebar from '@/components/app/app-sidebar';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/context/AuthContext'; // Import AuthProvider
+import { AuthGuard } from '@/context/AuthGuard'; // Import AuthGuard
 import { Geist, Geist_Mono } from 'next/font/google';
 import * as React from 'react';
 
@@ -64,9 +65,11 @@ export default function RootLayout({
           'antialiased'
         )}
       >
-         {/* Wrap AppContent with AuthProvider */}
+         {/* Wrap AuthGuard and AppContent with AuthProvider */}
          <AuthProvider>
-            <AppContent>{children}</AppContent>
+            <AuthGuard>
+              <AppContent>{children}</AppContent>
+            </AuthGuard>
          </AuthProvider>
       </body>
     </html>

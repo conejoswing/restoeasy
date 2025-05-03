@@ -26,7 +26,7 @@ const numberedTables: Table[] = Array.from({length: 10}, (_, i) => ({
 
 // Add Mezon and Delivery, also initially available
 const specialTables: Table[] = [
-    { id: 'mezon', name: 'Mezón', status: 'available'}, // Counter/Bar - Using Store icon now
+    { id: 'mezon', name: 'Mesón', status: 'available'}, // Counter/Bar - Using Store icon now
     { id: 'delivery', name: 'Delivery', status: 'available' }
 ];
 
@@ -113,21 +113,22 @@ export default function TablesPage() {
    // Logout handler
    const handleLogout = () => {
      logout();
-     router.push('/login'); // Redirect to login after logout
+     // No need to push to '/login' here, AuthGuard will handle it.
    };
 
 
-  // Wait for auth context and table initialization
-  if (isLoading || !isInitialized) {
-    return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
-  }
+  // Wait for auth context and table initialization - Handled by AuthGuard
+  // if (isLoading || !isInitialized) {
+  //   return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
+  // }
+  // No auth check needed - Handled by AuthGuard
 
 
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Gestión de Mesas</h1>
-         {/* Logout button */}
+         {/* Logout button - Only show if authenticated */}
          {isAuthenticated && (
             <Button variant="outline" onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" /> Cerrar Sesión
