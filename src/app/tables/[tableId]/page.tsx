@@ -1045,9 +1045,9 @@ export default function TableDetailPage() {
 
             // Promo Churrasco items map to 'pan de marraqueta'
             const promoChurrascoItems = [
-                'campestre', 'chacarero', 'che milico', 'completo', // Removed '2x '
+                'campestre', 'chacarero', 'che milico', 'completo', // Removed '2x ' prefix
                 'dinamico', 'italiano', 'palta', 'queso', 'queso champiñon',
-                'tomate', 'brasileño' // Removed '2x '
+                'tomate', 'brasileño' // Removed '2x ' prefix
             ];
             // Promo Mechada items map to 'pan de marraqueta'
              const promoMechadaItems = [
@@ -1099,7 +1099,7 @@ export default function TableDetailPage() {
                      case 'Promo Churrasco':
                          if (promoChurrascoItems.includes(orderItemNameLower)) {
                             inventoryItemName = 'pan de marraqueta';
-                             quantityToDeduct *= 2; // Deduct 2 breads per promo item
+                             // quantityToDeduct *= 2; // Removed: Deduct 1 bread per promo item now
                             // Fallback
                              if (!inventoryMap.has(inventoryItemName) || inventoryMap.get(inventoryItemName)?.stock === 0) {
                                 inventoryItemName = 'pan especial normal';
@@ -1515,4 +1515,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-
