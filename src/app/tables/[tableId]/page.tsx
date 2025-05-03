@@ -735,7 +735,7 @@ export default function TableDetailPage() {
   // Function to handle clicking a menu item (from Items view in Sheet)
   const handleItemClick = (item: MenuItem) => {
      // Check if the item's category allows modifications
-     const categoriesWithoutModifications = ['Papas Fritas', 'Bebidas', 'Colaciones']; // Removed 'Promociones'
+     const categoriesWithoutModifications = ['Papas Fritas', 'Bebidas', 'Colaciones'];
      if (!categoriesWithoutModifications.includes(item.category) && item.modifications && item.modifications.length > 0) {
         setCurrentItemForModification(item);
         setIsModificationDialogOpen(true); // Open modification dialog
@@ -1302,17 +1302,19 @@ export default function TableDetailPage() {
                  <div>
                    <span className={cn(
                        "text-sm",
-                       !isPendingSection && "font-bold" // Apply bold only if not in pending section
+                       "font-bold" // Apply bold always
                    )}>{item.name}</span>
                     {item.selectedModifications && item.selectedModifications.length > 0 && (
                       <p className={cn(
                           "text-xs text-muted-foreground",
-                          !isPendingSection && "font-bold" // Apply bold only if not in pending section
+                           "font-bold" // Apply bold always
                       )}>({item.selectedModifications.join(', ')})</p>
                     )}
                     {/* Show final price only in pending section */}
                     {isPendingSection && (
-                        <p className='text-xs text-muted-foreground font-mono'>{formatCurrency(item.finalPrice)}</p>
+                        <p className={cn('text-xs text-muted-foreground font-mono', 'font-bold')}>
+                            {formatCurrency(item.finalPrice)}
+                        </p>
                     )}
                  </div>
                </div>
@@ -1344,8 +1346,8 @@ export default function TableDetailPage() {
                           </Button>
                      </>
                  ) : (
-                    // For pending section, just show quantity x price
-                    <span className="font-medium w-auto text-right text-sm">{item.quantity} x {formatCurrency(item.finalPrice)}</span>
+                    // For pending section, just show quantity x price (now bold)
+                    <span className="font-bold w-auto text-right text-sm">{item.quantity} x {formatCurrency(item.finalPrice)}</span>
                  )}
                </div>
              </li>
@@ -1437,7 +1439,7 @@ export default function TableDetailPage() {
               {isDelivery && deliveryInfo && pendingPaymentOrder.length > 0 && (
                 <>
                   <Separator className="my-2" />
-                  <div className="flex justify-between items-center text-sm font-medium pt-1">
+                  <div className="flex justify-between items-center text-sm font-semibold pt-1"> {/* Changed to font-semibold */}
                     <span>Costo de Envío:</span>
                     <span className='font-mono'>{formatCurrency(deliveryInfo.deliveryFee)}</span>
                   </div>
@@ -1447,7 +1449,7 @@ export default function TableDetailPage() {
           </CardContent>
           <Separator />
           <CardFooter className="p-4 flex flex-col items-stretch gap-2">
-            <div className="flex justify-between items-center text-md font-semibold">
+            <div className="flex justify-between items-center text-md font-semibold"> {/* Changed to font-semibold */}
               <span>Total Pendiente:</span>
               <span className='font-mono'>{formatCurrency(pendingOrderTotal)}</span>
             </div>
@@ -1518,4 +1520,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-
