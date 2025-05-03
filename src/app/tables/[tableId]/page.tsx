@@ -1300,19 +1300,19 @@ export default function TableDetailPage() {
              <li key={item.orderItemId} className="flex items-center justify-between">
                <div className='flex items-center gap-2'>
                  <div>
+                   {/* Apply bold always to item name in both sections */}
                    <span className={cn(
-                       "text-sm",
-                       "font-bold" // Apply bold always
+                       "text-sm font-bold"
                    )}>{item.name}</span>
+                    {/* Apply bold always to modifications in both sections */}
                     {item.selectedModifications && item.selectedModifications.length > 0 && (
                       <p className={cn(
-                          "text-xs text-muted-foreground",
-                           "font-bold" // Apply bold always
+                          "text-xs text-muted-foreground font-bold" // Apply bold always
                       )}>({item.selectedModifications.join(', ')})</p>
                     )}
                     {/* Show final price only in pending section */}
                     {isPendingSection && (
-                        <p className={cn('text-xs text-muted-foreground font-mono', 'font-bold')}>
+                        <p className={cn('text-xs text-muted-foreground font-mono font-bold')}>
                             {formatCurrency(item.finalPrice)}
                         </p>
                     )}
@@ -1325,7 +1325,8 @@ export default function TableDetailPage() {
                         <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => removeFromOrder(item.orderItemId)}>
                             <MinusCircle className="h-4 w-4" />
                           </Button>
-                        <span className="font-bold w-4 text-center">{item.quantity}</span> {/* Quantity also bold */}
+                        {/* Quantity also bold in current order */}
+                        <span className="font-bold w-4 text-center">{item.quantity}</span>
                         <Button variant="ghost" size="icon" className="h-6 w-6 text-primary" onClick={() => {
                              // Use menuData state to find the original item
                             const originalItem = menuData.find(menuItem => menuItem.id === item.id);
