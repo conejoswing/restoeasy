@@ -33,6 +33,7 @@ import { cn } from '@/lib/utils';
 import type { CashMovement } from '@/app/expenses/page'; // Import CashMovement type
 import type { DeliveryInfo } from '@/components/app/delivery-dialog'; // Import DeliveryInfo type
 import DeliveryDialog from '@/components/app/delivery-dialog'; // Import DeliveryDialog
+import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml } from '@/lib/printUtils'; // Import printing utilities
 
 interface MenuItem {
   id: number;
@@ -44,7 +45,7 @@ interface MenuItem {
 }
 
 // OrderItem now includes an array of selected modifications and the calculated price
-interface OrderItem extends Omit<MenuItem, 'price' | 'modificationPrices' | 'modifications'> {
+export interface OrderItem extends Omit<MenuItem, 'price' | 'modificationPrices' | 'modifications'> { // Export for printUtils
   orderItemId: string; // Unique ID for this specific item instance in the order
   quantity: number;
   selectedModifications?: string[]; // Array of selected mods
@@ -877,6 +878,10 @@ export default function TableDetailPage() {
      if (isDelivery && deliveryInfo) {
          console.log('Datos de Envío:', deliveryInfo);
      }
+     // --- Format and Print Kitchen Order ---
+     const kitchenReceiptHtml = formatKitchenOrderReceipt(order, tableIdParam, deliveryInfo);
+     printHtml(kitchenReceiptHtml);
+
 
      // --- Merge current order into pending payment order ---
      // Create deep copies to avoid state mutation issues
@@ -909,7 +914,7 @@ export default function TableDetailPage() {
      const newPendingTotal = calculateTotal(currentPendingCopy, true); // Include delivery fee
 
      toast({
-       title: "¡Comanda Enviada!",
+       title: "¡Comanda Enviada e Impresa!", // Updated title
        description: `Total Pendiente Actualizado: ${formatCurrency(newPendingTotal)}.`, // Show the new total for pending order
        variant: "default",
        className: "bg-green-200 text-green-800 border-green-400" // Using direct colors temporarily for success
@@ -945,6 +950,10 @@ export default function TableDetailPage() {
             console.log('Costo de Envío:', formatCurrency(deliveryInfo.deliveryFee));
         }
         console.log('Total a Pagar:', formatCurrency(finalTotalToPay));
+
+        // --- Format and Print Customer Receipt ---
+        const customerReceiptHtml = formatCustomerReceipt(pendingPaymentOrder, finalTotalToPay, method, tableIdParam, deliveryInfo);
+        printHtml(customerReceiptHtml);
 
        // --- Add sale to cash movements in sessionStorage ---
        try {
@@ -1503,3 +1512,4 @@ export default function TableDetailPage() {
     </div>
   );
 }
+

@@ -1,10 +1,11 @@
 
+
 'use client';
 
 import * as React from 'react';
 import { useState, useEffect, useMemo } from 'react';
-// import { useRouter } from 'next/navigation'; // No longer needed for redirection
-// import { useAuth } from '@/context/AuthContext'; // Removed AuthContext import
+import { useRouter } from 'next/navigation'; // Keep for potential future use or redirection needs
+// import { useAuth } from '@/context/AuthContext'; // Auth context is no longer used for auth checks
 import { format, isToday, startOfDay } from 'date-fns';
 import { es } from 'date-fns/locale';
 import {
@@ -53,6 +54,7 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { PaymentMethod } from '@/app/tables/[tableId]/page'; // Import PaymentMethod type
+import { formatCashClosingReceipt, printHtml } from '@/lib/printUtils'; // Import printing utilities
 
 
 export interface CashMovement { // Export interface for use in table page
@@ -74,8 +76,8 @@ const initialMovements: CashMovement[] = []; // Start with empty initial movemen
 const CASH_MOVEMENTS_STORAGE_KEY = 'cashMovements';
 
 export default function CashRegisterPage() {
-  // const { isAuthenticated, isLoading, userRole } = useAuth(); // Removed auth state
-  // const router = useRouter(); // Removed router
+  // const { isLoading } = useAuth(); // Only keep isLoading if needed for other reasons, otherwise remove
+  const router = useRouter();
   const [cashMovements, setCashMovements] = useState<CashMovement[]>([]);
   const [isInitialized, setIsInitialized] = useState(false); // Track initialization
   const [newMovement, setNewMovement] = useState<{
@@ -281,17 +283,17 @@ export default function CashRegisterPage() {
   };
 
   const handleConfirmClosing = () => {
-    // Here you would normally trigger a print action
-    console.log("Imprimiendo resumen de cierre de caja:");
-    console.log(`Fecha: ${format(new Date(), 'dd/MM/yyyy')}`);
-    console.log(`Total Ingresos (Efectivo): ${formatCurrency(dailyCashIncome)}`);
-    console.log(`Total Ingresos (T. Débito): ${formatCurrency(dailyDebitCardIncome)}`);
-    console.log(`Total Ingresos (T. Crédito): ${formatCurrency(dailyCreditCardIncome)}`);
-    console.log(`Total Ingresos (Transferencia): ${formatCurrency(dailyTransferIncome)}`);
-    console.log(`Total Costo Envío: ${formatCurrency(dailyDeliveryFees)}`); // Print delivery fees
-    console.log(`Total Ingresos (General): ${formatCurrency(dailyTotalIncome)}`);
-    console.log(`Total Egresos: ${formatCurrency(dailyExpenses)}`);
-    console.log(`Total Neto: ${formatCurrency(dailyNetTotal)}`);
+     // Format the data for the receipt
+     const closingDate = format(new Date(), 'dd/MM/yyyy');
+     const totals = {
+         dailyCashIncome, dailyDebitCardIncome, dailyCreditCardIncome, dailyTransferIncome,
+         dailyDeliveryFees, dailyTotalIncome, dailyExpenses, dailyNetTotal
+     };
+     const closingReceiptHtml = formatCashClosingReceipt(closingDate, totals);
+
+     // Print the receipt
+     printHtml(closingReceiptHtml);
+     console.log("Imprimiendo resumen de cierre de caja...");
 
     // Clear the movements in state
     setCashMovements([]);
@@ -302,12 +304,11 @@ export default function CashRegisterPage() {
     toast({ title: "Cierre de Caja Impreso y Realizado", description: "Se han borrado todos los movimientos registrados.", variant: "default"});
   }
 
-   // Loading state no longer needed from AuthProvider
+   // Loading state no longer needed from AuthProvider or for local state init
    if (!isInitialized) { // Wait for local state init
      return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
    }
-   // No longer need to check authentication or role
-   // if (!isAuthenticated || userRole !== 'admin') { ... }
+
 
   return (
     <div className="container mx-auto p-4">
