@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { OrderItem } from '@/app/tables/[tableId]/page';
@@ -32,14 +33,20 @@ export const formatKitchenOrderReceipt = (
 
     let itemsHtml = '';
     orderItems.forEach(item => {
+        const modificationsText = item.selectedModifications && item.selectedModifications.length > 0
+            ? `<br><small style="margin-left: 10px;">(${item.selectedModifications.join(', ')})</small>`
+            : '';
+        const ingredientsText = item.ingredients && item.ingredients.length > 0
+            ? `<br><small style="margin-left: 10px; color: #555;">[${item.ingredients.join(', ')}]</small>` // Display ingredients
+            : '';
+
         itemsHtml += `
       <tr>
         <td style="vertical-align: top; padding-right: 10px;">${item.quantity}x</td>
         <td>
           ${item.name}
-          ${item.selectedModifications && item.selectedModifications.length > 0
-            ? `<br><small style="margin-left: 10px;">(${item.selectedModifications.join(', ')})</small>`
-            : ''}
+          ${modificationsText}
+          ${ingredientsText}
         </td>
       </tr>
     `;
@@ -136,14 +143,17 @@ export const formatCustomerReceipt = (
     let itemsHtml = '';
     orderItems.forEach(item => {
         const itemTotal = item.finalPrice * item.quantity;
+        const modificationsText = item.selectedModifications && item.selectedModifications.length > 0
+            ? `<br><small style="margin-left: 10px;">(${item.selectedModifications.join(', ')})</small>`
+            : '';
+        // Ingredients generally aren't shown on customer receipt, but could be added if needed
+
         itemsHtml += `
       <tr>
         <td>${item.quantity}x</td>
         <td>
             ${item.name}
-             ${item.selectedModifications && item.selectedModifications.length > 0
-                ? `<br><small style="margin-left: 10px;">(${item.selectedModifications.join(', ')})</small>`
-                : ''}
+             ${modificationsText}
         </td>
         <td style="text-align: right;">${formatCurrency(itemTotal)}</td>
       </tr>
