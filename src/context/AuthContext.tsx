@@ -4,7 +4,7 @@
 import type { ReactNode } from 'react';
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation'; // Keep for navigation
-import { useToast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast'; // Import useToast
 import type { StaffMember } from '@/app/users/page'; // Import StaffMember type
 
 // Storage keys
@@ -80,37 +80,31 @@ const getUsersFromStorage = (): StoredUser[] => {
         users.push(defaultAdmin);
         console.log("AuthContext: Added default admin user.");
     } else {
-        let adminUpdated = false;
         // Ensure the stored admin1 password hash is correct
         if (users[adminIndex].passwordHash !== defaultAdmin.passwordHash) {
             users[adminIndex].passwordHash = defaultAdmin.passwordHash;
-            adminUpdated = true;
             console.log("AuthContext: Corrected default admin user's password hash.");
         }
         // Ensure role is admin
         if (users[adminIndex].role !== 'admin') {
              users[adminIndex].role = 'admin';
-             adminUpdated = true;
              console.log("AuthContext: Corrected default admin user's role.");
         }
          // Ensure name is consistent
         if (users[adminIndex].name !== 'Admin Principal') {
              users[adminIndex].name = 'Admin Principal';
-              adminUpdated = true;
-             console.log("AuthContext: Corrected default admin user's name.");
+              console.log("AuthContext: Corrected default admin user's name.");
         }
         // Ensure id is consistent (though less critical)
          if (users[adminIndex].id !== defaultAdmin.id && !users[adminIndex].id.startsWith('admin1-')) {
              // Only update ID if it's clearly not the default or a previously generated one
              users[adminIndex].id = defaultAdmin.id;
-             adminUpdated = true;
              console.log("AuthContext: Corrected default admin user's ID.");
          }
     }
 
-    // If users array was reset or admin was added/updated, save back immediately
-    // This avoids issues where initial state might be empty before saveUsersToStorage is called later
-    // if (users.length === 0 || adminIndex === -1 || adminUpdated) {
+    // // Save back immediately if defaults were applied or corrections made - Moved to useEffect
+    // if (users.length > 0 && (adminIndex === -1 || users[adminIndex].passwordHash !== defaultAdmin.passwordHash || users[adminIndex].role !== 'admin' || users[adminIndex].name !== 'Admin Principal')) {
     //     saveUsersToStorage(users); // Save immediately if defaults were applied or corrections made
     // }
 
@@ -123,13 +117,16 @@ const saveUsersToStorage = (users: StoredUser[]) => {
      try {
         // Ensure admin1 is always present before saving
         const adminExists = users.some(u => u.username.toLowerCase() === 'admin1');
-        if (!adminExists) {
+        if (!adminExists && users.length > 0) { // Only add if users array is not empty (prevent adding during initial empty load)
              const defaultAdmin: StoredUser = {
                 id: 'admin1-default', name: 'Admin Principal', username: 'admin1',
                 role: 'admin', passwordHash: simpleHash('admin1')
              };
             users.push(defaultAdmin);
              console.log("AuthContext: Ensuring default admin exists before saving.");
+        } else if (!adminExists && users.length === 0) {
+             // If saving an empty array, don't add admin1 yet, it will be added on next load
+             console.log("AuthContext: Saving empty user list.");
         }
         sessionStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
         console.log("AuthContext: Saved users to sessionStorage:", users.map(u => u.username));
@@ -144,6 +141,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userRole, setUserRole] = useState<UserRole>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true); // Start as loading
   const [storedUsers, setStoredUsers] = useState<StoredUser[]>([]); // State to hold all user data internally
+  const { toast } = useToast(); // Call useToast here
 
    // Load auth state and users from sessionStorage on mount
    useEffect(() => {
@@ -154,7 +152,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const loadedUsers = getUsersFromStorage();
         setStoredUsers(loadedUsers);
         // Ensure storage is consistent immediately after loading, especially if defaults were applied
-        saveUsersToStorage(loadedUsers);
+        // Only save if the loaded array is different from an empty initial state or if admin correction happened
+        if(loadedUsers.length > 0 || sessionStorage.getItem(USERS_STORAGE_KEY) === null) {
+             saveUsersToStorage(loadedUsers);
+        }
         console.log("AuthContext: Loaded and potentially corrected users from storage:", loadedUsers.map(u => u.username));
 
 
@@ -225,7 +226,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUserRole(null);
         sessionStorage.removeItem(AUTH_STATE_KEY);
         toast({ title: "Sesión Cerrada", description: "Ha cerrado sesión exitosamente.", variant: "default" });
-        // router.push('/users'); // Redirect handled by AuthGuard
+        // router.push('/login'); // Redirect handled by AuthGuard
    };
 
     const addUser = useCallback((newUser: Omit<StaffMember, 'id'> & { password?: string }) => {
@@ -342,7 +343,7 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
   const { isAuthenticated, userRole, isLoading } = useContext(AuthContext)!; // Assume context is available
   const router = useRouter();
   const pathname = usePathname();
-  const { toast } = useToast();
+  const { toast } = useToast(); // Use toast within AuthGuard as well
 
   useEffect(() => {
     // Don't redirect until loading is complete
@@ -350,13 +351,9 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
 
     console.log(`AuthGuard: Pathname: ${pathname}, IsAuthenticated: ${isAuthenticated}, UserRole: ${userRole}`);
 
-    const isUsersPage = pathname === '/users'; // Users management page
     const isLoginPage = pathname === '/login'; // The actual login page
 
     const adminOnlyPages = ['/inventory', '/expenses', '/products', '/users']; // Define admin-only areas
-    const workerAllowedPages = ['/tables', '/tables/delivery', '/tables/mesón']; // Core worker areas
-     // Check if the current path is a dynamic table route like /tables/[tableId]
-     const isTableDetailPage = /^\/tables\/\d+$/.test(pathname);
 
 
     if (!isAuthenticated && !isLoginPage) {
@@ -403,3 +400,5 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
   return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
 
 };
+
+    

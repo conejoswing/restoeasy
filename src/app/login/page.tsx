@@ -21,19 +21,19 @@ import { LogIn } from 'lucide-react';
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const { login, isLoading } = useAuth(); // Get login function and loading state
-  const [isLoggingIn, setIsLoggingIn] = useState(false); // Local state to disable button
+  const { login, isLoading } = useAuth(); // Get login function and loading state from AuthContext
+  const [isLoggingIn, setIsLoggingIn] = useState(false); // Local state to disable button during submission
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (isLoggingIn) return; // Prevent multiple submissions
+    if (isLoggingIn || isLoading) return; // Prevent multiple submissions if already logging in or context is loading
 
     setIsLoggingIn(true);
-    const success = await login(username, password); // login might be async now
+    const success = login(username, password); // Call login from context
     setIsLoggingIn(false);
 
-    // Redirection is now handled by AuthGuard based on isAuthenticated state change
+    // Redirection is handled by AuthGuard based on isAuthenticated state change
     // if (success) {
     //   router.push('/tables'); // No longer needed here
     // }
@@ -43,10 +43,9 @@ export default function LoginPage() {
    // if (isLoading) {
    //   return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
    // }
-   // if (!isLoading && isAuthenticated) {
-   //   // Already handled by AuthGuard, return null or let AuthGuard handle redirect
-   //   return null;
-   // }
+   // If AuthGuard didn't redirect, but the role is somehow not admin, show restricted message.
+   // This acts as a secondary safety check.
+
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background">
@@ -85,9 +84,9 @@ export default function LoginPage() {
               </div>
             </CardContent>
             <CardFooter>
-              {/* Disable button using local isLoggingIn state */}
+              {/* Disable button using local isLoggingIn state OR global isLoading state */}
               <Button type="submit" className="w-full" disabled={isLoggingIn || isLoading}>
-                <LogIn className="mr-2 h-4 w-4" /> {isLoggingIn ? 'Accediendo...' : 'Acceder'} {/* Access */}
+                <LogIn className="mr-2 h-4 w-4" /> {isLoggingIn || isLoading ? 'Accediendo...' : 'Acceder'} {/* Access */}
               </Button>
             </CardFooter>
         </form>
@@ -95,3 +94,5 @@ export default function LoginPage() {
     </div>
   );
 }
+
+    
