@@ -43,7 +43,9 @@ const verifyPassword = (pass: string, hash: string): boolean => hash === simpleH
 
 // --- User Management Functions ---
 const getUsersFromStorage = (): StoredUser[] => {
-    if (typeof window === 'undefined') return []; // Default during SSR
+    // Guard against SSR window access
+    if (typeof window === 'undefined') return [];
+
     const storedUsers = sessionStorage.getItem(USERS_STORAGE_KEY);
     let users: StoredUser[] = [];
 
@@ -62,40 +64,61 @@ const getUsersFromStorage = (): StoredUser[] => {
             if (Array.isArray(parsed)) {
                 // Basic validation
                 users = parsed.filter(u => u.id && u.name && u.username && u.role && u.passwordHash);
+            } else {
+                 console.warn("AuthContext: Invalid format for users in sessionStorage. Resetting.");
+                 users = []; // Reset if format is wrong
             }
         } catch (e) {
             console.error("AuthContext: Failed to parse users from sessionStorage:", e);
+             users = []; // Reset on error
         }
     }
 
-    // Ensure admin1 always exists and has the correct (hashed) password
+    // Ensure admin1 always exists and has the correct (hashed) password and role
     const adminIndex = users.findIndex(u => u.username.toLowerCase() === 'admin1');
     if (adminIndex === -1) {
         users.push(defaultAdmin);
         console.log("AuthContext: Added default admin user.");
     } else {
-        // Ensure the stored admin1 password hash is correct according to the current hash function
-        // This handles cases where the hashing might change or was initially wrong
+        let adminUpdated = false;
+        // Ensure the stored admin1 password hash is correct
         if (users[adminIndex].passwordHash !== defaultAdmin.passwordHash) {
             users[adminIndex].passwordHash = defaultAdmin.passwordHash;
+            adminUpdated = true;
             console.log("AuthContext: Corrected default admin user's password hash.");
         }
         // Ensure role is admin
         if (users[adminIndex].role !== 'admin') {
              users[adminIndex].role = 'admin';
+             adminUpdated = true;
              console.log("AuthContext: Corrected default admin user's role.");
         }
          // Ensure name is consistent
         if (users[adminIndex].name !== 'Admin Principal') {
              users[adminIndex].name = 'Admin Principal';
+              adminUpdated = true;
              console.log("AuthContext: Corrected default admin user's name.");
         }
+        // Ensure id is consistent (though less critical)
+         if (users[adminIndex].id !== defaultAdmin.id && !users[adminIndex].id.startsWith('admin1-')) {
+             // Only update ID if it's clearly not the default or a previously generated one
+             users[adminIndex].id = defaultAdmin.id;
+             adminUpdated = true;
+             console.log("AuthContext: Corrected default admin user's ID.");
+         }
     }
+
+    // If users array was reset or admin was added/updated, save back immediately
+    // This avoids issues where initial state might be empty before saveUsersToStorage is called later
+    // if (users.length === 0 || adminIndex === -1 || adminUpdated) {
+    //     saveUsersToStorage(users); // Save immediately if defaults were applied or corrections made
+    // }
 
     return users;
 };
 
 const saveUsersToStorage = (users: StoredUser[]) => {
+     // Guard against SSR window access
      if (typeof window === 'undefined') return;
      try {
         // Ensure admin1 is always present before saving
@@ -106,9 +129,10 @@ const saveUsersToStorage = (users: StoredUser[]) => {
                 role: 'admin', passwordHash: simpleHash('admin1')
              };
             users.push(defaultAdmin);
+             console.log("AuthContext: Ensuring default admin exists before saving.");
         }
         sessionStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(users));
-        console.log("AuthContext: Saved users to sessionStorage.");
+        console.log("AuthContext: Saved users to sessionStorage:", users.map(u => u.username));
      } catch (e) {
         console.error("AuthContext: Failed to save users to sessionStorage:", e);
      }
@@ -120,9 +144,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userRole, setUserRole] = useState<UserRole>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true); // Start as loading
   const [storedUsers, setStoredUsers] = useState<StoredUser[]>([]); // State to hold all user data internally
-  const router = useRouter(); // Needed for navigation
-  const pathname = usePathname();
-  const { toast } = useToast();
 
    // Load auth state and users from sessionStorage on mount
    useEffect(() => {
@@ -132,8 +153,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         // Load users first
         const loadedUsers = getUsersFromStorage();
         setStoredUsers(loadedUsers);
-        saveUsersToStorage(loadedUsers); // Ensure storage is consistent with defaults/corrections
-        console.log("AuthContext: Loaded users from storage:", loadedUsers.map(u => u.username));
+        // Ensure storage is consistent immediately after loading, especially if defaults were applied
+        saveUsersToStorage(loadedUsers);
+        console.log("AuthContext: Loaded and potentially corrected users from storage:", loadedUsers.map(u => u.username));
 
 
        // Load login state
@@ -141,13 +163,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
        if (storedAuth) {
            try {
                const { authenticated, username } = JSON.parse(storedAuth);
+               // Find user in the *just loaded* user list
                const loggedInUser = loadedUsers.find(u => u.username.toLowerCase() === username?.toLowerCase());
                if (authenticated && loggedInUser) {
                    setIsAuthenticated(true);
                    setUserRole(loggedInUser.role);
                    console.log(`AuthContext: Restored session - User: ${loggedInUser.username}, Role: ${loggedInUser.role}, Authenticated: true`);
                } else {
-                    console.log("AuthContext: Invalid or expired session data found.");
+                    console.log("AuthContext: Invalid or expired session data found. Clearing session.");
                     setIsAuthenticated(false);
                     setUserRole(null);
                     sessionStorage.removeItem(AUTH_STATE_KEY);
@@ -171,7 +194,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
    // --- Context Functions ---
 
    const login = (usernameInput: string, pass: string): boolean => {
-        console.log(`AuthContext: Attempting login for user: ${usernameInput}`);
+        // Prevent login attempts before initialization is complete
+       if (isLoading) {
+           console.warn("AuthContext: Login attempt while still loading. Aborting.");
+           toast({ title: "Cargando...", description: "Espere un momento y vuelva a intentarlo.", variant: "destructive" });
+           return false;
+       }
+       console.log(`AuthContext: Attempting login for user: ${usernameInput}`);
         const userToLogin = storedUsers.find(u => u.username.toLowerCase() === usernameInput.toLowerCase());
 
         if (userToLogin && verifyPassword(pass, userToLogin.passwordHash)) {
@@ -181,7 +210,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             sessionStorage.setItem(AUTH_STATE_KEY, JSON.stringify({ authenticated: true, username: userToLogin.username }));
             console.log(`AuthContext: Login successful for user: ${userToLogin.username}, Role: ${userToLogin.role}`);
             toast({ title: "Inicio de Sesión Exitoso", description: `Bienvenido, ${userToLogin.name}.`, variant: "default" });
-            router.push('/tables'); // Redirect after successful login
+            // router.push('/tables'); // Redirection handled by AuthGuard
             return true;
         } else {
             console.log(`AuthContext: Login failed for user: ${usernameInput}`);
@@ -196,7 +225,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUserRole(null);
         sessionStorage.removeItem(AUTH_STATE_KEY);
         toast({ title: "Sesión Cerrada", description: "Ha cerrado sesión exitosamente.", variant: "default" });
-        router.push('/users'); // Redirect to users (which should redirect to login if needed)
+        // router.push('/users'); // Redirect handled by AuthGuard
    };
 
     const addUser = useCallback((newUser: Omit<StaffMember, 'id'> & { password?: string }) => {
@@ -220,9 +249,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             passwordHash: simpleHash(newUser.password) // Hash the password
         };
 
-        const updatedUsers = [...storedUsers, userToAdd];
-        setStoredUsers(updatedUsers);
-        saveUsersToStorage(updatedUsers);
+        // Use functional update to avoid race conditions if multiple adds happen quickly
+        setStoredUsers(prevUsers => {
+             const updated = [...prevUsers, userToAdd];
+             saveUsersToStorage(updated); // Save updated list
+             return updated;
+        });
         console.log(`AuthContext: Added user ${userToAdd.username}`);
     }, [storedUsers]); // Depend on storedUsers
 
@@ -231,30 +263,36 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
          if (usernameLower === 'admin1') {
              throw new Error("No se puede eliminar al administrador principal.");
          }
-         const updatedUsers = storedUsers.filter(u => u.username.toLowerCase() !== usernameLower);
-         if (updatedUsers.length === storedUsers.length) {
-             throw new Error(`Usuario "${username}" no encontrado.`);
-         }
-         setStoredUsers(updatedUsers);
-         saveUsersToStorage(updatedUsers);
+
+         setStoredUsers(prevUsers => {
+             const updatedUsers = prevUsers.filter(u => u.username.toLowerCase() !== usernameLower);
+             if (updatedUsers.length === prevUsers.length) {
+                 // Throw error only if user wasn't found, prevents unnecessary saves
+                 throw new Error(`Usuario "${username}" no encontrado.`);
+             }
+             saveUsersToStorage(updatedUsers); // Save updated list
+             return updatedUsers;
+         });
          console.log(`AuthContext: Deleted user ${username}`);
     }, [storedUsers]);
 
    const updatePasswordForUser = useCallback((username: string, newPass: string) => {
        const usernameLower = username.toLowerCase();
-       const userIndex = storedUsers.findIndex(u => u.username.toLowerCase() === usernameLower);
-       if (userIndex === -1) {
-           throw new Error(`Usuario "${username}" no encontrado.`);
-       }
 
-       const updatedUsers = [...storedUsers];
-       updatedUsers[userIndex] = {
-           ...updatedUsers[userIndex],
-           passwordHash: simpleHash(newPass) // Update with new hash
-       };
+       setStoredUsers(prevUsers => {
+           const userIndex = prevUsers.findIndex(u => u.username.toLowerCase() === usernameLower);
+           if (userIndex === -1) {
+               throw new Error(`Usuario "${username}" no encontrado.`);
+           }
 
-       setStoredUsers(updatedUsers);
-       saveUsersToStorage(updatedUsers);
+           const updatedUsers = [...prevUsers];
+           updatedUsers[userIndex] = {
+               ...updatedUsers[userIndex],
+               passwordHash: simpleHash(newPass) // Update with new hash
+           };
+           saveUsersToStorage(updatedUsers); // Save updated list
+           return updatedUsers;
+       });
        console.log(`AuthContext: Updated password for user ${username}`);
    }, [storedUsers]);
 
@@ -312,50 +350,56 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
 
     console.log(`AuthGuard: Pathname: ${pathname}, IsAuthenticated: ${isAuthenticated}, UserRole: ${userRole}`);
 
-    const isUsersPage = pathname === '/users'; // Use '/users' as the new "login" page
-    const adminOnlyPages = ['/inventory', '/expenses', '/products', '/users']; // Users page is now admin only
-    const workerAllowedPages = ['/tables', '/tables/delivery', '/tables/mesón']; // Add specific allowed pages if needed
+    const isUsersPage = pathname === '/users'; // Users management page
+    const isLoginPage = pathname === '/login'; // The actual login page
+
+    const adminOnlyPages = ['/inventory', '/expenses', '/products', '/users']; // Define admin-only areas
+    const workerAllowedPages = ['/tables', '/tables/delivery', '/tables/mesón']; // Core worker areas
      // Check if the current path is a dynamic table route like /tables/[tableId]
      const isTableDetailPage = /^\/tables\/\d+$/.test(pathname);
 
 
-    if (!isAuthenticated && !isUsersPage) {
-      console.log("AuthGuard: User not authenticated, redirecting to /users (login)");
-      router.push('/users');
-    } else if (isAuthenticated && isUsersPage && userRole === 'worker') {
-       // If a worker is logged in and tries to access /users, redirect them away
-       console.log("AuthGuard: Worker authenticated but on users page, redirecting to /tables");
-       router.push('/tables');
+    if (!isAuthenticated && !isLoginPage) {
+        // If not authenticated AND not already on the login page, redirect to login
+        console.log("AuthGuard: User not authenticated, redirecting to /login");
+        router.push('/login');
+    } else if (isAuthenticated && isLoginPage) {
+        // If authenticated AND on the login page, redirect to the main tables view
+        console.log("AuthGuard: User already authenticated, redirecting from /login to /tables");
+        router.push('/tables');
     }
     else if (isAuthenticated && userRole === 'worker') {
-      // Redirect worker if they try to access admin-only pages
-      // Allow access only to /tables and specific dynamic table routes
-      const allowedPath = pathname === '/tables' || isTableDetailPage || pathname === '/tables/delivery' || pathname === '/tables/mesón';
-      if (!allowedPath) {
-        console.log(`AuthGuard: Worker trying to access restricted page ${pathname}, redirecting to /tables`);
+      // If worker, check if they are trying to access admin pages
+      const isTryingAdminPage = adminOnlyPages.some(adminPath => pathname.startsWith(adminPath));
+      if (isTryingAdminPage) {
+        console.log(`AuthGuard: Worker trying to access restricted admin page ${pathname}, redirecting to /tables`);
         toast({ title: "Acceso Denegado", description: "No tiene permisos para acceder a esta página.", variant: "destructive" });
         router.push('/tables');
       }
+      // No need for explicit allow list, just block admin pages
+    } else if (isAuthenticated && userRole === 'admin') {
+         // Admin can access everything, no redirection needed based on role.
+         // Redirection from /login if already authenticated is handled above.
     }
-    // Admin can access everything, no explicit redirect needed unless they land on '/users' while logged in (handled implicitly)
 
   }, [pathname, router, isLoading, isAuthenticated, userRole, toast]);
 
   // Render loading indicator while checking auth state
-  if (isLoading) {
-    return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
+  if (isLoading && !isAuthenticated && pathname !== '/login') {
+      // Show loading only if not authenticated and not on login page,
+      // otherwise, login page might flash loading unnecessarily.
+      return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
   }
 
-   // If authenticated and allowed, or on the users page (acting as login), render children
-   // Admins can always see the users page. Workers are redirected away by the useEffect.
-   // Unauthenticated users only see the users page.
-   const canRender = isAuthenticated || isUsersPage;
-
-  if (canRender) {
+  // If loading is finished OR we are on the login page, render children.
+  // AuthGuard's useEffect handles the redirection logic.
+  // This prevents rendering protected content before redirection happens.
+  if (!isLoading || pathname === '/login') {
      return <>{children}</>;
   }
 
+  // Default case: If still loading but conditions above aren't met, show loading
+  // This might happen briefly during initial load on a protected route.
+  return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
 
-  // Otherwise, render null (or a loading indicator) while redirecting
-  return null;
 };

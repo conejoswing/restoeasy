@@ -4,6 +4,7 @@
 
 import * as React from 'react';
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation'; // Import useRouter
 import {
   Table,
   TableBody,
@@ -58,8 +59,8 @@ export interface StaffMember {
   // Password is not stored directly in this state but managed by AuthContext
 }
 
-// Storage key for staff members
-const STAFF_STORAGE_KEY = 'staffMembers';
+// Storage key for staff members - No longer strictly needed here if AuthContext is source of truth
+// const STAFF_STORAGE_KEY = 'staffMembers';
 
 export default function UsersPage() {
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
@@ -73,42 +74,47 @@ export default function UsersPage() {
     password?: string; // Optional password field for adding/editing
   }>({ name: '', username: '', role: 'worker', password: '' });
   const { toast } = useToast();
-  const { users, updatePasswordForUser, deleteUser, addUser } = useAuth(); // Get functions from AuthContext
+  // Get user data and functions directly from AuthContext
+  const { users, updatePasswordForUser, deleteUser, addUser, isLoading, isAuthenticated, userRole } = useAuth();
+  const router = useRouter();
 
-  // Load staff from sessionStorage on mount
+  // Load staff from AuthContext on mount and when users array changes
   useEffect(() => {
-    if (isStaffInitialized) return;
+    // Use the users array from AuthContext directly
+    // Already includes admin1 by default and is managed by the context
+    const sortedUsers = [...users].sort((a, b) => a.name.localeCompare(b.name));
+    setStaffList(sortedUsers);
+    setIsStaffInitialized(true); // Mark as initialized once users are loaded from context
+    console.log("UsersPage: Staff list updated from AuthContext.", sortedUsers.map(u=>u.username));
 
-    console.log("Initializing staff list from storage and AuthContext...");
-    // Primarily use the users from AuthContext as the source of truth
-    const authUsers = users; // Already includes admin1 by default
-    console.log("Loaded staff from AuthContext:", authUsers);
+  }, [users]); // Depend only on the users array from context
 
-    // Sort staff list for display
-    authUsers.sort((a, b) => a.name.localeCompare(b.name));
-    setStaffList(authUsers);
-    setIsStaffInitialized(true);
-    console.log("Staff list initialization complete.");
-
-  }, [isStaffInitialized, users]); // Depend on users from context
-
-  // Save staff list to sessionStorage whenever it changes (Optional, AuthContext handles persistence now)
+  // AuthGuard now handles redirection based on authentication and role.
+  // No need for manual redirection logic here.
   // useEffect(() => {
-  //   if (!isStaffInitialized) return;
+  //    if (!isLoading && (!isAuthenticated || userRole !== 'admin')) {
+  //       toast({ title: "Acceso Denegado", description: "Debe ser administrador para acceder.", variant: "destructive"});
+  //       router.push('/login'); // Redirect to login if not an admin
+  //    }
+  // }, [isLoading, isAuthenticated, userRole, router, toast]);
 
-  //   console.log("Saving staff list to storage...");
-  //   try {
-  //     sessionStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(staffList)); // Save the full list including admin1 for display purposes
-  //     console.log("Staff list saved.");
-  //   } catch (error) {
-  //     console.error("Failed to save staff list to storage:", error);
-  //     toast({ title: "Error", description: "No se pudo guardar la lista de personal.", variant: "destructive" });
-  //   }
-  // }, [staffList, isStaffInitialized, toast]);
-
-  if (!isStaffInitialized) {
+  // Show loading state provided by AuthContext or if staff hasn't been initialized from context yet
+  if (isLoading || !isStaffInitialized) {
     return <div className="flex items-center justify-center min-h-screen">Cargando Usuarios...</div>;
   }
+
+  // If AuthGuard didn't redirect, but the role is somehow not admin, show restricted message.
+  // This acts as a secondary safety check.
+  if (userRole !== 'admin') {
+     return (
+         <div className="container mx-auto p-4 text-center">
+             <h1 className="text-2xl font-bold text-destructive">Acceso Denegado</h1>
+             <p className="text-muted-foreground">No tiene permisos para gestionar usuarios.</p>
+             <Button onClick={() => router.push('/tables')} className="mt-4">Volver a Mesas</Button>
+         </div>
+     );
+  }
+
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -194,7 +200,8 @@ export default function UsersPage() {
           return;
         }
         try {
-            updatePasswordForUser(editingStaffMember.username, password); // Use old username to find user
+            // Use username to identify user for password update
+            updatePasswordForUser(editingStaffMember.username, password);
              toast({ title: "Contraseña Actualizada", description: `Contraseña para ${editingStaffMember.username} actualizada.`, variant: "default" });
         } catch (error: any) {
              toast({ title: "Error Contraseña", description: error.message || "No se pudo actualizar la contraseña.", variant: "destructive" });
@@ -203,23 +210,16 @@ export default function UsersPage() {
       }
 
       // Update other user details (name, username if changed, role)
-      const updatedStaffData: StaffMember = {
-          ...editingStaffMember,
-          name,
-          username: username, // Update username potentially
-          role
-      };
-
-      // Update staff list state by modifying the existing user
+      // Need an updateUser function in AuthContext ideally
+      // For now, let's try updating password separately and assume other details might need manual sync or a dedicated function
+       console.warn("User detail update (name, username, role) might require an 'updateUser' function in AuthContext for full persistence.");
+      // Placeholder: Update local list for immediate UI feedback, but context is the source of truth
        setStaffList((prevList) =>
          prevList.map((staff) =>
-           staff.id === editingStaffMember.id ? updatedStaffData : staff
+           staff.id === editingStaffMember.id ? { ...staff, name, username, role } : staff
          ).sort((a, b) => a.name.localeCompare(b.name))
        );
 
-       // If username changed, we might need a specific context function to handle this
-       // For now, we assume the context update happens elsewhere or implicitly
-       // Ideally, AuthContext would have an `updateUser` function
 
       toast({ title: "Usuario Actualizado", description: `Datos de ${name} actualizados.` });
 
@@ -335,7 +335,7 @@ export default function UsersPage() {
                  <Input
                    id="staff-password"
                    type="password"
-                   value={newStaffData.password}
+                   value={newStaffData.password ?? ''} // Ensure value is not undefined
                    onChange={(e) => handleInputChange(e, 'password')}
                    className="col-span-3"
                    required={!editingStaffMember} // Required only when adding
@@ -364,8 +364,9 @@ export default function UsersPage() {
             </div>
             <DialogFooter>
                {/* Use DialogClose for the Cancel button */}
+               {/* Ensure DialogClose only wraps the Button */}
                <DialogClose asChild>
-                 <Button type="button" variant="secondary">Cancelar</Button>
+                 <Button type="button" variant="secondary" onClick={closeDialog}>Cancelar</Button>
                </DialogClose>
               <Button type="submit" onClick={handleAddOrEditStaff}>
                 {editingStaffMember ? 'Guardar Cambios' : 'Añadir Usuario'}

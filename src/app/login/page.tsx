@@ -21,12 +21,18 @@ import { LogIn } from 'lucide-react';
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const { login, isLoading, isAuthenticated } = useAuth(); // Get login function and state
+  const { login, isLoading } = useAuth(); // Get login function and loading state
+  const [isLoggingIn, setIsLoggingIn] = useState(false); // Local state to disable button
   const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    const success = login(username, password);
+    if (isLoggingIn) return; // Prevent multiple submissions
+
+    setIsLoggingIn(true);
+    const success = await login(username, password); // login might be async now
+    setIsLoggingIn(false);
+
     // Redirection is now handled by AuthGuard based on isAuthenticated state change
     // if (success) {
     //   router.push('/tables'); // No longer needed here
@@ -79,8 +85,9 @@ export default function LoginPage() {
               </div>
             </CardContent>
             <CardFooter>
-              <Button type="submit" className="w-full" disabled={isLoading}> {/* Disable button while logging in */}
-                <LogIn className="mr-2 h-4 w-4" /> {isLoading ? 'Accediendo...' : 'Acceder'} {/* Access */}
+              {/* Disable button using local isLoggingIn state */}
+              <Button type="submit" className="w-full" disabled={isLoggingIn || isLoading}>
+                <LogIn className="mr-2 h-4 w-4" /> {isLoggingIn ? 'Accediendo...' : 'Acceder'} {/* Access */}
               </Button>
             </CardFooter>
         </form>
