@@ -74,50 +74,53 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
 
   if (!item) return null;
 
-  // Filter out specific modifications based on category
-  const availableModifications = item.modifications?.filter(mod => {
-    const standardMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'];
-    const dinamicoMods = ['con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'];
-    const chacareroAsMods = ['con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verde', 'con aji jalapeño', 'sin aji jalapeño'];
+  // Filter out specific modifications based on category and item name
+    const availableModifications = item.modifications?.filter(mod => {
+        const standardMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'];
+        const dinamicoMods = ['con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'];
+        const chacareroAsMods = ['con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verde', 'con aji jalapeño', 'sin aji jalapeño'];
+        const napolitanoAsMods = ['con queso', 'sin queso', 'con tomate', 'sin tomate', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna']; // Added napolitano specific mods
 
-    // For 'Completos Vienesas' and specific item names 'Dinamico Normal' or 'Dinamico Grande'
-    if (item.category === 'Completos Vienesas' && (item.name === 'Dinamico Normal' || item.name === 'Dinamico Grande')) {
-        // Only keep the allowed modifications for these specific items
-        const allowedDinamicoVienesaMods = [...standardMods, ...dinamicoMods];
-        return allowedDinamicoVienesaMods.includes(mod);
-    }
-    // For 'Completos As' and specific item names 'Dinamico Normal' or 'Dinamico Grande'
-    else if (item.category === 'Completos As' && (item.name === 'Dinamico Normal' || item.name === 'Dinamico Grande')) {
-        // Keep standard mods + specific dinamico mods for these items
-        const allowedDinamicoAsMods = [...standardMods, ...dinamicoMods];
-        return allowedDinamicoAsMods.includes(mod);
-    }
-    // For 'Completos As' and specific item names 'Chacarero Normal' or 'Chacarero Grande'
-    else if (item.category === 'Completos As' && (item.name === 'Chacarero Normal' || item.name === 'Chacarero Grande')) {
-        // Keep standard mods + specific chacarero mods for these items
-        const allowedChacareroAsMods = [...standardMods, ...chacareroAsMods];
-        return allowedChacareroAsMods.includes(mod);
-    }
-    // Standard filter for other Completos Vienesas (excluding dynamic ones)
-    else if (item.category === 'Completos Vienesas') {
-       return standardMods.includes(mod);
-    }
-    // Standard mods for most other categories that allow them
-    else if (['Completos As', 'Fajitas', 'Hamburguesas', 'Churrascos', 'Promo Churrasco', 'Promo Mechada', 'Promociones'].includes(item.category)) {
-        // Allow 'Queso Fundido', 'Orégano', 'Champiñones Salteados' only for specific 'Completos As' items
-        if (item.category === 'Completos As') {
-             if (item.name.includes('Napolitano') && ['Queso Fundido', 'Orégano'].includes(mod)) return true;
-             if (item.name.includes('Queso Champiñon') && ['Queso Fundido', 'Champiñones Salteados'].includes(mod)) return true;
+        // For 'Completos Vienesas' and specific item names 'Dinamico Normal' or 'Dinamico Grande'
+        if (item.category === 'Completos Vienesas' && (item.name === 'Dinamico Normal' || item.name === 'Dinamico Grande')) {
+            const allowedDinamicoVienesaMods = [...standardMods, ...dinamicoMods];
+            return allowedDinamicoVienesaMods.includes(mod);
         }
-        return standardMods.includes(mod);
-    }
+        // For 'Completos As' and specific item names 'Dinamico Normal' or 'Dinamico Grande'
+        else if (item.category === 'Completos As' && (item.name === 'Dinamico Normal' || item.name === 'Dinamico Grande')) {
+            const allowedDinamicoAsMods = [...standardMods, ...dinamicoMods];
+            return allowedDinamicoAsMods.includes(mod);
+        }
+        // For 'Completos As' and specific item names 'Chacarero Normal' or 'Chacarero Grande'
+        else if (item.category === 'Completos As' && (item.name === 'Chacarero Normal' || item.name === 'Chacarero Grande')) {
+            const allowedChacareroAsMods = [...standardMods, ...chacareroAsMods];
+            return allowedChacareroAsMods.includes(mod);
+        }
+         // For 'Completos As' and specific item names 'Napolitano Normal' or 'Napolitano Grande'
+        else if (item.category === 'Completos As' && (item.name === 'Napolitano Normal' || item.name === 'Napolitano Grande')) {
+            const allowedNapolitanoAsMods = [...standardMods, ...napolitanoAsMods];
+            return allowedNapolitanoAsMods.includes(mod);
+        }
+        // Standard filter for other Completos Vienesas (excluding dynamic ones)
+        else if (item.category === 'Completos Vienesas') {
+           return standardMods.includes(mod);
+        }
+        // Standard mods for most other categories that allow them
+        else if (['Completos As', 'Fajitas', 'Hamburguesas', 'Churrascos', 'Promo Churrasco', 'Promo Mechada', 'Promociones'].includes(item.category)) {
+            // Allow 'Queso Fundido', 'Champiñones Salteados' only for specific 'Completos As' items (Queso Champiñon)
+            if (item.category === 'Completos As') {
+                 if (item.name.includes('Queso Champiñon') && ['Queso Fundido', 'Champiñones Salteados'].includes(mod)) return true;
+            }
+            // Standard mods apply to the rest within these categories
+            return standardMods.includes(mod);
+        }
 
-    // Categories without modifications
-    if (['Papas Fritas', 'Bebidas', 'Colaciones'].includes(item.category)) {
-        return false;
-    }
+        // Categories without modifications
+        if (['Papas Fritas', 'Bebidas', 'Colaciones'].includes(item.category)) {
+            return false;
+        }
 
-    return true; // Include by default if not explicitly excluded
+        return true; // Include by default if not explicitly excluded
   }) ?? [];
 
 
@@ -180,3 +183,4 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
 };
 
 export default ModificationDialog;
+
