@@ -8,7 +8,7 @@ import { SidebarProvider, Sidebar, SidebarInset } from '@/components/ui/sidebar'
 import AppSidebar from '@/components/app/app-sidebar';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/context/AuthContext'; // Import AuthProvider
-import { AuthGuard } from '@/context/AuthGuard'; // Import AuthGuard
+// import { AuthGuard } from '@/context/AuthGuard'; // No longer needed here
 import { Geist, Geist_Mono } from 'next/font/google';
 import * as React from 'react';
 
@@ -27,10 +27,10 @@ function AppContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   // Determine if the sidebar should be shown
-  // Show sidebar everywhere except table detail pages
+  // Show sidebar everywhere except table detail pages and the users page
   const isTableDetailPage = pathname.startsWith('/tables/') && pathname !== '/tables';
-  // No need to check for login page anymore as it's removed
-  const displaySidebar = !isTableDetailPage;
+  const isUsersPage = pathname === '/users'; // Check for users page
+  const displaySidebar = !isTableDetailPage && !isUsersPage; // Hide on users page too
 
   // Default to collapsed state (icons only) when displayed
   const defaultSidebarOpen = false; // Set default state to collapsed
@@ -65,11 +65,9 @@ export default function RootLayout({
           'antialiased'
         )}
       >
-         {/* Wrap AuthGuard and AppContent with AuthProvider */}
+         {/* Wrap AppContent with AuthProvider. AuthGuard is inside AuthProvider now. */}
          <AuthProvider>
-            <AuthGuard>
-              <AppContent>{children}</AppContent>
-            </AuthGuard>
+            <AppContent>{children}</AppContent>
          </AuthProvider>
       </body>
     </html>

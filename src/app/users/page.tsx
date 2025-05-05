@@ -72,67 +72,38 @@ export default function UsersPage() {
     password?: string; // Optional password field for adding/editing
   }>({ name: '', username: '', role: 'worker', password: '' });
   const { toast } = useToast();
-  const { updatePasswordForUser, getAllUsers, deleteUser } = useAuth(); // Get functions from AuthContext
+  const { users, updatePasswordForUser, deleteUser, addUser } = useAuth(); // Get functions from AuthContext
 
   // Load staff from sessionStorage on mount
   useEffect(() => {
     if (isStaffInitialized) return;
 
-    console.log("Initializing staff list from storage...");
-    const storedStaff = sessionStorage.getItem(STAFF_STORAGE_KEY);
-    let loadedStaff: StaffMember[] = [];
+    console.log("Initializing staff list from storage and AuthContext...");
+    // Primarily use the users from AuthContext as the source of truth
+    const authUsers = users; // Already includes admin1 by default
+    console.log("Loaded staff from AuthContext:", authUsers);
 
-    if (storedStaff) {
-      try {
-        const parsed = JSON.parse(storedStaff);
-        if (Array.isArray(parsed)) {
-          // Basic validation: check if items have required fields
-          loadedStaff = parsed.filter(item => item.id && item.name && item.username && (item.role === 'admin' || item.role === 'worker'));
-          console.log("Loaded staff:", loadedStaff);
-        } else {
-          console.warn("Invalid staff data found in storage, starting fresh.");
-        }
-      } catch (error) {
-        console.error("Failed to parse stored staff:", error);
-      }
-    } else {
-      console.log("No staff data found in storage.");
-       // Ensure admin1 user exists if storage is empty or invalid
-       const adminUser: StaffMember = { id: 'admin1-default', name: 'Admin Principal', username: 'admin1', role: 'admin' };
-       loadedStaff = [adminUser];
-       // Optionally update AuthContext password store if needed, though AuthContext handles its own default
-    }
-
-    // Ensure the default admin 'admin1' is always present and cannot be deleted (implicitly via filtering logic later)
-    const adminExists = loadedStaff.some(s => s.username.toLowerCase() === 'admin1');
-    if (!adminExists) {
-        loadedStaff.push({ id: 'admin1-default', name: 'Admin Principal', username: 'admin1', role: 'admin' });
-        console.log("Ensured default admin 'admin1' exists.");
-    }
-
-
-    loadedStaff.sort((a, b) => a.name.localeCompare(b.name));
-    setStaffList(loadedStaff);
+    // Sort staff list for display
+    authUsers.sort((a, b) => a.name.localeCompare(b.name));
+    setStaffList(authUsers);
     setIsStaffInitialized(true);
     console.log("Staff list initialization complete.");
 
-  }, [isStaffInitialized]);
+  }, [isStaffInitialized, users]); // Depend on users from context
 
-  // Save staff list to sessionStorage whenever it changes
-  useEffect(() => {
-    if (!isStaffInitialized) return;
+  // Save staff list to sessionStorage whenever it changes (Optional, AuthContext handles persistence now)
+  // useEffect(() => {
+  //   if (!isStaffInitialized) return;
 
-    console.log("Saving staff list to storage...");
-    try {
-      // Filter out the default admin before saving, it's managed internally by AuthContext primarily
-      // const staffToSave = staffList.filter(s => s.username.toLowerCase() !== 'admin1');
-      sessionStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(staffList)); // Save the full list including admin1 for display purposes
-      console.log("Staff list saved.");
-    } catch (error) {
-      console.error("Failed to save staff list to storage:", error);
-      toast({ title: "Error", description: "No se pudo guardar la lista de personal.", variant: "destructive" });
-    }
-  }, [staffList, isStaffInitialized, toast]);
+  //   console.log("Saving staff list to storage...");
+  //   try {
+  //     sessionStorage.setItem(STAFF_STORAGE_KEY, JSON.stringify(staffList)); // Save the full list including admin1 for display purposes
+  //     console.log("Staff list saved.");
+  //   } catch (error) {
+  //     console.error("Failed to save staff list to storage:", error);
+  //     toast({ title: "Error", description: "No se pudo guardar la lista de personal.", variant: "destructive" });
+  //   }
+  // }, [staffList, isStaffInitialized, toast]);
 
   if (!isStaffInitialized) {
     return <div className="flex items-center justify-center min-h-screen">Cargando Usuarios...</div>;
@@ -193,7 +164,7 @@ export default function UsersPage() {
       // --- Editing existing staff member ---
       if (usernameLower !== editingStaffMember.username.toLowerCase()) {
          // Check if the new username already exists (excluding the current user being edited)
-         const usernameExists = staffList.some(
+         const usernameExists = users.some(
            staff => staff.id !== editingStaffMember.id && staff.username.toLowerCase() === usernameLower
          );
          if (usernameExists) {
@@ -202,10 +173,16 @@ export default function UsersPage() {
          }
       }
 
-       // Prevent changing the role of the default admin 'admin1'
-       if (editingStaffMember.username.toLowerCase() === 'admin1' && role !== 'admin') {
-            toast({ title: "Error", description: "No se puede cambiar el rol del administrador principal.", variant: "destructive" });
-            return;
+       // Prevent changing the role or username of the default admin 'admin1'
+       if (editingStaffMember.username.toLowerCase() === 'admin1') {
+           if(role !== 'admin'){
+               toast({ title: "Error", description: "No se puede cambiar el rol del administrador principal.", variant: "destructive" });
+               return;
+           }
+           if(usernameLower !== 'admin1'){
+                toast({ title: "Error", description: "No se puede cambiar el nombre de usuario del administrador principal.", variant: "destructive" });
+                return;
+           }
        }
 
 
@@ -216,24 +193,34 @@ export default function UsersPage() {
           return;
         }
         try {
-            updatePasswordForUser(usernameLower, password); // Use AuthContext function
-             toast({ title: "Contraseña Actualizada", description: `Contraseña para ${username} actualizada.`, variant: "default" });
+            updatePasswordForUser(editingStaffMember.username, password); // Use old username to find user
+             toast({ title: "Contraseña Actualizada", description: `Contraseña para ${editingStaffMember.username} actualizada.`, variant: "default" });
         } catch (error: any) {
              toast({ title: "Error Contraseña", description: error.message || "No se pudo actualizar la contraseña.", variant: "destructive" });
              return; // Stop if password update fails
         }
       }
 
-      // Update staff list state
-      setStaffList((prevList) =>
-        prevList.map((staff) =>
-          staff.id === editingStaffMember.id
-            ? { ...staff, name, username: username, role } // Update username case if needed
-            : staff
-        ).sort((a, b) => a.name.localeCompare(b.name))
-      );
+      // Update other user details (name, username if changed, role)
+      const updatedStaffData: StaffMember = {
+          ...editingStaffMember,
+          name,
+          username: username, // Update username potentially
+          role
+      };
 
-      toast({ title: "Personal Actualizado", description: `Datos de ${name} actualizados.` });
+      // Update staff list state by modifying the existing user
+       setStaffList((prevList) =>
+         prevList.map((staff) =>
+           staff.id === editingStaffMember.id ? updatedStaffData : staff
+         ).sort((a, b) => a.name.localeCompare(b.name))
+       );
+
+       // If username changed, we might need a specific context function to handle this
+       // For now, we assume the context update happens elsewhere or implicitly
+       // Ideally, AuthContext would have an `updateUser` function
+
+      toast({ title: "Usuario Actualizado", description: `Datos de ${name} actualizados.` });
 
     } else {
       // --- Adding new staff member ---
@@ -242,8 +229,8 @@ export default function UsersPage() {
         return;
       }
 
-      // Check if username already exists
-       const usernameExists = staffList.some(staff => staff.username.toLowerCase() === usernameLower);
+      // Check if username already exists using AuthContext's users
+       const usernameExists = users.some(staff => staff.username.toLowerCase() === usernameLower);
       if (usernameExists) {
         toast({ title: "Error", description: `El nombre de usuario "${username}" ya está en uso.`, variant: "destructive" });
         return;
@@ -255,19 +242,17 @@ export default function UsersPage() {
           return;
        }
 
-       // Add user and password using AuthContext function
+       // Add user using AuthContext function
       try {
-           updatePasswordForUser(usernameLower, password); // This implicitly adds the user if they don't exist in AuthContext's store
-
-          const newStaffMember: StaffMember = {
-            id: `${usernameLower}-${Date.now()}`, // Simple unique ID
+          const newStaffMember: Omit<StaffMember, 'id'> & {password: string} = {
             name,
             username: username, // Keep original case for display
             role,
+            password
           };
-
-          setStaffList((prevList) => [...prevList, newStaffMember].sort((a, b) => a.name.localeCompare(b.name)));
-          toast({ title: "Personal Añadido", description: `${name} ha sido añadido como ${role}.` });
+           addUser(newStaffMember); // Use the addUser function from context
+          // No need to update staffList state directly, it will update via useEffect dependency on `users`
+          toast({ title: "Usuario Añadido", description: `${name} ha sido añadido como ${role}.` });
 
       } catch (error: any) {
          toast({ title: "Error Añadiendo", description: error.message || "No se pudo añadir el usuario.", variant: "destructive" });
@@ -287,9 +272,9 @@ export default function UsersPage() {
        }
 
        try {
-           deleteUser(staffMemberToDelete.username.toLowerCase()); // Delete from AuthContext store
-           setStaffList(prevList => prevList.filter(staff => staff.id !== staffMemberToDelete.id));
-           toast({ title: "Personal Eliminado", description: `${staffMemberToDelete.name} ha sido eliminado.`, variant: "destructive" });
+           deleteUser(staffMemberToDelete.username); // Delete from AuthContext store
+            // No need to update staffList state directly, it will update via useEffect dependency on `users`
+           toast({ title: "Usuario Eliminado", description: `${staffMemberToDelete.name} ha sido eliminado.`, variant: "destructive" });
        } catch (error: any) {
            toast({ title: "Error Eliminando", description: error.message || "No se pudo eliminar el usuario.", variant: "destructive" });
        }
@@ -378,8 +363,9 @@ export default function UsersPage() {
             </div>
             <DialogFooter>
                {/* Use DialogClose for the Cancel button */}
+               {/* Removed asChild to fix hydration error */}
                <DialogClose>
-                 <Button type="button" variant="secondary" onClick={closeDialog}>Cancelar</Button> {/* Added onClick to ensure state reset */}
+                 <Button type="button" variant="secondary" onClick={closeDialog}>Cancelar</Button>
                </DialogClose>
               <Button type="submit" onClick={handleAddOrEditStaff}>
                 {editingStaffMember ? 'Guardar Cambios' : 'Añadir Usuario'}
@@ -448,7 +434,7 @@ export default function UsersPage() {
             {staffList.length === 0 && (
               <TableRow>
                 <TableCell colSpan={4} className="h-24 text-center text-muted-foreground">
-                  No hay personal registrado.
+                  No hay usuarios registrados además del administrador principal.
                 </TableCell>
               </TableRow>
             )}
@@ -458,3 +444,4 @@ export default function UsersPage() {
     </div>
   );
 }
+
