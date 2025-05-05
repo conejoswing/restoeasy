@@ -32,6 +32,9 @@ interface DeliveryDialogProps {
   onCancel: () => void; // Callback for cancellation
 }
 
+// Storage key for the last used delivery info
+const DELIVERY_INFO_STORAGE_KEY = 'lastDeliveryInfo'; // Use localStorage
+
 /**
  * DeliveryDialog: A modal dialog component for collecting delivery information.
  * It allows users to input their name, address, phone number, and delivery fee.
@@ -50,31 +53,49 @@ const DeliveryDialog: React.FC<DeliveryDialogProps> = ({
   const [deliveryFee, setDeliveryFee] = React.useState('');
   const { toast } = useToast();
 
-  // Load delivery info from local storage
-  React.useEffect(() => {
-    if(isOpen){
-        const storedDeliveryInfo = localStorage.getItem("deliveryInfo");
-        if (storedDeliveryInfo) {
-            const parsedDeliveryInfo = JSON.parse(storedDeliveryInfo) as DeliveryInfo;
-            setName(parsedDeliveryInfo.name);
-            setAddress(parsedDeliveryInfo.address);
-            setPhone(parsedDeliveryInfo.phone);
-            setDeliveryFee(parsedDeliveryInfo.deliveryFee.toString());
+   // Load initial data or last used data when dialog opens
+   React.useEffect(() => {
+     if (isOpen) {
+        // Prioritize initialData if provided (for editing existing order)
+        if (initialData) {
+             setName(initialData.name);
+             setAddress(initialData.address);
+             setPhone(initialData.phone);
+             setDeliveryFee(initialData.deliveryFee.toString());
+              console.log("DeliveryDialog: Loaded initialData for editing.");
+        } else {
+            // Otherwise, load last used info from localStorage
+            const storedDeliveryInfo = localStorage.getItem(DELIVERY_INFO_STORAGE_KEY);
+            if (storedDeliveryInfo) {
+                try {
+                    const parsedDeliveryInfo = JSON.parse(storedDeliveryInfo) as DeliveryInfo;
+                    setName(parsedDeliveryInfo.name);
+                    setAddress(parsedDeliveryInfo.address);
+                    setPhone(parsedDeliveryInfo.phone);
+                    setDeliveryFee(parsedDeliveryInfo.deliveryFee.toString());
+                     console.log("DeliveryDialog: Loaded last used data from localStorage.");
+                } catch (e) {
+                     console.error("DeliveryDialog: Failed to parse last delivery info from localStorage:", e);
+                      // Clear form if parsing fails
+                      setName('');
+                      setAddress('');
+                      setPhone('');
+                      setDeliveryFee('');
+                }
+            } else {
+                 // If no initial data and nothing in storage, clear form
+                 setName('');
+                 setAddress('');
+                 setPhone('');
+                 setDeliveryFee('');
+                 console.log("DeliveryDialog: No initial or stored data found. Form cleared.");
+            }
         }
-    } else {
-        localStorage.removeItem("deliveryInfo");
-      setName('');
-      setAddress('');
-      setPhone('');
-      setDeliveryFee('')
-    }
-  }, [isOpen, initialData]);
+     }
+   }, [isOpen, initialData]);
 
-  const handleConfirmClick = () => {
-    if (!name || !address || !phone || !deliveryFee) {
-      toast({ title: "Error", description: "Por favor, rellene todos los campos de envío.", variant: "destructive" });
-      return;
-    }    /**
+
+  /**
    * handleConfirmClick: Handles the confirm button click event.
    * It validates the form data and triggers the onConfirm callback if data is valid.
    */
@@ -97,8 +118,28 @@ const DeliveryDialog: React.FC<DeliveryDialogProps> = ({
       });
       return;
     }
-    // Save delivery info to local storage
-    localStorage.setItem(
+
+    const collectedInfo: DeliveryInfo = {
+        name: name.trim(),
+        address: address.trim(),
+        phone: phone.trim(),
+        deliveryFee: fee,
+    };
+
+     // Save the confirmed delivery info to localStorage as the "last used"
+     try {
+        localStorage.setItem(DELIVERY_INFO_STORAGE_KEY, JSON.stringify(collectedInfo));
+        console.log("DeliveryDialog: Saved current info to localStorage as last used.");
+     } catch (e) {
+        console.error("DeliveryDialog: Failed to save last delivery info to localStorage:", e);
+        // Optionally notify the user, but proceed with onConfirm
+     }
+
+
+    // Pass collected info back to the parent component
+    onConfirm(collectedInfo);
+  };
+
 
   const handleCancelClick = () => {
     onCancel(); // Call parent cancel logic
