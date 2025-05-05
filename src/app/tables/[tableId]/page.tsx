@@ -1252,16 +1252,20 @@ export default function TableDetailPage() {
   const currentOrderTotal = calculateTotal(order); // Calculate current order total (though not displayed directly)
   const pendingOrderTotal = calculateTotal(pendingPaymentOrder, true); // Calculate pending total *including delivery fee*
 
-  const getPageTitle = () => {
-      if (!tableIdParam) return 'Cargando...'; // Handle case where param might be missing initially
-      if (tableIdParam === 'mesón') { // Use correct spelling
-          return 'Mesón';
-      } else if (tableIdParam === 'delivery') {
-          return 'Delivery';
-      } else {
-          return `Mesa ${tableIdParam}`;
-      }
-  }
+   const getPageTitle = () => {
+     if (!tableIdParam) return 'Cargando...'; // Handle case where param might be missing initially
+
+     // Decode the tableIdParam before using it
+     const decodedTableId = decodeURIComponent(tableIdParam);
+
+     if (decodedTableId === 'mesón') {
+       return 'Mesón';
+     } else if (decodedTableId === 'delivery') {
+       return 'Delivery';
+     } else {
+       return `Mesa ${decodedTableId}`; // Use decoded ID for regular tables
+     }
+   }
 
   // Render Menu Categories or Items inside the Sheet based on view state
   const renderMenuSheetContent = () => {
@@ -1515,9 +1519,7 @@ export default function TableDetailPage() {
                  <div className="flex-grow overflow-hidden">
                     {renderMenuSheetContent()} {/* Render categories or items */}
                  </div>
-                 <SheetFooter className="p-4 border-t">
-                    <Button onClick={closeMenuSheet}>Confirmar</Button>
-                  </SheetFooter>
+                 {/* Removed SheetFooter with Confirm button */}
             </SheetContent>
         </Sheet>
 
@@ -1560,3 +1562,5 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
+
