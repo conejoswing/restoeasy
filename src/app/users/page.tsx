@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -363,9 +364,8 @@ export default function UsersPage() {
             </div>
             <DialogFooter>
                {/* Use DialogClose for the Cancel button */}
-               {/* Removed asChild to fix hydration error */}
-               <DialogClose>
-                 <Button type="button" variant="secondary" onClick={closeDialog}>Cancelar</Button>
+               <DialogClose asChild>
+                 <Button type="button" variant="secondary">Cancelar</Button>
                </DialogClose>
               <Button type="submit" onClick={handleAddOrEditStaff}>
                 {editingStaffMember ? 'Guardar Cambios' : 'Añadir Usuario'}
@@ -444,4 +444,3 @@ export default function UsersPage() {
     </div>
   );
 }
-

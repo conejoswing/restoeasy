@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
 import { Home, Phone, User, DollarSign } from 'lucide-react'; // Import icons
 
+// Define the structure for delivery information
 export interface DeliveryInfo {
   name: string;
   address: string;
@@ -22,6 +23,7 @@ export interface DeliveryInfo {
   deliveryFee: number;
 }
 
+// Define the props for the DeliveryDialog component
 interface DeliveryDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
@@ -30,6 +32,10 @@ interface DeliveryDialogProps {
   onCancel: () => void; // Callback for cancellation
 }
 
+/**
+ * DeliveryDialog: A modal dialog component for collecting delivery information.
+ * It allows users to input their name, address, phone number, and delivery fee.
+ */
 const DeliveryDialog: React.FC<DeliveryDialogProps> = ({
   isOpen,
   onOpenChange,
@@ -37,25 +43,30 @@ const DeliveryDialog: React.FC<DeliveryDialogProps> = ({
   onConfirm,
   onCancel,
 }) => {
+  // State variables for form inputs
   const [name, setName] = React.useState('');
   const [address, setAddress] = React.useState('');
   const [phone, setPhone] = React.useState('');
   const [deliveryFee, setDeliveryFee] = React.useState('');
   const { toast } = useToast();
 
-  // Pre-fill form if initialData is provided
+  // Load delivery info from local storage
   React.useEffect(() => {
-    if (isOpen && initialData) {
-      setName(initialData.name);
-      setAddress(initialData.address);
-      setPhone(initialData.phone);
-      setDeliveryFee(initialData.deliveryFee.toString());
-    } else if (isOpen) {
-      // Reset form if opening without initial data
+    if(isOpen){
+        const storedDeliveryInfo = localStorage.getItem("deliveryInfo");
+        if (storedDeliveryInfo) {
+            const parsedDeliveryInfo = JSON.parse(storedDeliveryInfo) as DeliveryInfo;
+            setName(parsedDeliveryInfo.name);
+            setAddress(parsedDeliveryInfo.address);
+            setPhone(parsedDeliveryInfo.phone);
+            setDeliveryFee(parsedDeliveryInfo.deliveryFee.toString());
+        }
+    } else {
+        localStorage.removeItem("deliveryInfo");
       setName('');
       setAddress('');
       setPhone('');
-      setDeliveryFee('');
+      setDeliveryFee('')
     }
   }, [isOpen, initialData]);
 
@@ -63,20 +74,31 @@ const DeliveryDialog: React.FC<DeliveryDialogProps> = ({
     if (!name || !address || !phone || !deliveryFee) {
       toast({ title: "Error", description: "Por favor, rellene todos los campos de envío.", variant: "destructive" });
       return;
+    }    /**
+   * handleConfirmClick: Handles the confirm button click event.
+   * It validates the form data and triggers the onConfirm callback if data is valid.
+   */
+  const handleConfirmClick = () => {
+    // Validate form fields
+    if (!name || !address || !phone || !deliveryFee) {
+      toast({
+        title: 'Error',
+        description: 'Por favor, rellene todos los campos de envío.',
+        variant: 'destructive',
+      });
+      return;
     }
     const fee = parseFloat(deliveryFee);
     if (isNaN(fee) || fee < 0) {
-      toast({ title: "Error", description: "El costo de envío debe ser un número válido y no negativo.", variant: "destructive" });
+      toast({
+        title: 'Error',
+        description: 'El costo de envío debe ser un número válido y no negativo.',
+        variant: 'destructive',
+      });
       return;
     }
-
-    onConfirm({
-      name,
-      address,
-      phone,
-      deliveryFee: fee,
-    });
-  };
+    // Save delivery info to local storage
+    localStorage.setItem(
 
   const handleCancelClick = () => {
     onCancel(); // Call parent cancel logic

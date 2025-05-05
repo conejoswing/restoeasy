@@ -561,8 +561,8 @@ export default function TableDetailPage() {
   const { toast } = useToast();
   const tableIdParam = params.tableId as string;
   const isDelivery = tableIdParam === 'delivery'; // Check if it's the delivery "table"
-  const [order, setOrder] = useState<OrderItem[]>([]); // Current items being added
-  const [pendingPaymentOrder, setPendingPaymentOrder] = useState<OrderItem[]>([]); // Items sent to print
+  const [order, setOrder] = useState<OrderItem[]>([]); // Items currently being added to the order
+  const [pendingPaymentOrder, setPendingPaymentOrder] = useState<OrderItem[]>([]); // Items that have been printed but not yet paid
   const [isModificationDialogOpen, setIsModificationDialogOpen] = useState(false);
   const [currentItemForModification, setCurrentItemForModification] = useState<MenuItem | null>(null);
   const [isMenuSheetOpen, setIsMenuSheetOpen] = useState(false); // State for Menu Sheet
@@ -576,11 +576,11 @@ export default function TableDetailPage() {
   const [deliveryInfo, setDeliveryInfo] = useState<DeliveryInfo | null>(null); // State for delivery info
 
 
-  // --- Load orders, status, menu, and delivery info from sessionStorage/mock on mount ---
+  // --- Effect to load initial state from sessionStorage on mount ---
   useEffect(() => {
-    if (!tableIdParam || isInitialized) return; // Avoid running multiple times or without ID
+    if (!tableIdParam || hasBeenInitialized) return; // Avoid running multiple times or without ID
 
-    console.log(`Initializing state for table/delivery ${tableIdParam}...`);
+    console.log(`Initializing state for table/delivery ${tableIdParam} from session storage...`);
 
     // --- Load Orders ---
     const storedCurrentOrder = sessionStorage.getItem(`table-${tableIdParam}-order`);
@@ -605,8 +605,9 @@ export default function TableDetailPage() {
        } catch (error) {
          console.error(`Failed to parse stored pending order for ${tableIdParam}:`, error);
        }
-     }
-     setOrder(parsedCurrentOrder);
+    }
+    // Set initial order states
+    setOrder(parsedCurrentOrder);
      setPendingPaymentOrder(parsedPendingOrder);
 
      // --- Load Delivery Info (only for delivery) ---
@@ -615,8 +616,8 @@ export default function TableDetailPage() {
         const storedDeliveryInfo = sessionStorage.getItem(`${DELIVERY_INFO_STORAGE_KEY}-${tableIdParam}`);
         if (storedDeliveryInfo) {
             try {
-                const parsed = JSON.parse(storedDeliveryInfo);
-                // Basic validation to ensure it has required fields
+                const parsed: DeliveryInfo = JSON.parse(storedDeliveryInfo);
+                // Basic validation to ensure parsed object has expected properties
                 if (parsed && parsed.address && parsed.phone && parsed.name && typeof parsed.deliveryFee === 'number') {
                     loadedDeliveryInfo = parsed;
                     setDeliveryInfo(loadedDeliveryInfo);
@@ -629,8 +630,8 @@ export default function TableDetailPage() {
                 console.error(`Failed to parse stored delivery info for ${tableIdParam}:`, error);
                 setIsDeliveryDialogOpen(true); // Re-open dialog on parse error
             }
-        } else {
-             console.log(`No stored delivery info found for ${tableIdParam}, opening dialog.`);
+        } else if (isDelivery) {
+             console.log(`No stored delivery info found for delivery table ${tableIdParam}, opening dialog.`);
              setIsDeliveryDialogOpen(true); // Open dialog if no info exists
         }
      }
@@ -641,14 +642,11 @@ export default function TableDetailPage() {
      const sortedInitialMenu = sortMenu(mockMenu);
      setMenuData(sortedInitialMenu);
      console.log("Loaded menu data.");
+    console.log(`Current order items: ${parsedCurrentOrder.length}, Pending payment items: ${parsedPendingOrder.length}, Delivery info loaded: ${!!loadedDeliveryInfo}`);
 
 
-    // --- Determine and Update Table Status ---
-    const hasCurrentItems = parsedCurrentOrder.length > 0;
-    const hasPendingItems = parsedPendingOrder.length > 0;
-    // For delivery, status depends on having delivery info *and* items
-    const isOccupied = (isDelivery && loadedDeliveryInfo) || hasCurrentItems || hasPendingItems;
-    let newStatus: 'available' | 'occupied' = isOccupied ? 'occupied' : 'available';
+    // --- Determine and Set Initial Table Status in Session Storage ---
+    let newStatus: 'available' | 'occupied' = (parsedCurrentOrder.length > 0 || parsedPendingOrder.length > 0 || (isDelivery && !!loadedDeliveryInfo)) ? 'occupied' : 'available';
 
     const currentStatus = sessionStorage.getItem(`table-${tableIdParam}-status`);
     if (currentStatus !== newStatus) {
@@ -658,13 +656,13 @@ export default function TableDetailPage() {
        console.log(`Status for ${tableIdParam} is already ${currentStatus}`);
     }
 
-    setIsInitialized(true); // Mark initialization as complete
+    setHasBeenInitialized(true); // Mark initialization as complete
     console.log(`Initialization complete for ${tableIdParam}.`);
 
-  }, [tableIdParam, isInitialized, isDelivery]); // Dependencies ensure this runs once per table ID
+  }, [tableIdParam, hasBeenInitialized, isDelivery]); // Dependencies ensure this runs once per table ID
 
 
-  // --- Save orders, delivery info, and update status to sessionStorage whenever they change ---
+  // --- Effect to save state changes to sessionStorage and update table status ---
    useEffect(() => {
      // Only run this effect *after* initial state is loaded
      if (!isInitialized || !tableIdParam) return;
@@ -711,7 +709,7 @@ export default function TableDetailPage() {
         console.log(`Updated status for ${tableIdParam} to ${newStatus}.`);
      }
 
-   }, [order, pendingPaymentOrder, deliveryInfo, tableIdParam, isInitialized, isDelivery]);
+   }, [order, pendingPaymentOrder, deliveryInfo, tableIdParam, hasBeenInitialized, isDelivery]);
 
 
   // Helper to format currency
@@ -1395,7 +1393,7 @@ export default function TableDetailPage() {
      };
 
   // Show loading indicator until initialization is complete
-  if (!isInitialized) {
+  if (!hasBeenInitialized) {
     return <div className="flex items-center justify-center min-h-screen">Cargando datos...</div>;
   }
 

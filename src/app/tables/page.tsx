@@ -40,43 +40,102 @@ export default function TablesPage() {
   const [isInitialized, setIsInitialized] = useState(false); // Track initialization
   const router = useRouter(); // Initialize router
 
-  // --- Dynamic Table Status Update ---
-  // This useEffect checks sessionStorage on mount and updates table status locally.
+  /**
+   * useEffect hook to initialize table status from sessionStorage on component mount.
+   * It checks for existing order, pending order, and delivery info for each table
+   * to determine if the table should be marked as 'occupied'.
+   */
   useEffect(() => {
-    if (isInitialized) return; // Only run once
+    // Ensure this effect runs only once after the initial render
+    if (isInitialized) return;
 
-    const updatedTables = initialTables.map(table => {
-        const storedStatus = sessionStorage.getItem(`table-${table.id}-status`);
-        const storedOrder = sessionStorage.getItem(`table-${table.id}-order`);
-        const storedPendingOrder = sessionStorage.getItem(`table-${table.id}-pending-order`);
-        const storedDeliveryInfo = table.id === 'delivery' ? sessionStorage.getItem(`${DELIVERY_INFO_STORAGE_KEY}-${table.id}`) : null; // Check delivery info only for delivery
-        let currentStatus: 'available' | 'occupied' = 'available'; // Default
+    const updatedTables = initialTables.map(table => {      
+      const orderKey = `table-${table.id}-order`;
+      const pendingOrderKey = `table-${table.id}-pending-order`;
+      const deliveryInfoKey = `${DELIVERY_INFO_STORAGE_KEY}-${table.id}`;
 
-        // Determine status based on stored info
-        if (storedStatus === 'occupied') {
-            currentStatus = 'occupied'; // Explicitly occupied
-        } else {
-            // Check if there's a valid current or pending order OR delivery info
-            let hasOrderOrInfo = false;
-            try {
-                const parsedOrder = storedOrder ? JSON.parse(storedOrder) : null;
-                const parsedPendingOrder = storedPendingOrder ? JSON.parse(storedPendingOrder) : null;
-                 const parsedDeliveryInfo = storedDeliveryInfo ? JSON.parse(storedDeliveryInfo) : null;
+      const storedOrder = sessionStorage.getItem(orderKey);
+      const storedPendingOrder = sessionStorage.getItem(pendingOrderKey);
+      const storedDeliveryInfo = table.id === 'delivery' ? sessionStorage.getItem(deliveryInfoKey) : null;
 
-                if ((Array.isArray(parsedOrder) && parsedOrder.length > 0) ||
-                    (Array.isArray(parsedPendingOrder) && parsedPendingOrder.length > 0) ||
-                    (table.id === 'delivery' && parsedDeliveryInfo)) { // Check delivery info existence
-                    hasOrderOrInfo = true;
-                }
-            } catch (e) {
-                console.error(`Error parsing stored data for ${table.id}:`, e);
-                // Optionally clear invalid data
-                sessionStorage.removeItem(`table-${table.id}-order`);
-                sessionStorage.removeItem(`table-${table.id}-pending-order`);
-                if (table.id === 'delivery') sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY}-${table.id}`);
-            }
+      let isOccupied = false;
 
-            if (hasOrderOrInfo) {
+      try {
+        // Check if there's a valid current order
+        const parsedOrder = storedOrder ? JSON.parse(storedOrder) : null;
+        if (Array.isArray(parsedOrder) && parsedOrder.length > 0) {
+          isOccupied = true;
+        }
+
+        // Check if there's a valid pending order
+        const parsedPendingOrder = storedPendingOrder ? JSON.parse(storedPendingOrder) : null;
+        if (Array.isArray(parsedPendingOrder) && parsedPendingOrder.length > 0) {
+          isOccupied = true;
+        }
+
+        // Check for delivery info specifically for the delivery table
+        if (table.id === 'delivery' && storedDeliveryInfo) {
+            const parsedDeliveryInfo = JSON.parse(storedDeliveryInfo);
+             if (parsedDeliveryInfo) { // Simply check for existence after parsing
+               isOccupied = true;
+             }
+        }
+
+        // Set the status based on whether any relevant data was found
+        const currentStatus: 'available' | 'occupied' = isOccupied ? 'occupied' : 'available';
+
+        // Clear session storage for the table if it's determined to be available
+        if (currentStatus === 'available') {
+            if (storedOrder) sessionStorage.removeItem(orderKey);
+            if (storedPendingOrder) sessionStorage.removeItem(pendingOrderKey);
+            if (table.id === 'delivery' && storedDeliveryInfo) sessionStorage.removeItem(deliveryInfoKey);
+        }
+
+         // Update session storage status to reflect the determined status
+         const storedStatus = sessionStorage.getItem(`table-${table.id}-status`);
+         if (storedStatus !== currentStatus) {
+            console.log(`Initializing/Updating status for ${table.id} from ${storedStatus || 'none'} to ${currentStatus}`);
+            sessionStorage.setItem(`table-${table.id}-status`, currentStatus);
+         }
+
+        return { ...table, status: currentStatus };
+      } catch (e) {
+        console.error(`Error parsing stored data for ${table.id}:`, e);
+        // Clear potentially corrupted data if parsing fails
+        sessionStorage.removeItem(orderKey);
+        sessionStorage.removeItem(pendingOrderKey);
+        if (table.id === 'delivery') sessionStorage.removeItem(deliveryInfoKey);
+
+        // Default to available if there's an error parsing
+        const currentStatus: 'available' | 'occupied' = 'available';
+        sessionStorage.setItem(`table-${table.id}-status`, currentStatus);
+
+        return { ...table, status: currentStatus };
+      }
+    });
+
+    setTables(updatedTables);
+    setIsInitialized(true); // Mark as initialized
+
+  }, [isInitialized]); // Run only once after initial render
+
+  /**
+   * getIcon: Returns the appropriate icon component for a given table ID.
+   * @param tableId - The ID of the table (number or string).
+   * @returns The LucideReact icon component.
+   */
+  const getIcon = (tableId: number | string) => {
+      if (tableId === 'mezon') return <Store className="h-6 w-6 mb-1 mx-auto text-foreground"/>; // Keep icons black
+      if (tableId === 'delivery') return <Truck className="h-6 w-6 mb-1 mx-auto text-foreground"/>; // Keep icons black
+      // Default icon for regular tables
+      return <Utensils className="h-6 w-6 mb-1 mx-auto text-foreground"/>; // Keep icons black
+  }
+
+   /**
+    * handleLogout: Handles the user logout process.
+    * Calls the logout function from the AuthContext.
+    */
+   const handleLogout = () => {
                 currentStatus = 'occupied'; // Occupied due to existing orders or delivery info
             }
         }
@@ -91,27 +150,7 @@ export default function TablesPage() {
         // If derived status doesn't match stored status, update storage
         if (storedStatus !== currentStatus) {
            console.log(`Initializing/Updating status for ${table.id} from ${storedStatus || 'none'} to ${currentStatus}`);
-           sessionStorage.setItem(`table-${table.id}-status`, currentStatus);
-        }
 
-      return { ...table, status: currentStatus };
-    });
-
-    setTables(updatedTables);
-    setIsInitialized(true); // Mark as initialized
-
-  }, [isInitialized]); // Run only once after initial render
-
-
-  const getIcon = (tableId: number | string) => {
-      if (tableId === 'mezon') return <Store className="h-6 w-6 mb-1 mx-auto text-foreground"/>; // Keep icons black
-      if (tableId === 'delivery') return <Truck className="h-6 w-6 mb-1 mx-auto text-foreground"/>; // Keep icons black
-      // Add icon for regular tables
-      return <Utensils className="h-6 w-6 mb-1 mx-auto text-foreground"/>; // Keep icons black
-  }
-
-   // Logout handler
-   const handleLogout = () => {
      logout();
      // No need to push to '/login' here, AuthGuard will handle it.
    };
