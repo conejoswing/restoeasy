@@ -44,7 +44,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { PlusCircle, Trash2, Edit } from 'lucide-react';
+import { PlusCircle, Trash2, Edit, ArrowLeft } from 'lucide-react'; // Added ArrowLeft
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -285,7 +285,14 @@ export default function UsersPage() {
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
+        {/* Back Button */}
+        <Button variant="outline" size="icon" onClick={() => router.push('/tables')}>
+            <ArrowLeft className="h-4 w-4" />
+            <span className="sr-only">Volver</span>
+        </Button>
+
         <h1 className="text-3xl font-bold">Gestión de Usuarios</h1>
+
         <Dialog open={isAddEditDialogOpen} onOpenChange={setIsAddEditDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={openAddDialog}>
@@ -363,8 +370,6 @@ export default function UsersPage() {
               </div>
             </div>
             <DialogFooter>
-               {/* Use DialogClose for the Cancel button */}
-               {/* Ensure DialogClose only wraps the Button */}
                <DialogClose asChild>
                  <Button type="button" variant="secondary" onClick={closeDialog}>Cancelar</Button>
                </DialogClose>
