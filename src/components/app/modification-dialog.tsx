@@ -76,21 +76,27 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
 
   // Filter out specific modifications based on category
   const availableModifications = item.modifications?.filter(mod => {
+    const standardMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'];
+    const dinamicoMods = ['con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'];
+
     // For 'Completos Vienesas' and specific item names 'Dinamico Normal' or 'Dinamico Grande'
     if (item.category === 'Completos Vienesas' && (item.name === 'Dinamico Normal' || item.name === 'Dinamico Grande')) {
         // Only keep the allowed modifications for these specific items
-        const allowedDinamicoMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'];
-        return allowedDinamicoMods.includes(mod);
+        const allowedDinamicoVienesaMods = [...standardMods, ...dinamicoMods];
+        return allowedDinamicoVienesaMods.includes(mod);
     }
-    // Original filtering logic for other categories and items
+    // For 'Completos As' and specific item names 'Dinamico Normal' or 'Dinamico Grande'
+    else if (item.category === 'Completos As' && (item.name === 'Dinamico Normal' || item.name === 'Dinamico Grande')) {
+        // Keep standard mods + specific dinamico mods for these items
+        const allowedDinamicoAsMods = [...standardMods, ...dinamicoMods];
+        return allowedDinamicoAsMods.includes(mod);
+    }
+    // Standard filter for other Completos Vienesas (excluding dynamic ones)
     else if (item.category === 'Completos Vienesas') {
-       // Standard filter for other Completos Vienesas (excluding dynamic ones)
-       const standardVienesaMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'];
-       return standardVienesaMods.includes(mod);
+       return standardMods.includes(mod);
     }
     // Standard mods for most other categories that allow them
     else if (['Completos As', 'Fajitas', 'Hamburguesas', 'Churrascos', 'Promo Churrasco', 'Promo Mechada', 'Promociones'].includes(item.category)) {
-        const standardMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'];
         // Allow 'Queso Fundido', 'Orégano', 'Champiñones Salteados' only for specific 'Completos As' items
         if (item.category === 'Completos As') {
              if (item.name.includes('Napolitano') && ['Queso Fundido', 'Orégano'].includes(mod)) return true;
@@ -99,34 +105,10 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
         return standardMods.includes(mod);
     }
 
-
-    // Exclude 'Porotos Verdes' for specific categories (Already handled by standard mods filter above for most)
-    // if (['Completos As', 'Promo Churrasco', 'Fajitas'].includes(item.category) && mod === 'Porotos Verdes') {
-    //   return false;
-    // }
-    // Exclude specific mods for 'Churrascos' category (Already handled)
-    // if (item.category === 'Churrascos' && ['Queso Fundido', 'Huevo Frito', 'Cebolla Frita', 'Palta', 'Tomate'].includes(mod)) {
-    //     return false;
-    // }
-     // Exclude specific mods for 'Promo Mechada' (Already handled)
-    //  if (item.category === 'Promo Mechada' && ['Queso Fundido', 'Huevo Frito', 'Cebolla Frita', 'Papas Fritas', 'Tomate', 'Palta', 'Salsa Verde', 'Champiñones Salteados', 'Porotos Verdes'].includes(mod)) {
-    //     return false;
-    //  }
-     // Exclude specific mods for 'Hamburguesas' category (Already handled)
-    //  if (item.category === 'Hamburguesas' && [
-    //     'Triple Carne', 'Triple Queso', 'Pepinillos', 'Lechuga', 'Salsa Especial',
-    //     'Doble Carne', 'Cuádruple Carne', 'Cuádruple Queso', 'Doble Queso Cheddar',
-    //     'Cebolla Frita', 'Huevo Frito', 'Doble Bacon', 'Bacon', 'Queso Cheddar',
-    //     'Palta', 'Tomate' // Also remove Palta, Tomate from Hamburguesas base mods
-    //  ].includes(mod)) {
-    //     return false;
-    //  }
-
     // Categories without modifications
     if (['Papas Fritas', 'Bebidas', 'Colaciones'].includes(item.category)) {
         return false;
     }
-
 
     return true; // Include by default if not explicitly excluded
   }) ?? [];
