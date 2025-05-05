@@ -143,7 +143,7 @@ const mockMenu: MenuItem[] = [
         name: 'Dinamico Normal',
         price: 4400,
         category: 'Completos Vienesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'], // Updated mods
         modificationPrices: { 'Agregado Queso': 1000 }
     },
     {
@@ -151,7 +151,7 @@ const mockMenu: MenuItem[] = [
         name: 'Dinamico Grande',
         price: 4900,
         category: 'Completos Vienesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'], // Updated mods
         modificationPrices: { 'Agregado Queso': 1000 }
     },
     // --- Completos As --- (Removed Porotos Verdes from Chacarero)
@@ -728,7 +728,9 @@ export default function TableDetailPage() {
   const handleItemClick = (item: MenuItem) => {
      // Check if the item's category allows modifications
      const categoriesWithoutModifications = ['Papas Fritas', 'Bebidas', 'Colaciones'];
-     const alwaysShowModsDialog = !categoriesWithoutModifications.includes(item.category);
+     const categoriesWithModifications = ['Completos Vienesas', 'Completos As', 'Fajitas', 'Hamburguesas', 'Churrascos', 'Promo Churrasco', 'Promo Mechada', 'Promociones']; // Add Promociones
+     const alwaysShowModsDialog = categoriesWithModifications.includes(item.category);
+
 
      if (alwaysShowModsDialog && item.modifications && item.modifications.length > 0) {
         setCurrentItemForModification(item);
@@ -1562,5 +1564,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-
-
