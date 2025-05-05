@@ -68,7 +68,7 @@ const mockMenu: MenuItem[] = [
     },
     {
       id: 14,
-      name: 'Italiano grande',
+      name: 'Italiano Grande',
       price: 4500,
       category: 'Completos Vienesas',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
@@ -493,8 +493,8 @@ const orderedCategories = [
   'Hamburguesas', // Added
   'Churrascos',   // Added
   'Papas Fritas', // Added
-  'Promo Churrasco', // Changed from Colaciones
-  'Promo Mechada', // Added
+  'Promo Churrasco',
+  'Promo Mechada',
   'Promociones',
   'Bebidas',
    'Colaciones', // Added back
@@ -1013,6 +1013,11 @@ export default function TableDetailPage() {
                 'completo normal', 'dinamico normal', 'hot dog normal',
                 'italiano normal', 'palta normal', 'tomate normal'
             ];
+             // Items that use 'vienesas' in Completos Vienesas (for individual sausage deduction)
+             const vienesasIndividualItems = [ // Define the items that use one 'vienesas'
+                 'completo normal', 'dinamico normal', 'hot dog normal',
+                 'italiano normal', 'palta normal', 'tomate normal'
+             ];
             // Items that use 'pan especial grande' in Completos Vienesas
              const vienesasGrandeEspecialItems = [
                 'completo grande', 'dinamico grande', 'hot dog grande',
@@ -1079,6 +1084,24 @@ export default function TableDetailPage() {
                         } else if (vienesasGrandeEspecialItems.includes(orderItemNameLower)) {
                             inventoryItemName = 'pan especial grande';
                         }
+                        // Additionally, deduct 'vienesas' if it's one of the specific items
+                         if (vienesasIndividualItems.includes(orderItemNameLower)) {
+                            const vienesaItem = inventoryMap.get('vienesas');
+                            if (vienesaItem) {
+                                const vienesaNewStock = Math.max(0, vienesaItem.stock - orderItem.quantity);
+                                if (vienesaItem.stock !== vienesaNewStock) {
+                                    vienesaItem.stock = vienesaNewStock;
+                                    console.log(`Updated inventory for vienesas: ${vienesaNewStock}`);
+                                    inventoryMap.set('vienesas', vienesaItem); // Update map
+                                } else if (vienesaItem.stock === 0) {
+                                    console.warn(`Inventory item vienesas is already at 0 stock.`);
+                                    toast({ title: "Inventario Bajo", description: `El producto "vienesas" está agotado.`, variant: "destructive" });
+                                }
+                            } else {
+                                 console.warn(`Inventory item not found for: vienesas`);
+                                 toast({ title: "Advertencia Inventario", description: `No se encontró "vienesas" en el inventario para descontar.`, variant: "destructive" });
+                            }
+                         }
                         break;
                     case 'Completos As':
                          if (asNormalEspecialItems.includes(orderItemNameLower)) {
@@ -1124,10 +1147,15 @@ export default function TableDetailPage() {
                         break;
                     case 'Fajitas':
                          if (fajitaItems.includes(orderItemNameLower)) {
-                            inventoryItemName = 'pan de marraqueta'; // Default to marraqueta for fajitas
-                            // Add a fallback in case 'pan de marraqueta' is not in inventory or stock is 0
-                            if (!inventoryMap.has(inventoryItemName) || inventoryMap.get(inventoryItemName)?.stock === 0) {
-                                inventoryItemName = 'pan especial normal'; // Or another suitable bread type
+                            // Assuming Fajitas also use 'pan de marraqueta', but check inventory
+                            const marraquetaExists = inventoryMap.has('pan de marraqueta');
+                            const marraquetaStock = inventoryMap.get('pan de marraqueta')?.stock ?? 0;
+
+                             if (marraquetaExists && marraquetaStock > 0) {
+                                inventoryItemName = 'pan de marraqueta';
+                            } else {
+                                inventoryItemName = 'pan especial normal'; // Fallback if marraqueta is unavailable
+                                console.log("Fajita fallback: Using pan especial normal instead of pan de marraqueta.");
                             }
                          }
                         break;
@@ -1155,7 +1183,10 @@ export default function TableDetailPage() {
                          toast({ title: "Advertencia Inventario", description: `No se encontró "${inventoryItemName}" en el inventario para descontar.`, variant: "destructive" });
                     }
                 } else {
-                     console.warn(`No inventory mapping defined for product: ${orderItem.name} in category ${orderItem.category}`);
+                     // Only log warning if not handled by specific ingredient deduction (like 'vienesas')
+                     if (!(orderItem.category === 'Completos Vienesas' && vienesasIndividualItems.includes(orderItemNameLower))) {
+                        console.warn(`No inventory mapping defined for product: ${orderItem.name} in category ${orderItem.category}`);
+                     }
                 }
             });
 
@@ -1208,8 +1239,8 @@ export default function TableDetailPage() {
 
   const getPageTitle = () => {
       if (!tableIdParam) return 'Cargando...'; // Handle case where param might be missing initially
-      if (tableIdParam === 'mezon') {
-          return 'Mezón';
+      if (tableIdParam === 'mesón') { // Use correct spelling
+          return 'Mesón';
       } else if (tableIdParam === 'delivery') {
           return 'Delivery';
       } else {
@@ -1514,3 +1545,4 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
