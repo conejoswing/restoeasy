@@ -378,8 +378,8 @@ export default function UsersPage() {
             </div>
             <DialogFooter>
                {/* Use DialogClose for the Cancel button */}
-               <DialogClose asChild>
-                  <Button type="button" variant="secondary" onClick={closeDialog}>Cancelar</Button> {/* Added onClick to ensure state reset */}
+               <DialogClose>
+                 <Button type="button" variant="secondary" onClick={closeDialog}>Cancelar</Button> {/* Added onClick to ensure state reset */}
                </DialogClose>
               <Button type="submit" onClick={handleAddOrEditStaff}>
                 {editingStaffMember ? 'Guardar Cambios' : 'Añadir Usuario'}
@@ -458,4 +458,3 @@ export default function UsersPage() {
     </div>
   );
 }
-
