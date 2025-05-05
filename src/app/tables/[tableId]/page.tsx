@@ -578,7 +578,7 @@ export default function TableDetailPage() {
 
   // --- Effect to load initial state from sessionStorage on mount ---
   useEffect(() => {
-    if (!tableIdParam || hasBeenInitialized) return; // Avoid running multiple times or without ID
+    if (!tableIdParam || isInitialized) return; // Avoid running multiple times or without ID
 
     console.log(`Initializing state for table/delivery ${tableIdParam} from session storage...`);
 
@@ -656,10 +656,10 @@ export default function TableDetailPage() {
        console.log(`Status for ${tableIdParam} is already ${currentStatus}`);
     }
 
-    setHasBeenInitialized(true); // Mark initialization as complete
+    setIsInitialized(true); // Mark initialization as complete
     console.log(`Initialization complete for ${tableIdParam}.`);
 
-  }, [tableIdParam, hasBeenInitialized, isDelivery]); // Dependencies ensure this runs once per table ID
+  }, [tableIdParam, isInitialized, isDelivery]); // Dependencies ensure this runs once per table ID
 
 
   // --- Effect to save state changes to sessionStorage and update table status ---
@@ -709,7 +709,7 @@ export default function TableDetailPage() {
         console.log(`Updated status for ${tableIdParam} to ${newStatus}.`);
      }
 
-   }, [order, pendingPaymentOrder, deliveryInfo, tableIdParam, hasBeenInitialized, isDelivery]);
+   }, [order, pendingPaymentOrder, deliveryInfo, tableIdParam, isInitialized, isDelivery]);
 
 
   // Helper to format currency
@@ -1091,10 +1091,14 @@ export default function TableDetailPage() {
                     case 'Completos Vienesas':
                         if (vienesasNormalEspecialItems.includes(orderItemNameLower)) {
                             inventoryItemName = 'pan especial normal';
-                            vienesaQuantityToDeduct = 1 * orderItem.quantity; // 1 vienesa per normal item
+                            if (vienesasNormalIndividualItems.includes(orderItemNameLower)){
+                                vienesaQuantityToDeduct = 1 * orderItem.quantity; // 1 vienesa per normal item
+                            }
                         } else if (vienesasGrandeEspecialItems.includes(orderItemNameLower)) {
                             inventoryItemName = 'pan especial grande';
-                            vienesaQuantityToDeduct = 2 * orderItem.quantity; // 2 vienesas per grande item
+                            if (vienesasGrandeIndividualItems.includes(orderItemNameLower)) {
+                                vienesaQuantityToDeduct = 2 * orderItem.quantity; // 2 vienesas per grande item
+                            }
                         }
                         break;
                     case 'Completos As':
@@ -1116,7 +1120,7 @@ export default function TableDetailPage() {
                      case 'Promo Churrasco':
                          if (promoChurrascoItems.includes(orderItemNameLower)) {
                             inventoryItemName = 'pan de marraqueta';
-                            quantityToDeduct = orderItem.quantity; // For bread
+                            quantityToDeduct = orderItem.quantity; // For bread - Each Promo Churrasco uses 1 bread
                             // Fallback
                              if (!inventoryMap.has(inventoryItemName) || inventoryMap.get(inventoryItemName)?.stock === 0) {
                                 inventoryItemName = 'pan especial normal';
@@ -1126,7 +1130,7 @@ export default function TableDetailPage() {
                     case 'Promo Mechada':
                          if (promoMechadaItems.includes(orderItemNameLower)) {
                            inventoryItemName = 'pan de marraqueta';
-                           quantityToDeduct = orderItem.quantity * 2; // Deduct 2 breads per promo item
+                           quantityToDeduct = orderItem.quantity; // Deduct 1 bread per promo item
                             // Fallback
                             if (!inventoryMap.has(inventoryItemName) || inventoryMap.get(inventoryItemName)?.stock === 0) {
                                inventoryItemName = 'pan especial normal';
@@ -1142,14 +1146,14 @@ export default function TableDetailPage() {
                         break;
                     case 'Fajitas':
                          if (fajitaItems.includes(orderItemNameLower)) {
-                            // Assuming Fajitas also use 'pan de marraqueta', but check inventory
-                            inventoryItemName = 'pan de marraqueta'; // Tentative mapping
+                            // Assume Fajitas use 'pan de marraqueta', check inventory
+                            inventoryItemName = 'pan de marraqueta';
                             const marraquetaExists = inventoryMap.has(inventoryItemName);
                             const marraquetaStock = inventoryMap.get(inventoryItemName)?.stock ?? 0;
 
-                             if (!marraquetaExists || marraquetaStock < quantityToDeduct) {
-                                inventoryItemName = 'pan especial normal'; // Fallback if marraqueta is unavailable
-                                console.log("Fajita fallback: Using pan especial normal instead of pan de marraqueta.");
+                            if (!marraquetaExists || marraquetaStock < quantityToDeduct) {
+                                inventoryItemName = 'pan especial normal'; // Fallback
+                                console.log("Fajita fallback: Using pan especial normal.");
                             }
                          }
                         break;
@@ -1393,7 +1397,7 @@ export default function TableDetailPage() {
      };
 
   // Show loading indicator until initialization is complete
-  if (!hasBeenInitialized) {
+  if (!isInitialized) {
     return <div className="flex items-center justify-center min-h-screen">Cargando datos...</div>;
   }
 
@@ -1511,7 +1515,9 @@ export default function TableDetailPage() {
                  <div className="flex-grow overflow-hidden">
                     {renderMenuSheetContent()} {/* Render categories or items */}
                  </div>
-                  {/* Removed SheetFooter with Confirm button */}
+                 <SheetFooter className="p-4 border-t">
+                    <Button onClick={closeMenuSheet}>Confirmar</Button>
+                  </SheetFooter>
             </SheetContent>
         </Sheet>
 
