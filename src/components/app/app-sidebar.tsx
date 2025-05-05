@@ -4,7 +4,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { UtensilsCrossed, Package, Receipt, ShoppingBag, LogOut } from 'lucide-react'; // Removed Users import
+import { UtensilsCrossed, Package, Receipt, ShoppingBag, LogOut, Users } from 'lucide-react'; // Added Users icon
 
 import {
   SidebarContent,
@@ -79,7 +79,6 @@ export default function AppSidebar() {
                    </SidebarMenuButton>
                  </Link>
                </SidebarMenuItem>
-               {/* Staff link removed */}
                <SidebarMenuItem>
                  <Link href="/products"> {/* Link to products page */}
                    <SidebarMenuButton
@@ -88,6 +87,17 @@ export default function AppSidebar() {
                    >
                      <ShoppingBag /> {/* Products icon */}
                      <span className="group-data-[collapsible=icon]:hidden">Productos</span> {/* Products text */}
+                   </SidebarMenuButton>
+                 </Link>
+               </SidebarMenuItem>
+                <SidebarMenuItem>
+                 <Link href="/users"> {/* Link to users management page */}
+                   <SidebarMenuButton
+                     isActive={isActive('/users')}
+                     tooltip="Usuarios" // Added tooltip
+                   >
+                     <Users /> {/* Users icon */}
+                     <span className="group-data-[collapsible=icon]:hidden">Usuarios</span> {/* Users text */}
                    </SidebarMenuButton>
                  </Link>
                </SidebarMenuItem>
@@ -115,3 +125,4 @@ export default function AppSidebar() {
     </>
   );
 }
+
