@@ -5,7 +5,7 @@
 import * as React from 'react';
 import {useState, useEffect} from 'react';
 import {useParams, useRouter} from 'next/navigation';
-import {Button} from '@/components/ui/button';
+import {Button, buttonVariants} from '@/components/ui/button'; // Import buttonVariants
 import {
   Card,
   CardContent,
@@ -730,13 +730,18 @@ export default function TableDetailPage() {
   const handleItemClick = (item: MenuItem) => {
      // Check if the item's category allows modifications
      const categoriesWithoutModifications = ['Papas Fritas', 'Bebidas', 'Colaciones'];
-     if (!categoriesWithoutModifications.includes(item.category) && item.modifications && item.modifications.length > 0) {
+     const alwaysShowModsDialog = !categoriesWithoutModifications.includes(item.category);
+
+     if (alwaysShowModsDialog && item.modifications && item.modifications.length > 0) {
         setCurrentItemForModification(item);
         setIsModificationDialogOpen(true); // Open modification dialog
-    } else {
-        // If no modifications or category doesn't allow mods, add directly to current order
-        addToOrder(item);
-    }
+     } else {
+         // If no modifications or category doesn't allow/need mods initially, add directly to current order
+         addToOrder(item);
+     }
+     // Close the sheet after adding an item (or opening mods dialog)
+     // setIsMenuSheetOpen(false); // Close the main menu sheet
+     closeMenuSheet(); // Use the helper to reset state
   };
 
   // Function to handle confirming modification selection (now receives an array)
@@ -917,8 +922,10 @@ export default function TableDetailPage() {
 
    // Helper to get the next available cash movement ID
    const getNextMovementId = (currentMovements: CashMovement[]): number => {
-      return currentMovements.length > 0 ? Math.max(...currentMovements.map((m) => m.id)) + 1 : 1;
-  };
+       // Ensure IDs are numbers before finding the max
+       const maxId = currentMovements.reduce((max, m) => Math.max(max, typeof m.id === 'number' ? m.id : 0), 0);
+       return maxId + 1;
+   };
 
     const handlePrintPayment = () => {
        if (pendingPaymentOrder.length === 0) {
@@ -1014,9 +1021,13 @@ export default function TableDetailPage() {
                 'italiano normal', 'palta normal', 'tomate normal'
             ];
              // Items that use 'vienesas' in Completos Vienesas (for individual sausage deduction)
-             const vienesasIndividualItems = [ // Define the items that use one 'vienesas'
+             const vienesasNormalIndividualItems = [ // Define the items that use one 'vienesas'
                  'completo normal', 'dinamico normal', 'hot dog normal',
                  'italiano normal', 'palta normal', 'tomate normal'
+             ];
+             const vienesasGrandeIndividualItems = [ // Define the items that use two 'vienesas'
+                 'completo grande', 'dinamico grande', 'hot dog grande',
+                 'italiano grande', 'palta grande', 'tomate grande'
              ];
             // Items that use 'pan especial grande' in Completos Vienesas
              const vienesasGrandeEspecialItems = [
@@ -1072,7 +1083,8 @@ export default function TableDetailPage() {
                 // Simple mapping logic (can be expanded)
                 let inventoryItemName = '';
                 const orderItemNameLower = orderItem.name.toLowerCase();
-                let quantityToDeduct = orderItem.quantity; // Default quantity
+                let quantityToDeduct = orderItem.quantity; // Default quantity for most items
+                let vienesaQuantityToDeduct = 0; // Separate counter for vienesa deduction
 
                 switch (orderItem.category) {
                     case 'Bebidas':
@@ -1081,27 +1093,11 @@ export default function TableDetailPage() {
                     case 'Completos Vienesas':
                         if (vienesasNormalEspecialItems.includes(orderItemNameLower)) {
                             inventoryItemName = 'pan especial normal';
+                            vienesaQuantityToDeduct = 1 * orderItem.quantity; // 1 vienesa per normal item
                         } else if (vienesasGrandeEspecialItems.includes(orderItemNameLower)) {
                             inventoryItemName = 'pan especial grande';
+                            vienesaQuantityToDeduct = 2 * orderItem.quantity; // 2 vienesas per grande item
                         }
-                        // Additionally, deduct 'vienesas' if it's one of the specific items
-                         if (vienesasIndividualItems.includes(orderItemNameLower)) {
-                            const vienesaItem = inventoryMap.get('vienesas');
-                            if (vienesaItem) {
-                                const vienesaNewStock = Math.max(0, vienesaItem.stock - orderItem.quantity);
-                                if (vienesaItem.stock !== vienesaNewStock) {
-                                    vienesaItem.stock = vienesaNewStock;
-                                    console.log(`Updated inventory for vienesas: ${vienesaNewStock}`);
-                                    inventoryMap.set('vienesas', vienesaItem); // Update map
-                                } else if (vienesaItem.stock === 0) {
-                                    console.warn(`Inventory item vienesas is already at 0 stock.`);
-                                    toast({ title: "Inventario Bajo", description: `El producto "vienesas" está agotado.`, variant: "destructive" });
-                                }
-                            } else {
-                                 console.warn(`Inventory item not found for: vienesas`);
-                                 toast({ title: "Advertencia Inventario", description: `No se encontró "vienesas" en el inventario para descontar.`, variant: "destructive" });
-                            }
-                         }
                         break;
                     case 'Completos As':
                          if (asNormalEspecialItems.includes(orderItemNameLower)) {
@@ -1122,6 +1118,7 @@ export default function TableDetailPage() {
                      case 'Promo Churrasco':
                          if (promoChurrascoItems.includes(orderItemNameLower)) {
                             inventoryItemName = 'pan de marraqueta';
+                            quantityToDeduct = orderItem.quantity; // For bread
                             // Fallback
                              if (!inventoryMap.has(inventoryItemName) || inventoryMap.get(inventoryItemName)?.stock === 0) {
                                 inventoryItemName = 'pan especial normal';
@@ -1131,7 +1128,7 @@ export default function TableDetailPage() {
                     case 'Promo Mechada':
                          if (promoMechadaItems.includes(orderItemNameLower)) {
                            inventoryItemName = 'pan de marraqueta';
-                           quantityToDeduct *= 2; // Deduct 2 breads per promo item
+                           quantityToDeduct = orderItem.quantity * 2; // Deduct 2 breads per promo item
                             // Fallback
                             if (!inventoryMap.has(inventoryItemName) || inventoryMap.get(inventoryItemName)?.stock === 0) {
                                inventoryItemName = 'pan especial normal';
@@ -1148,12 +1145,11 @@ export default function TableDetailPage() {
                     case 'Fajitas':
                          if (fajitaItems.includes(orderItemNameLower)) {
                             // Assuming Fajitas also use 'pan de marraqueta', but check inventory
-                            const marraquetaExists = inventoryMap.has('pan de marraqueta');
-                            const marraquetaStock = inventoryMap.get('pan de marraqueta')?.stock ?? 0;
+                            inventoryItemName = 'pan de marraqueta'; // Tentative mapping
+                            const marraquetaExists = inventoryMap.has(inventoryItemName);
+                            const marraquetaStock = inventoryMap.get(inventoryItemName)?.stock ?? 0;
 
-                             if (marraquetaExists && marraquetaStock > 0) {
-                                inventoryItemName = 'pan de marraqueta';
-                            } else {
+                             if (!marraquetaExists || marraquetaStock < quantityToDeduct) {
                                 inventoryItemName = 'pan especial normal'; // Fallback if marraqueta is unavailable
                                 console.log("Fajita fallback: Using pan especial normal instead of pan de marraqueta.");
                             }
@@ -1164,29 +1160,46 @@ export default function TableDetailPage() {
                         break;
                 }
 
+                 // --- Deduct Specific Ingredients (like Vienesa) ---
+                 if (vienesaQuantityToDeduct > 0) {
+                     const vienesaItem = inventoryMap.get('vienesas');
+                     if (vienesaItem) {
+                         const vienesaNewStock = Math.max(0, vienesaItem.stock - vienesaQuantityToDeduct);
+                         if (vienesaItem.stock !== vienesaNewStock) {
+                             vienesaItem.stock = vienesaNewStock;
+                             console.log(`Updated inventory for vienesas: ${vienesaNewStock} (deducted ${vienesaQuantityToDeduct})`);
+                             inventoryMap.set('vienesas', vienesaItem); // Update map
+                         } else if (vienesaItem.stock < vienesaQuantityToDeduct) {
+                             console.warn(`Insufficient stock for vienesas. Needed: ${vienesaQuantityToDeduct}, Available: ${vienesaItem.stock}`);
+                             toast({ title: "Inventario Bajo", description: `Stock insuficiente para "vienesas".`, variant: "destructive" });
+                         }
+                     } else {
+                          console.warn(`Inventory item not found for: vienesas`);
+                          toast({ title: "Advertencia Inventario", description: `No se encontró "vienesas" en el inventario para descontar.`, variant: "destructive" });
+                     }
+                 }
 
+
+                // --- Deduct Main Mapped Item (like bread) ---
                 if (inventoryItemName) {
                     const inventoryItem = inventoryMap.get(inventoryItemName);
                     if (inventoryItem) {
-                        const newStock = Math.max(0, inventoryItem.stock - quantityToDeduct); // Use quantityToDeduct
+                        const newStock = Math.max(0, inventoryItem.stock - quantityToDeduct); // Use calculated quantityToDeduct
                         if (inventoryItem.stock !== newStock) {
                              inventoryItem.stock = newStock;
-                             console.log(`Updated inventory for ${inventoryItem.name}: ${newStock}`);
+                             console.log(`Updated inventory for ${inventoryItem.name}: ${newStock} (deducted ${quantityToDeduct})`);
                              // Update the map (important if the same item is used multiple times in the order)
                              inventoryMap.set(inventoryItemName, inventoryItem);
-                        } else if (inventoryItem.stock === 0) {
-                             console.warn(`Inventory item ${inventoryItem.name} is already at 0 stock.`);
-                             toast({ title: "Inventario Bajo", description: `El producto "${inventoryItem.name}" está agotado.`, variant: "destructive" });
+                        } else if (inventoryItem.stock < quantityToDeduct) {
+                             console.warn(`Insufficient stock for ${inventoryItem.name}. Needed: ${quantityToDeduct}, Available: ${inventoryItem.stock}`);
+                             toast({ title: "Inventario Bajo", description: `Stock insuficiente para "${inventoryItem.name}".`, variant: "destructive" });
                         }
                     } else {
                         console.warn(`Inventory item not found for product: ${orderItem.name} (Mapped to: ${inventoryItemName})`);
                          toast({ title: "Advertencia Inventario", description: `No se encontró "${inventoryItemName}" en el inventario para descontar.`, variant: "destructive" });
                     }
-                } else {
-                     // Only log warning if not handled by specific ingredient deduction (like 'vienesas')
-                     if (!(orderItem.category === 'Completos Vienesas' && vienesasIndividualItems.includes(orderItemNameLower))) {
-                        console.warn(`No inventory mapping defined for product: ${orderItem.name} in category ${orderItem.category}`);
-                     }
+                } else if (vienesaQuantityToDeduct === 0) { // Log warning only if no mapping AND no specific ingredient was deducted
+                     console.warn(`No inventory mapping defined for product: ${orderItem.name} in category ${orderItem.category}`);
                 }
             });
 
@@ -1389,7 +1402,7 @@ export default function TableDetailPage() {
   return (
     <div className="container mx-auto p-4 h-[calc(100vh-theme(spacing.16))] flex flex-col">
        <div className="flex items-center mb-4"> {/* Reduced margin bottom */}
-         <Button variant="outline" size="icon" onClick={() => router.push('/tables')} className="mr-2 h-10 w-10 rounded-md bg-card hover:bg-accent"> {/* Changed variant to outline */}
+         <Button variant="outline" size="icon" onClick={() => router.push('/tables')} className={cn("mr-2 h-10 w-10 rounded-md bg-card hover:bg-accent", buttonVariants({ variant: "outline" }))}> {/* Changed variant to outline */}
            <ArrowLeft className="h-6 w-6" />
          </Button>
          <h1 className="text-3xl font-bold">{getPageTitle()} - Pedido</h1>
@@ -1488,21 +1501,19 @@ export default function TableDetailPage() {
         {/* Menu Sheet Component */}
         <Sheet open={isMenuSheetOpen} onOpenChange={closeMenuSheet}> {/* Use closeMenuSheet */}
             <SheetContent className="w-full sm:max-w-md flex flex-col p-0" side="left"> {/* Removed padding p-0 */}
-                <SheetHeader className="flex-shrink-0 p-4 pb-0"> {/* Added padding back, remove bottom padding */}
-                  <SheetTitle className={cn(
-                      "text-center text-lg font-semibold py-2 rounded-md bg-muted text-muted-foreground"
-                      // Removed border class
-                   )}>
-                    {menuSheetView === 'categories' ? 'Menú' : selectedCategoryForItemsView}
-                  </SheetTitle>
-                </SheetHeader>
+                 <SheetHeader className="flex-shrink-0 p-4 pb-0"> {/* Added padding back, remove bottom padding */}
+                   <SheetTitle className={cn(
+                       "text-center text-lg font-semibold py-2 rounded-md bg-muted text-muted-foreground"
+                       // Removed border class
+                    )}>
+                     {menuSheetView === 'categories' ? 'Menú' : selectedCategoryForItemsView}
+                   </SheetTitle>
+                 </SheetHeader>
                  {/* Make content area flexible and scrollable */}
                  <div className="flex-grow overflow-hidden">
                     {renderMenuSheetContent()} {/* Render categories or items */}
                  </div>
-                 <SheetFooter className="mt-auto p-4 flex-shrink-0 border-t">
-                   <Button onClick={closeMenuSheet} className="w-full">Confirmar</Button>
-                 </SheetFooter>
+                  {/* Removed SheetFooter with Confirm button */}
             </SheetContent>
         </Sheet>
 
@@ -1545,4 +1556,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-
