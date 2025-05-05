@@ -78,6 +78,7 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
   const availableModifications = item.modifications?.filter(mod => {
     const standardMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'];
     const dinamicoMods = ['con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'];
+    const chacareroAsMods = ['con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verde', 'con aji jalapeño', 'sin aji jalapeño'];
 
     // For 'Completos Vienesas' and specific item names 'Dinamico Normal' or 'Dinamico Grande'
     if (item.category === 'Completos Vienesas' && (item.name === 'Dinamico Normal' || item.name === 'Dinamico Grande')) {
@@ -90,6 +91,12 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
         // Keep standard mods + specific dinamico mods for these items
         const allowedDinamicoAsMods = [...standardMods, ...dinamicoMods];
         return allowedDinamicoAsMods.includes(mod);
+    }
+    // For 'Completos As' and specific item names 'Chacarero Normal' or 'Chacarero Grande'
+    else if (item.category === 'Completos As' && (item.name === 'Chacarero Normal' || item.name === 'Chacarero Grande')) {
+        // Keep standard mods + specific chacarero mods for these items
+        const allowedChacareroAsMods = [...standardMods, ...chacareroAsMods];
+        return allowedChacareroAsMods.includes(mod);
     }
     // Standard filter for other Completos Vienesas (excluding dynamic ones)
     else if (item.category === 'Completos Vienesas') {
