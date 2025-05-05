@@ -58,6 +58,7 @@ const predefinedItemNames: string[] = [
   'Lata', // Added from menu
   'Cafe Chico', // Added from menu
   'Cafe Grande', // Added from menu
+  'Vienesas', // Added for deduction
 ];
 
 // Initialize inventory state with predefined items having 0 stock
@@ -93,51 +94,60 @@ export default function InventoryPage() {
           loadedInventory = parsed;
            // Add any predefined items that are missing from storage
            const storedNames = new Set(loadedInventory.map(item => item.name.toLowerCase()));
-           predefinedItemNames.forEach((name, index) => {
+           predefinedItemNames.forEach((name) => { // Removed index from forEach as it's not needed
                if (!storedNames.has(name.toLowerCase())) {
                     // Ensure unique ID generation even if initialInventory wasn't used
-                    const maxId = loadedInventory.reduce((max, item) => Math.max(max, item.id), 0);
+                    const maxId = loadedInventory.reduce((max, item) => Math.max(max, typeof item.id === 'number' ? item.id : 0), 0);
                     const newId = maxId + 1;
                    loadedInventory.push({ id: newId, name: name, stock: 0 });
+                   console.log(`Added missing predefined item: ${name}`);
                }
            });
           console.log("Loaded and merged inventory:", loadedInventory);
         } else {
           console.warn("Invalid inventory data found in localStorage, using initial data.");
-          loadedInventory = initialInventory;
+          loadedInventory = [...initialInventory]; // Use a copy of initialInventory
         }
       } catch (error) {
         console.error("Failed to parse stored inventory:", error);
-        loadedInventory = initialInventory;
+        loadedInventory = [...initialInventory]; // Use a copy of initialInventory
       }
     } else {
       console.log("No inventory found in localStorage, using initial data.");
-      loadedInventory = initialInventory;
+      loadedInventory = [...initialInventory]; // Use a copy of initialInventory
     }
 
-    loadedInventory.sort((a, b) => a.name.localeCompare(b.name));
-    setInventory(loadedInventory);
+    // Ensure all IDs are numbers and unique (important for robustness)
+    const finalInventory = loadedInventory.map((item, index) => ({
+      ...item,
+      id: typeof item.id === 'number' && item.id > 0 ? item.id : Date.now() + index // Ensure valid, unique IDs
+    }));
+
+    // Sort the final processed inventory
+    finalInventory.sort((a, b) => a.name.localeCompare(b.name));
+    setInventory(finalInventory);
     setIsInventoryInitialized(true);
     console.log("Inventory initialization complete.");
 
-  }, [isInventoryInitialized]);
+  }, [isInventoryInitialized]); // isInventoryInitialized ensures this runs only once
 
-  // Save inventory to localStorage whenever it changes
+  // Save inventory to localStorage whenever it changes AFTER initialization
   useEffect(() => {
+    // Only save after the initial load is complete
     if (!isInventoryInitialized) return;
 
     console.log("Saving inventory to localStorage...");
     try {
       localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify(inventory));
-      console.log("Inventory saved.");
+      console.log("Inventory saved:", inventory);
     } catch (error) {
       console.error("Failed to save inventory to localStorage:", error);
       toast({ title: "Error", description: "No se pudo guardar el inventario.", variant: "destructive" });
     }
-  }, [inventory, isInventoryInitialized, toast]); // Added toast to dependency array
+  // Depend only on 'inventory' and 'isInventoryInitialized' for saving
+  }, [inventory, isInventoryInitialized, toast]);
 
-   // No loading state from AuthProvider needed - AuthGuard handles loading
-   // No auth check needed - AuthGuard handles redirection
+   // Loading state while inventory is being initialized from localStorage
    if (!isInventoryInitialized) {
      return <div className="flex items-center justify-center min-h-screen">Cargando Inventario...</div>;
    }
@@ -159,41 +169,49 @@ export default function InventoryPage() {
        return;
      }
 
-     const existingItem = inventory.find(item => item.name.toLowerCase() === newProductData.name.toLowerCase());
+     // Check if item name already exists (case-insensitive)
+     const existingItem = inventory.find(item => item.name.trim().toLowerCase() === newProductData.name.trim().toLowerCase());
      if (existingItem) {
-         toast({ title: "Error", description: `El producto "${newProductData.name}" ya existe.`, variant: "destructive" });
+         toast({ title: "Error", description: `El producto "${newProductData.name.trim()}" ya existe.`, variant: "destructive" });
          return;
      }
 
-     // Ensure unique ID generation even if initialInventory wasn't used
-     const maxId = inventory.reduce((max, item) => Math.max(max, item.id), 0);
+     // Ensure unique ID generation
+     const maxId = inventory.reduce((max, item) => Math.max(max, typeof item.id === 'number' ? item.id : 0), 0);
      const newId = maxId + 1;
 
      const newProduct: InventoryItem = {
        id: newId,
-       name: newProductData.name,
+       name: newProductData.name.trim(), // Trim whitespace
        stock: stockValue,
      };
 
+     // Update state, which triggers the save useEffect
      setInventory(prevInventory => [...prevInventory, newProduct].sort((a, b) => a.name.localeCompare(b.name)));
-     setNewProductData({ name: '', stock: '' });
-     setIsAddProductDialogOpen(false);
+     setNewProductData({ name: '', stock: '' }); // Clear form
+     setIsAddProductDialogOpen(false); // Close dialog
      toast({ title: "Éxito", description: `Producto "${newProduct.name}" añadido con ${newProduct.stock} unidades.` });
    };
 
    const handleDeleteProduct = (idToDelete: number) => {
         const productToDelete = inventory.find(item => item.id === idToDelete);
-        setInventory(prevInventory => prevInventory.filter(item => item.id !== idToDelete));
-        toast({ title: "Eliminado", description: `Producto "${productToDelete?.name}" eliminado.`, variant: "destructive" });
+        if (productToDelete) {
+             // Update state, which triggers the save useEffect
+            setInventory(prevInventory => prevInventory.filter(item => item.id !== idToDelete));
+            toast({ title: "Eliminado", description: `Producto "${productToDelete.name}" eliminado.`, variant: "destructive" });
+        } else {
+            toast({ title: "Error", description: `No se encontró el producto para eliminar.`, variant: "destructive" });
+        }
    };
 
    const handleAdjustStock = (id: number, amount: number) => {
+        // Update state, which triggers the save useEffect
         setInventory(prevInventory =>
             prevInventory.map(item =>
                 item.id === id
                     ? { ...item, stock: Math.max(0, item.stock + amount) } // Ensure stock doesn't go below 0
                     : item
-            )
+            ).sort((a, b) => a.name.localeCompare(b.name)) // Keep sorted after adjustment
         );
         // Removed toast message for stock adjustment
    };
@@ -203,6 +221,7 @@ export default function InventoryPage() {
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Gestión del Inventario</h1>
+        {/* Dialog for adding new products */}
         <Dialog open={isAddProductDialogOpen} onOpenChange={setIsAddProductDialogOpen}>
             <DialogTrigger asChild>
                 <Button>
@@ -242,14 +261,15 @@ export default function InventoryPage() {
                             className="col-span-3"
                             required
                             min="0"
+                            step="1" // Allow only whole numbers for stock
                             placeholder="0"
                         />
                     </div>
                 </div>
                 <DialogFooter>
-                    <DialogClose asChild>
-                        <Button type="button" variant="secondary">Cancelar</Button>
-                    </DialogClose>
+                     <DialogClose asChild>
+                       <Button type="button" variant="secondary">Cancelar</Button>
+                     </DialogClose>
                     <Button type="button" onClick={handleAddProduct}>Añadir Producto</Button>
                 </DialogFooter>
             </DialogContent>
@@ -259,13 +279,14 @@ export default function InventoryPage() {
       <Card>
         <Table>
           <TableHeader>
+             {/* Adjusted table headers */}
             <TableRow>
               <TableHead>Producto</TableHead>
-              {/* Changed header to reflect adjustment actions */}
               <TableHead className="text-center w-48">Cantidad / Ajustar</TableHead>
               <TableHead className="text-right w-20">Eliminar</TableHead>
             </TableRow>
           </TableHeader>
+          {/* Render TableBody only after initialization */}
           {isInventoryInitialized && (
             <TableBody>
                 {inventory.map((item) => (
@@ -289,6 +310,7 @@ export default function InventoryPage() {
                        </div>
                     </TableCell>
                     <TableCell className="text-right">
+                         {/* Delete Confirmation Dialog */}
                         <AlertDialog>
                             <AlertDialogTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive/90" title="Eliminar Producto">
@@ -317,10 +339,11 @@ export default function InventoryPage() {
                     </TableCell>
                 </TableRow>
                 ))}
+                {/* Display message if inventory is empty */}
                 {inventory.length === 0 && (
                 <TableRow>
                     <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
-                    No hay productos en el inventario.
+                    No hay productos en el inventario. Añada algunos usando el botón "+ Añadir Producto".
                     </TableCell>
                 </TableRow>
                 )}
