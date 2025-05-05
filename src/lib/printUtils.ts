@@ -34,19 +34,19 @@ export const formatKitchenOrderReceipt = (
     let itemsHtml = '';
     orderItems.forEach(item => {
         const modificationsText = item.selectedModifications && item.selectedModifications.length > 0
-            ? `<br><small style="margin-left: 10px;">(${item.selectedModifications.join(', ')})</small>`
+            ? `<br><small style="margin-left: 10px; font-weight: bold;">(${item.selectedModifications.join(', ')})</small>` // Make mods bold
             : '';
-        const ingredientsText = item.ingredients && item.ingredients.length > 0
-            ? `<br><small style="margin-left: 10px; color: #555;">[${item.ingredients.join(', ')}]</small>` // Display ingredients
-            : '';
+        // Ingredients removed from kitchen receipt
+        // const ingredientsText = item.ingredients && item.ingredients.length > 0
+        //     ? `<br><small style="margin-left: 10px; color: #555;">[${item.ingredients.join(', ')}]</small>` // Display ingredients
+        //     : '';
 
         itemsHtml += `
       <tr>
-        <td style="vertical-align: top; padding-right: 10px;">${item.quantity}x</td>
+        <td style="vertical-align: top; padding-right: 10px; font-weight: bold;">${item.quantity}x</td>
         <td>
-          ${item.name}
+          <span style="font-weight: bold;">${item.name}</span>
           ${modificationsText}
-          ${ingredientsText}
         </td>
       </tr>
     `;
@@ -144,18 +144,18 @@ export const formatCustomerReceipt = (
     orderItems.forEach(item => {
         const itemTotal = item.finalPrice * item.quantity;
         const modificationsText = item.selectedModifications && item.selectedModifications.length > 0
-            ? `<br><small style="margin-left: 10px;">(${item.selectedModifications.join(', ')})</small>`
+            ? `<br><small style="margin-left: 10px; font-weight: bold;">(${item.selectedModifications.join(', ')})</small>` // Make mods bold
             : '';
         // Ingredients generally aren't shown on customer receipt, but could be added if needed
 
         itemsHtml += `
       <tr>
-        <td>${item.quantity}x</td>
+        <td style="font-weight: bold;">${item.quantity}x</td>
         <td>
-            ${item.name}
+            <span style="font-weight: bold;">${item.name}</span>
              ${modificationsText}
         </td>
-        <td style="text-align: right;">${formatCurrency(itemTotal)}</td>
+        <td style="text-align: right; font-weight: bold;">${formatCurrency(itemTotal)}</td>
       </tr>
     `;
     });
@@ -164,8 +164,8 @@ export const formatCustomerReceipt = (
     if (isDelivery && deliveryInfo && deliveryInfo.deliveryFee > 0) {
         deliveryFeeHtml = `
         <tr>
-            <td colspan="2">Costo Envío</td>
-            <td style="text-align: right;">${formatCurrency(deliveryInfo.deliveryFee)}</td>
+            <td colspan="2" style="font-weight: bold;">Costo Envío</td>
+            <td style="text-align: right; font-weight: bold;">${formatCurrency(deliveryInfo.deliveryFee)}</td>
         </tr>
         `;
     }
@@ -182,7 +182,7 @@ export const formatCustomerReceipt = (
          h2 { font-size: 12pt; }
          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
          th, td { padding: 3px 0; }
-         th { text-align: left; border-bottom: 1px solid #000; }
+         th { text-align: left; border-bottom: 1px solid #000; font-weight: bold;} /* Bold headers */
          .header-info, .footer-info { text-align: center; margin-bottom: 10px; font-size: 9pt; }
          .total-section { margin-top: 10px; padding-top: 5px; border-top: 1px solid #000; }
          .total-row td { font-weight: bold; }

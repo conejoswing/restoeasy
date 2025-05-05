@@ -184,7 +184,7 @@ const mockMenu: MenuItem[] = [
       name: 'Italiano Normal',
       price: 5500,
       category: 'Completos As',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chockut', 'sin chockut', 'con palta', 'sin palta', 'con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verve', 'con aji jalapeño', 'sin aji jalapeño', 'con queso', 'sin queso', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna', 'Queso Fundido', 'Champiñones Salteados'],
       modificationPrices: { 'Agregado Queso': 1000 },
        ingredients: ['Pan Especial Normal', 'Carne As', 'Palta', 'Tomate']
     },
@@ -193,7 +193,7 @@ const mockMenu: MenuItem[] = [
       name: 'Italiano Grande',
       price: 6000,
       category: 'Completos As',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chockut', 'sin chockut', 'con palta', 'sin palta', 'con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verve', 'con aji jalapeño', 'sin aji jalapeño', 'con queso', 'sin queso', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna', 'Queso Fundido', 'Champiñones Salteados'],
       modificationPrices: { 'Agregado Queso': 1000 },
       ingredients: ['Pan Especial Grande', 'Carne As', 'Palta', 'Tomate']
     },
@@ -202,25 +202,25 @@ const mockMenu: MenuItem[] = [
       name: 'Completo Normal',
       price: 6500,
       category: 'Completos As',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chockut', 'sin chockut', 'con palta', 'sin palta', 'con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verve', 'con aji jalapeño', 'sin aji jalapeño', 'con queso', 'sin queso', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna', 'Queso Fundido', 'Champiñones Salteados'],
        modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Pan Especial Normal', 'Carne As', 'Tomate', 'Chucrut', 'Americana']
     },
-    { id: 36, name: 'Completo Grande', price: 7000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Pan Especial Grande', 'Carne As', 'Tomate', 'Chucrut', 'Americana'] },
-    { id: 37, name: 'Palta Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Pan Especial Normal', 'Carne As', 'Palta'] },
-    { id: 38, name: 'Palta Grande', price: 6300, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Pan Especial Grande', 'Carne As', 'Palta'] },
-    { id: 39, name: 'Tomate Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Pan Especial Normal', 'Carne As', 'Tomate'] },
-    { id: 40, name: 'Tomate Grande', price: 6300, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Pan Especial Grande', 'Carne As', 'Tomate'] },
-    { id: 41, name: 'Queso Normal', price: 6000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Pan Especial Normal', 'Carne As', 'Queso'] },
-    { id: 42, name: 'Queso Grande', price: 6500, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Pan Especial Grande', 'Carne As', 'Queso'] },
-    { id: 43, name: 'Solo Carne Normal', price: 5000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Pan Especial Normal', 'Carne As'] },
-    { id: 44, name: 'Solo Carne Grande', price: 5500, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Pan Especial Grande', 'Carne As'] },
+    { id: 36, name: 'Completo Grande', price: 7000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chockut', 'sin chockut', 'con palta', 'sin palta', 'con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verve', 'con aji jalapeño', 'sin aji jalapeño', 'con queso', 'sin queso', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna', 'Queso Fundido', 'Champiñones Salteados'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Pan Especial Grande', 'Carne As', 'Tomate', 'Chucrut', 'Americana'] },
+    { id: 37, name: 'Palta Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chockut', 'sin chockut', 'con palta', 'sin palta', 'con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verve', 'con aji jalapeño', 'sin aji jalapeño', 'con queso', 'sin queso', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna', 'Queso Fundido', 'Champiñones Salteados'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Pan Especial Normal', 'Carne As', 'Palta'] },
+    { id: 38, name: 'Palta Grande', price: 6300, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chockut', 'sin chockut', 'con palta', 'sin palta', 'con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verve', 'con aji jalapeño', 'sin aji jalapeño', 'con queso', 'sin queso', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna', 'Queso Fundido', 'Champiñones Salteados'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Pan Especial Grande', 'Carne As', 'Palta'] },
+    { id: 39, name: 'Tomate Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chockut', 'sin chockut', 'con palta', 'sin palta', 'con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verve', 'con aji jalapeño', 'sin aji jalapeño', 'con queso', 'sin queso', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna', 'Queso Fundido', 'Champiñones Salteados'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Pan Especial Normal', 'Carne As', 'Tomate'] },
+    { id: 40, name: 'Tomate Grande', price: 6300, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chockut', 'sin chockut', 'con palta', 'sin palta', 'con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verve', 'con aji jalapeño', 'sin aji jalapeño', 'con queso', 'sin queso', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna', 'Queso Fundido', 'Champiñones Salteados'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Pan Especial Grande', 'Carne As', 'Tomate'] },
+    { id: 41, name: 'Queso Normal', price: 6000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chockut', 'sin chockut', 'con palta', 'sin palta', 'con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verve', 'con aji jalapeño', 'sin aji jalapeño', 'con queso', 'sin queso', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna', 'Queso Fundido', 'Champiñones Salteados'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Pan Especial Normal', 'Carne As', 'Queso'] },
+    { id: 42, name: 'Queso Grande', price: 6500, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chockut', 'sin chockut', 'con palta', 'sin palta', 'con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verve', 'con aji jalapeño', 'sin aji jalapeño', 'con queso', 'sin queso', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna', 'Queso Fundido', 'Champiñones Salteados'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Pan Especial Grande', 'Carne As', 'Queso'] },
+    { id: 43, name: 'Solo Carne Normal', price: 5000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chockut', 'sin chockut', 'con palta', 'sin palta', 'con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verve', 'con aji jalapeño', 'sin aji jalapeño', 'con queso', 'sin queso', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna', 'Queso Fundido', 'Champiñones Salteados'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Pan Especial Normal', 'Carne As'] },
+    { id: 44, name: 'Solo Carne Grande', price: 5500, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chockut', 'sin chockut', 'con palta', 'sin palta', 'con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verve', 'con aji jalapeño', 'sin aji jalapeño', 'con queso', 'sin queso', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna', 'Queso Fundido', 'Champiñones Salteados'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Pan Especial Grande', 'Carne As'] },
     {
         id: 45,
         name: 'Dinamico Normal',
         price: 6800,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chockut', 'sin chockut', 'con palta', 'sin palta'], // Updated mods
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chockut', 'sin chockut', 'con palta', 'sin palta', 'con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verve', 'con aji jalapeño', 'sin aji jalapeño', 'con queso', 'sin queso', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna', 'Queso Fundido', 'Champiñones Salteados'], // Updated mods
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Pan Especial Normal', 'Carne As', 'Tomate', 'Palta', 'Chucrut', 'Americana']
     },
@@ -229,7 +229,7 @@ const mockMenu: MenuItem[] = [
         name: 'Dinamico Grande',
         price: 7300,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chockut', 'sin chockut', 'con palta', 'sin palta'], // Updated mods
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chockut', 'sin chockut', 'con palta', 'sin palta', 'con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verve', 'con aji jalapeño', 'sin aji jalapeño', 'con queso', 'sin queso', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna', 'Queso Fundido', 'Champiñones Salteados'], // Updated mods
         modificationPrices: { 'Agregado Queso': 1000 },
          ingredients: ['Pan Especial Grande', 'Carne As', 'Tomate', 'Palta', 'Chucrut', 'Americana']
     },
@@ -238,7 +238,7 @@ const mockMenu: MenuItem[] = [
         name: 'Chacarero Normal',
         price: 6700,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verve', 'con aji jalapeño', 'sin aji jalapeño'], // Updated mods
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chockut', 'sin chockut', 'con palta', 'sin palta', 'con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verve', 'con aji jalapeño', 'sin aji jalapeño', 'con queso', 'sin queso', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna', 'Queso Fundido', 'Champiñones Salteados'], // Updated mods
         modificationPrices: { 'Agregado Queso': 1000 },
          ingredients: ['Pan Especial Normal', 'Carne As', 'Tomate', 'Poroto Verde', 'Ají Verde']
     },
@@ -247,7 +247,7 @@ const mockMenu: MenuItem[] = [
         name: 'Chacarero Grande',
         price: 7200,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verve', 'con aji jalapeño', 'sin aji jalapeño'], // Updated mods
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chockut', 'sin chockut', 'con palta', 'sin palta', 'con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verve', 'con aji jalapeño', 'sin aji jalapeño', 'con queso', 'sin queso', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna', 'Queso Fundido', 'Champiñones Salteados'], // Updated mods
         modificationPrices: { 'Agregado Queso': 1000 },
          ingredients: ['Pan Especial Grande', 'Carne As', 'Tomate', 'Poroto Verde', 'Ají Verde']
     },
@@ -256,7 +256,7 @@ const mockMenu: MenuItem[] = [
         name: 'Napolitano Normal',
         price: 6900,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con queso', 'sin queso', 'con tomate', 'sin tomate', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna'], // Updated mods
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chockut', 'sin chockut', 'con palta', 'sin palta', 'con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verve', 'con aji jalapeño', 'sin aji jalapeño', 'con queso', 'sin queso', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna', 'Queso Fundido', 'Champiñones Salteados'], // Updated mods
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Pan Especial Normal', 'Carne As', 'Queso', 'Tomate', 'Orégano', 'Aceituna']
     },
@@ -265,7 +265,7 @@ const mockMenu: MenuItem[] = [
         name: 'Napolitano Grande',
         price: 7400,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con queso', 'sin queso', 'con tomate', 'sin tomate', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna'], // Updated mods
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chockut', 'sin chockut', 'con palta', 'sin palta', 'con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verve', 'con aji jalapeño', 'sin aji jalapeño', 'con queso', 'sin queso', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna', 'Queso Fundido', 'Champiñones Salteados'], // Updated mods
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Pan Especial Grande', 'Carne As', 'Queso', 'Tomate', 'Orégano', 'Aceituna']
     },
@@ -473,7 +473,7 @@ const mockMenu: MenuItem[] = [
         category: 'Promo Churrasco',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-        ingredients: ['Pan Marraqueta', 'Carne Churrasco', 'Tomate', 'Chucrut', 'Americana', 'Bebida Lata']
+         ingredients: ['Pan Marraqueta', 'Carne Churrasco', 'Tomate', 'Chucrut', 'Americana', 'Bebida Lata']
     },
     {
         id: 26,
@@ -482,7 +482,7 @@ const mockMenu: MenuItem[] = [
         category: 'Promo Churrasco',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-        ingredients: ['Pan Marraqueta', 'Carne Churrasco', 'Palta', 'Tomate', 'Bebida Lata']
+         ingredients: ['Pan Marraqueta', 'Carne Churrasco', 'Palta', 'Tomate', 'Bebida Lata']
     },
     { id: 73, name: 'Chacarero', price: 7000, category: 'Promo Churrasco', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Pan Marraqueta', 'Carne Churrasco', 'Tomate', 'Poroto Verde', 'Ají Verde', 'Bebida Lata'] }, // Removed Porotos Verdes
     { id: 74, name: 'Queso', price: 6500, category: 'Promo Churrasco', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Pan Marraqueta', 'Carne Churrasco', 'Queso', 'Bebida Lata'] },
@@ -670,11 +670,11 @@ const inventoryDeductionMap: Record<string, Record<string, number>> = {
      'Queso Champiñon Grande': {'Pan Especial Grande': 1},
 
      // --- Fajitas --- (Assuming 'Tortilla', 'Carne Fajita' not tracked)
-     'Italiana (Fajitas)': {},
-     'Brasileño (Fajitas)': {},
-     'Chacarero (Fajitas)': {},
-     'Americana (Fajitas)': {},
-     'Primavera (Fajitas)': {},
+     'Italiana': {},
+     'Brasileño': {},
+     'Chacarero': {},
+     'Americana': {},
+     'Primavera': {},
      'Golosasa': {},
      '4 Ingredientes': {},
      '6 Ingredientes': {},
@@ -765,8 +765,9 @@ const inventoryDeductionMap: Record<string, Record<string, number>> = {
 const getDeductionKey = (item: OrderItem): string => {
     // Prioritize specific names within categories if needed
     if (item.category === 'Completos As') return `${item.name} (Completos As)`;
-    if (item.category === 'Fajitas') return `${item.name} (Fajitas)`;
-    if (item.category === 'Hamburguesas') return `${item.name} (Hamburguesas)`;
+    if (item.category === 'Fajitas') return `${item.name}`; // Use name directly for Fajitas
+    if (item.category === 'Hamburguesas') return `${item.name}`; // Use name directly
+    if (item.category === 'Churrascos') return `${item.name}`; // Use name directly
     if (item.category === 'Promo Churrasco') return `${item.name} (Promo Churrasco)`;
     if (item.category === 'Promo Mechada') return `${item.name} (Promo Mechada)`;
     // Default to item name
@@ -928,13 +929,13 @@ export default function TableDetailPage() {
          const deliveryInfoKey = `${DELIVERY_INFO_STORAGE_PREFIX}${tableIdParam}`;
          if (isDelivery && deliveryInfo) {
             try {
-                sessionStorage.setItem(deliveryInfoKey, JSON.stringify(deliveryInfo));
+                localStorage.setItem(deliveryInfoKey, JSON.stringify(deliveryInfo)); // Use localStorage for persistence
                 console.log(`Saved delivery info for ${tableIdParam}:`, deliveryInfo);
             } catch (e) {
                  console.error(`Error saving delivery info for ${tableIdParam}:`, e);
             }
          } else if (isDelivery && !deliveryInfo) {
-            sessionStorage.removeItem(deliveryInfoKey); // Clear if no delivery info
+            localStorage.removeItem(deliveryInfoKey); // Clear from localStorage if no info
              console.log(`Cleared delivery info for ${tableIdParam}.`);
          }
 
@@ -1259,7 +1260,7 @@ export default function TableDetailPage() {
             setDeliveryInfo(null);
             // Also clear delivery info from storage explicitly
              const deliveryInfoKey = `${DELIVERY_INFO_STORAGE_PREFIX}${tableIdParam}`;
-             sessionStorage.removeItem(deliveryInfoKey);
+             localStorage.removeItem(deliveryInfoKey); // Use localStorage
               console.log(`Cleared delivery info for ${tableIdParam} after payment.`);
         }
 
@@ -1279,7 +1280,7 @@ export default function TableDetailPage() {
        setIsDeliveryDialogOpen(false); // Close dialog
        // Save immediately to storage (will also be saved by the main useEffect)
        const deliveryInfoKey = `${DELIVERY_INFO_STORAGE_PREFIX}${tableIdParam}`;
-       sessionStorage.setItem(deliveryInfoKey, JSON.stringify(info));
+       localStorage.setItem(deliveryInfoKey, JSON.stringify(info)); // Use localStorage
        toast({ title: "Datos de Envío Guardados", description: `Costo de envío: ${formatCurrency(info.deliveryFee)}`, variant: "default"});
    };
 
@@ -1430,11 +1431,6 @@ export default function TableDetailPage() {
                                                  <div>
                                                     <p className="font-medium">{item.name}</p>
                                                     {/* Do not show price here - removed */}
-                                                    {item.ingredients && (
-                                                         <p className="text-xs text-muted-foreground mt-1">
-                                                            [{item.ingredients.join(', ')}]
-                                                         </p>
-                                                    )}
                                                   </div>
                                                  <PlusCircle className="h-5 w-5 text-primary" />
                                              </CardContent>
@@ -1474,11 +1470,6 @@ export default function TableDetailPage() {
                                            ({item.selectedModifications.join(', ')})
                                         </p>
                                      )}
-                                    {item.ingredients && (
-                                         <p className="text-xs text-muted-foreground ml-2 mb-2 font-bold"> {/* Make ingredients bold */}
-                                            [{item.ingredients.join(', ')}]
-                                         </p>
-                                    )}
                                     <div className="flex items-center justify-end gap-2">
                                          <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => decreaseQuantity(item.orderItemId)}>
                                              <MinusCircle className="h-4 w-4" />
@@ -1526,11 +1517,6 @@ export default function TableDetailPage() {
                                             ({item.selectedModifications.join(', ')})
                                          </p>
                                       )}
-                                        {item.ingredients && (
-                                             <p className="text-xs text-muted-foreground ml-4 font-bold"> {/* Make ingredients bold */}
-                                                [{item.ingredients.join(', ')}]
-                                             </p>
-                                        )}
                                   </div>
                               ))
                            )}
