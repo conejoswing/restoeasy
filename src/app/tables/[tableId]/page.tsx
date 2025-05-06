@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -288,7 +289,7 @@ const mockMenu: MenuItem[] = [
     { id: 108, name: 'Primavera', price: 9000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Palta', 'Choclo', 'Tomate'] },
     { id: 109, name: 'Golosasa', price: 10500, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Queso', 'Champiñones', 'Papas Hilo', 'Pimentón'] },
     { id: 110, name: '4 Ingredientes', price: 11000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno'] }, // Updated ingredients
-    { id: 111, name: '6 Ingredientes', price: 12000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno'] },
+    { id: 111, name: '6 Ingredientes', price: 12000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', '(Elegir 6)'] },
     // --- Hamburguesas --- (Updated Modifications)
     {
         id: 17,
@@ -748,7 +749,7 @@ function ProductsPage({ onProductSelect }: { onProductSelect: (product: MenuItem
                 <Button
                     variant="outline"
                     onClick={() => { setSelectedCategory(null); setSearchTerm(''); }}
-                    className="mb-4 ml-4"
+                    className="mb-4 ml-4 bg-card hover:bg-accent"
                 >
                     <ArrowLeft className="mr-2 h-4 w-4" /> Volver a Categorías
                 </Button>
@@ -909,9 +910,7 @@ export default function TableDetailPage() {
         }
          // Pan Marraqueta para Churrascos y Promos
         if (orderItem.category === 'Churrascos' || orderItem.category.startsWith('Promo Churrasco') || orderItem.category.startsWith('Promo Mechada')) {
-            // For promo items, if they are "2x" they should deduct 2, otherwise 1.
-            // For non-promo items in these categories, deduct 1.
-            const quantityPerItem = (orderItem.category.startsWith('Promo') && orderItem.name.startsWith('2x ')) ? 2 : 1;
+            const quantityPerItem = 1; // Each promo item is 1 unit now
             itemsToDeduct.push({ name: 'Pan de marraqueta', quantity: orderItem.quantity * quantityPerItem });
         }
 
@@ -1281,7 +1280,7 @@ export default function TableDetailPage() {
       <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-6 overflow-hidden">
 
         {/* Current Order Section */}
-        <Card className="flex flex-col">
+        <Card className="flex flex-col h-full"> {/* Added h-full */}
           <CardHeader>
             <CardTitle className="text-xl">Pedido Actual</CardTitle>
           </CardHeader>
@@ -1355,7 +1354,7 @@ export default function TableDetailPage() {
 
 
         {/* Pending Order Section */}
-        <Card className="flex flex-col">
+        <Card className="flex flex-col h-full">  {/* Added h-full */}
           <CardHeader>
             <CardTitle className="text-xl">Pedidos Pendientes de Pago</CardTitle>
              {isDelivery && deliveryInfo && (
@@ -1449,4 +1448,5 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
 
