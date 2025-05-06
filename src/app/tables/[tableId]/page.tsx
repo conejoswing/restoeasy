@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import * as React from 'react';
@@ -708,10 +706,10 @@ const inventoryDeductionMap: Record<string, Record<string, number>> = {
      'Papas Fritas Mediana': {},
      'Papas Fritas Grande': {},
      'Papas Fritas XL': {},
-     'Salchipapas': {'Vienesa': 1}, // Example: Deduct Vienesas for Salchipapas
+     'Salchipapas': {'Vienesas': 1}, // Example: Deduct Vienesas for Salchipapas
      'Chorrillana 2': {},
      'Chorrillana 4': {},
-     'Box Cami': {'Vienesa': 1}, // Example: Deduct Vienesas for Box Cami
+     'Box Cami': {'Vienesas': 1}, // Example: Deduct Vienesas for Box Cami
 
 
      // --- Promo Churrasco --- (Multiply deduction by 1 for single items)
@@ -1468,7 +1466,8 @@ export default function TableDetailPage() {
                     <CardTitle>Pedido Actual</CardTitle>
                 </CardHeader>
                 <CardContent className="p-0">
-                    <ScrollArea className="h-[400px] px-4"> {/* Added padding here */}
+                    {/* Reduced height for ScrollArea */}
+                    <ScrollArea className="h-[300px] px-4">
                          {currentOrder.length === 0 ? (
                             <p className="text-muted-foreground text-center py-4 font-bold">Añade productos desde el menú.</p>
                          ) : (
@@ -1515,7 +1514,8 @@ export default function TableDetailPage() {
                      <CardTitle>Pedidos Pendientes de Pago</CardTitle>
                  </CardHeader>
                   <CardContent className="p-0">
-                      <ScrollArea className="h-[400px] px-4">
+                      {/* Reduced height for ScrollArea */}
+                      <ScrollArea className="h-[300px] px-4">
                            {pendingOrder.length === 0 ? (
                               <p className="text-muted-foreground text-center py-4 font-bold">No hay pedidos pendientes.</p>
                            ) : (
@@ -1587,6 +1587,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-
-
-
