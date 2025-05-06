@@ -289,7 +289,7 @@ const mockMenu: MenuItem[] = [
     { id: 108, name: 'Primavera', price: 9000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Palta', 'Choclo', 'Tomate'] },
     { id: 109, name: 'Golosasa', price: 10500, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Queso', 'Champiñones', 'Papas Hilo', 'Pimentón'] },
     { id: 110, name: '4 Ingredientes', price: 11000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno'] }, // Updated ingredients
-    { id: 111, name: '6 Ingredientes', price: 12000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', '(Elegir 6)'] },
+    { id: 111, name: '6 Ingredientes', price: 12000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno'] },
     // --- Hamburguesas --- (Updated Modifications)
     {
         id: 17,
@@ -910,7 +910,7 @@ export default function TableDetailPage() {
         }
          // Pan Marraqueta para Churrascos y Promos
         if (orderItem.category === 'Churrascos' || orderItem.category.startsWith('Promo Churrasco') || orderItem.category.startsWith('Promo Mechada')) {
-            const quantityPerItem = 1; // Each promo item is 1 unit now
+            const quantityPerItem = orderItem.name.startsWith('2x') ? 2 : 1;
             itemsToDeduct.push({ name: 'Pan de marraqueta', quantity: orderItem.quantity * quantityPerItem });
         }
 
@@ -1284,7 +1284,7 @@ export default function TableDetailPage() {
           <CardHeader>
             <CardTitle className="text-xl">Pedido Actual</CardTitle>
           </CardHeader>
-          <ScrollArea className="flex-grow p-0 min-h-0"> {/* Added min-h-0 */}
+          <ScrollArea className="flex-grow p-0 min-h-0 overflow-y-auto"> {/* Added overflow-y-auto */}
              <CardContent className="p-4">
                 {currentOrder.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">Añada productos del menú.</p>
@@ -1364,7 +1364,7 @@ export default function TableDetailPage() {
                  </CardDescription>
              )}
           </CardHeader>
-          <ScrollArea className="flex-grow p-0 min-h-0"> {/* Added min-h-0 */}
+          <ScrollArea className="flex-grow p-0 min-h-0 overflow-y-auto"> {/* Added overflow-y-auto */}
             <CardContent className="p-4">
                 {!pendingOrder || pendingOrder.items.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">No hay pedidos pendientes de pago.</p>
@@ -1448,5 +1448,6 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
 
 
