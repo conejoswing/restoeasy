@@ -287,7 +287,7 @@ const mockMenu: MenuItem[] = [
     { id: 108, name: 'Primavera', price: 9000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Palta', 'Choclo', 'Tomate'] },
     { id: 109, name: 'Golosasa', price: 10500, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Queso', 'Champiñones', 'Papas Hilo', 'Pimentón'] },
     { id: 110, name: '4 Ingredientes', price: 11000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno'] }, // Updated ingredients
-    { id: 111, name: '6 Ingredientes', price: 12000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'Queso', 'Champiñones'] }, // Choose your 6
+    { id: 111, name: '6 Ingredientes', price: 12000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', '(Elegir 6)'] }, // Reverted
     // --- Hamburguesas --- (Updated Modifications)
     {
         id: 17,
@@ -849,7 +849,7 @@ export default function TableDetailPage() {
         }
         // Pan Marraqueta para Churrascos y Promos
         if (orderItem.category === 'Churrascos' || orderItem.category.startsWith('Promo Churrasco') || orderItem.category.startsWith('Promo Mechada')) {
-            const quantityPerItem = orderItem.category.startsWith('Promo') && orderItem.name.startsWith('2x') ? 2 : 1;
+            const quantityPerItem = orderItem.name.startsWith('2x') ? 2 : 1; // Check if item name implies double quantity
             itemsToDeduct.push({ name: 'Pan de marraqueta', quantity: orderItem.quantity * quantityPerItem });
         }
          // Fajitas (Placeholder - assuming no specific inventory item for "fajita bread" yet)
@@ -1133,7 +1133,7 @@ export default function TableDetailPage() {
     const customerReceiptHtml = formatCustomerReceipt(pendingOrder.items, pendingOrderTotal, paymentMethod, tableIdParam, deliveryInfo);
     printHtml(customerReceiptHtml);
 
-    toast({ title: "Pago Realizado", description: `Pago de ${formatCurrency(pendingOrderTotal)} con ${paymentMethod} completado. Boleta impresa.` });
+    toast({ title: "Pago Realizado", description: `Pago de ${formatCurrencyDisplay(pendingOrderTotal)} con ${paymentMethod} completado. Boleta impresa.` });
 
     // Clear pending order and delivery info (if applicable)
     setPendingOrder(null);
