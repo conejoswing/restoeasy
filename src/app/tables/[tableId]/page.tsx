@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -255,7 +256,7 @@ const mockMenu: MenuItem[] = [
         name: 'Chacarero Grande',
         price: 7200,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verde', 'con aji jalapeño', 'sin aji jalapeño'], // Updated mods
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verve', 'con aji jalapeño', 'sin aji jalapeño'], // Updated mods
         modificationPrices: { 'Agregado Queso': 1000 },
          ingredients: ['Pan Especial Grande', 'Carne As', 'Tomate', 'Poroto Verde', 'Ají Verde']
     },
@@ -704,6 +705,29 @@ export default function TableDetailPage() {
                   console.warn(`Ingrediente "${ingredientName}" para "${orderItem.name}" no encontrado en el inventario.`);
               }
           });
+
+          // Specific deduction for 'Vienesas' based on item name and category
+          if (menuItem.category === 'Completos Vienesas') {
+            const vienesaItemIndex = inventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
+            if (vienesaItemIndex !== -1) {
+                let quantityToDeduct = 0;
+                if (menuItem.name.toLowerCase().includes(' normal') || menuItem.name.toLowerCase().includes(' chico')) {
+                    quantityToDeduct = orderItem.quantity; // Deduct 1 per item
+                } else if (menuItem.name.toLowerCase().includes(' grande')) {
+                     quantityToDeduct = orderItem.quantity * 2; // Deduct 2 per item
+                }
+
+                if (quantityToDeduct > 0) {
+                   inventory[vienesaItemIndex].stock = Math.max(
+                       0,
+                       inventory[vienesaItemIndex].stock - quantityToDeduct
+                   );
+                    console.log(`Deducted ${quantityToDeduct} of Vienesas for ${orderItem.name}. New stock: ${inventory[vienesaItemIndex].stock}`);
+                }
+            } else {
+                 console.warn(`Ingrediente "Vienesas" no encontrado en el inventario para deducir.`);
+            }
+          }
       });
 
       // Save updated inventory
@@ -1144,13 +1168,10 @@ export default function TableDetailPage() {
                                     <CardContent className="p-3 pt-0 flex-grow">
                                         <p className="text-sm text-muted-foreground">
                                            Precio: {formatCurrency(item.price)}
+                                           {item.ingredients && (
+                                                <span className="text-xs italic ml-2">({item.ingredients.join(', ')})</span>
+                                            )}
                                         </p>
-                                         {/* Optional: Display ingredients if needed here */}
-                                        {/* {item.ingredients && (
-                                            <p className="text-xs text-muted-foreground mt-1">
-                                                Ingredientes: {item.ingredients.join(', ')}
-                                            </p>
-                                        )} */}
                                     </CardContent>
                                     <CardFooter className="p-3 pt-0">
                                     {item.modifications && item.modifications.length > 0 ? (
@@ -1186,9 +1207,7 @@ export default function TableDetailPage() {
                         )}
                     </ScrollArea>
                      {/* Footer with close button - no border if content is scrollable to edge */}
-                    <SheetFooter className="p-4 border-t">
-                        <Button onClick={handleCloseMenuSheet} variant="outline">Cerrar Menú</Button>
-                    </SheetFooter>
+                    {/* Removed SheetFooter and Close button */}
                 </SheetContent>
             </Sheet>
         </div>
@@ -1335,4 +1354,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-
