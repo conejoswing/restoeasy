@@ -120,7 +120,7 @@ const mockMenu: MenuItem[] = [
         category: 'Completos Vienesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-        ingredients: ['Pan Especial Normal', 'Vienesa', 'Tomate', 'Chucrut', 'Americana']
+        ingredients: ['Tomate', 'Chucrut', 'Americana'] // Updated ingredients
     },
     {
         id: 29,
@@ -688,6 +688,34 @@ export default function TableDetailPage() {
           if (!menuItem || !menuItem.ingredients) return; // No ingredients to deduct
 
           menuItem.ingredients.forEach(ingredientName => {
+              // Skip specific main ingredients that are not meant to be deducted individually here
+              // e.g. 'Pan Especial Normal', 'Vienesa', 'Carne As', 'Tortilla', etc. are handled by product name if needed
+              const mainProductIngredients = [
+                  'pan especial normal', 'pan especial grande', 'pan de marraqueta',
+                  'pan de hamburguesa normal', 'pan de hamburguesa grande',
+                  'vienesa', 'vienesa x2', 'carne as', 'carne fajita', 'carne hamburguesa', 'carne hamburguesa x2',
+                  'carne hamburguesa x3', 'carne hamburguesa x4', 'carne churrasco', 'carne mechada', 'tortilla',
+                  'papas fritas', // Base "Papas Fritas" could be an inventory item for composed dishes
+                  'bebida lata' // if "Bebida Lata" is an inventory item
+              ];
+              if (mainProductIngredients.includes(ingredientName.toLowerCase())) {
+                  // Check if this main ingredient should be deducted based on product name
+                  const inventoryItemIndex = inventory.findIndex(
+                      invItem => invItem.name.toLowerCase() === ingredientName.toLowerCase()
+                  );
+                   if (inventoryItemIndex !== -1) {
+                       inventory[inventoryItemIndex].stock = Math.max(
+                           0,
+                           inventory[inventoryItemIndex].stock - orderItem.quantity
+                       );
+                       console.log(`Deducted ${orderItem.quantity} of ${ingredientName} for ${orderItem.name}. New stock: ${inventory[inventoryItemIndex].stock}`);
+                   } else {
+                       console.warn(`Ingrediente de producto principal "${ingredientName}" no encontrado en inventario para ${orderItem.name}.`);
+                   }
+                  return; // Skip further processing for these main product ingredients
+              }
+
+
               const inventoryItemIndex = inventory.findIndex(
                   invItem => invItem.name.toLowerCase() === ingredientName.toLowerCase()
               );
