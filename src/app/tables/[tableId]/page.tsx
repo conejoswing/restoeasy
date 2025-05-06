@@ -25,6 +25,14 @@ import {
   SheetFooter,
   SheetTrigger, // Import SheetTrigger
 } from '@/components/ui/sheet';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"; // Import Table components
 import { Utensils, PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard, ChevronRight, Banknote, Landmark, Home, Phone, User, DollarSign, PackageSearch } from 'lucide-react'; // Added more icons
 import {useToast} from '@/hooks/use-toast';
 import ModificationDialog from '@/components/app/modification-dialog';
@@ -220,7 +228,7 @@ const mockMenu: MenuItem[] = [
         name: 'Dinamico Normal',
         price: 6800,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], // Updated mods
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'], // Updated mods
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Pan Especial Normal', 'Carne As', 'Tomate', 'Palta', 'Chucrut', 'Americana']
     },
@@ -229,7 +237,7 @@ const mockMenu: MenuItem[] = [
         name: 'Dinamico Grande',
         price: 7300,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], // Updated mods
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'], // Updated mods
         modificationPrices: { 'Agregado Queso': 1000 },
          ingredients: ['Pan Especial Grande', 'Carne As', 'Tomate', 'Palta', 'Chucrut', 'Americana']
     },
@@ -238,7 +246,7 @@ const mockMenu: MenuItem[] = [
         name: 'Chacarero Normal',
         price: 6700,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], // Updated mods
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verde', 'con aji jalapeño', 'sin aji jalapeño'], // Updated mods
         modificationPrices: { 'Agregado Queso': 1000 },
          ingredients: ['Pan Especial Normal', 'Carne As', 'Tomate', 'Poroto Verde', 'Ají Verde']
     },
@@ -247,7 +255,7 @@ const mockMenu: MenuItem[] = [
         name: 'Chacarero Grande',
         price: 7200,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], // Updated mods
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verde', 'con aji jalapeño', 'sin aji jalapeño'], // Updated mods
         modificationPrices: { 'Agregado Queso': 1000 },
          ingredients: ['Pan Especial Grande', 'Carne As', 'Tomate', 'Poroto Verde', 'Ají Verde']
     },
@@ -256,7 +264,7 @@ const mockMenu: MenuItem[] = [
         name: 'Napolitano Normal',
         price: 6900,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], // Updated mods
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con queso', 'sin queso', 'con tomate', 'sin tomate', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna'], // Updated mods
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Pan Especial Normal', 'Carne As', 'Queso', 'Tomate', 'Orégano', 'Aceituna']
     },
@@ -265,7 +273,7 @@ const mockMenu: MenuItem[] = [
         name: 'Napolitano Grande',
         price: 7400,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], // Updated mods
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con queso', 'sin queso', 'con tomate', 'sin tomate', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna'], // Updated mods
         modificationPrices: { 'Agregado Queso': 1000 },
          ingredients: ['Pan Especial Grande', 'Carne As', 'Queso', 'Tomate', 'Orégano', 'Aceituna']
     },
@@ -638,167 +646,693 @@ const sortMenu = (menu: MenuItem[]): MenuItem[] => {
 };
 
 
-export default function ProductsPage() {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [menu, setMenu] = useState<MenuItem[]>(sortMenu(mockMenu)); // State for menu items
-  const [isEditPriceDialogOpen, setIsEditPriceDialogOpen] = useState(false); // Renamed state for clarity
-  const [editingProduct, setEditingProduct] = useState<MenuItem | null>(null);
-  const [newPrice, setNewPrice] = useState('');
-  const { toast } = useToast(); // Toast hook
+export default function TableDetailPage() {
+  const params = useParams();
+  const tableIdParam = params.tableId as string; // Assuming tableId is always a string from URL
+  const router = useRouter();
+  const { toast } = useToast();
 
-  // Format currency
+  const [order, setOrder] = useState<OrderItem[]>([]);
+  const [pendingOrder, setPendingOrder] = useState<OrderItem[]>([]); // For items printed to kitchen but not yet paid
+  const [isModificationDialogOpen, setIsModificationDialogOpen] = useState(false);
+  const [itemToModify, setItemToModify] = useState<MenuItem | null>(null);
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [isMenuSheetOpen, setIsMenuSheetOpen] = useState(false); // State for menu sheet
+  const [searchTerm, setSearchTerm] = useState(''); // State for menu search
+  const [deliveryInfo, setDeliveryInfo] = useState<DeliveryInfo | null>(null); // State for delivery info
+  const [isDeliveryDialogOpen, setIsDeliveryDialogOpen] = useState(false); // State for delivery dialog
+  const [currentMenuCategory, setCurrentMenuCategory] = useState<string | null>(null); // State for category drilldown
+  const [isInitialized, setIsInitialized] = useState(false); // Track if state has been loaded from sessionStorage
+
+
+  const isDelivery = tableIdParam === 'delivery';
+
+  // --- Helper to format currency (moved to top for wider use if needed) ---
   const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
+      return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
   };
 
-   // No loading or auth check needed - AuthGuard handles this
 
-   // Filter products based on search term
-   const filteredProducts = menu.filter(product =>
-     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     product.category.toLowerCase().includes(searchTerm.toLowerCase())
-   );
+  // --- Deduct ingredients from inventory ---
+  const deductFromInventory = (itemsToDeduct: OrderItem[]) => {
+      const storedInventory = localStorage.getItem('restaurantInventory');
+      if (!storedInventory) {
+          console.warn("Inventario no encontrado para deducción.");
+          return; // No inventory to deduct from
+      }
 
-   const openEditPriceDialog = (product: MenuItem) => {
-     setEditingProduct(product);
-     setNewPrice(product.price.toString()); // Pre-fill with current price
-     setIsEditPriceDialogOpen(true); // Open price edit dialog
+      let inventory: InventoryItem[] = JSON.parse(storedInventory);
+
+      itemsToDeduct.forEach(orderItem => {
+          // Find the original menu item to get its ingredients list
+          const menuItem = mockMenu.find(m => m.id === orderItem.id);
+          if (!menuItem || !menuItem.ingredients) return; // No ingredients to deduct
+
+          menuItem.ingredients.forEach(ingredientName => {
+              const inventoryItemIndex = inventory.findIndex(
+                  invItem => invItem.name.toLowerCase() === ingredientName.toLowerCase()
+              );
+
+              if (inventoryItemIndex !== -1) {
+                  // Deduct based on order item quantity
+                  inventory[inventoryItemIndex].stock = Math.max(
+                      0,
+                      inventory[inventoryItemIndex].stock - orderItem.quantity
+                  );
+                   console.log(`Deducted ${orderItem.quantity} of ${ingredientName} for ${orderItem.name}. New stock: ${inventory[inventoryItemIndex].stock}`);
+              } else {
+                  console.warn(`Ingrediente "${ingredientName}" para "${orderItem.name}" no encontrado en el inventario.`);
+              }
+          });
+      });
+
+      // Save updated inventory
+      localStorage.setItem('restaurantInventory', JSON.stringify(inventory));
+      console.log("Inventario actualizado después de la deducción.");
+  };
+
+
+  // --- Effect to load state from sessionStorage on component mount ---
+   useEffect(() => {
+       if (!tableIdParam || isInitialized) return; // Don't run if no tableId or already initialized
+
+       console.log(`Initializing state for table: ${tableIdParam}`);
+
+       // Load current order
+       const storedOrder = sessionStorage.getItem(`table-${tableIdParam}-order`);
+       if (storedOrder) {
+           try {
+               const parsedOrder = JSON.parse(storedOrder);
+               if (Array.isArray(parsedOrder)) {
+                   setOrder(parsedOrder);
+                   console.log(`Loaded current order for table ${tableIdParam}:`, parsedOrder);
+               }
+           } catch (e) {
+                console.error(`Error parsing current order for table ${tableIdParam}:`, e);
+                sessionStorage.removeItem(`table-${tableIdParam}-order`); // Clear corrupted data
+           }
+       }
+
+       // Load pending order
+       const storedPendingOrderData = sessionStorage.getItem(`table-${tableIdParam}-pending-order`);
+       if (storedPendingOrderData) {
+           try {
+               const parsedPendingOrder: PendingOrderData = JSON.parse(storedPendingOrderData);
+               if (parsedPendingOrder && Array.isArray(parsedPendingOrder.items)) {
+                   setPendingOrder(parsedPendingOrder.items);
+                    // Also load delivery info if it was part of the pending order
+                   if (isDelivery && parsedPendingOrder.deliveryInfo) {
+                       setDeliveryInfo(parsedPendingOrder.deliveryInfo);
+                       console.log(`Loaded delivery info with pending order for table ${tableIdParam}:`, parsedPendingOrder.deliveryInfo);
+                   }
+                   console.log(`Loaded pending order for table ${tableIdParam}:`, parsedPendingOrder.items);
+               }
+           } catch (e) {
+                console.error(`Error parsing pending order for table ${tableIdParam}:`, e);
+                sessionStorage.removeItem(`table-${tableIdParam}-pending-order`);// Clear corrupted data
+           }
+       }
+
+       // Load delivery info separately if it's a delivery table and no pending order loaded it
+       if (isDelivery && !deliveryInfo) { // Only if not already set by pending order
+           const storedDelivery = sessionStorage.getItem(`deliveryInfo-${tableIdParam}`);
+           if (storedDelivery) {
+                try {
+                    const parsedDelivery = JSON.parse(storedDelivery);
+                    setDeliveryInfo(parsedDelivery);
+                    console.log(`Loaded delivery info for table ${tableIdParam}:`, parsedDelivery);
+                } catch (e) {
+                    console.error(`Error parsing delivery info for table ${tableIdParam}:`, e);
+                    sessionStorage.removeItem(`deliveryInfo-${tableIdParam}`);
+                }
+           } else if (isDelivery && !isDeliveryDialogOpen) { // If delivery and no info, open dialog
+                console.log(`No delivery info for ${tableIdParam}, opening dialog.`);
+               //  setIsDeliveryDialogOpen(true); // Open dialog if no info and it's a delivery table
+           }
+       }
+        // If it's a delivery table and no delivery info is present (neither from pending nor standalone storage),
+        // and the dialog is not already open, then open it.
+        if (isDelivery && !deliveryInfo && !sessionStorage.getItem(`deliveryInfo-${tableIdParam}`) && !sessionStorage.getItem(`table-${tableIdParam}-pending-order`)) {
+            console.log(`Delivery table ${tableIdParam} has no info, opening dialog.`);
+            setIsDeliveryDialogOpen(true);
+        }
+
+
+       setIsInitialized(true); // Mark as initialized
+       console.log(`Initialization complete for ${tableIdParam}.`);
+
+   }, [tableIdParam, isInitialized, isDelivery, deliveryInfo]); // Added deliveryInfo to dependencies
+
+
+  // --- Effect to save state changes to sessionStorage and update table status ---
+  useEffect(() => {
+      if (!tableIdParam || !isInitialized) return; // Don't save if no tableId or not initialized
+
+      console.log(`Saving state for table: ${tableIdParam}`);
+
+      // Save current order
+      if (order.length > 0) {
+          sessionStorage.setItem(`table-${tableIdParam}-order`, JSON.stringify(order));
+          console.log(`Saved current order for table ${tableIdParam}:`, order);
+      } else {
+          sessionStorage.removeItem(`table-${tableIdParam}-order`); // Clean up if order is empty
+          console.log(`Removed current order for table ${tableIdParam} as it is empty.`);
+      }
+
+      // Save pending order (includes delivery info if applicable)
+      const pendingOrderData: PendingOrderData = {
+          items: pendingOrder,
+          deliveryInfo: isDelivery ? deliveryInfo : null,
+          totalAmount: calculateTotal(pendingOrder) + (isDelivery && deliveryInfo ? deliveryInfo.deliveryFee : 0)
+      };
+      if (pendingOrder.length > 0 || (isDelivery && deliveryInfo)) { // Save if pending items OR delivery info exists
+          sessionStorage.setItem(`table-${tableIdParam}-pending-order`, JSON.stringify(pendingOrderData));
+          console.log(`Saved pending order data for table ${tableIdParam}:`, pendingOrderData);
+      } else {
+          sessionStorage.removeItem(`table-${tableIdParam}-pending-order`);
+          console.log(`Removed pending order data for table ${tableIdParam} as it is empty.`);
+      }
+
+
+      // Save delivery info (specifically for delivery tables, can be redundant if always with pending order)
+       if (isDelivery && deliveryInfo) {
+           sessionStorage.setItem(`deliveryInfo-${tableIdParam}`, JSON.stringify(deliveryInfo));
+           console.log(`Saved delivery info for table ${tableIdParam}:`, deliveryInfo);
+       } else if (isDelivery && !deliveryInfo) {
+           // Clean up if delivery info is cleared for a delivery table
+           sessionStorage.removeItem(`deliveryInfo-${tableIdParam}`);
+           console.log(`Removed delivery info for table ${tableIdParam} as it is null.`);
+       }
+
+
+      // Update table status based on whether there's any activity
+      const isTableOccupied = order.length > 0 || pendingOrder.length > 0 || (isDelivery && deliveryInfo !== null);
+      const newStatus = isTableOccupied ? 'occupied' : 'available';
+      const currentStatus = sessionStorage.getItem(`table-${tableIdParam}-status`);
+
+      if (newStatus !== currentStatus) {
+        sessionStorage.setItem(`table-${tableIdParam}-status`, newStatus);
+        console.log(`Updated status for table ${tableIdParam} to: ${newStatus}`);
+      }
+
+  }, [order, pendingOrder, deliveryInfo, tableIdParam, isInitialized, isDelivery]);
+
+
+  const handleAddItem = (item: MenuItem, modifications?: string[]) => {
+    // Calculate additional cost from modifications
+    let modificationCost = 0;
+    if (modifications && item.modificationPrices) {
+      modifications.forEach(modName => {
+        modificationCost += item.modificationPrices![modName] ?? 0;
+      });
+    }
+
+    const newItem: OrderItem = {
+      id: item.id,
+      orderItemId: `${item.id}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`, // More unique ID
+      name: item.name,
+      category: item.category,
+      quantity: 1,
+      selectedModifications: modifications,
+      basePrice: item.price, // Store base price
+      finalPrice: item.price + modificationCost, // Add modification cost to final price
+      // ingredients: item.ingredients, // Do not store ingredients in order item
+    };
+
+    setOrder((prevOrder) => {
+        // Check if an identical item (same id and same modifications) already exists
+        const existingItemIndex = prevOrder.findIndex(
+            (orderedItem) =>
+            orderedItem.id === newItem.id &&
+            isEqual(orderedItem.selectedModifications?.sort(), newItem.selectedModifications?.sort()) // Compare sorted arrays
+        );
+
+        if (existingItemIndex > -1) {
+            // Increment quantity of existing item
+            const updatedOrder = [...prevOrder];
+            updatedOrder[existingItemIndex].quantity += 1;
+            return updatedOrder;
+        } else {
+            // Add new item to order
+            return [...prevOrder, newItem];
+        }
+    });
+    toast({ title: `${item.name} añadido`, description: modifications ? `Modificaciones: ${modifications.join(', ')}` : "Sin modificaciones." });
+    setIsModificationDialogOpen(false); // Close dialog after adding
+    setItemToModify(null); // Reset item to modify
+    // Do not close the main menu sheet here
+  };
+
+  const handleRemoveItem = (orderItemId: string) => {
+    setOrder((prevOrder) => prevOrder.filter((item) => item.orderItemId !== orderItemId));
+    toast({ title: "Artículo eliminado", variant: "destructive" });
+  };
+
+  const handleIncreaseQuantity = (orderItemId: string) => {
+    setOrder((prevOrder) =>
+      prevOrder.map((item) =>
+        item.orderItemId === orderItemId ? { ...item, quantity: item.quantity + 1 } : item
+      )
+    );
+  };
+
+  const handleDecreaseQuantity = (orderItemId: string) => {
+    setOrder((prevOrder) =>
+      prevOrder
+        .map((item) =>
+          item.orderItemId === orderItemId ? { ...item, quantity: Math.max(1, item.quantity - 1) } : item
+        )
+        .filter(item => item.quantity > 0) // Remove if quantity becomes 0 (or ensure it doesn't go below 1)
+    );
+  };
+
+
+  const handleOpenModificationDialog = (item: MenuItem) => {
+    setItemToModify(item);
+    setIsModificationDialogOpen(true);
+  };
+
+
+  const calculateTotal = (items: OrderItem[]): number => {
+    return items.reduce((sum, item) => sum + item.finalPrice * item.quantity, 0);
+  };
+
+  // --- Total for current order (before printing to kitchen) ---
+  const currentOrderTotal = useMemo(() => calculateTotal(order), [order]);
+  // --- Total for pending order (items sent to kitchen, awaiting payment) ---
+  // This now includes delivery fee if applicable for the pending order total display
+  const pendingOrderTotal = useMemo(() => {
+      const itemsTotal = calculateTotal(pendingOrder);
+      const fee = isDelivery && deliveryInfo ? deliveryInfo.deliveryFee : 0;
+      return itemsTotal + fee;
+  }, [pendingOrder, deliveryInfo, isDelivery]);
+
+
+  // --- Print Comanda (Kitchen Order) ---
+  const handlePrintComanda = () => {
+    if (order.length === 0) {
+      toast({ title: "Pedido Vacío", description: "Añada artículos antes de imprimir la comanda.", variant: "destructive" });
+      return;
+    }
+
+    // Format the kitchen receipt HTML
+    const kitchenReceiptHtml = formatKitchenOrderReceipt(order, tableIdParam, deliveryInfo);
+    // Print the HTML
+    printHtml(kitchenReceiptHtml);
+
+    toast({ title: "Comanda Impresa", description: `Enviando pedido para ${isDelivery ? 'Delivery' : `Mesa ${tableIdParam}`}.` });
+
+    // Move current order items to pending order
+    setPendingOrder(prevPending => [...prevPending, ...order]);
+    setOrder([]); // Clear current order
+
+    // No need to update table status here, useEffect will handle it
+  };
+
+
+  // --- Handle Payment ---
+  const handleInitiatePayment = () => {
+      if (pendingOrder.length === 0) {
+          toast({ title: "Sin Pedido Pendiente", description: "No hay artículos pendientes de pago.", variant: "destructive"});
+          return;
+      }
+      setIsPaymentDialogOpen(true); // Open payment method selection dialog
+  };
+
+  const handleConfirmPayment = (paymentMethod: PaymentMethod) => {
+    setIsPaymentDialogOpen(false); // Close payment dialog
+
+    // Deduct items from inventory
+    deductFromInventory(pendingOrder);
+
+    // Format the customer receipt HTML
+    // Pass the full pendingOrderTotal which already includes deliveryFee if applicable
+    const customerReceiptHtml = formatCustomerReceipt(pendingOrder, pendingOrderTotal, paymentMethod, tableIdParam, deliveryInfo);
+    // Print the HTML
+    printHtml(customerReceiptHtml);
+
+    // Add to cash register movements
+    const cashMovementsStorageKey = 'cashMovements';
+    const storedCashMovements = sessionStorage.getItem(cashMovementsStorageKey);
+    let cashMovements: CashMovement[] = storedCashMovements ? JSON.parse(storedCashMovements) : [];
+
+    // Ensure IDs are numbers before finding the max
+    const maxId = cashMovements.reduce((max, m) => Math.max(max, typeof m.id === 'number' ? m.id : 0), 0);
+
+    const newSaleMovement: CashMovement = {
+      id: maxId + 1,
+      date: new Date().toISOString(), // Store as ISO string
+      category: 'Ingreso Venta',
+      description: `Venta Mesa ${tableIdParam}${isDelivery && deliveryInfo ? ` (Delivery: ${deliveryInfo.name})` : ''}`,
+      amount: pendingOrderTotal, // Use the total that includes delivery fee
+      paymentMethod: paymentMethod,
+      deliveryFee: isDelivery && deliveryInfo ? deliveryInfo.deliveryFee : undefined,
+    };
+    cashMovements.push(newSaleMovement);
+    sessionStorage.setItem(cashMovementsStorageKey, JSON.stringify(cashMovements));
+
+    toast({ title: "Pago Confirmado", description: `Total: ${formatCurrency(pendingOrderTotal)} pagado con ${paymentMethod}.` });
+
+    // Clear pending order and delivery info for this table
+    setPendingOrder([]);
+    if (isDelivery) {
+        setDeliveryInfo(null); // Clear delivery info after successful payment
+        sessionStorage.removeItem(`deliveryInfo-${tableIdParam}`); // Also clear from direct storage
+    }
+
+    // Table status will be updated by useEffect due to pendingOrder change
+    // If it's a delivery and no new order is started, the table becomes available
+    // If it's a regular table, it becomes available
+  };
+
+
+  // --- Menu filtering and categorization ---
+  const menuCategories = useMemo(() => {
+    const categories = new Set(mockMenu.map(item => item.category));
+    return orderedCategories.filter(cat => categories.has(cat)); // Ensure correct order
+  }, []);
+
+  const filteredMenu = useMemo(() => {
+    let itemsToDisplay = mockMenu;
+
+    if (currentMenuCategory) {
+      itemsToDisplay = itemsToDisplay.filter(item => item.category === currentMenuCategory);
+    }
+
+    if (searchTerm) {
+      itemsToDisplay = itemsToDisplay.filter(item =>
+        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (currentMenuCategory ? false : item.category.toLowerCase().includes(searchTerm.toLowerCase())) // Only search category if no category selected
+      );
+    }
+    return sortMenu(itemsToDisplay); // Sort the final list
+  }, [searchTerm, currentMenuCategory]);
+
+  const handleCategoryClick = (category: string) => {
+      setCurrentMenuCategory(category);
+      setSearchTerm(''); // Clear search when category changes
+  };
+
+  const handleBackToCategories = () => {
+      setCurrentMenuCategory(null);
+      setSearchTerm(''); // Clear search
+  };
+
+  const handleCloseMenuSheet = () => {
+      setIsMenuSheetOpen(false);
+      setCurrentMenuCategory(null); // Reset category view when sheet closes
+      setSearchTerm(''); // Clear search
+  };
+
+   // --- Delivery Info Dialog Logic ---
+   const handleConfirmDeliveryInfo = (info: DeliveryInfo) => {
+       setDeliveryInfo(info);
+       setIsDeliveryDialogOpen(false);
+       toast({ title: "Datos de Envío Guardados", description: `Cliente: ${info.name}, Envío: ${formatCurrency(info.deliveryFee)}` });
+       // Now the user can proceed to add items to the order
    };
 
-   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-     setNewPrice(e.target.value);
+   const handleCancelDeliveryDialog = () => {
+       setIsDeliveryDialogOpen(false);
+       // If delivery info is mandatory and user cancels, redirect or show message
+       if (!deliveryInfo && isDelivery) {
+           toast({ title: "Envío Cancelado", description: "Debe ingresar datos de envío para continuar.", variant: "destructive" });
+           router.push('/tables'); // Or handle as needed
+       }
    };
 
-   const handleUpdatePrice = () => {
-     if (!editingProduct || newPrice === '') {
-       toast({ title: "Error", description: "Debe ingresar un precio.", variant: "destructive"});
-       return;
-     }
-     const priceValue = parseInt(newPrice, 10);
-     if (isNaN(priceValue) || priceValue < 0) {
-       toast({ title: "Error", description: "El precio debe ser un número válido y no negativo.", variant: "destructive"});
-       return;
-     }
-
-     // Update the product price in the menu state
-     setMenu(prevMenu =>
-       sortMenu( // Re-sort after update
-         prevMenu.map(item =>
-           item.id === editingProduct.id ? { ...item, price: priceValue } : item
-         )
-       )
-     );
-
-     toast({ title: "Precio Actualizado", description: `El precio de ${editingProduct.name} se actualizó a ${formatCurrency(priceValue)}.`});
-     setIsEditPriceDialogOpen(false); // Close price dialog
-     setEditingProduct(null); // Reset editing state
-     setNewPrice(''); // Clear price input
-   };
+   // Return to tables page if not initialized or tableId is missing (should be caught by loading state too)
+   if (!isInitialized && !tableIdParam) {
+       return <div className="flex items-center justify-center min-h-screen">Cargando Mesa...</div>;
+   }
+    // If it's a delivery table and dialog is open, don't render the rest yet
+    if (isDelivery && isDeliveryDialogOpen && !deliveryInfo) {
+        return (
+            <div className="container mx-auto p-4">
+                <DeliveryDialog
+                    isOpen={isDeliveryDialogOpen}
+                    onOpenChange={setIsDeliveryDialogOpen}
+                    initialData={deliveryInfo}
+                    onConfirm={handleConfirmDeliveryInfo}
+                    onCancel={handleCancelDeliveryDialog}
+                />
+                 <div className="flex items-center justify-center min-h-[calc(100vh-100px)]">
+                     <p className="text-muted-foreground">Ingrese los datos de envío para continuar...</p>
+                 </div>
+            </div>
+        );
+    }
 
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Lista de Productos</h1>
-        <Input
-           type="text"
-           placeholder="Buscar producto o categoría..."
-           value={searchTerm}
-           onChange={(e) => setSearchTerm(e.target.value)}
-           className="max-w-sm"
-         />
-        {/* Optional: Add a button to add new products if needed later */}
-      </div>
+    <div className="container mx-auto p-4 flex flex-col h-screen">
+        {/* Header: Back Button and Table ID/Delivery Info */}
+         <div className="flex items-center justify-between mb-4">
+            <Button variant="outline" onClick={() => router.push('/tables')} className="px-3 py-2 h-10 w-10 sm:px-4 sm:w-auto"> {/* Adjusted padding & width */}
+                <ArrowLeft className="h-5 w-5 sm:mr-2" />
+                <span className="hidden sm:inline">Volver a Mesas</span>
+            </Button>
+            <h1 className="text-2xl sm:text-3xl font-bold text-center flex-grow">
+                {isDelivery ? (deliveryInfo ? `Delivery: ${deliveryInfo.name}` : 'Pedido Delivery') : `Mesa ${tableIdParam}`}
+            </h1>
+            {/* Placeholder for potential actions like 'Edit Delivery Info' */}
+            {isDelivery && deliveryInfo && (
+                 <Button variant="ghost" size="sm" onClick={() => setIsDeliveryDialogOpen(true)}>
+                     <ChevronRight className="h-4 w-4"/>
+                 </Button>
+            )}
+        </div>
 
-      <Card>
-         <CardHeader>
-             <CardTitle>Menú Completo</CardTitle>
-         </CardHeader>
-        <CardContent>
-            <Table>
-            <TableHeader>
-                <TableRow>
-                  <TableHead>Producto</TableHead>
-                  <TableHead>Categoría</TableHead>
-                  <TableHead>Descripción</TableHead>{/* Changed header */}
-                  <TableHead className="text-right">Precio Base</TableHead>
-                  <TableHead className="text-center w-20">Editar</TableHead>{/* Adjusted width for one button */}
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {filteredProducts.map((item) => (
-                <TableRow key={item.id}>
-                    <TableCell className="font-medium">{item.name}</TableCell>
-                    <TableCell><Badge variant="secondary">{item.category}</Badge></TableCell>
-                    <TableCell className="text-xs text-muted-foreground max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
-                        {item.modifications && item.modifications.length > 0
-                        ? item.modifications.map(mod => {
-                            const price = item.modificationPrices?.[mod];
-                            return price ? `${mod} (+${formatCurrency(price)})` : mod;
-                            }).join(', ')
-                        : '-'}
-                    </TableCell>
-                    <TableCell className="text-right font-mono">{formatCurrency(item.price)}</TableCell>
-                    <TableCell className="text-center">
-                        <div className="flex justify-center gap-1"> {/* Flex container for buttons */}
-                           {/* Edit Price Button */}
-                           <Button variant="ghost" size="icon" onClick={() => openEditPriceDialog(item)} className="h-7 w-7" title="Editar Precio">
-                              <Edit className="h-4 w-4" />
-                              <span className="sr-only">Editar Precio</span>
-                           </Button>
+        {/* Main Content Area: Menu Button and Order Sections */}
+        <div className="flex justify-center mb-6">
+            <Sheet open={isMenuSheetOpen} onOpenChange={setIsMenuSheetOpen}>
+                <SheetTrigger asChild>
+                     <Button size="lg" className="px-8 py-6 text-lg">
+                        <PackageSearch className="mr-2 h-5 w-5"/> Ver Menú
+                    </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-full sm:max-w-xl md:max-w-2xl lg:max-w-3xl xl:max-w-4xl p-0 flex flex-col"> {/* Wider sheet, no padding, flex col */}
+                    <SheetHeader className="p-4 border-b"> {/* Add padding and border to header */}
+                         <div className="flex items-center justify-between">
+                            <SheetTitle className="text-2xl">
+                                {currentMenuCategory ? currentMenuCategory : "Menú"}
+                            </SheetTitle>
+                            {currentMenuCategory && (
+                                <Button variant="ghost" onClick={handleBackToCategories} size="sm">
+                                    <ArrowLeft className="mr-2 h-4 w-4" /> Volver a Categorías
+                                </Button>
+                            )}
                         </div>
-                    </TableCell>
-                </TableRow>
-                ))}
-                {filteredProducts.length === 0 && (
-                <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">{/* Increased colSpan */}
-                     {searchTerm ? 'No se encontraron productos.' : 'No hay productos para mostrar.'}
-                    </TableCell>
-                </TableRow>
+                        <Input
+                            type="text"
+                            placeholder={currentMenuCategory ? `Buscar en ${currentMenuCategory}...` : "Buscar en todo el menú..."}
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="mt-2"
+                        />
+                    </SheetHeader>
+
+                    <ScrollArea className="flex-grow p-4"> {/* Scrollable content area with padding */}
+                        {currentMenuCategory ? (
+                            // Display items in the selected category
+                            <div className="grid grid-cols-1 gap-3">
+                                {filteredMenu.map((item) => (
+                                <Card key={item.id} className="flex flex-col overflow-hidden">
+                                    <CardHeader className="p-3">
+                                        <CardTitle className="text-base">{item.name}</CardTitle>
+                                    </CardHeader>
+                                    <CardContent className="p-3 pt-0 flex-grow">
+                                        <p className="text-sm text-muted-foreground">
+                                           Precio: {formatCurrency(item.price)}
+                                        </p>
+                                         {/* Optional: Display ingredients if needed here */}
+                                        {/* {item.ingredients && (
+                                            <p className="text-xs text-muted-foreground mt-1">
+                                                Ingredientes: {item.ingredients.join(', ')}
+                                            </p>
+                                        )} */}
+                                    </CardContent>
+                                    <CardFooter className="p-3 pt-0">
+                                    {item.modifications && item.modifications.length > 0 ? (
+                                        <Button onClick={() => handleOpenModificationDialog(item)} className="w-full">
+                                            Seleccionar Opciones
+                                        </Button>
+                                    ) : (
+                                        <Button onClick={() => handleAddItem(item)} className="w-full">
+                                           Añadir al Pedido
+                                        </Button>
+                                    )}
+                                    </CardFooter>
+                                </Card>
+                                ))}
+                                {filteredMenu.length === 0 && <p className="text-muted-foreground col-span-full text-center py-4">No se encontraron productos.</p>}
+                            </div>
+                        ) : (
+                            // Display categories
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                {menuCategories.map((category) => (
+                                <Button
+                                    key={category}
+                                    variant="outline"
+                                    className="justify-between h-auto py-3 px-4 text-left text-base sm:text-lg hover:bg-accent/80" // Adjusted styling
+                                    onClick={() => handleCategoryClick(category)}
+                                >
+                                    {category}
+                                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                                </Button>
+                                ))}
+                                 {menuCategories.length === 0 && <p className="text-muted-foreground col-span-full text-center py-4">No hay categorías para mostrar.</p>}
+                            </div>
+                        )}
+                    </ScrollArea>
+                     {/* Footer with close button - no border if content is scrollable to edge */}
+                    <SheetFooter className="p-4 border-t">
+                        <Button onClick={handleCloseMenuSheet} variant="outline">Cerrar Menú</Button>
+                    </SheetFooter>
+                </SheetContent>
+            </Sheet>
+        </div>
+
+
+        {/* Order Sections: Current and Pending - Adjusted to take less space */}
+         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow overflow-hidden">
+            {/* Current Order Section */}
+            <Card className="flex flex-col overflow-hidden h-full">
+                <CardHeader className="pb-2 pt-4 px-4"> {/* Reduced padding */}
+                    <CardTitle className="text-xl">Pedido Actual</CardTitle>
+                    <CardDescription className="text-xs">Items a enviar a cocina.</CardDescription>
+                </CardHeader>
+                <ScrollArea className="flex-grow px-4">
+                    {order.length === 0 ? (
+                    <div className="flex items-center justify-center h-full py-10">
+                        <p className="text-muted-foreground">No hay artículos en el pedido actual.</p>
+                    </div>
+                    ) : (
+                    order.map((item) => (
+                        <div key={item.orderItemId} className="py-2 border-b last:border-b-0">
+                            <div className="flex justify-between items-center">
+                                <div className="flex-grow">
+                                    <p className="font-bold text-sm">{item.name} </p>
+                                    {item.selectedModifications && (
+                                        <p className="text-xs text-muted-foreground font-bold">
+                                            ({item.selectedModifications.join(', ')})
+                                        </p>
+                                    )}
+                                </div>
+                                <div className="flex items-center gap-1">
+                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleDecreaseQuantity(item.orderItemId)}>
+                                        <MinusCircle className="h-4 w-4" />
+                                    </Button>
+                                    <span className="font-bold text-sm w-6 text-center">{item.quantity}</span>
+                                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => handleIncreaseQuantity(item.orderItemId)}>
+                                        <PlusCircle className="h-4 w-4" />
+                                    </Button>
+                                    <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive" onClick={() => handleRemoveItem(item.orderItemId)}>
+                                        <XCircle className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    ))
+                    )}
+                </ScrollArea>
+                {order.length > 0 && (
+                    <CardFooter className="p-3 mt-auto border-t"> {/* Reduced padding */}
+                        <Button onClick={handlePrintComanda} className="w-full">
+                            <Printer className="mr-2 h-4 w-4" /> Imprimir Comanda
+                        </Button>
+                    </CardFooter>
                 )}
-            </TableBody>
-            </Table>
-        </CardContent>
-      </Card>
+            </Card>
 
-      {/* Edit Price Dialog */}
-       <Dialog open={isEditPriceDialogOpen} onOpenChange={setIsEditPriceDialogOpen}>
-         <DialogContent className="sm:max-w-[425px]">
-           <DialogHeader>
-             <DialogTitle>Editar Precio de {editingProduct?.name}</DialogTitle>
-             <DialogDescription>
-               Actualice el precio base para este producto.
-             </DialogDescription>
-           </DialogHeader>
-           <div className="grid gap-4 py-4">
-             <div className="grid grid-cols-4 items-center gap-4">
-               <Label htmlFor="price" className="text-right">
-                 Nuevo Precio (CLP)
-               </Label>
-               <Input
-                 id="price"
-                 type="number"
-                 value={newPrice}
-                 onChange={handlePriceChange}
-                 className="col-span-3"
-                 required
-                 min="0"
-                 step="1" // Allow integer prices
-               />
-             </div>
-           </div>
-           <DialogFooter>
-             <DialogClose asChild>
-               <Button type="button" variant="secondary">Cancelar</Button>
-             </DialogClose>
-             <Button type="submit" onClick={handleUpdatePrice}>Guardar Cambios</Button>
-           </DialogFooter>
-         </DialogContent>
-       </Dialog>
+            {/* Pending Order Section */}
+            <Card className="flex flex-col overflow-hidden h-full">
+                <CardHeader className="pb-2 pt-4 px-4"> {/* Reduced padding */}
+                    <CardTitle className="text-xl">Pedidos Pendientes de Pago</CardTitle>
+                     <CardDescription className="text-xs">Items enviados a cocina.</CardDescription>
+                </CardHeader>
+                <ScrollArea className="flex-grow px-4">
+                    {pendingOrder.length === 0 && (!isDelivery || !deliveryInfo) ? (
+                         <div className="flex items-center justify-center h-full py-10">
+                            <p className="text-muted-foreground">No hay pedidos pendientes.</p>
+                        </div>
+                    ) : (
+                        <>
+                            {pendingOrder.map((item) => (
+                                <div key={item.orderItemId} className="py-2 border-b last:border-b-0">
+                                    <div className="flex justify-between items-center">
+                                         <div className="flex-grow">
+                                            <p className="font-bold text-sm">
+                                                {item.quantity}x {item.name}
+                                            </p>
+                                            {item.selectedModifications && (
+                                                <p className="text-xs text-muted-foreground font-bold">
+                                                    ({item.selectedModifications.join(', ')})
+                                                </p>
+                                            )}
+                                        </div>
+                                        <span className="font-bold text-sm">{formatCurrency(item.finalPrice * item.quantity)}</span>
+                                    </div>
+                                </div>
+                            ))}
+                             {isDelivery && deliveryInfo && deliveryInfo.deliveryFee > 0 && (
+                                <div className="py-2 border-b">
+                                    <div className="flex justify-between items-center">
+                                        <p className="font-bold text-sm">Costo Envío</p>
+                                        <span className="font-bold text-sm">{formatCurrency(deliveryInfo.deliveryFee)}</span>
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    )}
+                </ScrollArea>
+                {(pendingOrder.length > 0 || (isDelivery && deliveryInfo)) && (
+                    <CardFooter className="p-3 mt-auto border-t flex flex-col gap-2"> {/* Reduced padding */}
+                        <div className="flex justify-between items-center w-full font-bold text-lg">
+                            <span>Total Pendiente:</span>
+                            <span>{formatCurrency(pendingOrderTotal)}</span>
+                        </div>
+                        <Button onClick={handleInitiatePayment} className="w-full" variant="default">
+                           <CreditCard className="mr-2 h-4 w-4" /> Imprimir Pago
+                        </Button>
+                    </CardFooter>
+                )}
+            </Card>
+        </div>
 
-      {/* Edit Modifications Dialog Removed */}
 
+        {/* Modification Dialog */}
+        <ModificationDialog
+            isOpen={isModificationDialogOpen}
+            onOpenChange={setIsModificationDialogOpen}
+            item={itemToModify}
+            onConfirm={(selectedMods) => {
+            if (itemToModify) {
+                handleAddItem(itemToModify, selectedMods);
+            }
+            }}
+            onCancel={() => setIsModificationDialogOpen(false)}
+        />
+
+        {/* Payment Dialog */}
+        <PaymentDialog
+            isOpen={isPaymentDialogOpen}
+            onOpenChange={setIsPaymentDialogOpen}
+            totalAmount={pendingOrderTotal}
+            onConfirm={handleConfirmPayment}
+        />
+
+       {/* Delivery Info Dialog (only for delivery table) */}
+       {isDelivery && (
+           <DeliveryDialog
+               isOpen={isDeliveryDialogOpen}
+               onOpenChange={setIsDeliveryDialogOpen}
+               initialData={deliveryInfo} // Pass existing data for editing
+               onConfirm={handleConfirmDeliveryInfo}
+               onCancel={handleCancelDeliveryDialog}
+           />
+       )}
     </div>
   );
 }
+
