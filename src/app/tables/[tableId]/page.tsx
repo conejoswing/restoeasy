@@ -1398,7 +1398,7 @@ export default function TableDetailPage() {
                         <PackageSearch className="mr-2 h-5 w-5"/> Ver Menú
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-full md:w-[700px] flex flex-col p-0"> {/* Adjusted width */}
+                <SheetContent side="left" className="w-full md:w-[800px] flex flex-col p-0"> {/* Adjusted width */}
                     <SheetHeader className="p-4 border-b">
                         <SheetTitle>Menú</SheetTitle>
                          {/* Search Input - Moved inside Header */}
@@ -1416,7 +1416,7 @@ export default function TableDetailPage() {
                    {/* Category and Item Selection Area */}
                    <div className="flex flex-grow overflow-hidden">
                         {/* Category List */}
-                        <ScrollArea className="w-1/3 border-r">
+                        <ScrollArea className="w-2/5 border-r"> {/* Increased width */}
                             <div className="p-2">
                                 {sortedCategories.map((category) => (
                                     <Button
@@ -1435,7 +1435,7 @@ export default function TableDetailPage() {
                         </ScrollArea>
 
                        {/* Item List */}
-                       <ScrollArea className="w-2/3">
+                       <ScrollArea className="w-3/5"> {/* Decreased width */}
                            <div className="p-4 grid grid-cols-1 gap-3">
                                 {filteredMenu.length > 0 ? (
                                     filteredMenu.map((item) => (
