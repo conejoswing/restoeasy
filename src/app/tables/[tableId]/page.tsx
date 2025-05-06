@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -44,7 +43,7 @@ import type { DeliveryInfo } from '@/components/app/delivery-dialog';
 import DeliveryDialog from '@/components/app/delivery-dialog';
 import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
-import { Dialog, DialogClose, DialogContent as EditDialogContent, DialogDescription as EditDialogDescription, DialogFooter as EditDialogFooter, DialogHeader as EditDialogHeader, DialogTitle as EditDialogTitle } from '@/components/ui/dialog'; // Renamed DialogTitle for price edit to avoid conflict
+import { Dialog, DialogClose as EditDialogCloseButton, DialogContent as EditDialogContent, DialogDescription as EditDialogDescription, DialogFooter as EditDialogFooter, DialogHeader as EditDialogHeader, DialogTitle as EditDialogTitle } from '@/components/ui/dialog'; // Renamed DialogTitle for price edit to avoid conflict
 import { Label } from '@/components/ui/label'; // For ProductsPage price edit
 
 
@@ -288,7 +287,7 @@ const mockMenu: MenuItem[] = [
     { id: 108, name: 'Primavera', price: 9000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Palta', 'Choclo', 'Tomate'] },
     { id: 109, name: 'Golosasa', price: 10500, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Queso', 'Champiñones', 'Papas Hilo', 'Pimentón'] },
     { id: 110, name: '4 Ingredientes', price: 11000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno'] }, // Updated ingredients
-    { id: 111, name: '6 Ingredientes', price: 12000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', '(Elegir 2 más)'] },
+    { id: 111, name: '6 Ingredientes', price: 12000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno'] },
     // --- Hamburguesas --- (Updated Modifications)
     {
         id: 17,
@@ -734,7 +733,7 @@ function ProductsPage({ onProductSelect }: { onProductSelect: (product: MenuItem
         <div className="p-0">
              <div className="flex justify-between items-center mb-4 px-4 pt-4">
                 <h1 className="text-2xl font-bold">
-                    {selectedCategory ? `Productos en ${selectedCategory}` : "Menú"}
+                    {selectedCategory ? `${selectedCategory}` : "Menú"}
                 </h1>
                 <Input
                     type="text"
@@ -824,9 +823,9 @@ function ProductsPage({ onProductSelect }: { onProductSelect: (product: MenuItem
                     </div>
                 </div>
                 <EditDialogFooter>
-                    <DialogClose asChild>
-                    <Button type="button" variant="secondary">Cancelar</Button>
-                    </DialogClose>
+                    <EditDialogCloseButton asChild>
+                        <Button type="button" variant="secondary">Cancelar</Button>
+                    </EditDialogCloseButton>
                     <Button type="submit" onClick={handleUpdatePrice}>Guardar Cambios</Button>
                 </EditDialogFooter>
                 </EditDialogContent>
@@ -1263,14 +1262,12 @@ export default function TableDetailPage() {
                         <PackageSearch className="mr-2 h-5 w-5"/> Ver Menú
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="bottom" className="h-[85vh] w-full max-w-4xl mx-auto p-0 rounded-t-lg"> {/* Wider sheet */}
-                    <SheetHeader className="p-0 border-b-0"> {/* Removed padding and border */}
-                        <SheetTitle className="text-center text-xl sr-only">Seleccionar Productos</SheetTitle> {/* Screen-reader only title */}
+                <SheetContent side="bottom" className="h-[85vh] w-full max-w-4xl mx-auto p-0 rounded-t-lg border-t-0"> {/* Wider sheet, no top border */}
+                    <SheetHeader className="p-0 border-b-0">
+                        <SheetTitle className="text-center text-xl sr-only">Seleccionar Productos</SheetTitle>
                     </SheetHeader>
                     <ProductsPage onProductSelect={handleProductSelect} />
-                     <SheetClose asChild>
-                        <Button variant="outline" className="absolute bottom-4 right-4">Cerrar Menú</Button>
-                     </SheetClose>
+                     {/* Removed SheetClose explicitly, can close by clicking outside or via onOpenChange logic */}
                 </SheetContent>
             </Sheet>
         </div>
@@ -1284,8 +1281,8 @@ export default function TableDetailPage() {
           <CardHeader>
             <CardTitle className="text-xl">Pedido Actual</CardTitle>
           </CardHeader>
-          <ScrollArea className="flex-grow p-0"> {/* Remove padding from ScrollArea, add to inner div */}
-             <CardContent className="p-4"> {/* Add padding here */}
+          <ScrollArea className="flex-grow p-0"> {/* Added ScrollArea here */}
+             <CardContent className="p-4">
                 {currentOrder.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">Añada productos del menú.</p>
                 ) : (
@@ -1364,8 +1361,8 @@ export default function TableDetailPage() {
                  </CardDescription>
              )}
           </CardHeader>
-          <ScrollArea className="flex-grow p-0"> {/* Remove padding from ScrollArea, add to inner div */}
-            <CardContent className="p-4"> {/* Add padding here */}
+          <ScrollArea className="flex-grow p-0">
+            <CardContent className="p-4">
                 {!pendingOrder || pendingOrder.items.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">No hay pedidos pendientes de pago.</p>
                 ) : (
