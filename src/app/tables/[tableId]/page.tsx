@@ -33,7 +33,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"; // Import Table components
-import { Utensils, PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard, ChevronRight, Banknote, Landmark, Home, Phone, User, DollarSign, PackageSearch, Edit } from 'lucide-react';
+import { Utensils, PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard, ChevronRight, Banknote, Landmark, Home, Phone, User, DollarSign, PackageSearch, Edit, ShoppingBag, Coffee, Salad, Sandwich, Drumstick, UtensilsCrossed, Soup, IceCream, CakeSlice, Beef, Apple, Sparkles, ShoppingBasket } from 'lucide-react'; // Added more icons for categories
 import {useToast} from '@/hooks/use-toast';
 import ModificationDialog from '@/components/app/modification-dialog';
 import PaymentDialog from '@/components/app/payment-dialog';
@@ -44,7 +44,7 @@ import type { DeliveryInfo } from '@/components/app/delivery-dialog';
 import DeliveryDialog from '@/components/app/delivery-dialog';
 import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle as EditDialogTitle } from '@/components/ui/dialog'; // Renamed DialogTitle for price edit to avoid conflict
+import { Dialog, DialogClose, DialogContent as EditDialogContent, DialogDescription as EditDialogDescription, DialogFooter as EditDialogFooter, DialogHeader as EditDialogHeader, DialogTitle as EditDialogTitle } from '@/components/ui/dialog'; // Renamed DialogTitle for price edit to avoid conflict
 import { Label } from '@/components/ui/label'; // For ProductsPage price edit
 
 
@@ -611,6 +611,23 @@ const orderedCategories = [
   'Colaciones',
 ];
 
+// Category icons map
+const categoryIcons: Record<string, React.ReactNode> = {
+  'Completos Vienesas': <Sandwich className="mr-2 h-5 w-5" />,
+  'Completos As': <Beef className="mr-2 h-5 w-5" />,
+  'Fajitas': <Drumstick className="mr-2 h-5 w-5" />,
+  'Hamburguesas': <UtensilsCrossed className="mr-2 h-5 w-5" />, // Using UtensilsCrossed as placeholder for Burger
+  'Churrascos': <Sandwich className="mr-2 h-5 w-5" />, // Re-using Sandwich
+  'Papas Fritas': <Apple className="mr-2 h-5 w-5" />, // Using Apple as placeholder for Fries
+  'Promo Churrasco': <ShoppingBasket className="mr-2 h-5 w-5" />,
+  'Promo Mechada': <ShoppingBasket className="mr-2 h-5 w-5" />, // Re-using ShoppingBasket
+  'Promociones': <Sparkles className="mr-2 h-5 w-5" />,
+  'Bebidas': <Coffee className="mr-2 h-5 w-5" />,
+  'Colaciones': <Soup className="mr-2 h-5 w-5" />,
+  'Postres': <IceCream className="mr-2 h-5 w-5" />,
+  'Pasteles': <CakeSlice className="mr-2 h-5 w-5" />,
+};
+
 
 // Helper function to extract number from promo name
 const extractPromoNumber = (name: string): number => {
@@ -649,7 +666,8 @@ const sortMenu = (menu: MenuItem[]): MenuItem[] => {
 // ProductsPage Component (embedded for simplicity, could be separate)
 function ProductsPage({ onProductSelect }: { onProductSelect: (product: MenuItem) => void }) {
     const [searchTerm, setSearchTerm] = useState('');
-    const [menu, setMenu] = useState<MenuItem[]>(sortMenu(mockMenu)); // State for menu items
+    const [menu, setMenu] = useState<MenuItem[]>(sortMenu(mockMenu));
+    const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
     const [isEditPriceDialogOpen, setIsEditPriceDialogOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<MenuItem | null>(null);
     const [newPrice, setNewPrice] = useState('');
@@ -694,74 +712,100 @@ function ProductsPage({ onProductSelect }: { onProductSelect: (product: MenuItem
         setNewPrice('');
     };
 
-    // Group products by category
-    const groupedProducts = useMemo(() => {
-        const filtered = menu.filter(product =>
-            product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            product.category.toLowerCase().includes(searchTerm.toLowerCase())
+    // Filter categories or products based on search term and selected category
+    const filteredCategories = useMemo(() => {
+        if (selectedCategory) return []; // Don't show categories if one is selected
+        return orderedCategories.filter(category =>
+            category.toLowerCase().includes(searchTerm.toLowerCase()) &&
+            mockMenu.some(item => item.category === category) // Only show categories with items
         );
+    }, [searchTerm, selectedCategory]);
 
-        return orderedCategories.reduce((acc, category) => {
-            const itemsInCategory = filtered.filter(item => item.category === category);
-            if (itemsInCategory.length > 0) {
-                acc[category] = itemsInCategory;
-            }
-            return acc;
-        }, {} as Record<string, MenuItem[]>);
-    }, [menu, searchTerm]);
+    const filteredProducts = useMemo(() => {
+        if (!selectedCategory) return [];
+        return menu.filter(product =>
+            product.category === selectedCategory &&
+            product.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }, [menu, searchTerm, selectedCategory]);
 
 
     return (
-        <div className="p-0"> {/* Reduced padding for tighter fit */}
-            <div className="flex justify-between items-center mb-4 px-4 pt-4"> {/* Added padding to this div */}
-                <h1 className="text-2xl font-bold">Menú</h1>
+        <div className="p-0">
+             <div className="flex justify-between items-center mb-4 px-4 pt-4">
+                <h1 className="text-2xl font-bold">
+                    {selectedCategory ? `Productos en ${selectedCategory}` : "Menú"}
+                </h1>
                 <Input
                     type="text"
-                    placeholder="Buscar producto o categoría..."
+                    placeholder={selectedCategory ? "Buscar producto..." : "Buscar categoría..."}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="max-w-xs"
                 />
             </div>
-            <ScrollArea className="h-[calc(100vh-280px)] px-1"> {/* Adjusted height */}
-                {Object.keys(groupedProducts).length === 0 ? (
-                     <p className="text-muted-foreground text-center py-10">
-                        {searchTerm ? 'No se encontraron productos.' : 'No hay productos para mostrar.'}
-                    </p>
-                ) : (
-                    Object.entries(groupedProducts).map(([category, items]) => (
-                        <div key={category} className="mb-6">
-                            <h2 className="text-xl font-semibold mb-3 sticky top-0 bg-background/95 backdrop-blur-sm z-10 py-2 px-3 -mx-1">{category}</h2>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 px-3">
-                                {items.map((item) => (
-                                    <Card key={item.id} className="cursor-pointer hover:shadow-md transition-shadow flex flex-col" onClick={() => onProductSelect(item)}>
-                                        <CardHeader className="p-3 pb-1 flex-grow">
-                                            <CardTitle className="text-base">{item.name}</CardTitle>
-                                        </CardHeader>
-                                        <CardContent className="p-3 pt-1">
-                                            <p className="text-sm font-semibold">{formatCurrency(item.price)}</p>
-                                            {item.ingredients && item.ingredients.length > 0 && (
-                                                <p className="text-xs text-muted-foreground mt-1">
-                                                    ({item.ingredients.join(', ')})
-                                                </p>
-                                            )}
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-                        </div>
-                    ))
+            {selectedCategory && (
+                <Button
+                    variant="outline"
+                    onClick={() => { setSelectedCategory(null); setSearchTerm(''); }}
+                    className="mb-4 ml-4"
+                >
+                    <ArrowLeft className="mr-2 h-4 w-4" /> Volver a Categorías
+                </Button>
+            )}
+            <ScrollArea className="h-[calc(85vh-180px)] px-1"> {/* Adjusted height */}
+                {!selectedCategory && (
+                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 px-3">
+                        {filteredCategories.length === 0 && searchTerm && (
+                             <p className="text-muted-foreground text-center py-10 col-span-full">No se encontraron categorías.</p>
+                        )}
+                        {filteredCategories.map((category) => (
+                            <Card key={category} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => { setSelectedCategory(category); setSearchTerm(''); }}>
+                                <CardHeader className="p-3 pb-1 flex flex-row items-center justify-center">
+                                    {categoryIcons[category] || <ShoppingBag className="mr-2 h-5 w-5" />}
+                                    <CardTitle className="text-base">{category}</CardTitle>
+                                </CardHeader>
+                                <CardContent className="p-3 pt-1 text-center">
+                                    <ChevronRight className="h-5 w-5 text-muted-foreground inline-block" />
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
                 )}
 
+                {selectedCategory && (
+                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 px-3">
+                         {filteredProducts.length === 0 && (
+                             <p className="text-muted-foreground text-center py-10 col-span-full">No se encontraron productos en esta categoría.</p>
+                         )}
+                        {filteredProducts.map((item) => (
+                            <Card key={item.id} className="cursor-pointer hover:shadow-md transition-shadow flex flex-col" onClick={() => onProductSelect(item)}>
+                                <CardHeader className="p-3 pb-1 flex-grow">
+                                    <CardTitle className="text-base">{item.name}</CardTitle>
+                                </CardHeader>
+                                <CardContent className="p-3 pt-1">
+                                    <p className="text-sm font-semibold">{formatCurrency(item.price)}</p>
+                                    {item.ingredients && item.ingredients.length > 0 && (
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                            ({item.ingredients.join(', ')})
+                                        </p>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        ))}
+                    </div>
+                )}
             </ScrollArea>
 
             {/* Edit Price Dialog (moved from ProductsPage) */}
             <Dialog open={isEditPriceDialogOpen} onOpenChange={setIsEditPriceDialogOpen}>
-                <DialogContent className="sm:max-w-[425px]">
-                <EditDialogTitle>Editar Precio de {editingProduct?.name}</EditDialogTitle>
-                <DialogDescription>
-                    Actualice el precio base para este producto.
-                </DialogDescription>
+                <EditDialogContent className="sm:max-w-[425px]">
+                <EditDialogHeader>
+                    <EditDialogTitle>Editar Precio de {editingProduct?.name}</EditDialogTitle>
+                    <EditDialogDescription>
+                        Actualice el precio base para este producto.
+                    </EditDialogDescription>
+                </EditDialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="price" className="text-right">
@@ -779,13 +823,13 @@ function ProductsPage({ onProductSelect }: { onProductSelect: (product: MenuItem
                     />
                     </div>
                 </div>
-                <DialogFooter>
+                <EditDialogFooter>
                     <DialogClose asChild>
                     <Button type="button" variant="secondary">Cancelar</Button>
                     </DialogClose>
                     <Button type="submit" onClick={handleUpdatePrice}>Guardar Cambios</Button>
-                </DialogFooter>
-                </DialogContent>
+                </EditDialogFooter>
+                </EditDialogContent>
             </Dialog>
         </div>
     );
@@ -1208,7 +1252,7 @@ export default function TableDetailPage() {
             <h1 className="text-3xl font-bold">
                 {isDelivery ? 'Pedido Delivery' : `Mesa ${tableIdParam.toUpperCase()}`}
             </h1>
-            <div className="w-auto min-w-[120px]"></div> {/* Spacer, adjusted for longer button text */}
+            <div className="w-auto min-w-[160px]"></div> {/* Adjusted spacer width */}
         </div>
 
         {/* Ver Menú Button - Centered */}
@@ -1224,6 +1268,9 @@ export default function TableDetailPage() {
                         <SheetTitle className="text-center text-xl sr-only">Seleccionar Productos</SheetTitle> {/* Screen-reader only title */}
                     </SheetHeader>
                     <ProductsPage onProductSelect={handleProductSelect} />
+                     <SheetClose asChild>
+                        <Button variant="outline" className="absolute bottom-4 right-4">Cerrar Menú</Button>
+                     </SheetClose>
                 </SheetContent>
             </Sheet>
         </div>
@@ -1251,7 +1298,7 @@ export default function TableDetailPage() {
                         </div>
                         {item.selectedModifications && item.selectedModifications.length > 0 && (
                         <p className="text-xs text-muted-foreground mt-1 font-bold">
-                            ({item.selectedModifications.join(', ')})
+                             ({item.selectedModifications.join(', ')})
                         </p>
                         )}
                         {/* Display ingredients if available */}
@@ -1401,4 +1448,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-
