@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -43,7 +44,7 @@ import type { DeliveryInfo } from '@/components/app/delivery-dialog';
 import DeliveryDialog from '@/components/app/delivery-dialog';
 import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
-import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'; // For ProductsPage price edit
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle as EditDialogTitle } from '@/components/ui/dialog'; // Renamed DialogTitle for price edit to avoid conflict
 import { Label } from '@/components/ui/label'; // For ProductsPage price edit
 
 
@@ -287,7 +288,7 @@ const mockMenu: MenuItem[] = [
     { id: 108, name: 'Primavera', price: 9000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Palta', 'Choclo', 'Tomate'] },
     { id: 109, name: 'Golosasa', price: 10500, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Queso', 'Champiñones', 'Papas Hilo', 'Pimentón'] },
     { id: 110, name: '4 Ingredientes', price: 11000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno'] }, // Updated ingredients
-    { id: 111, name: '6 Ingredientes', price: 12000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', '(Elegir 6)'] }, // Reverted
+    { id: 111, name: '6 Ingredientes', price: 12000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', '(Elegir 2 más)'] },
     // --- Hamburguesas --- (Updated Modifications)
     {
         id: 17,
@@ -658,11 +659,6 @@ function ProductsPage({ onProductSelect }: { onProductSelect: (product: MenuItem
         return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
     };
 
-    const filteredProducts = menu.filter(product =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.category.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
     const openEditPriceDialog = (product: MenuItem) => {
         setEditingProduct(product);
         setNewPrice(product.price.toString());
@@ -698,10 +694,26 @@ function ProductsPage({ onProductSelect }: { onProductSelect: (product: MenuItem
         setNewPrice('');
     };
 
+    // Group products by category
+    const groupedProducts = useMemo(() => {
+        const filtered = menu.filter(product =>
+            product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            product.category.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+
+        return orderedCategories.reduce((acc, category) => {
+            const itemsInCategory = filtered.filter(item => item.category === category);
+            if (itemsInCategory.length > 0) {
+                acc[category] = itemsInCategory;
+            }
+            return acc;
+        }, {} as Record<string, MenuItem[]>);
+    }, [menu, searchTerm]);
+
 
     return (
         <div className="p-0"> {/* Reduced padding for tighter fit */}
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between items-center mb-4 px-4 pt-4"> {/* Added padding to this div */}
                 <h1 className="text-2xl font-bold">Menú</h1>
                 <Input
                     type="text"
@@ -711,41 +723,45 @@ function ProductsPage({ onProductSelect }: { onProductSelect: (product: MenuItem
                     className="max-w-xs"
                 />
             </div>
-            <ScrollArea className="h-[calc(100vh-280px)]"> {/* Adjusted height */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"> {/* Added xl:grid-cols-4 for wider screens */}
-                    {filteredProducts.map((item) => (
-                        <Card key={item.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => onProductSelect(item)}>
-                            <CardHeader className="p-3">
-                                <CardTitle className="text-base">{item.name}</CardTitle>
-                                <CardDescription className="text-xs">{item.category}</CardDescription>
-                            </CardHeader>
-                            <CardContent className="p-3 pt-0">
-                                <p className="text-sm font-semibold">{formatCurrency(item.price)}</p>
-                                {item.ingredients && item.ingredients.length > 0 && (
-                                    <p className="text-xs text-muted-foreground mt-1">
-                                        ({item.ingredients.join(', ')})
-                                    </p>
-                                )}
-                            </CardContent>
-                        </Card>
-                    ))}
-                    {filteredProducts.length === 0 && (
-                        <p className="text-muted-foreground col-span-full text-center py-10">
-                            {searchTerm ? 'No se encontraron productos.' : 'No hay productos para mostrar.'}
-                        </p>
-                    )}
-                </div>
+            <ScrollArea className="h-[calc(100vh-280px)] px-1"> {/* Adjusted height */}
+                {Object.keys(groupedProducts).length === 0 ? (
+                     <p className="text-muted-foreground text-center py-10">
+                        {searchTerm ? 'No se encontraron productos.' : 'No hay productos para mostrar.'}
+                    </p>
+                ) : (
+                    Object.entries(groupedProducts).map(([category, items]) => (
+                        <div key={category} className="mb-6">
+                            <h2 className="text-xl font-semibold mb-3 sticky top-0 bg-background/95 backdrop-blur-sm z-10 py-2 px-3 -mx-1">{category}</h2>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 px-3">
+                                {items.map((item) => (
+                                    <Card key={item.id} className="cursor-pointer hover:shadow-md transition-shadow flex flex-col" onClick={() => onProductSelect(item)}>
+                                        <CardHeader className="p-3 pb-1 flex-grow">
+                                            <CardTitle className="text-base">{item.name}</CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="p-3 pt-1">
+                                            <p className="text-sm font-semibold">{formatCurrency(item.price)}</p>
+                                            {item.ingredients && item.ingredients.length > 0 && (
+                                                <p className="text-xs text-muted-foreground mt-1">
+                                                    ({item.ingredients.join(', ')})
+                                                </p>
+                                            )}
+                                        </CardContent>
+                                    </Card>
+                                ))}
+                            </div>
+                        </div>
+                    ))
+                )}
+
             </ScrollArea>
 
             {/* Edit Price Dialog (moved from ProductsPage) */}
             <Dialog open={isEditPriceDialogOpen} onOpenChange={setIsEditPriceDialogOpen}>
                 <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                    <DialogTitle>Editar Precio de {editingProduct?.name}</DialogTitle>
-                    <DialogDescription>
+                <EditDialogTitle>Editar Precio de {editingProduct?.name}</EditDialogTitle>
+                <DialogDescription>
                     Actualice el precio base para este producto.
-                    </DialogDescription>
-                </DialogHeader>
+                </DialogDescription>
                 <div className="grid gap-4 py-4">
                     <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="price" className="text-right">
@@ -1204,9 +1220,8 @@ export default function TableDetailPage() {
                     </Button>
                 </SheetTrigger>
                 <SheetContent side="bottom" className="h-[85vh] w-full max-w-4xl mx-auto p-0 rounded-t-lg"> {/* Wider sheet */}
-                    <SheetHeader className="p-4 border-b">
-                        <SheetTitle className="text-center text-xl">Seleccionar Productos</SheetTitle>
-                         {/* Removed close menu button explicitly */}
+                    <SheetHeader className="p-0 border-b-0"> {/* Removed padding and border */}
+                        <SheetTitle className="text-center text-xl sr-only">Seleccionar Productos</SheetTitle> {/* Screen-reader only title */}
                     </SheetHeader>
                     <ProductsPage onProductSelect={handleProductSelect} />
                 </SheetContent>
@@ -1235,14 +1250,14 @@ export default function TableDetailPage() {
                         {/* Price removed from current order display */}
                         </div>
                         {item.selectedModifications && item.selectedModifications.length > 0 && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                            <span className="font-bold">({item.selectedModifications.join(', ')})</span>
+                        <p className="text-xs text-muted-foreground mt-1 font-bold">
+                            ({item.selectedModifications.join(', ')})
                         </p>
                         )}
                         {/* Display ingredients if available */}
                          {item.ingredients && item.ingredients.length > 0 && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                                <span className="font-bold">[{item.ingredients.join(', ')}]</span>
+                            <p className="text-xs text-muted-foreground mt-1 font-bold">
+                                [{item.ingredients.join(', ')}]
                             </p>
                          )}
                         <div className="flex items-center justify-end gap-2 mt-2">
@@ -1315,14 +1330,14 @@ export default function TableDetailPage() {
                         <span className="font-bold">{formatCurrencyDisplay(item.finalPrice * item.quantity)}</span>
                         </div>
                          {item.selectedModifications && item.selectedModifications.length > 0 && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                             <span className="font-bold">({item.selectedModifications.join(', ')})</span>
+                        <p className="text-xs text-muted-foreground mt-1 font-bold">
+                             ({item.selectedModifications.join(', ')})
                         </p>
                         )}
                         {/* Display ingredients if available */}
                          {item.ingredients && item.ingredients.length > 0 && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                                 <span className="font-bold">[{item.ingredients.join(', ')}]</span>
+                            <p className="text-xs text-muted-foreground mt-1 font-bold">
+                                 [{item.ingredients.join(', ')}]
                             </p>
                          )}
                     </div>
@@ -1386,3 +1401,4 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
