@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -906,11 +907,14 @@ export default function TableDetailPage() {
             // Assuming all burgers use "Pan de hamburguesa normal" for now
             itemsToDeduct.push({ name: 'Pan de hamburguesa normal', quantity: orderItem.quantity });
         }
-        // Pan Marraqueta para Churrascos y Promos
+         // Pan Marraqueta para Churrascos y Promos
         if (orderItem.category === 'Churrascos' || orderItem.category.startsWith('Promo Churrasco') || orderItem.category.startsWith('Promo Mechada')) {
-            const quantityPerItem = orderItem.name.startsWith('2x') ? 2 : 1; // Check if item name implies double quantity
+            // For promo items, if they are "2x" they should deduct 2, otherwise 1.
+            // For non-promo items in these categories, deduct 1.
+            const quantityPerItem = (orderItem.category.startsWith('Promo') && orderItem.name.startsWith('2x ')) ? 2 : 1;
             itemsToDeduct.push({ name: 'Pan de marraqueta', quantity: orderItem.quantity * quantityPerItem });
         }
+
          // Fajitas (Placeholder - assuming no specific inventory item for "fajita bread" yet)
          if (orderItem.category === 'Fajitas') {
             // console.log(`No specific inventory deduction rule for Fajita: ${orderItem.name}`);
@@ -1281,7 +1285,7 @@ export default function TableDetailPage() {
           <CardHeader>
             <CardTitle className="text-xl">Pedido Actual</CardTitle>
           </CardHeader>
-          <ScrollArea className="flex-grow p-0"> {/* Added ScrollArea here */}
+          <ScrollArea className="flex-grow p-0 min-h-0"> {/* Added min-h-0 */}
              <CardContent className="p-4">
                 {currentOrder.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">Añada productos del menú.</p>
@@ -1361,7 +1365,7 @@ export default function TableDetailPage() {
                  </CardDescription>
              )}
           </CardHeader>
-          <ScrollArea className="flex-grow p-0">
+          <ScrollArea className="flex-grow p-0 min-h-0"> {/* Added min-h-0 */}
             <CardContent className="p-4">
                 {!pendingOrder || pendingOrder.items.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">No hay pedidos pendientes de pago.</p>
@@ -1445,3 +1449,4 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
