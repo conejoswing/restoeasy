@@ -1398,7 +1398,7 @@ export default function TableDetailPage() {
                         <PackageSearch className="mr-2 h-5 w-5"/> Ver Menú
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-full md:w-[600px] flex flex-col p-0"> {/* Adjusted width */}
+                <SheetContent side="left" className="w-full md:w-[700px] flex flex-col p-0"> {/* Adjusted width */}
                     <SheetHeader className="p-4 border-b">
                         <SheetTitle>Menú</SheetTitle>
                          {/* Search Input - Moved inside Header */}
@@ -1587,3 +1587,6 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
+
+
