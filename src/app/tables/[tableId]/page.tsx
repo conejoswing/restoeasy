@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -23,6 +22,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetTrigger,
+  SheetClose,
 } from '@/components/ui/sheet';
 import {
   Table,
@@ -282,12 +282,12 @@ const mockMenu: MenuItem[] = [
     // --- Fajitas --- (Updated to standard modifications)
     { id: 104, name: 'Italiana', price: 9500, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Palta', 'Tomate'] },
     { id: 105, name: 'Brasileño', price: 9200, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Palta', 'Queso'] },
-    { id: 106, name: 'Chacarero', price: 9800, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Tomate', 'Poroto Verde', 'Ají Verde'] },
+    { id: 106, name: 'Chacarero', price: 9800, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Tomate', 'Poroto Verde', 'Ají Verde'] }, // Removed Porotos Verdes from Fajita Chacarero as well
     { id: 107, name: 'Americana', price: 8900, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Queso', 'Champiñones', 'Jamón'] },
     { id: 108, name: 'Primavera', price: 9000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Palta', 'Choclo', 'Tomate'] },
     { id: 109, name: 'Golosasa', price: 10500, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Queso', 'Champiñones', 'Papas Hilo', 'Pimentón'] },
-    { id: 110, name: '4 Ingredientes', price: 11000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno'] },
-    { id: 111, name: '6 Ingredientes', price: 12000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', '(Elegir 6)'] },
+    { id: 110, name: '4 Ingredientes', price: 11000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno'] }, // Updated ingredients
+    { id: 111, name: '6 Ingredientes', price: 12000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'Queso', 'Champiñones'] }, // Choose your 6
     // --- Hamburguesas --- (Updated Modifications)
     {
         id: 17,
@@ -712,7 +712,7 @@ function ProductsPage({ onProductSelect }: { onProductSelect: (product: MenuItem
                 />
             </div>
             <ScrollArea className="h-[calc(100vh-280px)]"> {/* Adjusted height */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3"> {/* Added xl:grid-cols-4 for wider screens */}
                     {filteredProducts.map((item) => (
                         <Card key={item.id} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => onProductSelect(item)}>
                             <CardHeader className="p-3">
@@ -848,8 +848,9 @@ export default function TableDetailPage() {
             itemsToDeduct.push({ name: 'Pan de hamburguesa normal', quantity: orderItem.quantity });
         }
         // Pan Marraqueta para Churrascos y Promos
-        if (orderItem.category === 'Churrascos' || orderItem.category === 'Promo Churrasco' || orderItem.category === 'Promo Mechada') {
-            itemsToDeduct.push({ name: 'Pan de marraqueta', quantity: orderItem.quantity });
+        if (orderItem.category === 'Churrascos' || orderItem.category.startsWith('Promo Churrasco') || orderItem.category.startsWith('Promo Mechada')) {
+            const quantityPerItem = orderItem.category.startsWith('Promo') && orderItem.name.startsWith('2x') ? 2 : 1;
+            itemsToDeduct.push({ name: 'Pan de marraqueta', quantity: orderItem.quantity * quantityPerItem });
         }
          // Fajitas (Placeholder - assuming no specific inventory item for "fajita bread" yet)
          if (orderItem.category === 'Fajitas') {
@@ -942,7 +943,7 @@ export default function TableDetailPage() {
     setIsInitialized(true);
     console.log(`Initialization complete for ${tableIdParam}.`);
 
-  }, [tableIdParam, isInitialized, isDelivery]); // Dependencies ensure this runs once per table ID
+  }, [tableIdParam, isInitialized, isDelivery, deliveryInfo]); // Added deliveryInfo to dependencies
 
 
   // --- Effect to save state changes to sessionStorage and update table status ---
@@ -1191,7 +1192,7 @@ export default function TableDetailPage() {
             <h1 className="text-3xl font-bold">
                 {isDelivery ? 'Pedido Delivery' : `Mesa ${tableIdParam.toUpperCase()}`}
             </h1>
-            <div className="w-24"></div> {/* Spacer */}
+            <div className="w-auto min-w-[120px]"></div> {/* Spacer, adjusted for longer button text */}
         </div>
 
         {/* Ver Menú Button - Centered */}
@@ -1205,9 +1206,9 @@ export default function TableDetailPage() {
                 <SheetContent side="bottom" className="h-[85vh] w-full max-w-4xl mx-auto p-0 rounded-t-lg"> {/* Wider sheet */}
                     <SheetHeader className="p-4 border-b">
                         <SheetTitle className="text-center text-xl">Seleccionar Productos</SheetTitle>
+                         {/* Removed close menu button explicitly */}
                     </SheetHeader>
                     <ProductsPage onProductSelect={handleProductSelect} />
-                    {/* Removed close menu button */}
                 </SheetContent>
             </Sheet>
         </div>
