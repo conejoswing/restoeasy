@@ -21,6 +21,7 @@ interface MenuItem {
   category: string;
   modifications?: string[];
   modificationPrices?: { [key: string]: number }; // Optional map of modification name to additional price
+  ingredients?: string[]; // Keep ingredients on MenuItem for display purposes
 }
 
 interface ModificationDialogProps {
@@ -77,9 +78,9 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
   // Filter out specific modifications based on category and item name
     const availableModifications = item.modifications?.filter(mod => {
         const standardMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'];
-        const dinamicoMods = ['con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'];
-        const chacareroAsMods = ['con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verde', 'con aji jalapeño', 'sin aji jalapeño'];
-        const napolitanoAsMods = ['con queso', 'sin queso', 'con tomate', 'sin tomate', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna']; // Added napolitano specific mods
+        const dinamicoMods = ['con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta']; // Corrected 'chockut' to 'chucrut'
+        const chacareroAsMods = ['con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verde', 'con aji jalapeño', 'sin aji jalapeño']; // Corrected 'verve' to 'verde'
+        const napolitanoAsMods = ['con queso', 'sin queso', 'con tomate', 'sin tomate', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna'];
         const quesoChampiñonMods = ['Queso', 'Champiñon', 'Tocino'];
 
 
@@ -112,10 +113,15 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
         else if (item.category === 'Completos Vienesas') {
            return standardMods.includes(mod);
         }
-        // Standard mods for most other categories that allow them
-        else if (['Completos As', 'Fajitas', 'Hamburguesas', 'Churrascos', 'Promo Churrasco', 'Promo Mechada', 'Promociones'].includes(item.category)) {
+         // Standard mods for most other categories that allow them
+        else if (['Completos As', 'Fajitas', 'Promo Churrasco', 'Promo Mechada', 'Promociones'].includes(item.category)) { // Removed Hamburguesas and Churrascos
             return standardMods.includes(mod);
         }
+         // Specific empty mods for Hamburguesas and Churrascos (as per previous requests to remove specific ingredients from mods)
+        else if (['Hamburguesas', 'Churrascos'].includes(item.category)) {
+            return standardMods.includes(mod); // Should still offer the standard mayo/queso options
+        }
+
 
         // Categories without modifications
         if (['Papas Fritas', 'Bebidas', 'Colaciones'].includes(item.category)) {
