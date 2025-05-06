@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import * as React from 'react';
@@ -131,7 +129,7 @@ const mockMenu: MenuItem[] = [
         category: 'Completos Vienesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-        ingredients: ['Pan Especial Grande', 'Vienesa x2', 'Tomate', 'Chucrut', 'Americana']
+        ingredients: ['Tomate', 'Chucrut', 'Americana'] // Updated ingredients
     },
     {
         id: 30,
@@ -805,7 +803,7 @@ export default function TableDetailPage() {
        setIsInitialized(true); // Mark as initialized
        console.log(`Initialization complete for ${tableIdParam}.`);
 
-   }, [tableIdParam, isInitialized, isDelivery, deliveryInfo]); // Added deliveryInfo to dependencies
+   }, [tableIdParam, isInitialized, isDelivery, deliveryInfo, isDeliveryDialogOpen]); // Added deliveryInfo and isDeliveryDialogOpen to dependencies
 
 
   // --- Effect to save state changes to sessionStorage and update table status ---
