@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -84,7 +85,7 @@ const mockMenu: MenuItem[] = [
       category: 'Completos Vienesas',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
       modificationPrices: { 'Agregado Queso': 1000 },
-      ingredients: ['Pan Especial Normal', 'Vienesa', 'Palta', 'Tomate']
+      ingredients: ['Palta', 'Tomate'] // Removed Pan Especial Normal, Vienesa
     },
     {
       id: 14,
@@ -102,7 +103,7 @@ const mockMenu: MenuItem[] = [
       category: 'Completos Vienesas',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
       modificationPrices: { 'Agregado Queso': 1000 },
-      ingredients: ['Pan Especial Normal', 'Vienesa', 'Salsas']
+      ingredients: ['Salsas'] // Removed Pan Especial Normal, Vienesa
     },
      {
         id: 27,
@@ -120,7 +121,7 @@ const mockMenu: MenuItem[] = [
         category: 'Completos Vienesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-        ingredients: ['Tomate', 'Chucrut', 'Americana'] // Updated ingredients
+        ingredients: ['Tomate', 'Chucrut', 'Americana'] // Removed Pan Especial Normal, Vienesa
     },
     {
         id: 29,
@@ -129,7 +130,7 @@ const mockMenu: MenuItem[] = [
         category: 'Completos Vienesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-        ingredients: ['Tomate', 'Chucrut', 'Americana'] // Updated ingredients
+        ingredients: ['Tomate', 'Chucrut', 'Americana'] // Removed Pan Especial Grande, Vienesa x2
     },
     {
         id: 30,
@@ -138,7 +139,7 @@ const mockMenu: MenuItem[] = [
         category: 'Completos Vienesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-        ingredients: ['Pan Especial Normal', 'Vienesa', 'Palta']
+        ingredients: ['Palta'] // Removed Pan Especial Normal, Vienesa
     },
     {
         id: 31,
@@ -156,7 +157,7 @@ const mockMenu: MenuItem[] = [
         category: 'Completos Vienesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-        ingredients: ['Pan Especial Normal', 'Vienesa', 'Tomate']
+        ingredients: ['Tomate'] // Removed Pan Especial Normal, Vienesa
     },
     {
         id: 33,
@@ -174,7 +175,7 @@ const mockMenu: MenuItem[] = [
         category: 'Completos Vienesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'], // Updated mods
         modificationPrices: { 'Agregado Queso': 1000 },
-        ingredients: ['Pan Especial Normal', 'Vienesa', 'Tomate', 'Palta', 'Chucrut', 'Americana']
+        ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana'] // Removed Pan Especial Normal, Vienesa
     },
     {
         id: 35,
@@ -687,73 +688,123 @@ export default function TableDetailPage() {
           const menuItem = mockMenu.find(m => m.id === orderItem.id);
           if (!menuItem || !menuItem.ingredients) return; // No ingredients to deduct
 
-          menuItem.ingredients.forEach(ingredientName => {
-              // Skip specific main ingredients that are not meant to be deducted individually here
-              // e.g. 'Pan Especial Normal', 'Vienesa', 'Carne As', 'Tortilla', etc. are handled by product name if needed
-              const mainProductIngredients = [
-                  'pan especial normal', 'pan especial grande', 'pan de marraqueta',
-                  'pan de hamburguesa normal', 'pan de hamburguesa grande',
-                  'vienesa', 'vienesa x2', 'carne as', 'carne fajita', 'carne hamburguesa', 'carne hamburguesa x2',
-                  'carne hamburguesa x3', 'carne hamburguesa x4', 'carne churrasco', 'carne mechada', 'tortilla',
-                  'papas fritas', // Base "Papas Fritas" could be an inventory item for composed dishes
-                  'bebida lata' // if "Bebida Lata" is an inventory item
-              ];
-              if (mainProductIngredients.includes(ingredientName.toLowerCase())) {
-                  // Check if this main ingredient should be deducted based on product name
-                  const inventoryItemIndex = inventory.findIndex(
-                      invItem => invItem.name.toLowerCase() === ingredientName.toLowerCase()
-                  );
-                   if (inventoryItemIndex !== -1) {
-                       inventory[inventoryItemIndex].stock = Math.max(
-                           0,
-                           inventory[inventoryItemIndex].stock - orderItem.quantity
-                       );
-                       console.log(`Deducted ${orderItem.quantity} of ${ingredientName} for ${orderItem.name}. New stock: ${inventory[inventoryItemIndex].stock}`);
-                   } else {
-                       console.warn(`Ingrediente de producto principal "${ingredientName}" no encontrado en inventario para ${orderItem.name}.`);
-                   }
-                  return; // Skip further processing for these main product ingredients
+          // Centralized deduction logic based on product name/category mapping
+          let ingredientToDeduct: string | null = null;
+          let quantityMultiplier = 1; // Default: deduct 1 unit of the ingredient per item
+
+          // Determine the main inventory item and quantity multiplier
+          switch (menuItem.category) {
+            case 'Completos Vienesas':
+            case 'Completos As':
+              if (menuItem.name.includes(' Normal') || menuItem.name.includes(' Chico')) {
+                ingredientToDeduct = 'Pan Especial Normal';
+              } else if (menuItem.name.includes(' Grande')) {
+                ingredientToDeduct = 'Pan Especial Grande';
               }
+              break;
+            case 'Churrascos':
+            case 'Promo Churrasco': // Assuming Promo uses the same bread
+            case 'Promo Mechada': // Assuming Promo uses the same bread
+              ingredientToDeduct = 'Pan de Marraqueta';
+              if (menuItem.category.startsWith('Promo ')) quantityMultiplier = 1; // Assuming 1 bread per promo item even if name implies 2x
+              break;
+            case 'Hamburguesas':
+               if (menuItem.name.includes(' Normal') || menuItem.name.includes(' Simple') || menuItem.name.includes('Big Cami') ) { // Include Big Cami
+                  ingredientToDeduct = 'Pan de Hamburguesa Normal';
+                } else if (menuItem.name.includes(' Grande') || menuItem.name.includes(' Doble') || menuItem.name.includes('Tapa Arteria') || menuItem.name.includes('Super')) { // Include Tapa Arteria & Super
+                  ingredientToDeduct = 'Pan de Hamburguesa Grande';
+               }
+              break;
+            case 'Bebidas':
+                if (menuItem.name === 'Bebida 1.5Lt') {
+                    ingredientToDeduct = 'Bebida 1.5Lt';
+                } else if (menuItem.name === 'Lata') {
+                    ingredientToDeduct = 'Lata';
+                } else if (menuItem.name === 'Cafe Chico') {
+                    ingredientToDeduct = 'Cafe Chico';
+                } else if (menuItem.name === 'Cafe Grande') {
+                     ingredientToDeduct = 'Cafe Grande';
+                }
+                break;
+             case 'Fajitas': // Assuming one tortilla per fajita
+                ingredientToDeduct = 'Tortilla'; // Need 'Tortilla' in inventory
+                break;
+            // Add cases for other categories if needed (e.g., Papas Fritas might deduct 'Papas Fritas' base item)
+          }
 
-
+          // Deduct the determined main ingredient
+          if (ingredientToDeduct) {
               const inventoryItemIndex = inventory.findIndex(
-                  invItem => invItem.name.toLowerCase() === ingredientName.toLowerCase()
+                  invItem => invItem.name.toLowerCase() === ingredientToDeduct!.toLowerCase()
               );
-
               if (inventoryItemIndex !== -1) {
-                  // Deduct based on order item quantity
+                  const quantityToDeduct = orderItem.quantity * quantityMultiplier;
                   inventory[inventoryItemIndex].stock = Math.max(
                       0,
-                      inventory[inventoryItemIndex].stock - orderItem.quantity
+                      inventory[inventoryItemIndex].stock - quantityToDeduct
                   );
-                   console.log(`Deducted ${orderItem.quantity} of ${ingredientName} for ${orderItem.name}. New stock: ${inventory[inventoryItemIndex].stock}`);
+                  console.log(`Deducted ${quantityToDeduct} of ${ingredientToDeduct} for ${orderItem.name}. New stock: ${inventory[inventoryItemIndex].stock}`);
               } else {
-                  console.warn(`Ingrediente "${ingredientName}" para "${orderItem.name}" no encontrado en el inventario.`);
+                  console.warn(`Ingrediente principal "${ingredientToDeduct}" no encontrado en inventario para ${orderItem.name}.`);
               }
-          });
+          }
 
           // Specific deduction for 'Vienesas' based on item name and category
           if (menuItem.category === 'Completos Vienesas') {
             const vienesaItemIndex = inventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
             if (vienesaItemIndex !== -1) {
-                let quantityToDeduct = 0;
+                let vienesaQuantityToDeduct = 0;
                 if (menuItem.name.toLowerCase().includes(' normal') || menuItem.name.toLowerCase().includes(' chico')) {
-                    quantityToDeduct = orderItem.quantity; // Deduct 1 per item
+                    vienesaQuantityToDeduct = orderItem.quantity; // Deduct 1 per item
                 } else if (menuItem.name.toLowerCase().includes(' grande')) {
-                     quantityToDeduct = orderItem.quantity * 2; // Deduct 2 per item
+                     vienesaQuantityToDeduct = orderItem.quantity * 2; // Deduct 2 per item
                 }
 
-                if (quantityToDeduct > 0) {
+                if (vienesaQuantityToDeduct > 0) {
                    inventory[vienesaItemIndex].stock = Math.max(
                        0,
-                       inventory[vienesaItemIndex].stock - quantityToDeduct
+                       inventory[vienesaItemIndex].stock - vienesaQuantityToDeduct
                    );
-                    console.log(`Deducted ${quantityToDeduct} of Vienesas for ${orderItem.name}. New stock: ${inventory[vienesaItemIndex].stock}`);
+                    console.log(`Deducted ${vienesaQuantityToDeduct} of Vienesas for ${orderItem.name}. New stock: ${inventory[vienesaItemIndex].stock}`);
                 }
             } else {
                  console.warn(`Ingrediente "Vienesas" no encontrado en el inventario para deducir.`);
             }
           }
+
+          // Deduct other non-main ingredients listed in menuItem.ingredients
+          menuItem.ingredients?.forEach(ingredientName => {
+            // Skip main ingredients already handled or non-deductible placeholders
+            const nonDeductiblePlaceholders = ['(elegir 4)', '(elegir 6)', 'salsas'];
+            const alreadyHandled = ingredientToDeduct && ingredientName.toLowerCase() === ingredientToDeduct.toLowerCase();
+            const isPlaceholder = nonDeductiblePlaceholders.includes(ingredientName.toLowerCase());
+             const isBreadOrMeat = [
+                 'pan especial normal', 'pan especial grande', 'pan de marraqueta',
+                 'pan de hamburguesa normal', 'pan de hamburguesa grande',
+                 'vienesa', 'vienesa x2', 'carne as', 'carne fajita', 'carne hamburguesa', 'carne hamburguesa x2',
+                 'carne hamburguesa x3', 'carne hamburguesa x4', 'carne churrasco', 'carne mechada', 'tortilla',
+                 'papas fritas', 'bebida lata', 'bebida 1.5lt', 'cafe chico', 'cafe grande'
+             ].includes(ingredientName.toLowerCase());
+
+            if (alreadyHandled || isPlaceholder || isBreadOrMeat) {
+                return; // Skip deduction for these
+            }
+
+            const inventoryItemIndex = inventory.findIndex(
+                invItem => invItem.name.toLowerCase() === ingredientName.toLowerCase()
+            );
+
+            if (inventoryItemIndex !== -1) {
+                // Deduct based on order item quantity
+                inventory[inventoryItemIndex].stock = Math.max(
+                    0,
+                    inventory[inventoryItemIndex].stock - orderItem.quantity
+                );
+                 console.log(`Deducted ${orderItem.quantity} of secondary ingredient ${ingredientName} for ${orderItem.name}. New stock: ${inventory[inventoryItemIndex].stock}`);
+            } else {
+                console.warn(`Ingrediente secundario "${ingredientName}" para "${orderItem.name}" no encontrado en el inventario.`);
+            }
+          });
       });
 
       // Save updated inventory
@@ -1194,7 +1245,7 @@ export default function TableDetailPage() {
                                     <CardContent className="p-3 pt-0 flex-grow">
                                         <p className="text-sm text-muted-foreground">
                                            Precio: {formatCurrency(item.price)}
-                                           {item.ingredients && (
+                                           {item.ingredients && item.ingredients.length > 0 && (
                                                 <span className="text-xs italic ml-2">({item.ingredients.join(', ')})</span>
                                             )}
                                         </p>
@@ -1380,3 +1431,5 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
+    

@@ -49,7 +49,7 @@ const mockMenu: MenuItem[] = [
       category: 'Completos Vienesas',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
       modificationPrices: { 'Agregado Queso': 1000 },
-      ingredients: ['Pan Especial Normal', 'Vienesa', 'Palta', 'Tomate']
+      ingredients: ['Palta', 'Tomate'] // Removed Pan Especial Normal, Vienesa
     },
     {
       id: 14,
@@ -67,7 +67,7 @@ const mockMenu: MenuItem[] = [
       category: 'Completos Vienesas',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
       modificationPrices: { 'Agregado Queso': 1000 },
-      ingredients: ['Pan Especial Normal', 'Vienesa', 'Salsas']
+      ingredients: ['Salsas'] // Removed Pan Especial Normal, Vienesa
     },
     {
         id: 27,
@@ -85,7 +85,7 @@ const mockMenu: MenuItem[] = [
         category: 'Completos Vienesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-        ingredients: ['Tomate', 'Chucrut', 'Americana'] // Updated ingredients
+        ingredients: ['Tomate', 'Chucrut', 'Americana'] // Removed Pan Especial Normal, Vienesa
     },
     {
         id: 29,
@@ -94,7 +94,7 @@ const mockMenu: MenuItem[] = [
         category: 'Completos Vienesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-        ingredients: ['Tomate', 'Chucrut', 'Americana'] // Updated ingredients
+        ingredients: ['Tomate', 'Chucrut', 'Americana'] // Removed Pan Especial Grande, Vienesa x2
     },
     {
         id: 30,
@@ -103,7 +103,7 @@ const mockMenu: MenuItem[] = [
         category: 'Completos Vienesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-        ingredients: ['Pan Especial Normal', 'Vienesa', 'Palta']
+        ingredients: ['Palta'] // Removed Pan Especial Normal, Vienesa
     },
     {
         id: 31,
@@ -121,7 +121,7 @@ const mockMenu: MenuItem[] = [
         category: 'Completos Vienesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-        ingredients: ['Pan Especial Normal', 'Vienesa', 'Tomate']
+        ingredients: ['Tomate'] // Removed Pan Especial Normal, Vienesa
     },
     {
         id: 33,
@@ -139,7 +139,7 @@ const mockMenu: MenuItem[] = [
         category: 'Completos Vienesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'], // Updated mods
         modificationPrices: { 'Agregado Queso': 1000 },
-        ingredients: ['Pan Especial Normal', 'Vienesa', 'Tomate', 'Palta', 'Chucrut', 'Americana']
+        ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana'] // Removed Pan Especial Normal, Vienesa
     },
     {
         id: 35,
@@ -774,3 +774,5 @@ export default function ProductsPage() {
     </div>
   );
 }
+
+    
