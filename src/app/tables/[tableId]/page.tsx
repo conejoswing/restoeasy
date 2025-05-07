@@ -539,7 +539,7 @@ const mockMenu: MenuItem[] = [
       category: 'Promociones',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
       modificationPrices: { 'Agregado Queso': 1000 },
-       ingredients: ['Completo Normal', 'Bebida Lata']
+       ingredients: ['Churrasco XL', 'Bebida 1.5Lt', 'Papas Normal']
     },
      {
       id: 5,
@@ -700,10 +700,9 @@ function ProductsPage({ onProductSelect }: { onProductSelect: (product: MenuItem
     const filteredCategories = useMemo(() => {
         if (selectedCategory) return []; // Don't show categories if one is selected
         return orderedCategories.filter(category =>
-            // category.toLowerCase().includes(searchTerm.toLowerCase()) && // Removed category search
             mockMenu.some(item => item.category === category) // Only show categories with items
         );
-    }, [searchTerm, selectedCategory]);
+    }, [selectedCategory]);
 
     const filteredProducts = useMemo(() => {
         if (!selectedCategory) return [];
@@ -741,25 +740,26 @@ function ProductsPage({ onProductSelect }: { onProductSelect: (product: MenuItem
             )}
             <ScrollArea className="h-[calc(85vh-180px)] px-1"> {/* Adjusted height */}
                 {!selectedCategory && (
-                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 px-3">
+                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 px-3"> {/* Increased xl columns */}
                         {filteredCategories.length === 0 && searchTerm && (
                              <p className="text-muted-foreground text-center py-10 col-span-full">No se encontraron categorías.</p>
                         )}
                         {filteredCategories.map((category) => (
                             <Card key={category} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => { setSelectedCategory(category); setSearchTerm(''); }}>
-                                <CardHeader className="p-3 pb-1 flex flex-row items-center justify-center">
+                                <CardHeader className="p-3 pb-1 flex flex-row items-center justify-between">
                                     <CardTitle className="text-base">{category}</CardTitle>
+                                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
                                 </CardHeader>
-                                <CardContent className="p-3 pt-1 text-center">
+                                {/* <CardContent className="p-3 pt-1 text-center">
                                     <ChevronRight className="h-5 w-5 text-muted-foreground inline-block" />
-                                </CardContent>
+                                </CardContent> */}
                             </Card>
                         ))}
                     </div>
                 )}
 
                 {selectedCategory && (
-                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 px-3">
+                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 px-3">  {/* Increased xl columns */}
                          {filteredProducts.length === 0 && (
                              <p className="text-muted-foreground text-center py-10 col-span-full">No se encontraron productos en esta categoría.</p>
                          )}
@@ -895,7 +895,6 @@ export default function TableDetailPage() {
         }
          // Pan Marraqueta para Churrascos y Promos
         if (orderItem.category === 'Churrascos' || orderItem.category.startsWith('Promo Churrasco') || orderItem.category.startsWith('Promo Mechada')) {
-            // For 'Promo' categories, if the name includes '2x', deduct two units of bread.
             const quantityPerItem = (orderItem.category.startsWith('Promo') && orderItem.name.toLowerCase().startsWith('2x')) ? 2 : 1;
             itemsToDeduct.push({ name: 'Pan de marraqueta', quantity: orderItem.quantity * quantityPerItem });
         }
@@ -1430,3 +1429,4 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
