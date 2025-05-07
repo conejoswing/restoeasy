@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -909,7 +910,7 @@ export default function TableDetailPage() {
         }
          // Pan Marraqueta para Churrascos y Promos
         if (orderItem.category === 'Churrascos' || orderItem.category.startsWith('Promo Churrasco') || orderItem.category.startsWith('Promo Mechada')) {
-            const quantityPerItem = orderItem.name.startsWith('2x') ? 2 : 1;
+            const quantityPerItem = orderItem.name.startsWith('2x') ? 2 : 1; // This logic might need adjustment if "2x" is removed from names
             itemsToDeduct.push({ name: 'Pan de marraqueta', quantity: orderItem.quantity * quantityPerItem });
         }
 
@@ -1283,8 +1284,7 @@ export default function TableDetailPage() {
           <CardHeader>
             <CardTitle className="text-xl">Pedido Actual</CardTitle>
           </CardHeader>
-          <ScrollArea className="flex-grow min-h-0"> {/* Removed p-0 and overflow-y-auto */}
-             <CardContent className="p-4">
+            <CardContent className="p-4 flex-grow overflow-y-auto"> {/* Applied scrolling directly */}
                 {currentOrder.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">Añada productos del menú.</p>
                 ) : (
@@ -1338,7 +1338,6 @@ export default function TableDetailPage() {
                 </div>
                 )}
             </CardContent>
-          </ScrollArea>
           <CardFooter className="p-4 border-t">
             <Button
               onClick={handlePrintKitchenOrder}
@@ -1447,6 +1446,7 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
 
 
 
