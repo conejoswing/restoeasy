@@ -1,6 +1,7 @@
 
 
 
+
 'use client';
 
 import * as React from 'react';
@@ -560,7 +561,7 @@ const mockMenu: MenuItem[] = [
        modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['4 Churrascos', 'Bebida 1.5Lt', 'Papas Mediana']
     },
-    { id: 91, name: 'Promo 4', price: 6500, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Hamburguesa Simple', 'Bebida Lata'] },
+    { id: 91, name: 'Promo 4', price: 6500, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['2 Churrascos Lomito', 'Papa Personal'] },
     { id: 92, name: 'Promo 5', price: 7000, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Promo 5 Placeholder'] }, // Add specific ingredients
     { id: 93, name: 'Promo 6', price: 7500, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Promo 6 Placeholder'] },
     { id: 94, name: 'Promo 7', price: 8000, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Promo 7 Placeholder'] },
@@ -1431,5 +1432,6 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
 
 
