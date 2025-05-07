@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -288,7 +289,7 @@ const mockMenu: MenuItem[] = [
     { id: 108, name: 'Primavera', price: 9000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Palta', 'Choclo', 'Tomate'] },
     { id: 109, name: 'Golosasa', price: 10500, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Queso', 'Champiñones', 'Papas Hilo', 'Pimentón'] },
     { id: 110, name: '4 Ingredientes', price: 11000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno'] }, // Updated ingredients
-    { id: 111, name: '6 Ingredientes', price: 12000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', '(Elegir 6)'] }, // Updated ingredients
+    { id: 111, name: '6 Ingredientes', price: 12000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno'] }, // Updated ingredients
     // --- Hamburguesas --- (Updated Modifications)
     {
         id: 17,
@@ -699,7 +700,7 @@ function ProductsPage({ onProductSelect }: { onProductSelect: (product: MenuItem
     const filteredCategories = useMemo(() => {
         if (selectedCategory) return []; // Don't show categories if one is selected
         return orderedCategories.filter(category =>
-            category.toLowerCase().includes(searchTerm.toLowerCase()) &&
+            // category.toLowerCase().includes(searchTerm.toLowerCase()) && // Removed category search
             mockMenu.some(item => item.category === category) // Only show categories with items
         );
     }, [searchTerm, selectedCategory]);
@@ -719,13 +720,15 @@ function ProductsPage({ onProductSelect }: { onProductSelect: (product: MenuItem
                 <h1 className="text-2xl font-bold">
                     {selectedCategory ? `${selectedCategory}` : "Menú"}
                 </h1>
-                <Input
-                    type="text"
-                    placeholder={selectedCategory ? "Buscar producto..." : "Buscar categoría..."}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="max-w-xs"
-                />
+                 {selectedCategory && ( // Only show product search if a category is selected
+                    <Input
+                        type="text"
+                        placeholder="Buscar producto..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="max-w-xs"
+                    />
+                 )}
             </div>
             {selectedCategory && (
                 <Button
@@ -745,7 +748,6 @@ function ProductsPage({ onProductSelect }: { onProductSelect: (product: MenuItem
                         {filteredCategories.map((category) => (
                             <Card key={category} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => { setSelectedCategory(category); setSearchTerm(''); }}>
                                 <CardHeader className="p-3 pb-1 flex flex-row items-center justify-center">
-                                    {/* Removed categoryIcons[category] */}
                                     <CardTitle className="text-base">{category}</CardTitle>
                                 </CardHeader>
                                 <CardContent className="p-3 pt-1 text-center">
@@ -1427,4 +1429,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-
