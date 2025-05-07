@@ -3,6 +3,7 @@
 
 
 
+
 'use client';
 
 import * as React from 'react';
@@ -291,7 +292,7 @@ const mockMenu: MenuItem[] = [
     { id: 107, name: 'Americana', price: 8900, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Queso', 'Champiñones', 'Jamón'] },
     { id: 108, name: 'Primavera', price: 9000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Palta', 'Choclo', 'Tomate'] },
     { id: 109, name: 'Golosasa', price: 10500, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Queso', 'Champiñones', 'Papas Hilo', 'Pimentón'] },
-    { id: 110, name: '4 Ingredientes', price: 11000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno'] }, // Updated ingredients
+    { id: 110, name: '4 Ingredientes', price: 11000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno'] },
     { id: 111, name: '6 Ingredientes', price: 12000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno'] },
     // --- Hamburguesas --- (Updated Modifications)
     {
@@ -564,7 +565,7 @@ const mockMenu: MenuItem[] = [
     },
     { id: 91, name: 'Promo 4', price: 6500, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['2 Churrascos Lomito', 'Papa Personal'] },
     { id: 92, name: 'Promo 5', price: 7000, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['2 Completo Vienesas Normal', '2 Latas', 'Papa Personal'] },
-    { id: 93, name: 'Promo 6', price: 7500, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Promo 6 Placeholder'] },
+    { id: 93, name: 'Promo 6', price: 7500, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['2 Completo Vienesas Grande', '2 Latas', 'Papa Personal'] },
     { id: 94, name: 'Promo 7', price: 8000, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Promo 7 Placeholder'] },
     { id: 95, name: 'Promo 8', price: 8500, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Promo 8 Placeholder'] },
     { id: 96, name: 'Promo 9', price: 9000, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Promo 9 Placeholder'] },
@@ -703,9 +704,10 @@ function ProductsPage({ onProductSelect }: { onProductSelect: (product: MenuItem
     const filteredCategories = useMemo(() => {
         if (selectedCategory) return []; // Don't show categories if one is selected
         return orderedCategories.filter(category =>
-            mockMenu.some(item => item.category === category) // Only show categories with items
+            mockMenu.some(item => item.category === category) && // Only show categories with items
+            category.toLowerCase().includes(searchTerm.toLowerCase()) // Filter categories by search term
         );
-    }, [selectedCategory]);
+    }, [selectedCategory, searchTerm]);
 
     const filteredProducts = useMemo(() => {
         if (!selectedCategory) return [];
@@ -722,15 +724,14 @@ function ProductsPage({ onProductSelect }: { onProductSelect: (product: MenuItem
                 <h1 className="text-2xl font-bold">
                     {selectedCategory ? `${selectedCategory}` : "Menú"}
                 </h1>
-                 {selectedCategory && ( // Only show product search if a category is selected
-                    <Input
-                        type="text"
-                        placeholder="Buscar producto..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="max-w-xs"
-                    />
-                 )}
+                {/* Search input for categories or products */}
+                <Input
+                    type="text"
+                    placeholder={selectedCategory ? "Buscar producto..." : "Buscar categoría..."}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="max-w-xs"
+                />
             </div>
             {selectedCategory && (
                 <Button
@@ -898,8 +899,10 @@ export default function TableDetailPage() {
         }
          // Pan Marraqueta para Churrascos y Promos
         if (orderItem.category === 'Churrascos' || orderItem.category.startsWith('Promo Churrasco') || orderItem.category.startsWith('Promo Mechada')) {
-            // For "2x" promos, deduct 2 units of bread. Otherwise, 1 unit.
-            const quantityPerItem = (orderItem.category.startsWith('Promo') && orderItem.name.toLowerCase().startsWith('2x')) ? 2 : 1; //This was the previous logic, but 2x was removed
+             const quantityPerItem = 1; // Default to 1 unit of bread
+            // For specific "2x" named items or if category implies multiple bread units, adjust quantityPerItem
+            // Example: if (orderItem.name.toLowerCase().startsWith('2x')) quantityPerItem = 2;
+            // This needs to be robust based on actual promo naming and structure
             itemsToDeduct.push({ name: 'Pan de marraqueta', quantity: orderItem.quantity * quantityPerItem });
         }
 
