@@ -1,5 +1,6 @@
 
 
+
 'use client';
 
 import * as React from 'react';
@@ -548,7 +549,7 @@ const mockMenu: MenuItem[] = [
       category: 'Promociones',
        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
        modificationPrices: { 'Agregado Queso': 1000 },
-        ingredients: ['Italiano Normal', 'Bebida Lata']
+        ingredients: ['Churrasco XL', 'Queso o Chacarero', 'Bebida 1.5Lt', 'Papas Normal']
     },
     {
       id: 23,
@@ -895,6 +896,7 @@ export default function TableDetailPage() {
         }
          // Pan Marraqueta para Churrascos y Promos
         if (orderItem.category === 'Churrascos' || orderItem.category.startsWith('Promo Churrasco') || orderItem.category.startsWith('Promo Mechada')) {
+            // For "2x" promos, deduct 2 units of bread. Otherwise, 1 unit.
             const quantityPerItem = (orderItem.category.startsWith('Promo') && orderItem.name.toLowerCase().startsWith('2x')) ? 2 : 1;
             itemsToDeduct.push({ name: 'Pan de marraqueta', quantity: orderItem.quantity * quantityPerItem });
         }
@@ -1429,4 +1431,5 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
 
