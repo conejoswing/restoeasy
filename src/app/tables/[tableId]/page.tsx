@@ -1,9 +1,3 @@
-
-
-
-
-
-
 'use client';
 
 import * as React from 'react';
@@ -566,7 +560,7 @@ const mockMenu: MenuItem[] = [
     { id: 91, name: 'Promo 4', price: 6500, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['2 Churrascos Lomito', 'Papa Personal'] },
     { id: 92, name: 'Promo 5', price: 7000, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['2 Completo Vienesas Normal', '2 Latas', 'Papa Personal'] },
     { id: 93, name: 'Promo 6', price: 7500, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['2 Completo Vienesas Grande', '2 Latas', 'Papa Personal'] },
-    { id: 94, name: 'Promo 7', price: 8000, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Promo 7 Placeholder'] },
+    { id: 94, name: 'Promo 7', price: 8000, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['2 Completo As Normal', '2 Latas', 'Papa Personal'] },
     { id: 95, name: 'Promo 8', price: 8500, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Promo 8 Placeholder'] },
     { id: 96, name: 'Promo 9', price: 9000, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Promo 9 Placeholder'] },
     { id: 97, name: 'Promo 10', price: 9500, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Promo 10 Placeholder'] },
@@ -705,7 +699,7 @@ function ProductsPage({ onProductSelect }: { onProductSelect: (product: MenuItem
         if (selectedCategory) return []; // Don't show categories if one is selected
         return orderedCategories.filter(category =>
             mockMenu.some(item => item.category === category) && // Only show categories with items
-            category.toLowerCase().includes(searchTerm.toLowerCase()) // Filter categories by search term
+            (!searchTerm || category.toLowerCase().includes(searchTerm.toLowerCase())) // Filter categories by search term if searchTerm is not empty
         );
     }, [selectedCategory, searchTerm]);
 
@@ -899,10 +893,11 @@ export default function TableDetailPage() {
         }
          // Pan Marraqueta para Churrascos y Promos
         if (orderItem.category === 'Churrascos' || orderItem.category.startsWith('Promo Churrasco') || orderItem.category.startsWith('Promo Mechada')) {
-             const quantityPerItem = 1; // Default to 1 unit of bread
-            // For specific "2x" named items or if category implies multiple bread units, adjust quantityPerItem
-            // Example: if (orderItem.name.toLowerCase().startsWith('2x')) quantityPerItem = 2;
-            // This needs to be robust based on actual promo naming and structure
+             let quantityPerItem = 1; // Default to 1 unit of bread
+            // For "2x" named items in promos, adjust quantity
+            if (orderItem.category.startsWith('Promo') && orderItem.name.toLowerCase().startsWith('2x')) {
+                 quantityPerItem = 2; // This is a simplification, specific logic per promo item might be needed
+            }
             itemsToDeduct.push({ name: 'Pan de marraqueta', quantity: orderItem.quantity * quantityPerItem });
         }
 
@@ -1258,10 +1253,11 @@ export default function TableDetailPage() {
                     </Button>
                 </SheetTrigger>
                 <SheetContent side="bottom" className="h-[85vh] w-full max-w-4xl mx-auto p-0 rounded-t-lg border-t-0"> {/* Wider sheet, no top border */}
-                    <SheetHeader className="p-0 border-b-0">
-                        <SheetTitle className="text-center text-xl sr-only">Seleccionar Productos</SheetTitle>
-                    </SheetHeader>
+                    {/* Removed SheetHeader and SheetTitle for a cleaner look */}
                     <ProductsPage onProductSelect={handleProductSelect} />
+                     <SheetClose asChild>
+                         <Button variant="outline" className="absolute bottom-4 right-4">Confirmar y Cerrar Menú</Button>
+                     </SheetClose>
                 </SheetContent>
             </Sheet>
         </div>
@@ -1275,7 +1271,7 @@ export default function TableDetailPage() {
           <CardHeader>
             <CardTitle className="text-xl">Pedido Actual</CardTitle>
           </CardHeader>
-           <ScrollArea className="flex-grow min-h-0" style={{ maxHeight: 'calc(100vh - 350px)' }}> {/* Ensure ScrollArea takes up available space */}
+           <ScrollArea className="flex-grow" style={{ maxHeight: 'calc(100vh - 360px)' }}> {/* Ensure ScrollArea takes up available space and provide explicit max height */}
             <CardContent className="p-4">
                 {currentOrder.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">Añada productos del menú.</p>
@@ -1353,7 +1349,7 @@ export default function TableDetailPage() {
                  </CardDescription>
              )}
           </CardHeader>
-          <ScrollArea className="flex-grow min-h-0" style={{ maxHeight: 'calc(100vh - 350px)' }}> {/* Ensure ScrollArea takes up available space */}
+          <ScrollArea className="flex-grow" style={{ maxHeight: 'calc(100vh - 360px)' }}> {/* Ensure ScrollArea takes up available space and provide explicit max height */}
             <CardContent className="p-4">
                 {!pendingOrder || pendingOrder.items.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">No hay pedidos pendientes de pago.</p>
@@ -1436,9 +1432,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-
-
-
-
-
-    
