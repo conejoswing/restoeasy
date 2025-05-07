@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -1284,7 +1283,7 @@ export default function TableDetailPage() {
           <CardHeader>
             <CardTitle className="text-xl">Pedido Actual</CardTitle>
           </CardHeader>
-          <ScrollArea className="flex-grow p-0 min-h-0 overflow-y-auto"> {/* Added overflow-y-auto */}
+          <ScrollArea className="flex-grow min-h-0"> {/* Removed p-0 and overflow-y-auto */}
              <CardContent className="p-4">
                 {currentOrder.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">Añada productos del menú.</p>
@@ -1364,7 +1363,7 @@ export default function TableDetailPage() {
                  </CardDescription>
              )}
           </CardHeader>
-          <ScrollArea className="flex-grow p-0 min-h-0 overflow-y-auto"> {/* Added overflow-y-auto */}
+          <ScrollArea className="flex-grow min-h-0"> {/* Removed p-0 and overflow-y-auto */}
             <CardContent className="p-4">
                 {!pendingOrder || pendingOrder.items.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">No hay pedidos pendientes de pago.</p>
@@ -1448,6 +1447,7 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
 
 
 
