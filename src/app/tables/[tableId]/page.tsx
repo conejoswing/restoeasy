@@ -474,7 +474,7 @@ const mockMenu: MenuItem[] = [
     { id: 63, name: 'Salchipapas', price: 7000, category: 'Papas Fritas', ingredients: ['Vienesas', 'Salsas'] },
     { id: 64, name: 'Chorrillana 2', price: 12000, category: 'Papas Fritas', ingredients: ['Carne', 'Cebolla Frita', 'Huevo Frito x2'] },
     { id: 65, name: 'Chorrillana 4', price: 18000, category: 'Papas Fritas', ingredients: ['Carne x2', 'Cebolla Frita x2', 'Huevo Frito x4'] },
-    { id: 66, name: 'Box Cami', price: 15000, category: 'Papas Fritas', ingredients: ['Carne', 'Vienesa', 'Queso Fundido', 'Champiñones', 'Pimentón'] },
+    { id: 66, name: 'Box Cami', price: 15000, category: 'Papas Fritas', ingredients: ['2 Papas XL', '8 Porciones Aro Cebolla', '8 Empanadas de Queso', '1 Porción Carne Vacuno', '6 Laminas Queso Cheddar', 'Tocino', 'Salsa Cheddar', 'Bebida 1.5Lt'] },
     // --- Promo Churrasco --- (Updated Modifications where applicable)
     {
         id: 25,
@@ -1432,6 +1432,7 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
 
 
 
