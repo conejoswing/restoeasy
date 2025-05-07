@@ -565,7 +565,7 @@ const mockMenu: MenuItem[] = [
     { id: 94, name: 'Promo 7', price: 8000, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['2 Completo As Normal', '2 Latas', 'Papa Personal'] },
     { id: 95, name: 'Promo 8', price: 8500, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['2 Completo As Grande', '2 Latas', 'Papa Personal'] },
     { id: 96, name: 'Promo 9', price: 9000, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['4 Completo Vienesas Normal', '1 Bebida 1.5Lt', 'Papa Mediana'] },
-    { id: 97, name: 'Promo 10', price: 9500, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Promo 10 Placeholder'] },
+    { id: 97, name: 'Promo 10', price: 9500, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['4 Completo Vienesas Grande', '1 Bebida 1.5Lt', 'Papa Mediana'] },
     { id: 98, name: 'Promo 11', price: 10000, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Promo 11 Placeholder'] },
     { id: 99, name: 'Promo 12', price: 10500, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Promo 12 Placeholder'] },
     // --- Bebidas --- (No modifications)
@@ -894,6 +894,9 @@ export default function TableDetailPage() {
          // Pan Marraqueta para Churrascos y Promos
         if (orderItem.category === 'Churrascos' || orderItem.category.startsWith('Promo Churrasco') || orderItem.category.startsWith('Promo Mechada')) {
              let quantityPerItem = 1;
+             if (orderItem.name.startsWith('2x')) { // Check if it's a 2x promo
+                quantityPerItem = 2;
+             }
             itemsToDeduct.push({ name: 'Pan de marraqueta', quantity: orderItem.quantity * quantityPerItem });
         }
 
@@ -1275,7 +1278,7 @@ export default function TableDetailPage() {
                     {currentOrder.map(item => (
                     <div key={item.orderItemId} className="border p-3 rounded-md shadow-sm bg-background">
                         <div className="flex justify-between items-center font-bold">
-                          <span className="flex-1">{item.name}</span>
+                          <span className="flex-1 font-bold">{item.name}</span>
                         </div>
                         {item.selectedModifications && item.selectedModifications.length > 0 && (
                         <p className="text-xs text-muted-foreground mt-1 font-bold">
@@ -1353,7 +1356,7 @@ export default function TableDetailPage() {
                     {pendingOrder.items.map(item => (
                     <div key={item.orderItemId} className="border p-3 rounded-md shadow-sm bg-background">
                         <div className="flex justify-between items-center font-bold">
-                        <span className="flex-1 ">{item.quantity}x {item.name}</span>
+                        <span className="flex-1 font-bold">{item.quantity}x {item.name}</span>
                         <span className="font-bold">{formatCurrencyDisplay(item.finalPrice * item.quantity)}</span>
                         </div>
                          {item.selectedModifications && item.selectedModifications.length > 0 && (
