@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -32,7 +33,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"; // Import Table components
-import { Utensils, PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard, ChevronRight, Banknote, Landmark, Home, Phone, User, DollarSign, PackageSearch, Edit, ShoppingBag, Coffee, Salad, Sandwich, Drumstick, UtensilsCrossed, Soup, IceCream, CakeSlice, Beef, Apple, Sparkles, ShoppingBasket } from 'lucide-react'; // Added more icons for categories
+import { Utensils, PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard, ChevronRight, Banknote, Landmark, Home, Phone, User, DollarSign, PackageSearch, Edit } from 'lucide-react'; // Removed category specific icons
 import {useToast} from '@/hooks/use-toast';
 import ModificationDialog from '@/components/app/modification-dialog';
 import PaymentDialog from '@/components/app/payment-dialog';
@@ -287,7 +288,7 @@ const mockMenu: MenuItem[] = [
     { id: 108, name: 'Primavera', price: 9000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Palta', 'Choclo', 'Tomate'] },
     { id: 109, name: 'Golosasa', price: 10500, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Queso', 'Champiñones', 'Papas Hilo', 'Pimentón'] },
     { id: 110, name: '4 Ingredientes', price: 11000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno'] }, // Updated ingredients
-    { id: 111, name: '6 Ingredientes', price: 12000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno'] },
+    { id: 111, name: '6 Ingredientes', price: 12000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', '(Elegir 6)'] }, // Updated ingredients
     // --- Hamburguesas --- (Updated Modifications)
     {
         id: 17,
@@ -610,23 +611,6 @@ const orderedCategories = [
   'Colaciones',
 ];
 
-// Category icons map
-const categoryIcons: Record<string, React.ReactNode> = {
-  'Completos Vienesas': <Sandwich className="mr-2 h-5 w-5" />,
-  'Completos As': <Beef className="mr-2 h-5 w-5" />,
-  'Fajitas': <Drumstick className="mr-2 h-5 w-5" />,
-  'Hamburguesas': <UtensilsCrossed className="mr-2 h-5 w-5" />, // Using UtensilsCrossed as placeholder for Burger
-  'Churrascos': <Sandwich className="mr-2 h-5 w-5" />, // Re-using Sandwich
-  'Papas Fritas': <Apple className="mr-2 h-5 w-5" />, // Using Apple as placeholder for Fries
-  'Promo Churrasco': <ShoppingBasket className="mr-2 h-5 w-5" />,
-  'Promo Mechada': <ShoppingBasket className="mr-2 h-5 w-5" />, // Re-using ShoppingBasket
-  'Promociones': <Sparkles className="mr-2 h-5 w-5" />,
-  'Bebidas': <Coffee className="mr-2 h-5 w-5" />,
-  'Colaciones': <Soup className="mr-2 h-5 w-5" />,
-  'Postres': <IceCream className="mr-2 h-5 w-5" />,
-  'Pasteles': <CakeSlice className="mr-2 h-5 w-5" />,
-};
-
 
 // Helper function to extract number from promo name
 const extractPromoNumber = (name: string): number => {
@@ -761,7 +745,7 @@ function ProductsPage({ onProductSelect }: { onProductSelect: (product: MenuItem
                         {filteredCategories.map((category) => (
                             <Card key={category} className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => { setSelectedCategory(category); setSearchTerm(''); }}>
                                 <CardHeader className="p-3 pb-1 flex flex-row items-center justify-center">
-                                    {categoryIcons[category] || <ShoppingBag className="mr-2 h-5 w-5" />}
+                                    {/* Removed categoryIcons[category] */}
                                     <CardTitle className="text-base">{category}</CardTitle>
                                 </CardHeader>
                                 <CardContent className="p-3 pt-1 text-center">
@@ -909,7 +893,7 @@ export default function TableDetailPage() {
         }
          // Pan Marraqueta para Churrascos y Promos
         if (orderItem.category === 'Churrascos' || orderItem.category.startsWith('Promo Churrasco') || orderItem.category.startsWith('Promo Mechada')) {
-            const quantityPerItem = 1; // Each item uses 1 pan
+            const quantityPerItem = (orderItem.category.startsWith('Promo') && orderItem.name.toLowerCase().startsWith('2x')) ? 2 : 1; // Check for '2x' prefix for promos
             itemsToDeduct.push({ name: 'Pan de marraqueta', quantity: orderItem.quantity * quantityPerItem });
         }
 
@@ -1282,7 +1266,7 @@ export default function TableDetailPage() {
           <CardHeader>
             <CardTitle className="text-xl">Pedido Actual</CardTitle>
           </CardHeader>
-          <ScrollArea className="flex-grow min-h-0" style={{ maxHeight: 'calc(100vh - 350px)' }}>
+           <ScrollArea className="flex-grow min-h-0" style={{ maxHeight: 'calc(100vh - 350px)' }}> {/* Ensure ScrollArea takes up available space */}
             <CardContent className="p-4">
                 {currentOrder.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">Añada productos del menú.</p>
@@ -1360,7 +1344,7 @@ export default function TableDetailPage() {
                  </CardDescription>
              )}
           </CardHeader>
-          <ScrollArea className="flex-grow min-h-0">
+          <ScrollArea className="flex-grow min-h-0" style={{ maxHeight: 'calc(100vh - 350px)' }}> {/* Ensure ScrollArea takes up available space */}
             <CardContent className="p-4">
                 {!pendingOrder || pendingOrder.items.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">No hay pedidos pendientes de pago.</p>
@@ -1443,3 +1427,4 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
