@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import * as React from 'react';
@@ -85,7 +83,7 @@ const mockMenu: MenuItem[] = [
       name: 'Italiano Normal',
       price: 4000,
       category: 'Completos Vienesas',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'],
       modificationPrices: { 'Agregado Queso': 1000 },
       ingredients: ['Palta', 'Tomate']
     },
@@ -103,7 +101,7 @@ const mockMenu: MenuItem[] = [
       name: 'Hot Dog Normal',
       price: 4200,
       category: 'Completos Vienesas',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'],
       modificationPrices: { 'Agregado Queso': 1000 },
       ingredients: ['Salsas']
     },
@@ -112,7 +110,7 @@ const mockMenu: MenuItem[] = [
         name: 'Hot Dog Grande',
         price: 4700,
         category: 'Completos Vienesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Salsas']
     },
@@ -121,7 +119,7 @@ const mockMenu: MenuItem[] = [
         name: 'Completo Normal',
         price: 4300,
         category: 'Completos Vienesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate', 'Chucrut', 'Americana']
     },
@@ -130,7 +128,7 @@ const mockMenu: MenuItem[] = [
         name: 'Completo Grande',
         price: 4800,
         category: 'Completos Vienesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate', 'Chucrut', 'Americana']
     },
@@ -139,7 +137,7 @@ const mockMenu: MenuItem[] = [
         name: 'Palta Normal',
         price: 4100,
         category: 'Completos Vienesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Palta']
     },
@@ -148,7 +146,7 @@ const mockMenu: MenuItem[] = [
         name: 'Palta Grande',
         price: 4600,
         category: 'Completos Vienesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Palta']
     },
@@ -157,7 +155,7 @@ const mockMenu: MenuItem[] = [
         name: 'Tomate Normal',
         price: 4100,
         category: 'Completos Vienesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate']
     },
@@ -166,7 +164,7 @@ const mockMenu: MenuItem[] = [
         name: 'Tomate Grande',
         price: 4600,
         category: 'Completos Vienesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate']
     },
@@ -194,7 +192,7 @@ const mockMenu: MenuItem[] = [
       name: 'Italiano Normal',
       price: 5500,
       category: 'Completos As',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'],
       modificationPrices: { 'Agregado Queso': 1000 },
        ingredients: ['Palta', 'Tomate']
     },
@@ -212,19 +210,19 @@ const mockMenu: MenuItem[] = [
       name: 'Completo Normal',
       price: 6500,
       category: 'Completos As',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'],
        modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate', 'Chucrut', 'Americana']
     },
-    { id: 36, name: 'Completo Grande', price: 7000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Chucrut', 'Americana'] },
-    { id: 37, name: 'Palta Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta'] },
-    { id: 38, name: 'Palta Grande', price: 6300, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta'] },
-    { id: 39, name: 'Tomate Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate'] },
-    { id: 40, name: 'Tomate Grande', price: 6300, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate'] },
-    { id: 41, name: 'Queso Normal', price: 6000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso'] },
-    { id: 42, name: 'Queso Grande', price: 6500, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso'] },
-    { id: 43, name: 'Solo Carne Normal', price: 5000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: [] },
-    { id: 44, name: 'Solo Carne Grande', price: 5500, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: [] },
+    { id: 36, name: 'Completo Grande', price: 7000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Chucrut', 'Americana'] },
+    { id: 37, name: 'Palta Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta'] },
+    { id: 38, name: 'Palta Grande', price: 6300, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta'] },
+    { id: 39, name: 'Tomate Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate'] },
+    { id: 40, name: 'Tomate Grande', price: 6300, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate'] },
+    { id: 41, name: 'Queso Normal', price: 6000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso'] },
+    { id: 42, name: 'Queso Grande', price: 6500, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso'] },
+    { id: 43, name: 'Solo Carne Normal', price: 5000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: [] },
+    { id: 44, name: 'Solo Carne Grande', price: 5500, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: [] },
     {
         id: 45,
         name: 'Dinamico Normal',
@@ -841,6 +839,7 @@ export default function TableDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { toast } = useToast();
+  const decodedTableId = decodeURIComponent(params.tableId as string);
   const tableIdParam = params.tableId as string; // "mesón", "delivery", or number as string
   const isDelivery = tableIdParam === 'delivery';
 
@@ -910,7 +909,7 @@ export default function TableDetailPage() {
         }
          // Pan Marraqueta para Churrascos y Promos
         if (orderItem.category === 'Churrascos' || orderItem.category.startsWith('Promo Churrasco') || orderItem.category.startsWith('Promo Mechada')) {
-            const quantityPerItem = orderItem.name.startsWith('2x') ? 2 : 1; // This logic might need adjustment if "2x" is removed from names
+            const quantityPerItem = 1; // Each item uses 1 pan
             itemsToDeduct.push({ name: 'Pan de marraqueta', quantity: orderItem.quantity * quantityPerItem });
         }
 
@@ -1139,7 +1138,7 @@ export default function TableDetailPage() {
       }
 
       // Format and print kitchen receipt
-      const kitchenReceiptHtml = formatKitchenOrderReceipt(currentOrder, tableIdParam, deliveryInfo);
+      const kitchenReceiptHtml = formatKitchenOrderReceipt(currentOrder, isDelivery ? `Delivery: ${deliveryInfo?.name || 'Cliente'}` : `Mesa ${decodedTableId}`, deliveryInfo);
       printHtml(kitchenReceiptHtml);
       toast({ title: "Comanda Impresa", description: "La comanda ha sido enviada a cocina." });
 
@@ -1183,7 +1182,7 @@ export default function TableDetailPage() {
         id: newMovementId,
         date: new Date().toISOString(), // Store as ISO string
         category: 'Ingreso Venta',
-        description: `Venta Mesa ${tableIdParam}`,
+        description: isDelivery ? `Venta Delivery: ${deliveryInfo?.name || 'Cliente'}` : `Venta Mesa ${decodedTableId}`,
         amount: pendingOrderTotal, // Use the total including delivery fee
         paymentMethod: paymentMethod,
         deliveryFee: isDelivery && deliveryInfo ? deliveryInfo.deliveryFee : 0, // Add delivery fee if applicable
@@ -1252,7 +1251,7 @@ export default function TableDetailPage() {
                 Volver a Mesas
             </Button>
             <h1 className="text-3xl font-bold">
-                {isDelivery ? 'Pedido Delivery' : `Mesa ${tableIdParam.toUpperCase()}`}
+                {isDelivery ? 'Pedido Delivery' : `Mesa ${decodedTableId.toUpperCase()}`}
             </h1>
             <div className="w-auto min-w-[160px]"></div> {/* Adjusted spacer width */}
         </div>
@@ -1270,7 +1269,6 @@ export default function TableDetailPage() {
                         <SheetTitle className="text-center text-xl sr-only">Seleccionar Productos</SheetTitle>
                     </SheetHeader>
                     <ProductsPage onProductSelect={handleProductSelect} />
-                     {/* Removed SheetClose explicitly, can close by clicking outside or via onOpenChange logic */}
                 </SheetContent>
             </Sheet>
         </div>
@@ -1280,11 +1278,12 @@ export default function TableDetailPage() {
       <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-6 overflow-hidden">
 
         {/* Current Order Section */}
-        <Card className="flex flex-col h-full"> {/* Added h-full */}
+        <Card className="flex flex-col h-full">
           <CardHeader>
             <CardTitle className="text-xl">Pedido Actual</CardTitle>
           </CardHeader>
-            <CardContent className="p-4 flex-grow overflow-y-auto"> {/* Applied scrolling directly */}
+          <ScrollArea className="flex-grow min-h-0" style={{ maxHeight: 'calc(100vh - 350px)' }}>
+            <CardContent className="p-4">
                 {currentOrder.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">Añada productos del menú.</p>
                 ) : (
@@ -1293,14 +1292,12 @@ export default function TableDetailPage() {
                     <div key={item.orderItemId} className="border p-3 rounded-md shadow-sm bg-background">
                         <div className="flex justify-between items-center">
                         <span className="font-bold flex-1">{item.name}</span>
-                        {/* Price removed from current order display */}
                         </div>
                         {item.selectedModifications && item.selectedModifications.length > 0 && (
                         <p className="text-xs text-muted-foreground mt-1 font-bold">
                              ({item.selectedModifications.join(', ')})
                         </p>
                         )}
-                        {/* Display ingredients if available */}
                          {item.ingredients && item.ingredients.length > 0 && (
                             <p className="text-xs text-muted-foreground mt-1 font-bold">
                                 [{item.ingredients.join(', ')}]
@@ -1338,6 +1335,7 @@ export default function TableDetailPage() {
                 </div>
                 )}
             </CardContent>
+          </ScrollArea>
           <CardFooter className="p-4 border-t">
             <Button
               onClick={handlePrintKitchenOrder}
@@ -1352,7 +1350,7 @@ export default function TableDetailPage() {
 
 
         {/* Pending Order Section */}
-        <Card className="flex flex-col h-full">  {/* Added h-full */}
+        <Card className="flex flex-col h-full">
           <CardHeader>
             <CardTitle className="text-xl">Pedidos Pendientes de Pago</CardTitle>
              {isDelivery && deliveryInfo && (
@@ -1362,7 +1360,7 @@ export default function TableDetailPage() {
                  </CardDescription>
              )}
           </CardHeader>
-          <ScrollArea className="flex-grow min-h-0"> {/* Removed p-0 and overflow-y-auto */}
+          <ScrollArea className="flex-grow min-h-0">
             <CardContent className="p-4">
                 {!pendingOrder || pendingOrder.items.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">No hay pedidos pendientes de pago.</p>
@@ -1379,7 +1377,6 @@ export default function TableDetailPage() {
                              ({item.selectedModifications.join(', ')})
                         </p>
                         )}
-                        {/* Display ingredients if available */}
                          {item.ingredients && item.ingredients.length > 0 && (
                             <p className="text-xs text-muted-foreground mt-1 font-bold">
                                  [{item.ingredients.join(', ')}]
@@ -1446,8 +1443,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-
-
-
-
-

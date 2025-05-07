@@ -1,4 +1,3 @@
-
 'use client';
 
 import type { OrderItem } from '@/app/tables/[tableId]/page';
@@ -24,11 +23,9 @@ const formatDateTime = (date: Date): string => {
 
 export const formatKitchenOrderReceipt = (
     orderItems: OrderItem[],
-    tableId: string | number,
+    orderIdentifier: string, // Changed parameter name to reflect its use
     deliveryInfo?: DeliveryInfo | null
 ): string => {
-    const isDelivery = tableId === 'delivery';
-    const title = isDelivery ? `COMANDA DELIVERY` : `COMANDA MESA ${tableId}`;
     const time = formatDateTime(new Date());
 
     let itemsHtml = '';
@@ -53,7 +50,7 @@ export const formatKitchenOrderReceipt = (
     });
 
     let deliveryHtml = '';
-    if (isDelivery && deliveryInfo) {
+    if (orderIdentifier.toLowerCase().startsWith('delivery') && deliveryInfo) { // Check if orderIdentifier indicates delivery
         deliveryHtml = `
         <div style="margin-top: 15px; border-top: 1px dashed #000; padding-top: 10px;">
             <strong>Enviar a:</strong><br>
@@ -109,12 +106,16 @@ export const formatKitchenOrderReceipt = (
       </style>
     </head>
     <body>
-      <h1>${title}</h1>
+      <h1>COMANDA: ${orderIdentifier.toUpperCase()}</h1> {/* Display the orderIdentifier here */}
       <div class="header-info">
         ${time}
       </div>
+      <hr> {/* Add a separator after the header info */}
       <div class="items-section">
         <table>
+         <thead> {/* Add a header for the items table */}
+            <tr><th colspan="2">Productos:</th></tr>
+         </thead>
           <tbody>
             ${itemsHtml}
           </tbody>
@@ -128,17 +129,18 @@ export const formatKitchenOrderReceipt = (
 
 
 export const formatCustomerReceipt = (
-    orderItems: OrderItem[],
+ orderItems: OrderItem[], // Keep this parameter
     totalAmount: number,
     paymentMethod: string,
-    tableId: string | number,
+    tableId: string | number, // Keep tableId for specific table/delivery identification
     deliveryInfo?: DeliveryInfo | null
 ): string => {
     const isDelivery = tableId === 'delivery';
     const title = "BOLETA"; // Or "FACTURA" depending on legal requirements
     const shopName = "El Bajón de la Cami"; // Replace with actual shop name if needed
     const time = formatDateTime(new Date());
-    const tableInfo = isDelivery ? `Pedido Delivery` : `Mesa ${tableId}`;
+    const orderIdentifier = isDelivery ? `Delivery: ${deliveryInfo?.name || 'Cliente'}` : `Mesa ${tableId}`;
+
 
     let itemsHtml = '';
     orderItems.forEach(item => {
@@ -196,7 +198,7 @@ export const formatCustomerReceipt = (
       <h2>${shopName}</h2>
       <div class="header-info">
         ${time}<br>
-        ${tableInfo}
+        ${orderIdentifier}
       </div>
       <hr>
       <table>
@@ -346,8 +348,10 @@ export const printHtml = (htmlContent: string): void => {
                 // 5. Remove the iframe after printing (or potential cancellation)
                 // Use another timeout to ensure the print dialog has processed
                 setTimeout(() => {
-                    document.body.removeChild(iframe);
-                    console.log("Iframe removed.");
+                    if (document.body.contains(iframe)) { // Check if iframe still exists before removing
+                        document.body.removeChild(iframe);
+                        console.log("Iframe removed.");
+                    }
                 }, 1000); // Adjust delay if needed
 
             } catch (printError) {
