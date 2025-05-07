@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -563,7 +564,7 @@ const mockMenu: MenuItem[] = [
     { id: 93, name: 'Promo 6', price: 7500, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['2 Completo Vienesas Grande', '2 Latas', 'Papa Personal'] },
     { id: 94, name: 'Promo 7', price: 8000, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['2 Completo As Normal', '2 Latas', 'Papa Personal'] },
     { id: 95, name: 'Promo 8', price: 8500, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['2 Completo As Grande', '2 Latas', 'Papa Personal'] },
-    { id: 96, name: 'Promo 9', price: 9000, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Promo 9 Placeholder'] },
+    { id: 96, name: 'Promo 9', price: 9000, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['4 Completo Vienesas Normal', '1 Bebida 1.5Lt', 'Papa Mediana'] },
     { id: 97, name: 'Promo 10', price: 9500, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Promo 10 Placeholder'] },
     { id: 98, name: 'Promo 11', price: 10000, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Promo 11 Placeholder'] },
     { id: 99, name: 'Promo 12', price: 10500, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Promo 12 Placeholder'] },
@@ -722,10 +723,11 @@ function ProductsPage({ onProductSelect }: { onProductSelect: (product: MenuItem
                 {/* Search input for categories or products */}
                 <Input
                     type="text"
-                    placeholder={selectedCategory ? "Buscar producto..." : "Buscar categoría..."}
+                    placeholder={selectedCategory ? "Buscar producto..." : ""}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="max-w-xs"
+                    disabled={!selectedCategory} // Disable search if no category is selected
                 />
             </div>
             {selectedCategory && (
@@ -749,9 +751,6 @@ function ProductsPage({ onProductSelect }: { onProductSelect: (product: MenuItem
                                     <CardTitle className="text-base">{category}</CardTitle>
                                     <ChevronRight className="h-5 w-5 text-muted-foreground" />
                                 </CardHeader>
-                                {/* <CardContent className="p-3 pt-1 text-center">
-                                    <ChevronRight className="h-5 w-5 text-muted-foreground inline-block" />
-                                </CardContent> */}
                             </Card>
                         ))}
                     </div>
@@ -894,11 +893,7 @@ export default function TableDetailPage() {
         }
          // Pan Marraqueta para Churrascos y Promos
         if (orderItem.category === 'Churrascos' || orderItem.category.startsWith('Promo Churrasco') || orderItem.category.startsWith('Promo Mechada')) {
-             let quantityPerItem = 1; // Default to 1 unit of bread
-            // For "2x" named items in promos, adjust quantity
-            if (orderItem.category.startsWith('Promo') && orderItem.name.toLowerCase().startsWith('2x')) {
-                 // This was removed, keep 1 as default
-            }
+             let quantityPerItem = 1;
             itemsToDeduct.push({ name: 'Pan de marraqueta', quantity: orderItem.quantity * quantityPerItem });
         }
 
@@ -1254,10 +1249,9 @@ export default function TableDetailPage() {
                     </Button>
                 </SheetTrigger>
                 <SheetContent side="bottom" className="h-[85vh] w-full max-w-4xl mx-auto p-0 rounded-t-lg border-t-0"> {/* Wider sheet, no top border */}
-                    {/* Removed SheetHeader and SheetTitle for a cleaner look */}
                     <ProductsPage onProductSelect={handleProductSelect} />
                      <SheetClose asChild>
-                         <Button variant="outline" className="absolute bottom-4 right-4">Confirmar y Cerrar Menú</Button>
+                         <Button variant="outline" className="absolute bottom-4 right-4">Confirmar</Button>
                      </SheetClose>
                 </SheetContent>
             </Sheet>
@@ -1272,7 +1266,7 @@ export default function TableDetailPage() {
           <CardHeader>
             <CardTitle className="text-xl">Pedido Actual</CardTitle>
           </CardHeader>
-           <ScrollArea className="flex-grow" style={{ maxHeight: 'calc(100vh - 360px)' }}> {/* Ensure ScrollArea takes up available space and provide explicit max height */}
+           <ScrollArea className="flex-grow" style={{ maxHeight: 'calc(100vh - 360px)' }}>
             <CardContent className="p-4">
                 {currentOrder.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">Añada productos del menú.</p>
@@ -1280,8 +1274,8 @@ export default function TableDetailPage() {
                 <div className="space-y-3">
                     {currentOrder.map(item => (
                     <div key={item.orderItemId} className="border p-3 rounded-md shadow-sm bg-background">
-                        <div className="flex justify-between items-center">
-                        <span className="font-bold flex-1">{item.name}</span>
+                        <div className="flex justify-between items-center font-bold">
+                          <span className="flex-1">{item.name}</span>
                         </div>
                         {item.selectedModifications && item.selectedModifications.length > 0 && (
                         <p className="text-xs text-muted-foreground mt-1 font-bold">
@@ -1350,7 +1344,7 @@ export default function TableDetailPage() {
                  </CardDescription>
              )}
           </CardHeader>
-          <ScrollArea className="flex-grow" style={{ maxHeight: 'calc(100vh - 360px)' }}> {/* Ensure ScrollArea takes up available space and provide explicit max height */}
+          <ScrollArea className="flex-grow" style={{ maxHeight: 'calc(100vh - 360px)' }}>
             <CardContent className="p-4">
                 {!pendingOrder || pendingOrder.items.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">No hay pedidos pendientes de pago.</p>
@@ -1358,8 +1352,8 @@ export default function TableDetailPage() {
                 <div className="space-y-3">
                     {pendingOrder.items.map(item => (
                     <div key={item.orderItemId} className="border p-3 rounded-md shadow-sm bg-background">
-                        <div className="flex justify-between items-center">
-                        <span className="font-bold flex-1">{item.quantity}x {item.name}</span>
+                        <div className="flex justify-between items-center font-bold">
+                        <span className="flex-1 ">{item.quantity}x {item.name}</span>
                         <span className="font-bold">{formatCurrencyDisplay(item.finalPrice * item.quantity)}</span>
                         </div>
                          {item.selectedModifications && item.selectedModifications.length > 0 && (
@@ -1433,3 +1427,4 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
