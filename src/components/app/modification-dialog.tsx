@@ -77,13 +77,13 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
   // Filter out specific modifications based on category and item name
     const availableModifications = item.modifications?.filter(mod => {
         const standardMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'];
-        const dinamicoVienesaRestrictedOptions = ['con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'];
+        const dinamicoVienesaRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta'];
 
-        const dinamicoAsRestrictedOptions = ['con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'];
+        const dinamicoAsRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta'];
 
-        const chacareroAsSpecificIngredientMods = ['con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verde', 'con aji jalapeño', 'sin aji jalapeño'];
+        const chacareroAsSpecificIngredientMods = ['sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño'];
         
-        const napolitanoAsRestrictedOptions = ['con queso', 'sin queso', 'con tomate', 'sin tomate', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna'];
+        const napolitanoAsRestrictedOptions = ['sin queso', 'sin tomate', 'sin oregano', 'sin aceituna'];
 
 
         const quesoChampiñonAsMods = ['Sin Queso', 'Sin Champiñon', 'Sin Tocino'];
@@ -92,7 +92,8 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
 
         // Specific rule for "4 Ingredientes" and "6 Ingredientes" in Fajitas
         if (item.category === 'Fajitas' && (item.name === '4 Ingredientes' || item.name === '6 Ingredientes')) {
-            return true; // Allow all modifications defined in the MenuItem for these items
+            const fajitaChoiceMods = ['tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'];
+            return [...standardMods, ...fajitaChoiceMods].includes(mod);
         }
 
         // For 'Completos Vienesas' and specific item names 'Dinamico Grande' or 'Dinamico Normal'
@@ -213,5 +214,3 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
 };
 
 export default ModificationDialog;
-
-```
