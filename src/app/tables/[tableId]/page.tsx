@@ -16,6 +16,7 @@
 
 
 
+
 'use client';
 
 import * as React from 'react';
@@ -387,7 +388,7 @@ const mockMenu: MenuItem[] = [
         category: 'Churrascos',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-         ingredients: ['Palta', 'Tomate']
+         ingredients: ['Palta', 'Tomate', 'Bebida Lata', 'Papa Personal']
     },
     {
         id: 20,
@@ -911,10 +912,18 @@ export default function TableDetailPage() {
          // Pan Marraqueta para Churrascos y Promos
         if (orderItem.category === 'Churrascos' || orderItem.category.startsWith('Promo Churrasco') || orderItem.category.startsWith('Promo Mechada')) {
              let quantityPerItem = 1;
-             if (orderItem.category.startsWith('Promo') && (orderItem.name.startsWith('4') || ['Promo 3', 'Promo 9', 'Promo 10', 'Promo 11', 'Promo 12'].includes(orderItem.name))) {
-                 quantityPerItem = 4;
-             } else if (orderItem.category.startsWith('Promo') && (orderItem.name.startsWith('2') || ['Promo 4', 'Promo 5', 'Promo 6', 'Promo 7', 'Promo 8'].includes(orderItem.name))){
-                 quantityPerItem = 2;
+             // For promos with "2x" or multiple items, adjust quantity
+             if (orderItem.category.startsWith('Promo') &&
+                (orderItem.name.startsWith('2x') || // Covers generic "2x" items
+                 ['Promo 3', 'Promo 9', 'Promo 10', 'Promo 11', 'Promo 12'].includes(orderItem.name) || // Specific promos with 4 items
+                 (orderItem.name.includes('4 ') && orderItem.category === 'Promociones') // General "4 x" for Promociones
+                )
+             ) {
+                 if (['Promo 3', 'Promo 9', 'Promo 10', 'Promo 11', 'Promo 12'].includes(orderItem.name) || orderItem.name.includes('4 ')) {
+                    quantityPerItem = 4;
+                 } else {
+                    quantityPerItem = 2;
+                 }
              }
             itemsToDeduct.push({ name: 'Pan de marraqueta', quantity: orderItem.quantity * quantityPerItem });
         }
@@ -1449,6 +1458,7 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
 
 
 
