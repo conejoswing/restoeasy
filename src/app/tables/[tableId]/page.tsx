@@ -15,6 +15,7 @@
 
 
 
+
 'use client';
 
 import * as React from 'react';
@@ -395,7 +396,7 @@ const mockMenu: MenuItem[] = [
         category: 'Churrascos',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-         ingredients: ['Tomate', 'Chucrut', 'Palta', 'Americana', 'Bebida Lata', 'Papa Personal']
+         ingredients: ['Tomate', 'Chucrut', 'Americana', 'Bebida Lata', 'Papa Personal']
     },
     {
         id: 53,
@@ -910,8 +911,6 @@ export default function TableDetailPage() {
          // Pan Marraqueta para Churrascos y Promos
         if (orderItem.category === 'Churrascos' || orderItem.category.startsWith('Promo Churrasco') || orderItem.category.startsWith('Promo Mechada')) {
              let quantityPerItem = 1;
-             // For promo churrasco/mechada, deduct 2 units of Pan de marraqueta if the name implies 2 items (e.g. "2x ...")
-             // Update: Removed "2x" from promo names, so assuming single bread unit per promo item unless logic changes
              if (orderItem.category.startsWith('Promo') && (orderItem.name.startsWith('4') || ['Promo 3', 'Promo 9', 'Promo 10', 'Promo 11', 'Promo 12'].includes(orderItem.name))) {
                  quantityPerItem = 4;
              } else if (orderItem.category.startsWith('Promo') && (orderItem.name.startsWith('2') || ['Promo 4', 'Promo 5', 'Promo 6', 'Promo 7', 'Promo 8'].includes(orderItem.name))){
@@ -1450,6 +1449,7 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
 
 
 
