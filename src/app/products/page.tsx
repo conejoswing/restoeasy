@@ -485,7 +485,7 @@ const mockMenu: MenuItem[] = [
         category: 'Promo Churrasco',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-         ingredients: ['Tomate', 'Chucrut', 'Americana', 'Bebida Lata']
+         ingredients: ['Tomate', 'Chucrut', 'Americana', 'Bebida Lata', 'Papa Personal']
     },
     {
         id: 26,
@@ -858,6 +858,7 @@ export default function ProductsPage() {
 
 
     
+
 
 
 
