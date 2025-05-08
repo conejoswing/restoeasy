@@ -1,3 +1,4 @@
+
 'use client';
 
 import type { OrderItem } from '@/app/tables/[tableId]/page';
@@ -23,8 +24,8 @@ const formatDateTime = (date: Date): string => {
 
 export const formatKitchenOrderReceipt = (
     orderItems: OrderItem[],
-    orderIdentifier: string, // Changed parameter name to reflect its use
-    orderNumber: number, // Added orderNumber parameter
+    orderIdentifier: string,
+    orderNumber: number,
     deliveryInfo?: DeliveryInfo | null
 ): string => {
     const time = formatDateTime(new Date());
@@ -32,10 +33,10 @@ export const formatKitchenOrderReceipt = (
     let itemsHtml = '';
     orderItems.forEach(item => {
         const modificationsText = item.selectedModifications && item.selectedModifications.length > 0
-            ? `<br><small style="margin-left: 10px; font-weight: bold;">(${item.selectedModifications.join(', ')})</small>` // Make mods bold
+            ? `<br><small style="margin-left: 10px; font-weight: bold;">(${item.selectedModifications.join(', ')})</small>`
             : '';
         const ingredientsText = item.ingredients && item.ingredients.length > 0
-            ? `<br><small style="margin-left: 10px; color: #333; font-style: italic;">Ingredientes: ${item.ingredients.join(', ')}</small>` // Display ingredients
+            ? `<br><small style="margin-left: 10px; color: #333; font-style: italic;">Ingredientes: ${item.ingredients.join(', ')}</small>`
             : '';
 
         itemsHtml += `
@@ -51,7 +52,7 @@ export const formatKitchenOrderReceipt = (
     });
 
     let deliveryHtml = '';
-    if (orderIdentifier.toLowerCase().startsWith('delivery') && deliveryInfo) { // Check if orderIdentifier indicates delivery
+    if (orderIdentifier.toLowerCase().startsWith('delivery') && deliveryInfo) {
         deliveryHtml = `
         <div style="margin-top: 15px; border-top: 1px dashed #000; padding-top: 10px;">
             <strong>Enviar a:</strong><br>
@@ -67,11 +68,11 @@ export const formatKitchenOrderReceipt = (
     <head>
       <title>Comanda</title>
       <style>
-        @page { margin: 5mm; } /* Adjust margins for receipt printer */
+        @page { margin: 5mm; }
         body {
-          font-family: 'Courier New', Courier, monospace; /* Monospaced font often looks better */
-          font-size: 10pt; /* Adjust font size as needed */
-          width: 70mm; /* Adjust width for 80mm paper, leaving some margin */
+          font-family: 'Courier New', Courier, monospace;
+          font-size: 10pt;
+          width: 70mm;
           color: #000;
           background-color: #fff;
         }
@@ -92,7 +93,7 @@ export const formatKitchenOrderReceipt = (
             margin-bottom: 15px;
             font-size: 9pt;
         }
-        .order-number { /* Style for the order number */
+        .order-number {
             font-size: 12pt;
             font-weight: bold;
             text-align: center;
@@ -137,15 +138,15 @@ export const formatKitchenOrderReceipt = (
 
 
 export const formatCustomerReceipt = (
- orderItems: OrderItem[], // Keep this parameter
+ orderItems: OrderItem[],
     totalAmount: number,
     paymentMethod: string,
-    tableId: string | number, // Keep tableId for specific table/delivery identification
+    tableId: string | number,
     deliveryInfo?: DeliveryInfo | null
 ): string => {
     const isDelivery = tableId === 'delivery';
-    const title = "BOLETA"; // Or "FACTURA" depending on legal requirements
-    const shopName = "El Bajón de la Cami"; // Replace with actual shop name if needed
+    const title = "BOLETA";
+    const shopName = "El Bajón de la Cami";
     const time = formatDateTime(new Date());
     const orderIdentifier = isDelivery ? `Delivery: ${deliveryInfo?.name || 'Cliente'}` : `Mesa ${tableId}`;
 
@@ -154,9 +155,8 @@ export const formatCustomerReceipt = (
     orderItems.forEach(item => {
         const itemTotal = item.finalPrice * item.quantity;
         const modificationsText = item.selectedModifications && item.selectedModifications.length > 0
-            ? `<br><small style="margin-left: 10px; font-weight: bold;">(${item.selectedModifications.join(', ')})</small>` // Make mods bold
+            ? `<br><small style="margin-left: 10px; font-weight: bold;">(${item.selectedModifications.join(', ')})</small>`
             : '';
-        // Ingredients generally aren't shown on customer receipt, but could be added if needed
 
         itemsHtml += `
       <tr>
@@ -192,7 +192,7 @@ export const formatCustomerReceipt = (
          h2 { font-size: 12pt; }
          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
          th, td { padding: 3px 0; }
-         th { text-align: left; border-bottom: 1px solid #000; font-weight: bold;} /* Bold headers */
+         th { text-align: left; border-bottom: 1px solid #000; font-weight: bold;}
          .header-info, .footer-info { text-align: center; margin-bottom: 10px; font-size: 9pt; }
          .total-section { margin-top: 10px; padding-top: 5px; border-top: 1px solid #000; }
          .total-row td { font-weight: bold; }
@@ -318,20 +318,17 @@ export const formatCashClosingReceipt = (
  * @param htmlContent The HTML string to print.
  */
 export const printHtml = (htmlContent: string): void => {
-    console.log("Attempting to print..."); // Log initiation
+    console.log("Attempting to print...");
 
-    // 1. Create a hidden iframe
     const iframe = document.createElement('iframe');
     iframe.style.position = 'absolute';
     iframe.style.width = '0';
     iframe.style.height = '0';
     iframe.style.border = '0';
-    iframe.style.visibility = 'hidden'; // Hide the iframe
+    iframe.style.visibility = 'hidden';
 
-    // 2. Append iframe to the body
     document.body.appendChild(iframe);
 
-    // 3. Write the HTML content to the iframe document
     try {
         const iframeDoc = iframe.contentWindow?.document;
         if (!iframeDoc) {
@@ -342,39 +339,33 @@ export const printHtml = (htmlContent: string): void => {
         iframeDoc.close();
         console.log("HTML content written to iframe.");
 
-        // 4. Trigger the print dialog
-        // Use setTimeout to ensure content is rendered before printing (especially on Firefox)
         setTimeout(() => {
             try {
                  if (!iframe.contentWindow) {
                     throw new Error("Could not access iframe content window for printing.");
                 }
-                iframe.contentWindow.focus(); // Focus the iframe (sometimes helps)
+                iframe.contentWindow.focus();
                 iframe.contentWindow.print();
                 console.log("Print dialog initiated.");
 
-                // 5. Remove the iframe after printing (or potential cancellation)
-                // Use another timeout to ensure the print dialog has processed
                 setTimeout(() => {
-                    if (document.body.contains(iframe)) { // Check if iframe still exists before removing
+                    if (document.body.contains(iframe)) {
                         document.body.removeChild(iframe);
                         console.log("Iframe removed.");
                     }
-                }, 1000); // Adjust delay if needed
+                }, 1000);
 
             } catch (printError) {
                 console.error('Error initiating print:', printError);
-                // Clean up iframe even if printing fails
                 if (iframe && document.body.contains(iframe)) {
                      document.body.removeChild(iframe);
                      console.log("Iframe removed after print error.");
                 }
             }
-        }, 500); // Delay before printing
+        }, 500);
 
     } catch (writeError) {
         console.error('Error writing to iframe:', writeError);
-        // Clean up iframe if writing fails
         if (iframe && document.body.contains(iframe)) {
             document.body.removeChild(iframe);
             console.log("Iframe removed after write error.");
