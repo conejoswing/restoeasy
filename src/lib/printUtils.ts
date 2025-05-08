@@ -387,4 +387,3 @@ export const printHtml = (htmlContent: string): void => {
         }
     }
 };
-```
