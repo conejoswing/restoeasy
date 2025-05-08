@@ -6,6 +6,7 @@
 
 
 
+
 'use client';
 
 import * as React from 'react';
@@ -267,7 +268,7 @@ const mockMenu: MenuItem[] = [
         category: 'Hamburguesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-        ingredients: ['Queso Cheddar', 'Salsa Cheddar', 'Tocino', 'Kétchup', 'Mostaza', 'Cebolla', 'Pepinillo']
+        ingredients: ['Queso Cheddar', 'Salsa Cheddar', 'Tocino', 'Kétchup', 'Mostaza', 'Cebolla', 'Pepinillo', 'Bebida Lata', 'Papa Personal']
     },
     {
         id: 18,
@@ -781,6 +782,7 @@ export default function ProductsPage() {
     </div>
   );
 }
+
 
 
 
