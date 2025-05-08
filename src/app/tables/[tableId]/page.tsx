@@ -352,7 +352,7 @@ const mockMenu: MenuItem[] = [
         category: 'Hamburguesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-         ingredients: ['Lechuga', 'Pepinillos', 'Salsa Especial']
+         ingredients: ['Tomate', 'Lechuga', 'Queso Cheddar', 'Salsa Cheddar', 'Tocino', 'Pepinillo', 'Salsa de la Casa', 'Kétchup', 'Mostaza', 'Cebolla']
     },
     {
         id: 72,
@@ -894,10 +894,13 @@ export default function TableDetailPage() {
          // Pan Marraqueta para Churrascos y Promos
         if (orderItem.category === 'Churrascos' || orderItem.category.startsWith('Promo Churrasco') || orderItem.category.startsWith('Promo Mechada')) {
              let quantityPerItem = 1;
-             // For "2x" promos, deduct 2 units of bread, otherwise 1.
-             // This logic might need adjustment if "2x" doesn't always mean double bread.
-             if (orderItem.name.toLowerCase().startsWith('2x')) { // This condition might be obsolete if "2x" prefixes are removed
-                quantityPerItem = 2;
+             if (orderItem.category.startsWith('Promo') && (orderItem.name.startsWith('2x') || ['Promo 3', 'Promo 9', 'Promo 10', 'Promo 11', 'Promo 12'].includes(orderItem.name))) {
+                 // More specific promo logic might be needed if "2x" or specific names denote multiple bread units
+                 if (orderItem.name.startsWith('4') || ['Promo 3', 'Promo 9', 'Promo 10', 'Promo 11', 'Promo 12'].includes(orderItem.name)) { // Example for "4 Churrascos"
+                     quantityPerItem = 4;
+                 } else if (orderItem.name.startsWith('2') || ['Promo 4', 'Promo 5', 'Promo 6', 'Promo 7', 'Promo 8'].includes(orderItem.name)){ // Example for "2 Churrascos"
+                     quantityPerItem = 2;
+                 }
              }
             itemsToDeduct.push({ name: 'Pan de marraqueta', quantity: orderItem.quantity * quantityPerItem });
         }
@@ -1432,6 +1435,7 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
 
 
 

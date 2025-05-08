@@ -315,7 +315,7 @@ const mockMenu: MenuItem[] = [
         category: 'Hamburguesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-         ingredients: ['Lechuga', 'Pepinillos', 'Salsa Especial']
+         ingredients: ['Tomate', 'Lechuga', 'Queso Cheddar', 'Salsa Cheddar', 'Tocino', 'Pepinillo', 'Salsa de la Casa', 'Kétchup', 'Mostaza', 'Cebolla']
     },
     {
         id: 72,
@@ -775,6 +775,7 @@ export default function ProductsPage() {
     </div>
   );
 }
+
 
 
 

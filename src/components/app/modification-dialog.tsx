@@ -119,7 +119,12 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
         }
          // Specific empty mods for Hamburguesas and Churrascos (as per previous requests to remove specific ingredients from mods)
         else if (['Hamburguesas', 'Churrascos'].includes(item.category)) {
-            return standardMods.includes(mod); // Should still offer the standard mayo/queso options
+             // For Big Cami, allow all standard mods
+            if (item.name === 'Big Cami' || item.name === 'Super Big Cami') {
+                return standardMods.includes(mod);
+            }
+            // For other Hamburguesas and Churrascos, only standard mods without palta/tomate
+            return standardMods.includes(mod) && !mod.toLowerCase().includes('palta') && !mod.toLowerCase().includes('tomate');
         }
 
 
@@ -191,4 +196,5 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
 };
 
 export default ModificationDialog;
+
 
