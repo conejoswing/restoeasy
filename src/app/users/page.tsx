@@ -4,7 +4,7 @@
 
 import * as React from 'react';
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation'; // Import useRouter
+import { useRouter } from 'next/navigation';
 import {
   Table,
   TableBody,
@@ -44,11 +44,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { PlusCircle, Trash2, Edit, ArrowLeft } from 'lucide-react'; // Added ArrowLeft
+import { PlusCircle, Trash2, Edit, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { useAuth } from '@/context/AuthContext'; // Import useAuth to interact with users
+import { useAuth } from '@/context/AuthContext';
 
 // Type definition for a Staff Member
 export interface StaffMember {
@@ -59,8 +59,6 @@ export interface StaffMember {
   // Password is not stored directly in this state but managed by AuthContext
 }
 
-// Storage key for staff members - No longer strictly needed here if AuthContext is source of truth
-// const STAFF_STORAGE_KEY = 'staffMembers';
 
 export default function UsersPage() {
   const [staffList, setStaffList] = useState<StaffMember[]>([]);
@@ -71,40 +69,27 @@ export default function UsersPage() {
     name: string;
     username: string;
     role: 'admin' | 'worker';
-    password?: string; // Optional password field for adding/editing
+    password?: string;
   }>({ name: '', username: '', role: 'worker', password: '' });
   const { toast } = useToast();
-  // Get user data and functions directly from AuthContext
   const { users, updatePasswordForUser, deleteUser, addUser, isLoading, isAuthenticated, userRole } = useAuth();
   const router = useRouter();
 
-  // Load staff from AuthContext on mount and when users array changes
+
   useEffect(() => {
-    // Use the users array from AuthContext directly
-    // Already includes admin1 by default and is managed by the context
     const sortedUsers = [...users].sort((a, b) => a.name.localeCompare(b.name));
     setStaffList(sortedUsers);
-    setIsStaffInitialized(true); // Mark as initialized once users are loaded from context
+    setIsStaffInitialized(true);
     console.log("UsersPage: Staff list updated from AuthContext.", sortedUsers.map(u=>u.username));
 
-  }, [users]); // Depend only on the users array from context
+  }, [users]);
 
-  // AuthGuard now handles redirection based on authentication and role.
-  // No need for manual redirection logic here.
-  // useEffect(() => {
-  //    if (!isLoading && (!isAuthenticated || userRole !== 'admin')) {
-  //       toast({ title: "Acceso Denegado", description: "Debe ser administrador para acceder.", variant: "destructive"});
-  //       router.push('/login'); // Redirect to login if not an admin
-  //    }
-  // }, [isLoading, isAuthenticated, userRole, router, toast]);
 
-  // Show loading state provided by AuthContext or if staff hasn't been initialized from context yet
   if (isLoading || !isStaffInitialized) {
     return <div className="flex items-center justify-center min-h-screen">Cargando Usuarios...</div>;
   }
 
-  // If AuthGuard didn't redirect, but the role is somehow not admin, show restricted message.
-  // This acts as a secondary safety check.
+
   if (userRole !== 'admin') {
      return (
          <div className="container mx-auto p-4 text-center">
@@ -139,15 +124,15 @@ export default function UsersPage() {
       name: staffMember.name,
       username: staffMember.username,
       role: staffMember.role,
-      password: '', // Clear password field for editing
+      password: '',
     });
     setIsAddEditDialogOpen(true);
   };
 
   const closeDialog = () => {
     setIsAddEditDialogOpen(false);
-    setEditingStaffMember(null); // Reset editing state
-    setNewStaffData({ name: '', username: '', role: 'worker', password: '' }); // Clear form
+    setEditingStaffMember(null);
+    setNewStaffData({ name: '', username: '', role: 'worker', password: '' });
   };
 
 
@@ -159,7 +144,6 @@ export default function UsersPage() {
       return;
     }
 
-    // Username validation (simple example)
     if (username.includes(' ') || username.length < 3) {
          toast({ title: "Error", description: "El nombre de usuario no puede contener espacios y debe tener al menos 3 caracteres.", variant: "destructive" });
          return;
@@ -168,9 +152,7 @@ export default function UsersPage() {
     const usernameLower = username.toLowerCase();
 
     if (editingStaffMember) {
-      // --- Editing existing staff member ---
       if (usernameLower !== editingStaffMember.username.toLowerCase()) {
-         // Check if the new username already exists (excluding the current user being edited)
          const usernameExists = users.some(
            staff => staff.id !== editingStaffMember.id && staff.username.toLowerCase() === usernameLower
          );
@@ -180,7 +162,6 @@ export default function UsersPage() {
          }
       }
 
-       // Prevent changing the role or username of the default admin 'admin1'
        if (editingStaffMember.username.toLowerCase() === 'admin1') {
            if(role !== 'admin'){
                toast({ title: "Error", description: "No se puede cambiar el rol del administrador principal.", variant: "destructive" });
@@ -193,27 +174,21 @@ export default function UsersPage() {
        }
 
 
-      // Update password in AuthContext if provided
       if (password) {
         if (password.length < 4) {
           toast({ title: "Error", description: "La contraseña debe tener al menos 4 caracteres.", variant: "destructive" });
           return;
         }
         try {
-            // Use username to identify user for password update
             updatePasswordForUser(editingStaffMember.username, password);
              toast({ title: "Contraseña Actualizada", description: `Contraseña para ${editingStaffMember.username} actualizada.`, variant: "default" });
         } catch (error: any) {
              toast({ title: "Error Contraseña", description: error.message || "No se pudo actualizar la contraseña.", variant: "destructive" });
-             return; // Stop if password update fails
+             return;
         }
       }
 
-      // Update other user details (name, username if changed, role)
-      // Need an updateUser function in AuthContext ideally
-      // For now, let's try updating password separately and assume other details might need manual sync or a dedicated function
        console.warn("User detail update (name, username, role) might require an 'updateUser' function in AuthContext for full persistence.");
-      // Placeholder: Update local list for immediate UI feedback, but context is the source of truth
        setStaffList((prevList) =>
          prevList.map((staff) =>
            staff.id === editingStaffMember.id ? { ...staff, name, username, role } : staff
@@ -224,57 +199,50 @@ export default function UsersPage() {
       toast({ title: "Usuario Actualizado", description: `Datos de ${name} actualizados.` });
 
     } else {
-      // --- Adding new staff member ---
       if (!password || password.length < 4) {
         toast({ title: "Error", description: "La contraseña es obligatoria y debe tener al menos 4 caracteres.", variant: "destructive" });
         return;
       }
 
-      // Check if username already exists using AuthContext's users
        const usernameExists = users.some(staff => staff.username.toLowerCase() === usernameLower);
       if (usernameExists) {
         toast({ title: "Error", description: `El nombre de usuario "${username}" ya está en uso.`, variant: "destructive" });
         return;
       }
 
-       // Prevent adding another user with username 'admin1' (case-insensitive)
        if (usernameLower === 'admin1') {
           toast({ title: "Error", description: `El nombre de usuario "admin1" está reservado.`, variant: "destructive" });
           return;
        }
 
-       // Add user using AuthContext function
       try {
           const newStaffMember: Omit<StaffMember, 'id'> & {password: string} = {
             name,
-            username: username, // Keep original case for display
+            username: username,
             role,
             password
           };
-           addUser(newStaffMember); // Use the addUser function from context
-          // No need to update staffList state directly, it will update via useEffect dependency on `users`
+           addUser(newStaffMember);
           toast({ title: "Usuario Añadido", description: `${name} ha sido añadido como ${role}.` });
 
       } catch (error: any) {
          toast({ title: "Error Añadiendo", description: error.message || "No se pudo añadir el usuario.", variant: "destructive" });
-         return; // Stop if adding fails
+         return;
       }
 
     }
-    closeDialog(); // Close dialog on success
+    closeDialog();
   };
 
 
    const handleDeleteStaff = (staffMemberToDelete: StaffMember) => {
-        // Prevent deleting the default admin 'admin1'
        if (staffMemberToDelete.username.toLowerCase() === 'admin1') {
            toast({ title: "Acción no permitida", description: "No se puede eliminar al administrador principal.", variant: "destructive" });
            return;
        }
 
        try {
-           deleteUser(staffMemberToDelete.username); // Delete from AuthContext store
-            // No need to update staffList state directly, it will update via useEffect dependency on `users`
+           deleteUser(staffMemberToDelete.username);
            toast({ title: "Usuario Eliminado", description: `${staffMemberToDelete.name} ha sido eliminado.`, variant: "destructive" });
        } catch (error: any) {
            toast({ title: "Error Eliminando", description: error.message || "No se pudo eliminar el usuario.", variant: "destructive" });
@@ -285,15 +253,19 @@ export default function UsersPage() {
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
-        {/* Back Button */}
-        <Button variant="outline" size="icon" onClick={() => router.push('/tables')}>
-            <ArrowLeft className="h-4 w-4" />
-            <span className="sr-only">Volver</span>
+        <Button variant="outline" onClick={() => router.push('/tables')}>
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Volver
         </Button>
 
         <h1 className="text-3xl font-bold">Gestión de Usuarios</h1>
 
-        <Dialog open={isAddEditDialogOpen} onOpenChange={setIsAddEditDialogOpen}>
+        <Dialog open={isAddEditDialogOpen} onOpenChange={(isOpen) => {
+            setIsAddEditDialogOpen(isOpen);
+            if (!isOpen) {
+              closeDialog(); // Ensure form is reset when dialog is closed via 'x' or overlay click
+            }
+        }}>
           <DialogTrigger asChild>
             <Button onClick={openAddDialog}>
               <PlusCircle className="mr-2 h-4 w-4" /> Añadir Usuario
@@ -331,7 +303,6 @@ export default function UsersPage() {
                    className="col-span-3"
                    required
                    placeholder="Nombre de usuario (login)"
-                   // Disable username editing for the default admin
                    disabled={editingStaffMember?.username.toLowerCase() === 'admin1'}
                  />
                </div>
@@ -342,10 +313,10 @@ export default function UsersPage() {
                  <Input
                    id="staff-password"
                    type="password"
-                   value={newStaffData.password ?? ''} // Ensure value is not undefined
+                   value={newStaffData.password ?? ''}
                    onChange={(e) => handleInputChange(e, 'password')}
                    className="col-span-3"
-                   required={!editingStaffMember} // Required only when adding
+                   required={!editingStaffMember}
                    placeholder={editingStaffMember ? 'Dejar vacío para no cambiar' : 'Mínimo 4 caracteres'}
                  />
                </div>
@@ -356,7 +327,6 @@ export default function UsersPage() {
                 <Select
                   onValueChange={handleRoleChange}
                   value={newStaffData.role}
-                  // Disable role change for the default admin
                   disabled={editingStaffMember?.username.toLowerCase() === 'admin1'}
                  >
                   <SelectTrigger className="col-span-3">
@@ -370,9 +340,7 @@ export default function UsersPage() {
               </div>
             </div>
             <DialogFooter>
-               <DialogClose asChild>
-                 <Button type="button" variant="secondary" onClick={closeDialog}>Cancelar</Button>
-               </DialogClose>
+               <Button type="button" variant="secondary" onClick={closeDialog}>Cancelar</Button>
               <Button type="submit" onClick={handleAddOrEditStaff}>
                 {editingStaffMember ? 'Guardar Cambios' : 'Añadir Usuario'}
               </Button>
@@ -398,7 +366,6 @@ export default function UsersPage() {
                 <TableCell>{staff.username}</TableCell>
                 <TableCell>{staff.role === 'admin' ? 'Administrador' : 'Trabajador'}</TableCell>
                 <TableCell className="text-right">
-                   {/* Prevent editing/deleting the default admin 'admin1' */}
                   {staff.username.toLowerCase() !== 'admin1' ? (
                       <div className="flex justify-end gap-1">
                          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditDialog(staff)} title="Editar Usuario">
