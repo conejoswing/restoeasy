@@ -11,6 +11,7 @@
 
 
 
+
 'use client';
 
 import * as React from 'react';
@@ -542,7 +543,7 @@ const mockMenu: MenuItem[] = [
       category: 'Promo Mechada',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
       modificationPrices: { 'Agregado Queso': 1000 },
-       ingredients: ['Palta', 'Tomate', 'Bebida Lata']
+       ingredients: ['Tomate', 'Palta', 'Bebida Lata', 'Papa Personal']
     },
      { id: 82, name: 'Chacarero', price: 9000, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Poroto Verde', 'Ají Oro', 'Ají Jalapeño', 'Bebida Lata', 'Papa Personal'] },
      { id: 83, name: 'Queso', price: 8500, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Bebida Lata'] },
@@ -933,14 +934,14 @@ export default function TableDetailPage() {
 
         // Check if the item name starts with "2x" or similar indicator for double quantity
         const isDoubleItem = ['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'palta', 'queso', 'queso champiñon', 'tomate'].includes(itemName);
-        const panDeduction = isDoubleItem ? 2 : 1; // Default to 1, but if it's a known "double" item, deduct 2. This needs careful mapping or naming convention.
+        const panDeduction = isDoubleItem ? 1 : 1; // Default to 1, but if it's a known "double" item, deduct 2. This needs careful mapping or naming convention.
         updateInventory('Pan de marraqueta', panDeduction * orderItem.quantity);
 
 
     } else if (category === 'promo mechada') {
          // Similar to promo churrasco, assuming one "Pan de marraqueta" per item
         const isDoubleItem = ['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'palta', 'queso', 'queso champiñon', 'tomate'].includes(itemName);
-        const panDeduction = isDoubleItem ? 2 : 1;
+        const panDeduction = isDoubleItem ? 1 : 1;
         updateInventory('Pan de marraqueta', panDeduction * orderItem.quantity);
     } else if (category === 'bebidas') {
         if (itemName.includes('1.5lt')) updateInventory('Bebida 1.5Lt', 1 * orderItem.quantity);
@@ -1419,3 +1420,6 @@ export default function TableDetailPage() {
 
 
 
+
+
+    
