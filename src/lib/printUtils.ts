@@ -268,6 +268,7 @@ export const formatCashClosingReceipt = (
         dailyCreditCardIncome: number;
         dailyTransferIncome: number;
         dailyDeliveryFees: number;
+        dailyTipsTotal: number; // Added dailyTipsTotal
         dailyTotalIncome: number;
         dailyExpenses: number;
         dailyNetTotal: number;
@@ -275,7 +276,7 @@ export const formatCashClosingReceipt = (
 ): string => {
     const {
         dailyCashIncome, dailyDebitCardIncome, dailyCreditCardIncome, dailyTransferIncome,
-        dailyDeliveryFees, dailyTotalIncome, dailyExpenses, dailyNetTotal
+        dailyDeliveryFees, dailyTipsTotal, dailyTotalIncome, dailyExpenses, dailyNetTotal // Destructure dailyTipsTotal
     } = dailyTotals;
 
     return `
@@ -306,6 +307,7 @@ export const formatCashClosingReceipt = (
           <tr><td class="label">Ingresos T. Crédito:</td><td class="amount">${formatCurrency(dailyCreditCardIncome)}</td></tr>
           <tr><td class="label">Ingresos Transfer.:</td><td class="amount">${formatCurrency(dailyTransferIncome)}</td></tr>
           <tr><td class="label">Total Costo Envío:</td><td class="amount">${formatCurrency(dailyDeliveryFees)}</td></tr>
+          <tr><td class="label">Total Propinas:</td><td class="amount">${formatCurrency(dailyTipsTotal)}</td></tr> {/* Added tip display */}
           <tr class="total-row">
              <td class="label">TOTAL INGRESOS:</td>
              <td class="amount">${formatCurrency(dailyTotalIncome)}</td>

@@ -44,7 +44,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { PlusCircle, Calendar as CalendarIcon, FileCheck, Banknote, CreditCard, Landmark, Truck, DollarSign } from 'lucide-react'; // Added Truck, DollarSign icons
+import { PlusCircle, Calendar as CalendarIcon, FileCheck, Banknote, CreditCard, Landmark, Truck, Gift } from 'lucide-react'; // Added Gift icon
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
@@ -143,13 +143,14 @@ export default function CashRegisterPage() {
      }
    }, [cashMovements, isInitialized]);
 
-   // Calculate daily totals per payment method and delivery fees
+   // Calculate daily totals per payment method, delivery fees, and tips
    const {
        dailyCashIncome,
        dailyDebitCardIncome,
        dailyCreditCardIncome,
        dailyTransferIncome,
-       dailyDeliveryFees, // Added delivery fees
+       dailyDeliveryFees,
+       dailyTipsTotal, // Added tips total
        dailyTotalIncome,
        dailyExpenses,
        dailyNetTotal
@@ -159,49 +160,55 @@ export default function CashRegisterPage() {
         let debit = 0;
         let credit = 0;
         let transfer = 0;
-        let deliveryFees = 0; // Initialize delivery fees
+        let deliveryFees = 0;
+        let tips = 0; // Initialize tips
         let expenses = 0;
 
         cashMovements.forEach(movement => {
-            // Ensure movement.date is a Date object before comparison
             const movementDate = movement.date instanceof Date ? movement.date : new Date(movement.date);
             if (isToday(movementDate)) {
                 if (movement.amount > 0 && movement.category === 'Ingreso Venta') {
-                    // Sum income based on payment method
-                    // Note: The 'amount' for 'Ingreso Venta' already includes the delivery fee
                     switch(movement.paymentMethod) {
                         case 'Efectivo': cash += movement.amount; break;
                         case 'Tarjeta Débito': debit += movement.amount; break;
                         case 'Tarjeta Crédito': credit += movement.amount; break;
                         case 'Transferencia': transfer += movement.amount; break;
-                        default: cash += movement.amount; // Default to cash if method is missing
+                        default: cash += movement.amount;
                     }
-                     // Sum delivery fees separately
                     if (movement.deliveryFee && movement.deliveryFee > 0) {
                          deliveryFees += movement.deliveryFee;
                     }
+                    // Extract tip from description
+                    // Expected format: "Propina: CLP$1.000" or "Propina: $1.000"
+                    const tipMatch = movement.description.match(/Propina: (?:CLP)?\$(\d{1,3}(?:\.\d{3})*)/);
+                    if (tipMatch && tipMatch[1]) {
+                        const tipString = tipMatch[1].replace(/\./g, ''); // Remove dots for parsing
+                        const parsedTip = parseInt(tipString, 10);
+                        if (!isNaN(parsedTip)) {
+                            tips += parsedTip;
+                        }
+                    }
+
                 } else if (movement.amount > 0 && movement.category === 'Otros Ingresos') {
-                    // Assume 'Otros Ingresos' are cash for simplicity, or adjust if needed
                     cash += movement.amount;
                 }
                  else if (movement.amount < 0) {
-                    expenses += Math.abs(movement.amount); // Sum all expenses
+                    expenses += Math.abs(movement.amount);
                 }
             }
         });
 
-        // Total income includes delivery fees as they are part of the sale amount
-        const totalIncome = cash + debit + credit + transfer;
+        const totalIncome = cash + debit + credit + transfer; // This already includes tips
 
         return {
             dailyCashIncome: cash,
             dailyDebitCardIncome: debit,
             dailyCreditCardIncome: credit,
             dailyTransferIncome: transfer,
-            dailyDeliveryFees: deliveryFees, // Return calculated delivery fees
+            dailyDeliveryFees: deliveryFees,
+            dailyTipsTotal: tips, // Return calculated tips
             dailyTotalIncome: totalIncome,
             dailyExpenses: expenses,
-            // Net total calculation remains the same (Total Income - Total Expenses)
             dailyNetTotal: totalIncome - expenses,
         };
    }, [cashMovements]);
@@ -284,7 +291,7 @@ export default function CashRegisterPage() {
      const closingDate = format(new Date(), 'dd/MM/yyyy');
      const totals = {
          dailyCashIncome, dailyDebitCardIncome, dailyCreditCardIncome, dailyTransferIncome,
-         dailyDeliveryFees, dailyTotalIncome, dailyExpenses, dailyNetTotal
+         dailyDeliveryFees, dailyTipsTotal, dailyTotalIncome, dailyExpenses, dailyNetTotal // Added dailyTipsTotal
      };
      const closingReceiptHtml = formatCashClosingReceipt(closingDate, totals);
 
@@ -432,7 +439,7 @@ export default function CashRegisterPage() {
         </div>
 
          {/* Daily Summary Cards */}
-         <div className="md:col-span-2 grid grid-cols-2 sm:grid-cols-5 gap-2"> {/* Adjusted grid for 5 cards */}
+         <div className="md:col-span-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2"> {/* Adjusted for 6 cards */}
              <Card className="text-center">
                  <CardHeader className="p-2 pb-0 flex flex-row items-center justify-center space-x-2">
                     <Banknote className="h-4 w-4 text-muted-foreground" />
@@ -479,6 +486,16 @@ export default function CashRegisterPage() {
                        <p className="text-lg font-bold text-orange-600">{formatCurrency(dailyDeliveryFees)}</p>
                    </CardContent>
               </Card>
+               {/* Tip Card */}
+              <Card className="text-center">
+                   <CardHeader className="p-2 pb-0 flex flex-row items-center justify-center space-x-2">
+                      <Gift className="h-4 w-4 text-muted-foreground" />
+                      <CardTitle className="text-xs font-medium">Propina</CardTitle>
+                   </CardHeader>
+                   <CardContent className="p-2 pt-0">
+                       <p className="text-lg font-bold text-pink-600">{formatCurrency(dailyTipsTotal)}</p>
+                   </CardContent>
+              </Card>
          </div>
       </div>
 
@@ -515,10 +532,13 @@ export default function CashRegisterPage() {
                          <span>Total Ingresos (Transferencia):</span>
                          <span className="font-medium text-indigo-600">{formatCurrency(dailyTransferIncome)}</span>
                      </div>
-                     {/* Display Delivery Fees */}
                       <div className="flex justify-between">
                          <span>Total Costo Envío:</span>
                          <span className="font-medium text-orange-600">{formatCurrency(dailyDeliveryFees)}</span>
+                     </div>
+                      <div className="flex justify-between">
+                         <span>Total Propinas:</span>
+                         <span className="font-medium text-pink-600">{formatCurrency(dailyTipsTotal)}</span>
                      </div>
                      <div className="flex justify-between font-semibold">
                          <span>Total Ingresos (General):</span>
@@ -538,14 +558,13 @@ export default function CashRegisterPage() {
                   </div>
                   <AlertDialogFooter className="mt-6">
                       <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                      {/* Changed button text */}
                       <AlertDialogAction onClick={handleConfirmClosing} className={cn(buttonVariants({ variant: "default" }))}>Imprimir Cierre de Caja</AlertDialogAction>
                   </AlertDialogFooter>
               </AlertDialogContent>
           </AlertDialog>
 
             {/* Net Total Summary Card */}
-           <Card className="text-center flex-grow max-w-xs"> {/* Added flex-grow and max-w-xs */}
+           <Card className="text-center flex-grow max-w-xs">
                  <CardHeader className="p-2 pb-0">
                      <CardTitle className="text-sm font-medium">Total Neto Hoy</CardTitle>
                  </CardHeader>
@@ -569,19 +588,18 @@ export default function CashRegisterPage() {
               <TableHead>Categoría</TableHead>
               <TableHead>Descripción</TableHead>
               <TableHead className="text-right">Monto</TableHead>
-              <TableHead className="text-right">Método</TableHead>{/* Added Payment Method Column */}
+              <TableHead className="text-right">Método</TableHead>
             </TableRow>
           </TableHeader>
-          {/* Render TableBody only on the client after initialization */}
           {isInitialized && (
             <TableBody>
               {cashMovements.map((movement) => (
                 <TableRow key={movement.id}>
-                  <TableCell>{format(new Date(movement.date), 'dd/MM/yyyy HH:mm')}</TableCell>{/* Ensure date is Date object, added time */}
+                  <TableCell>{format(new Date(movement.date), 'dd/MM/yyyy HH:mm')}</TableCell>
                   <TableCell>{movement.category}</TableCell>
                   <TableCell className="font-medium">{movement.description}</TableCell>
                   <TableCell className={cn(
-                    "text-right font-mono", // Added font-mono for better number alignment
+                    "text-right font-mono",
                     movement.amount >= 0 ? "text-green-600" : "text-red-600"
                   )}>
                     {formatCurrency(movement.amount)}
@@ -593,7 +611,7 @@ export default function CashRegisterPage() {
               ))}
               {cashMovements.length === 0 && (
                 <TableRow>
-                  <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">{/* Increased colSpan to 5 */}
+                  <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
                     Aún no se han registrado movimientos de caja hoy. ¡Registre algunos!
                   </TableCell>
                 </TableRow>
