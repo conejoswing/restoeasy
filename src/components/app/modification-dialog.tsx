@@ -7,6 +7,7 @@
 
 
 
+
 import * as React from 'react';
 import {
   Dialog,
@@ -127,13 +128,13 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
            return standardMods.includes(mod);
         }
          // Standard mods for most other categories that allow them
-        else if (['Completos As', 'Fajitas', 'Promo Churrasco', 'Promo Mechada', 'Promociones'].includes(item.category)) { // Removed Hamburguesas and Churrascos
+        else if (['Completos As', 'Fajitas', 'Promo Churrasco', 'Promo Mechada', 'Promociones'].includes(item.category)) {
             return standardMods.includes(mod);
         }
          // Specific empty mods for Hamburguesas and Churrascos (as per previous requests to remove specific ingredients from mods)
         else if (['Hamburguesas', 'Churrascos'].includes(item.category)) {
              // For Big Cami, Simple, Doble, Italiana, Doble Italiana allow all standard mods
-            if (['Big Cami', 'Super Big Cami', 'Italiana', 'Doble Italiana', 'Simple', 'Doble', 'Churrasco Campestre', 'Churrasco Completo', 'Churrasco Che milico', 'Churrasco Dinamico'].includes(item.name)) {
+            if (['Big Cami', 'Super Big Cami', 'Italiana', 'Doble Italiana', 'Simple', 'Doble', 'Churrasco Campestre', 'Churrasco Completo', 'Churrasco Che milico', 'Churrasco Dinamico', 'Churrasco Italiano', 'Churrasco Napolitano', 'Churrasco Palta', 'Churrasco Queso', 'Churrasco Queso Champiñon', 'Churrasco Tomate'].includes(item.name)) {
                 return standardMods.includes(mod);
             }
             // For other Hamburguesas (like 'Tapa Arteria') and Churrascos, only standard mods
@@ -209,6 +210,7 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
 };
 
 export default ModificationDialog;
+
 
 
 
