@@ -17,6 +17,7 @@
 
 
 
+
 'use client';
 
 import * as React from 'react';
@@ -528,7 +529,7 @@ const mockMenu: MenuItem[] = [
     { id: 76, name: 'Tomate', price: 6800, category: 'Promo Churrasco', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Bebida Lata'] },
     { id: 77, name: 'Brasileño', price: 7200, category: 'Promo Churrasco', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Queso', 'Bebida Lata', 'Papa Personal'] },
     { id: 78, name: 'Dinamico', price: 7300, category: 'Promo Churrasco', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana', 'Bebida Lata'] },
-    { id: 79, name: 'Campestre', price: 7500, category: 'Promo Churrasco', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso Fundido', 'Huevo Frito', 'Cebolla Frita', 'Bebida Lata'] },
+    { id: 79, name: 'Campestre', price: 7500, category: 'Promo Churrasco', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Lechuga', 'Bebida Lata', 'Papa Personal'] },
     { id: 80, name: 'Queso Champiñon', price: 7800, category: 'Promo Churrasco', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso Fundido', 'Champiñones Salteados', 'Bebida Lata'] },
     { id: 81, name: 'Che milico', price: 8000, category: 'Promo Churrasco', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso Fundido', 'Huevo Frito', 'Cebolla Frita', 'Papas Fritas', 'Bebida Lata'] },
     // --- Promo Mechada --- (Updated Modifications where applicable)
@@ -933,12 +934,12 @@ export default function TableDetailPage() {
     } else if (category === 'churrascos') {
         updateInventory('Pan de marraqueta', 1 * orderItem.quantity);
     } else if (category === 'promo churrasco') {
-        const panDeduction = ['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'palta', 'queso', 'queso champiñon', 'tomate'].includes(itemName) ? 1 : 1;
+        const panDeduction = ['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'palta', 'queso', 'queso champiñon', 'tomate'].includes(itemName) ? 1 : 1; // Adjust logic if 2x items use 2 pans
         updateInventory('Pan de marraqueta', panDeduction * orderItem.quantity);
 
 
     } else if (category === 'promo mechada') {
-        const panDeduction = ['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'palta', 'queso', 'queso champiñon', 'tomate'].includes(itemName) ? 1 : 1;
+        const panDeduction = ['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'palta', 'queso', 'queso champiñon', 'tomate'].includes(itemName) ? 1 : 1; // Adjust logic if 2x items use 2 pans
         updateInventory('Pan de marraqueta', panDeduction * orderItem.quantity);
     } else if (category === 'bebidas') {
         if (itemName.includes('1.5lt')) updateInventory('Bebida 1.5Lt', 1 * orderItem.quantity);
@@ -1416,5 +1417,6 @@ export default function TableDetailPage() {
 
 
     
+
 
 
