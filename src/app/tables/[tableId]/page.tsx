@@ -5,6 +5,7 @@
 
 
 
+
 'use client';
 
 import * as React from 'react';
@@ -542,7 +543,7 @@ const mockMenu: MenuItem[] = [
      { id: 83, name: 'Queso', price: 8500, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Bebida Lata'] },
      { id: 84, name: 'Palta', price: 8800, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Bebida Lata'] },
      { id: 85, name: 'Tomate', price: 8800, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Bebida Lata'] },
-     { id: 86, name: 'Brasileño', price: 9200, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Queso', 'Bebida Lata'] },
+     { id: 86, name: 'Brasileño', price: 9200, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Palta', 'Bebida Lata', 'Papa Personal'] },
      { id: 87, name: 'Dinamico', price: 9300, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana', 'Bebida Lata'] },
      { id: 88, name: 'Campestre', price: 9500, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Palta', 'Bebida Lata', 'Papa Personal'] },
      { id: 89, name: 'Queso Champiñon', price: 9800, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso Fundido', 'Champiñones Salteados', 'Bebida Lata'] },
@@ -726,8 +727,7 @@ const ProductsPage = ({ onProductSelect, onEditProduct, onAddProduct }: {
         onEditProduct({ ...editingProduct, price: priceValue });
     }
 
-    const toastDescription = `El precio de ${editingProduct.name} se actualizó a ${formatCurrency(priceValue)}.`;
-    toast({ title: "Precio Actualizado", description: toastDescription});
+    toast({ title: "Precio Actualizado", description: `El precio de ${editingProduct.name} se actualizó a ${formatCurrency(priceValue)}.`});
     setIsEditPriceDialogOpen(false);
     setEditingProduct(null);
     setNewPrice('');
@@ -811,6 +811,7 @@ const ProductsPage = ({ onProductSelect, onEditProduct, onAddProduct }: {
 
        {/* Edit Price Dialog - Only rendered if onEditProduct is available */}
        {onEditProduct && isEditPriceDialogOpen && editingProduct && (
+        <Dialog open={isEditPriceDialogOpen} onOpenChange={setIsEditPriceDialogOpen}>
            <EditDialogContent className="sm:max-w-[425px]">
                <EditDialogHeader>
                    <EditDialogTitle>Editar Precio de {editingProduct?.name}</EditDialogTitle>
@@ -842,6 +843,7 @@ const ProductsPage = ({ onProductSelect, onEditProduct, onAddProduct }: {
                    <Button type="submit" onClick={handleUpdatePrice}>Guardar Cambios</Button>
                </EditDialogFooter>
            </EditDialogContent>
+        </Dialog>
         )}
     </>
   );
@@ -924,9 +926,16 @@ export default function TableDetailPage() {
         // but if they were, you might need a more robust way to check.
         // For now, assuming each "Promo Churrasco" item uses one "Pan de marraqueta"
         updateInventory('Pan de marraqueta', 1);
+        if(itemName === 'brasileño' || itemName === 'campestre' || itemName === 'chacarero' || itemName === 'che milico' || itemName === 'completo' || itemName === 'dinamico' || itemName === 'italiano' || itemName === 'palta' || itemName === 'queso' || itemName === 'queso champiñon' || itemName === 'tomate'){
+             updateInventory('Pan de marraqueta', 2 * orderItem.quantity);
+        }
+
     } else if (category === 'promo mechada') {
          // Similar to promo churrasco, assuming one "Pan de marraqueta" per item
         updateInventory('Pan de marraqueta', 1);
+         if(itemName === 'brasileño' || itemName === 'campestre' || itemName === 'chacarero' || itemName === 'che milico' || itemName === 'completo' || itemName === 'dinamico' || itemName === 'italiano' || itemName === 'palta' || itemName === 'queso' || itemName === 'queso champiñon' || itemName === 'tomate'){
+             updateInventory('Pan de marraqueta', 2 * orderItem.quantity);
+        }
     } else if (category === 'bebidas') {
         if (itemName.includes('1.5lt')) updateInventory('Bebida 1.5Lt', 1);
         if (itemName.includes('lata')) updateInventory('Lata', 1);
@@ -1393,6 +1402,7 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
 
 
 
