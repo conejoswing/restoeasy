@@ -1,31 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 'use client';
 
 import * as React from 'react';
@@ -71,7 +43,7 @@ import type { DeliveryInfo } from '@/components/app/delivery-dialog';
 import DeliveryDialog from '@/components/app/delivery-dialog';
 import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
-import { Dialog, DialogClose as EditDialogCloseButton, DialogContent as EditDialogContent, DialogDescription as EditDialogDescription, DialogFooter as EditDialogFooter, DialogHeader as EditDialogHeader, DialogTitle as EditDialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogClose as EditDialogCloseButton, DialogContent as EditDialogContent, DialogDescription as EditDialogDescription, DialogFooter as EditDialogFooter, DialogHeader as EditDialogHeader, DialogTitle as EditDialogTitle } from '@/components/ui/dialog'; // Aliased Dialog imports
 import { Label } from '@/components/ui/label';
 import {
   Accordion,
@@ -872,6 +844,18 @@ const ProductsPageContent = ({ onProductSelect, onEditProduct, onAddProduct }: {
 };
 
 
+// Storage key for order number
+const ORDER_NUMBER_STORAGE_KEY = 'currentOrderNumber';
+
+// Function to get the next order number
+const getNextOrderNumber = (): number => {
+    if (typeof window === 'undefined') return 1; // Default for SSR or if window is not available
+
+    let currentOrderNumber = parseInt(localStorage.getItem(ORDER_NUMBER_STORAGE_KEY) || '0', 10);
+    currentOrderNumber = (currentOrderNumber % 999) + 1; // Increment and wrap around 999
+    localStorage.setItem(ORDER_NUMBER_STORAGE_KEY, currentOrderNumber.toString());
+    return currentOrderNumber;
+};
 
 
 export default function TableDetailPage() {
@@ -1142,10 +1126,11 @@ export default function TableDetailPage() {
       toast({ title: "Pedido Vacío", description: "Añada productos antes de enviar a cocina.", variant: "destructive" });
       return;
     }
+    const orderNumber = getNextOrderNumber(); // Get the next order number
     // Print current order to kitchen
-    const kitchenReceiptHtml = formatKitchenOrderReceipt(currentOrder, isDelivery ? `Delivery: ${deliveryInfo?.name || 'Cliente'}` : `Mesa ${tableIdParam}`, deliveryInfo);
+    const kitchenReceiptHtml = formatKitchenOrderReceipt(currentOrder, isDelivery ? `Delivery: ${deliveryInfo?.name || 'Cliente'}` : `Mesa ${tableIdParam}`, orderNumber, deliveryInfo); // Pass orderNumber
     printHtml(kitchenReceiptHtml);
-    toast({ title: "Comanda Enviada a Cocina", description: `Pedido para ${isDelivery ? 'Delivery' : `Mesa ${tableIdParam}`} impreso.` });
+    toast({ title: "Comanda Enviada a Cocina", description: `Pedido #${orderNumber} para ${isDelivery ? 'Delivery' : `Mesa ${tableIdParam}`} impreso.` });
 
     // Move current order items to pending order, clear current order
     setPendingOrder(prevPending => [...prevPending, ...currentOrder]);
@@ -1412,4 +1397,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-

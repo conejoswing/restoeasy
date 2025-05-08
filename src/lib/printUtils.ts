@@ -24,6 +24,7 @@ const formatDateTime = (date: Date): string => {
 export const formatKitchenOrderReceipt = (
     orderItems: OrderItem[],
     orderIdentifier: string, // Changed parameter name to reflect its use
+    orderNumber: number, // Added orderNumber parameter
     deliveryInfo?: DeliveryInfo | null
 ): string => {
     const time = formatDateTime(new Date());
@@ -91,6 +92,12 @@ export const formatKitchenOrderReceipt = (
             margin-bottom: 15px;
             font-size: 9pt;
         }
+        .order-number { /* Style for the order number */
+            font-size: 12pt;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 5px;
+        }
         .items-section {
             margin-top: 10px;
             padding-top: 10px;
@@ -107,6 +114,7 @@ export const formatKitchenOrderReceipt = (
     </head>
     <body>
       <h1>COMANDA: ${orderIdentifier.toUpperCase()}</h1> {/* Display the orderIdentifier here */}
+      <div class="order-number">SU NÚMERO: ${String(orderNumber).padStart(3, '0')}</div> {/* Display formatted order number */}
       <div class="header-info">
         ${time}
       </div>
