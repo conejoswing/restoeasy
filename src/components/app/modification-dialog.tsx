@@ -89,10 +89,11 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
         const quesoChampiñonAsMods = ['Sin Queso', 'Sin Champiñon', 'Sin Tocino'];
         const promoChacareroMods = ['con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verde', 'con aji jalapeño', 'sin aji jalapeño'];
         const promoMechadaDinamicoOptions = ['con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta', 'Papa Personal'];
+        const fajitaChoiceMods = ['tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'];
+
 
         // Specific rule for "4 Ingredientes" and "6 Ingredientes" in Fajitas
         if (item.category === 'Fajitas' && (item.name === '4 Ingredientes' || item.name === '6 Ingredientes')) {
-            const fajitaChoiceMods = ['tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'];
             return [...standardMods, ...fajitaChoiceMods].includes(mod);
         }
 
@@ -214,3 +215,5 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
 };
 
 export default ModificationDialog;
+
+    
