@@ -14,8 +14,8 @@ import {
 } from '@/components/ui/card';
 import {ScrollArea} from '@/components/ui/scroll-area';
 import {Separator} from '@/components/ui/separator';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input'; // Import Input
+import { Badge } from '@/components/ui/badge'; // Import Badge
 import {
   Sheet,
   SheetContent,
@@ -31,7 +31,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "@/components/ui/table"; // Import Table components
 import { Utensils, PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard, ChevronRight, Banknote, Landmark, Home, Phone, User, DollarSign, PackageSearch, Edit, Trash2 } from 'lucide-react';
 import {useToast} from '@/hooks/use-toast';
 import ModificationDialog from '@/components/app/modification-dialog';
@@ -43,7 +43,7 @@ import type { DeliveryInfo } from '@/components/app/delivery-dialog';
 import DeliveryDialog from '@/components/app/delivery-dialog';
 import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
-import { Dialog, DialogClose as EditDialogCloseButton, DialogContent as EditDialogContent, DialogDescription as EditDialogDescription, DialogFooter as EditDialogFooter, DialogHeader as EditDialogHeader, DialogTitle as EditDialogTitle } from '@/components/ui/dialog'; // Aliased Dialog imports
+import { Dialog as EditDialog, DialogClose as EditDialogCloseButton, DialogContent as EditDialogContent, DialogDescription as EditDialogDescription, DialogFooter as EditDialogFooter, DialogHeader as EditDialogHeader, DialogTitle as EditDialogTitle } from '@/components/ui/dialog'; // Aliased Dialog imports
 import { Label } from '@/components/ui/label';
 import {
   Accordion,
@@ -70,6 +70,7 @@ export interface OrderItem extends Omit<MenuItem, 'price' | 'modificationPrices'
   basePrice: number;
   finalPrice: number;
   ingredients?: string[]; // Keep ingredients on OrderItem for display in order summary
+  orderNumber?: number; // Added to track the order number for pending items
 }
 
 export type PaymentMethod = 'Efectivo' | 'Tarjeta Débito' | 'Tarjeta Crédito' | 'Transferencia';
@@ -805,7 +806,7 @@ const ProductsPageContent = ({ onProductSelect, onEditProduct, onAddProduct }: {
 
        {/* Edit Price Dialog - Only rendered if onEditProduct is available */}
        {onEditProduct && isEditPriceDialogOpen && editingProduct && (
-        <Dialog open={isEditPriceDialogOpen} onOpenChange={setIsEditPriceDialogOpen}>
+        <EditDialog open={isEditPriceDialogOpen} onOpenChange={setIsEditPriceDialogOpen}>
             <EditDialogContent className="sm:max-w-[425px]">
             <EditDialogHeader>
                 <EditDialogTitle>Editar Precio de {editingProduct?.name}</EditDialogTitle>
@@ -837,7 +838,7 @@ const ProductsPageContent = ({ onProductSelect, onEditProduct, onAddProduct }: {
                 <Button type="submit" onClick={handleUpdatePrice}>Guardar Cambios</Button>
             </EditDialogFooter>
             </EditDialogContent>
-        </Dialog>
+        </EditDialog>
         )}
     </>
   );
@@ -1127,14 +1128,19 @@ export default function TableDetailPage() {
       return;
     }
     const orderNumber = getNextOrderNumber(); // Get the next order number
+
+    // Tag current order items with the order number before moving to pending
+    const itemsForKitchen = currentOrder.map(item => ({ ...item, orderNumber }));
+
+
     // Print current order to kitchen
-    const kitchenReceiptHtml = formatKitchenOrderReceipt(currentOrder, isDelivery ? `Delivery: ${deliveryInfo?.name || 'Cliente'}` : `Mesa ${tableIdParam}`, orderNumber, deliveryInfo); // Pass orderNumber
+    const kitchenReceiptHtml = formatKitchenOrderReceipt(itemsForKitchen, isDelivery ? `Delivery: ${deliveryInfo?.name || 'Cliente'}` : `Mesa ${tableIdParam}`, orderNumber, deliveryInfo); // Pass orderNumber
     printHtml(kitchenReceiptHtml);
     toast({ title: "Comanda Enviada a Cocina", description: `Pedido #${orderNumber} para ${isDelivery ? 'Delivery' : `Mesa ${tableIdParam}`} impreso.` });
 
     // Move current order items to pending order, clear current order
-    setPendingOrder(prevPending => [...prevPending, ...currentOrder]);
-    setPendingOrderTotal(prevTotal => prevTotal + calculateOrderTotal(currentOrder)); // Add current order total to pending
+    setPendingOrder(prevPending => [...prevPending, ...itemsForKitchen]);
+    setPendingOrderTotal(prevTotal => prevTotal + calculateOrderTotal(itemsForKitchen)); // Add current order total to pending
     setCurrentOrder([]);
   };
 
@@ -1336,7 +1342,10 @@ export default function TableDetailPage() {
                 <div key={item.orderItemId} className="mb-2 pb-2 border-b last:border-b-0">
                   <div className="flex justify-between items-center">
                     <div>
-                        <p className="font-bold">{item.quantity}x {item.name}</p>
+                        <p className="font-bold">
+                           {item.orderNumber && <Badge variant="outline" className="mr-2">#{String(item.orderNumber).padStart(3, '0')}</Badge>}
+                           {item.quantity}x {item.name}
+                        </p>
                          {item.selectedModifications && item.selectedModifications.length > 0 && (
                             <p className="text-xs text-muted-foreground font-bold">
                                 ({item.selectedModifications.join(', ')})
