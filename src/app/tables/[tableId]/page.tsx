@@ -24,6 +24,7 @@
 
 
 
+
 'use client';
 
 import * as React from 'react';
@@ -106,7 +107,7 @@ interface PendingOrderData {
     totalAmount: number;
 }
 
-// Helper to format currency (moved to higher scope)
+// Helper to format currency
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
 };
@@ -654,11 +655,6 @@ const extractPromoNumber = (name: string): number => {
     return match ? parseInt(match[1], 10) : Infinity; // Place non-numbered promos last
 };
 
-// Helper to format currency (moved to higher scope)
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
-};
-
 
 // Sort menu items by category order first, then alphabetically by name
 const sortMenu = (menu: MenuItem[]): MenuItem[] => {
@@ -836,37 +832,39 @@ const ProductsPage = ({ onProductSelect, onEditProduct, onAddProduct }: {
 
        {/* Edit Price Dialog - Only rendered if onEditProduct is available */}
        {onEditProduct && isEditPriceDialogOpen && editingProduct && (
-        <EditDialogContent className="sm:max-w-[425px]">
-           <EditDialogHeader>
-               <EditDialogTitle>Editar Precio de {editingProduct?.name}</EditDialogTitle>
-               <EditDialogDescription>
-                   Actualice el precio base para este producto.
-               </EditDialogDescription>
-           </EditDialogHeader>
-           <div className="grid gap-4 py-4">
-               <div className="grid grid-cols-4 items-center gap-4">
-                   <Label htmlFor="price" className="text-right">
-                       Nuevo Precio (CLP)
-                   </Label>
-                   <Input
-                       id="price"
-                       type="number"
-                       value={newPrice}
-                       onChange={handlePriceChange}
-                       className="col-span-3"
-                       required
-                       min="0"
-                       step="1"
-                   />
-               </div>
-           </div>
-           <EditDialogFooter>
-               <EditDialogCloseButton asChild>
-                   <Button type="button" variant="secondary" onClick={() => setIsEditPriceDialogOpen(false)}>Cancelar</Button>
-               </EditDialogCloseButton>
-               <Button type="submit" onClick={handleUpdatePrice}>Guardar Cambios</Button>
-           </EditDialogFooter>
-        </EditDialogContent>
+        <Dialog open={isEditPriceDialogOpen} onOpenChange={setIsEditPriceDialogOpen}>
+            <EditDialogContent className="sm:max-w-[425px]">
+            <EditDialogHeader>
+                <EditDialogTitle>Editar Precio de {editingProduct?.name}</EditDialogTitle>
+                <EditDialogDescription>
+                    Actualice el precio base para este producto.
+                </EditDialogDescription>
+            </EditDialogHeader>
+            <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                    <Label htmlFor="price" className="text-right">
+                        Nuevo Precio (CLP)
+                    </Label>
+                    <Input
+                        id="price"
+                        type="number"
+                        value={newPrice}
+                        onChange={handlePriceChange}
+                        className="col-span-3"
+                        required
+                        min="0"
+                        step="1"
+                    />
+                </div>
+            </div>
+            <EditDialogFooter>
+                <EditDialogCloseButton asChild>
+                    <Button type="button" variant="secondary" onClick={() => setIsEditPriceDialogOpen(false)}>Cancelar</Button>
+                </EditDialogCloseButton>
+                <Button type="submit" onClick={handleUpdatePrice}>Guardar Cambios</Button>
+            </EditDialogFooter>
+            </EditDialogContent>
+        </Dialog>
         )}
     </>
   );
@@ -1020,7 +1018,7 @@ export default function TableDetailPage() {
     setHasBeenInitialized(true);
     console.log(`Initialization complete for ${tableIdParam}.`);
 
-  }, [tableIdParam, isDelivery, hasBeenInitialized]);
+  }, [tableIdParam, hasBeenInitialized, isDelivery]);
 
 
   // --- Effect to save state changes to sessionStorage and update table status ---
@@ -1413,4 +1411,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-
