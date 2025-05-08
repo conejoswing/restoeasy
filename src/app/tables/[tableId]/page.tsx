@@ -6,6 +6,7 @@
 
 
 
+
 'use client';
 
 import * as React from 'react';
@@ -545,7 +546,7 @@ const mockMenu: MenuItem[] = [
      { id: 85, name: 'Tomate', price: 8800, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Bebida Lata'] },
      { id: 86, name: 'Brasileño', price: 9200, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Palta', 'Bebida Lata', 'Papa Personal'] },
      { id: 87, name: 'Dinamico', price: 9300, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana', 'Bebida Lata'] },
-     { id: 88, name: 'Campestre', price: 9500, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Palta', 'Bebida Lata', 'Papa Personal'] },
+     { id: 88, name: 'Campestre', price: 9500, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Lechuga', 'Bebida Lata', 'Papa Personal'] },
      { id: 89, name: 'Queso Champiñon', price: 9800, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso Fundido', 'Champiñones Salteados', 'Bebida Lata'] },
      { id: 90, name: 'Che milico', price: 10000, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso Fundido', 'Huevo Frito', 'Cebolla Frita', 'Papas Fritas', 'Bebida Lata'] },
     // --- Promociones --- (Adding modifications)
@@ -905,42 +906,43 @@ export default function TableDetailPage() {
         if (itemName.includes('grande')) updateInventory('Pan especial grande', 1);
         // Vienesa deduction logic
         if ((itemName.includes('completo normal') || itemName.includes('dinamico normal') || itemName.includes('hot dog normal') || itemName.includes('italiano normal') || itemName.includes('palta normal') || itemName.includes('tomate normal'))) {
-            updateInventory('Vienesas', 1);
+            updateInventory('Vienesas', 1 * orderItem.quantity);
         } else if ((itemName.includes('completo grande') || itemName.includes('dinamico grande') || itemName.includes('hot dog grande') || itemName.includes('italiano grande') || itemName.includes('palta grande') || itemName.includes('tomate grande'))) {
-            updateInventory('Vienesas', 2);
+            updateInventory('Vienesas', 2 * orderItem.quantity);
         }
 
 
     } else if (category === 'completos as') {
-        if (itemName.includes('normal')) updateInventory('Pan especial normal', 1);
-        if (itemName.includes('grande')) updateInventory('Pan especial grande', 1);
+        if (itemName.includes('normal')) updateInventory('Pan especial normal', 1 * orderItem.quantity);
+        if (itemName.includes('grande')) updateInventory('Pan especial grande', 1 * orderItem.quantity);
         // Assume 'Carne As' is a generic inventory item or manage specific cuts
     } else if (category === 'fajitas') {
-        updateInventory('Pan de marraqueta', 1); // Assuming fajitas use marraqueta or similar
+        updateInventory('Pan de marraqueta', 1 * orderItem.quantity); // Assuming fajitas use marraqueta or similar
         // Add other common fajita ingredients if tracked
     } else if (category === 'churrascos') {
-        updateInventory('Pan de marraqueta', 1);
+        updateInventory('Pan de marraqueta', 1 * orderItem.quantity);
     } else if (category === 'promo churrasco') {
         // For promo churrasco, if the name implies 2x, deduct two, otherwise one.
         // This logic assumes names like "2x Completo" or similar are not used for "Promo Churrasco"
         // but if they were, you might need a more robust way to check.
         // For now, assuming each "Promo Churrasco" item uses one "Pan de marraqueta"
-        updateInventory('Pan de marraqueta', 1);
-        if(itemName === 'brasileño' || itemName === 'campestre' || itemName === 'chacarero' || itemName === 'che milico' || itemName === 'completo' || itemName === 'dinamico' || itemName === 'italiano' || itemName === 'palta' || itemName === 'queso' || itemName === 'queso champiñon' || itemName === 'tomate'){
-             updateInventory('Pan de marraqueta', 2 * orderItem.quantity);
-        }
+
+        // Check if the item name starts with "2x" or similar indicator for double quantity
+        const isDoubleItem = itemName.startsWith('2x') || ['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'palta', 'queso', 'queso champiñon', 'tomate'].includes(itemName);
+        const panDeduction = isDoubleItem ? 2 : 1;
+        updateInventory('Pan de marraqueta', panDeduction * orderItem.quantity);
+
 
     } else if (category === 'promo mechada') {
          // Similar to promo churrasco, assuming one "Pan de marraqueta" per item
-        updateInventory('Pan de marraqueta', 1);
-         if(itemName === 'brasileño' || itemName === 'campestre' || itemName === 'chacarero' || itemName === 'che milico' || itemName === 'completo' || itemName === 'dinamico' || itemName === 'italiano' || itemName === 'palta' || itemName === 'queso' || itemName === 'queso champiñon' || itemName === 'tomate'){
-             updateInventory('Pan de marraqueta', 2 * orderItem.quantity);
-        }
+        const isDoubleItem = itemName.startsWith('2x') || ['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'palta', 'queso', 'queso champiñon', 'tomate'].includes(itemName);
+        const panDeduction = isDoubleItem ? 2 : 1;
+        updateInventory('Pan de marraqueta', panDeduction * orderItem.quantity);
     } else if (category === 'bebidas') {
-        if (itemName.includes('1.5lt')) updateInventory('Bebida 1.5Lt', 1);
-        if (itemName.includes('lata')) updateInventory('Lata', 1);
-        if (itemName.includes('cafe chico')) updateInventory('Cafe Chico', 1);
-        if (itemName.includes('cafe grande')) updateInventory('Cafe Grande', 1);
+        if (itemName.includes('1.5lt')) updateInventory('Bebida 1.5Lt', 1 * orderItem.quantity);
+        if (itemName.includes('lata')) updateInventory('Lata', 1 * orderItem.quantity);
+        if (itemName.includes('cafe chico')) updateInventory('Cafe Chico', 1 * orderItem.quantity);
+        if (itemName.includes('cafe grande')) updateInventory('Cafe Grande', 1 * orderItem.quantity);
     }
     // Add more categories and ingredient deductions as needed
   };
@@ -1402,6 +1404,7 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
 
 
 
