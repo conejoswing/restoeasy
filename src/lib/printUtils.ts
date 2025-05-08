@@ -33,10 +33,9 @@ export const formatKitchenOrderReceipt = (
         const modificationsText = item.selectedModifications && item.selectedModifications.length > 0
             ? `<br><small style="margin-left: 10px; font-weight: bold;">(${item.selectedModifications.join(', ')})</small>` // Make mods bold
             : '';
-        // Ingredients removed from kitchen receipt
-        // const ingredientsText = item.ingredients && item.ingredients.length > 0
-        //     ? `<br><small style="margin-left: 10px; color: #555;">[${item.ingredients.join(', ')}]</small>` // Display ingredients
-        //     : '';
+        const ingredientsText = item.ingredients && item.ingredients.length > 0
+            ? `<br><small style="margin-left: 10px; color: #333; font-style: italic;">Ingredientes: ${item.ingredients.join(', ')}</small>` // Display ingredients
+            : '';
 
         itemsHtml += `
       <tr>
@@ -44,6 +43,7 @@ export const formatKitchenOrderReceipt = (
         <td>
           <span style="font-weight: bold;">${item.name}</span>
           ${modificationsText}
+          ${ingredientsText}
         </td>
       </tr>
     `;
