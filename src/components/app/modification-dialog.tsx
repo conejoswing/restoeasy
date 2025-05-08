@@ -77,51 +77,50 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
   // Filter out specific modifications based on category and item name
     const availableModifications = item.modifications?.filter(mod => {
         const standardMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'];
-        const dinamicoVienesaRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta']; // Kept 'con' options based on previous logic
-        const dinamicoVienesaChicoRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta']; // Kept 'con' options
+        const dinamicoVienesaRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta'];
+        const dinamicoVienesaChicoRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta'];
 
-        const dinamicoAsRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta']; // Kept 'con' options
-        const dinamicoAsChicoRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta']; // Kept 'con' options
+        const dinamicoAsRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta'];
+        const dinamicoAsChicoRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta'];
 
-        const chacareroNormalSpecificIngredientMods = ['sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño']; // Kept 'con' options
-        const chacareroGrandeSpecificIngredientMods = ['sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño']; // Kept 'con' options
+        const chacareroNormalSpecificIngredientMods = ['sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño'];
+        const chacareroGrandeSpecificIngredientMods = ['sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño'];
         
-        const napolitanoAsMods = ['con queso', 'sin queso', 'con tomate', 'sin tomate', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna'];
         const napolitanoGrandeAsRestrictedOptions = ['sin queso', 'sin tomate', 'sin oregano', 'sin aceituna'];
         const napolitanoNormalAsRestrictedOptions = ['sin queso', 'sin tomate', 'sin oregano', 'sin aceituna'];
 
 
-        const quesoChampiñonMods = ['Queso', 'Champiñon', 'Tocino'];
+        const quesoChampiñonMods = ['Sin Queso', 'Sin Champiñon', 'Sin Tocino']; // Updated for "sin" options
         const promoChacareroMods = ['con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verde', 'con aji jalapeño', 'sin aji jalapeño'];
         const promoMechadaDinamicoOptions = ['con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta', 'Papa Personal'];
 
 
         // For 'Completos Vienesas' and specific item names 'Dinamico Normal' or 'Dinamico Grande'
         if (item.category === 'Completos Vienesas' && item.name === 'Dinamico Grande') {
-            const allowedMods = [...standardMods, ...dinamicoVienesaRestrictedOptions, 'con americana', 'con chucrut', 'con palta'];
+            const allowedMods = [...standardMods, ...dinamicoVienesaRestrictedOptions];
             return allowedMods.includes(mod);
         }
          if (item.category === 'Completos Vienesas' && item.name === 'Dinamico Normal') {
-            const allowedMods = [...standardMods, ...dinamicoVienesaChicoRestrictedOptions, 'con americana', 'con chucrut', 'con palta'];
+            const allowedMods = [...standardMods, ...dinamicoVienesaChicoRestrictedOptions];
             return allowedMods.includes(mod);
         }
         // For 'Completos As' and item name 'Dinamico Normal' or 'Dinamico Grande'
         else if (item.category === 'Completos As' && item.name === 'Dinamico Grande') {
-            const allowedMods = [...standardMods, ...dinamicoAsRestrictedOptions, 'con americana', 'con chucrut', 'con palta'];
+            const allowedMods = [...standardMods, ...dinamicoAsRestrictedOptions];
             return allowedMods.includes(mod);
         }
          else if (item.category === 'Completos As' && item.name === 'Dinamico Normal') {
-            const allowedMods = [...standardMods, ...dinamicoAsChicoRestrictedOptions, 'con americana', 'con chucrut', 'con palta'];
+            const allowedMods = [...standardMods, ...dinamicoAsChicoRestrictedOptions];
             return allowedMods.includes(mod);
         }
         // For 'Completos As' and item name 'Chacarero Normal'
         else if (item.category === 'Completos As' && item.name === 'Chacarero Normal') {
-            const allowedChacareroNormalMods = [...standardMods, ...chacareroNormalSpecificIngredientMods, 'con tomate', 'con aji oro', 'con poroto verde', 'con aji jalapeño'];
+            const allowedChacareroNormalMods = [...standardMods, ...chacareroNormalSpecificIngredientMods];
             return allowedChacareroNormalMods.includes(mod);
         }
         // For 'Completos As' and item name 'Chacarero Grande'
         else if (item.category === 'Completos As' && item.name === 'Chacarero Grande') {
-            const allowedChacareroGrandeMods = [...standardMods, ...chacareroGrandeSpecificIngredientMods, 'con tomate', 'con aji oro', 'con poroto verde', 'con aji jalapeño'];
+            const allowedChacareroGrandeMods = [...standardMods, ...chacareroGrandeSpecificIngredientMods];
             return allowedChacareroGrandeMods.includes(mod);
         }
         // For 'Completos As' and specific item names 'Napolitano Normal'
@@ -232,4 +231,3 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
 };
 
 export default ModificationDialog;
-
