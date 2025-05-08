@@ -4,6 +4,7 @@
 
 
 
+
 'use client';
 
 import * as React from 'react';
@@ -356,7 +357,7 @@ const mockMenu: MenuItem[] = [
         category: 'Hamburguesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-         ingredients: ['Tomate', 'Lechuga', 'Queso Cheddar', 'Salsa Cheddar', 'Tocino', 'Pepinillo', 'Salsa de la Casa', 'Kétchup', 'Mostaza', 'Cebolla']
+         ingredients: ['Tomate', 'Lechuga', 'Queso Cheddar', 'Salsa Cheddar', 'Tocino', 'Pepinillo', 'Salsa de la Casa', 'Kétchup', 'Mostaza', 'Cebolla', 'Bebida Lata', 'Papa Personal']
     },
     {
         id: 72,
@@ -704,10 +705,10 @@ function ProductsPage({ onProductSelect }: { onProductSelect: (product: MenuItem
     const filteredCategories = useMemo(() => {
         if (selectedCategory) return []; // Don't show categories if one is selected
         return orderedCategories.filter(category =>
-            mockMenu.some(item => item.category === category) && // Only show categories with items
-            (!searchTerm || category.toLowerCase().includes(searchTerm.toLowerCase())) // Filter categories by search term if searchTerm is not empty
+            mockMenu.some(item => item.category === category) // Only show categories with items
+            // && (!searchTerm || category.toLowerCase().includes(searchTerm.toLowerCase())) // Filter categories by search term if searchTerm is not empty - REMOVED
         );
-    }, [selectedCategory, searchTerm]);
+    }, [selectedCategory]); // Removed searchTerm dependency
 
     const filteredProducts = useMemo(() => {
         if (!selectedCategory) return [];
@@ -1278,7 +1279,7 @@ export default function TableDetailPage() {
           <CardHeader>
             <CardTitle className="text-xl">Pedido Actual</CardTitle>
           </CardHeader>
-           <ScrollArea className="flex-grow" style={{ maxHeight: 'calc(100vh - 360px)' }}>
+           <ScrollArea className="flex-grow" style={{ maxHeight: 'calc(100vh - 360px)' }}> {/* Adjusted maxHeight */}
             <CardContent className="p-4">
                 {currentOrder.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">Añada productos del menú.</p>
@@ -1356,7 +1357,7 @@ export default function TableDetailPage() {
                  </CardDescription>
              )}
           </CardHeader>
-          <ScrollArea className="flex-grow" style={{ maxHeight: 'calc(100vh - 360px)' }}>
+          <ScrollArea className="flex-grow" style={{ maxHeight: 'calc(100vh - 360px)' }}> {/* Adjusted maxHeight */}
             <CardContent className="p-4">
                 {!pendingOrder || pendingOrder.items.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">No hay pedidos pendientes de pago.</p>
@@ -1439,6 +1440,7 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
 
 
 
