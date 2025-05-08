@@ -13,6 +13,7 @@
 
 
 
+
 'use client';
 
 import * as React from 'react';
@@ -547,9 +548,9 @@ const mockMenu: MenuItem[] = [
        ingredients: ['Tomate', 'Palta', 'Bebida Lata', 'Papa Personal']
     },
      { id: 82, name: 'Chacarero', price: 9000, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Poroto Verde', 'Ají Oro', 'Ají Jalapeño', 'Bebida Lata', 'Papa Personal'] },
-     { id: 83, name: 'Queso', price: 8500, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Bebida Lata'] },
+     { id: 83, name: 'Queso', price: 8500, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Bebida Lata', 'Papa Personal'] },
      { id: 84, name: 'Palta', price: 8800, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Bebida Lata', 'Papa Personal'] },
-     { id: 85, name: 'Tomate', price: 8800, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Bebida Lata'] },
+     { id: 85, name: 'Tomate', price: 8800, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Bebida Lata', 'Papa Personal'] },
      { id: 86, name: 'Brasileño', price: 9200, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Palta', 'Bebida Lata', 'Papa Personal'] },
      { id: 87, name: 'Dinamico', price: 9300, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana', 'Bebida Lata', 'Papa Personal'] },
      { id: 88, name: 'Campestre', price: 9500, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Lechuga', 'Bebida Lata', 'Papa Personal'] },
@@ -791,12 +792,13 @@ const ProductsPage = ({ onProductSelect, onEditProduct, onAddProduct }: {
                                   >
                                       <div className="flex justify-between items-center">
                                           <div className="flex-grow">
-                                              <p className="font-medium text-sm">{item.name}</p>
+                                              <p className="font-medium text-sm">{item.name}
                                               {item.ingredients && item.ingredients.length > 0 && (
-                                                <p className="text-xs text-muted-foreground mt-0.5">
-                                                  ({item.ingredients.join(', ')})
-                                                </p>
+                                                <span className="text-xs text-muted-foreground ml-1">
+                                                   ({item.ingredients.join(', ')})
+                                                </span>
                                               )}
+                                              </p>
                                           </div>
                                           <div className="flex items-center">
                                               <span className="text-sm font-mono mr-3">{formatCurrency(item.price)}</span>
@@ -928,21 +930,12 @@ export default function TableDetailPage() {
     } else if (category === 'churrascos') {
         updateInventory('Pan de marraqueta', 1 * orderItem.quantity);
     } else if (category === 'promo churrasco') {
-        // For promo churrasco, if the name implies 2x, deduct two, otherwise one.
-        // This logic assumes names like "2x Completo" or similar are not used for "Promo Churrasco"
-        // but if they were, you might need a more robust way to check.
-        // For now, assuming each "Promo Churrasco" item uses one "Pan de marraqueta"
-
-        // Check if the item name starts with "2x" or similar indicator for double quantity
-        const isDoubleItem = ['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'palta', 'queso', 'queso champiñon', 'tomate'].includes(itemName);
-        const panDeduction = isDoubleItem ? 1 : 1; // Default to 1, but if it's a known "double" item, deduct 2. This needs careful mapping or naming convention.
+        const panDeduction = (itemName.startsWith("2x ") || ['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'palta', 'queso', 'queso champiñon', 'tomate'].includes(itemName)) ? 1 : 1; // Default to 1, but if it's a known "double" item, deduct 2. This needs careful mapping or naming convention.
         updateInventory('Pan de marraqueta', panDeduction * orderItem.quantity);
 
 
     } else if (category === 'promo mechada') {
-         // Similar to promo churrasco, assuming one "Pan de marraqueta" per item
-        const isDoubleItem = ['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'palta', 'queso', 'queso champiñon', 'tomate'].includes(itemName);
-        const panDeduction = isDoubleItem ? 1 : 1;
+        const panDeduction = (itemName.startsWith("2x ") || ['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'palta', 'queso', 'queso champiñon', 'tomate'].includes(itemName)) ? 1 : 1;
         updateInventory('Pan de marraqueta', panDeduction * orderItem.quantity);
     } else if (category === 'bebidas') {
         if (itemName.includes('1.5lt')) updateInventory('Bebida 1.5Lt', 1 * orderItem.quantity);
@@ -1262,11 +1255,7 @@ export default function TableDetailPage() {
                     <div className="flex-grow overflow-y-auto p-4">
                         <ProductsPage onProductSelect={handleOpenModificationDialog} />
                     </div>
-                     <div className="p-4 border-t mt-auto"> {/* Ensure close button is at the bottom */}
-                         <SheetClose asChild>
-                             <Button variant="outline" className="w-full">Cerrar Menú</Button>
-                         </SheetClose>
-                     </div>
+                     {/* Removed the explicit close button from here, rely on Sheet's default close behavior or onOpenChange */}
                 </SheetContent>
             </Sheet>
         </div>
