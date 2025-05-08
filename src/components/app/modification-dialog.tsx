@@ -1,6 +1,7 @@
 
 
 
+
 import * as React from 'react';
 import {
   Dialog,
@@ -121,7 +122,7 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
          // Specific empty mods for Hamburguesas and Churrascos (as per previous requests to remove specific ingredients from mods)
         else if (['Hamburguesas', 'Churrascos'].includes(item.category)) {
              // For Big Cami, allow all standard mods
-            if (item.name === 'Big Cami' || item.name === 'Super Big Cami') {
+            if (item.name === 'Big Cami' || item.name === 'Super Big Cami' || item.name === 'Italiana' || item.name === 'Doble Italiana') { // Added Italiana and Doble Italiana
                 return standardMods.includes(mod);
             }
             // For other Hamburguesas (like 'Doble') and Churrascos, only standard mods
@@ -197,6 +198,7 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
 };
 
 export default ModificationDialog;
+
 
 
 
