@@ -113,15 +113,15 @@ export const formatKitchenOrderReceipt = (
       </style>
     </head>
     <body>
-      <h1>COMANDA: ${orderIdentifier.toUpperCase()}</h1> {/* Display the orderIdentifier here */}
-      <div class="order-number">SU NÚMERO: ${String(orderNumber).padStart(3, '0')}</div> {/* Display formatted order number */}
+      <h1>COMANDA: ${orderIdentifier.toUpperCase()}</h1>
+      <div class="order-number">SU NÚMERO: ${String(orderNumber).padStart(3, '0')}</div>
       <div class="header-info">
         ${time}
       </div>
-      <hr> {/* Add a separator after the header info */}
+      <hr>
       <div class="items-section">
         <table>
-         <thead> {/* Add a header for the items table */}
+         <thead>
             <tr><th colspan="2">Productos:</th></tr>
          </thead>
           <tbody>
@@ -381,3 +381,4 @@ export const printHtml = (htmlContent: string): void => {
         }
     }
 };
+
