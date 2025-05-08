@@ -5,6 +5,7 @@
 
 
 
+
 'use client';
 
 import * as React from 'react';
@@ -312,7 +313,7 @@ const mockMenu: MenuItem[] = [
         category: 'Hamburguesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-         ingredients: ['Queso Cheddar', 'Salsa Cheddar', 'Tocino', 'Kétchup', 'Mostaza', 'Cebolla', 'Pepinillo']
+         ingredients: ['Queso Cheddar', 'Salsa Cheddar', 'Tocino', 'Kétchup', 'Mostaza', 'Cebolla', 'Pepinillo', 'Bebida Lata', 'Papa Personal']
     },
     {
         id: 67,
@@ -706,9 +707,8 @@ function ProductsPage({ onProductSelect }: { onProductSelect: (product: MenuItem
         if (selectedCategory) return []; // Don't show categories if one is selected
         return orderedCategories.filter(category =>
             mockMenu.some(item => item.category === category) // Only show categories with items
-            // && (!searchTerm || category.toLowerCase().includes(searchTerm.toLowerCase())) // Filter categories by search term if searchTerm is not empty - REMOVED
         );
-    }, [selectedCategory]); // Removed searchTerm dependency
+    }, [selectedCategory]);
 
     const filteredProducts = useMemo(() => {
         if (!selectedCategory) return [];
@@ -1440,6 +1440,7 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
 
 
 
