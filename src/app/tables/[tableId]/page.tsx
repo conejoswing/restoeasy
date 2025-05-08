@@ -2,6 +2,7 @@
 
 
 
+
 'use client';
 
 import * as React from 'react';
@@ -327,7 +328,7 @@ const mockMenu: MenuItem[] = [
         category: 'Hamburguesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-         ingredients: ['Palta', 'Tomate']
+         ingredients: ['Palta', 'Tomate', 'Bebida Lata', 'Papa Personal']
     },
     {
         id: 69,
@@ -720,10 +721,10 @@ function ProductsPage({ onProductSelect }: { onProductSelect: (product: MenuItem
         <div className="p-0">
              <div className="flex justify-between items-center mb-4 px-4 pt-4">
                 <h1 className="text-2xl font-bold">
-                    {selectedCategory ? `${selectedCategory}` : "Menú"}
+                    {selectedCategory ? `${selectedCategory}` : "Categorías"}
                 </h1>
                 {/* Search input for categories or products */}
-                 {selectedCategory && (
+                 {(selectedCategory) && (
                     <Input
                         type="text"
                         placeholder="Buscar producto..."
@@ -1437,6 +1438,7 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
 
 
 
