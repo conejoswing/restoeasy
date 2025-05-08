@@ -7,6 +7,7 @@
 
 
 
+
 'use client';
 
 import * as React from 'react';
@@ -368,7 +369,7 @@ const mockMenu: MenuItem[] = [
         category: 'Hamburguesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-         ingredients: ['Lechuga', 'Pepinillos', 'Salsa Especial']
+         ingredients: ['Tomate', 'Lechuga', 'Queso Cheddar', 'Salsa Cheddar', 'Tocino', 'Pepinillo', 'Salsa de la Casa', 'Kétchup', 'Mostaza', 'Cebolla', 'Bebida Lata', 'Papa Personal']
     },
     // --- Churrascos --- (Updated Modifications)
     {
@@ -653,6 +654,7 @@ const sortMenu = (menu: MenuItem[]): MenuItem[] => {
     return a.name.localeCompare(b.name);
   });
 };
+
 
 // ProductsPage Component (embedded for simplicity, could be separate)
 function ProductsPage({ onProductSelect }: { onProductSelect: (product: MenuItem) => void }) {
@@ -1441,6 +1443,7 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
 
 
 
