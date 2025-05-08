@@ -77,65 +77,47 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
   // Filter out specific modifications based on category and item name
     const availableModifications = item.modifications?.filter(mod => {
         const standardMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'];
-        const dinamicoVienesaRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta'];
-        const dinamicoVienesaChicoRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta'];
+        const dinamicoVienesaRestrictedOptions = ['con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'];
 
-        const dinamicoAsRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta'];
-        const dinamicoAsChicoRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta'];
+        const dinamicoAsRestrictedOptions = ['con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'];
 
-        const chacareroNormalSpecificIngredientMods = ['sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño'];
-        const chacareroGrandeSpecificIngredientMods = ['sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño'];
+        const chacareroAsSpecificIngredientMods = ['con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verde', 'con aji jalapeño', 'sin aji jalapeño'];
         
-        const napolitanoGrandeAsRestrictedOptions = ['sin queso', 'sin tomate', 'sin oregano', 'sin aceituna'];
-        const napolitanoNormalAsRestrictedOptions = ['sin queso', 'sin tomate', 'sin oregano', 'sin aceituna'];
+        const napolitanoAsRestrictedOptions = ['con queso', 'sin queso', 'con tomate', 'sin tomate', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna'];
 
 
-        const quesoChampiñonMods = ['Sin Queso', 'Sin Champiñon', 'Sin Tocino']; // Updated for "sin" options
+        const quesoChampiñonAsMods = ['Sin Queso', 'Sin Champiñon', 'Sin Tocino'];
         const promoChacareroMods = ['con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verde', 'con aji jalapeño', 'sin aji jalapeño'];
         const promoMechadaDinamicoOptions = ['con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta', 'Papa Personal'];
 
+        // Specific rule for "4 Ingredientes" and "6 Ingredientes" in Fajitas
+        if (item.category === 'Fajitas' && (item.name === '4 Ingredientes' || item.name === '6 Ingredientes')) {
+            return true; // Allow all modifications defined in the MenuItem for these items
+        }
 
-        // For 'Completos Vienesas' and specific item names 'Dinamico Normal' or 'Dinamico Grande'
-        if (item.category === 'Completos Vienesas' && item.name === 'Dinamico Grande') {
+        // For 'Completos Vienesas' and specific item names 'Dinamico Grande' or 'Dinamico Normal'
+        if (item.category === 'Completos Vienesas' && (item.name === 'Dinamico Grande' || item.name === 'Dinamico Normal')) {
             const allowedMods = [...standardMods, ...dinamicoVienesaRestrictedOptions];
             return allowedMods.includes(mod);
         }
-         if (item.category === 'Completos Vienesas' && item.name === 'Dinamico Normal') {
-            const allowedMods = [...standardMods, ...dinamicoVienesaChicoRestrictedOptions];
-            return allowedMods.includes(mod);
-        }
         // For 'Completos As' and item name 'Dinamico Normal' or 'Dinamico Grande'
-        else if (item.category === 'Completos As' && item.name === 'Dinamico Grande') {
+        else if (item.category === 'Completos As' && (item.name === 'Dinamico Grande' || item.name === 'Dinamico Normal')) {
             const allowedMods = [...standardMods, ...dinamicoAsRestrictedOptions];
             return allowedMods.includes(mod);
         }
-         else if (item.category === 'Completos As' && item.name === 'Dinamico Normal') {
-            const allowedMods = [...standardMods, ...dinamicoAsChicoRestrictedOptions];
+        // For 'Completos As' and item name 'Chacarero Normal' or 'Chacarero Grande'
+        else if (item.category === 'Completos As' && (item.name === 'Chacarero Normal' || item.name === 'Chacarero Grande')) {
+            const allowedChacareroMods = [...standardMods, ...chacareroAsSpecificIngredientMods];
+            return allowedChacareroMods.includes(mod);
+        }
+        // For 'Completos As' and specific item names 'Napolitano Normal' or 'Napolitano Grande'
+        else if (item.category === 'Completos As' && (item.name === 'Napolitano Normal' || item.name === 'Napolitano Grande')) {
+            const allowedMods = [...standardMods, ...napolitanoAsRestrictedOptions];
             return allowedMods.includes(mod);
-        }
-        // For 'Completos As' and item name 'Chacarero Normal'
-        else if (item.category === 'Completos As' && item.name === 'Chacarero Normal') {
-            const allowedChacareroNormalMods = [...standardMods, ...chacareroNormalSpecificIngredientMods];
-            return allowedChacareroNormalMods.includes(mod);
-        }
-        // For 'Completos As' and item name 'Chacarero Grande'
-        else if (item.category === 'Completos As' && item.name === 'Chacarero Grande') {
-            const allowedChacareroGrandeMods = [...standardMods, ...chacareroGrandeSpecificIngredientMods];
-            return allowedChacareroGrandeMods.includes(mod);
-        }
-        // For 'Completos As' and specific item names 'Napolitano Normal'
-        else if (item.category === 'Completos As' && item.name === 'Napolitano Normal') {
-            const allowedMods = [...standardMods, ...napolitanoNormalAsRestrictedOptions];
-            return allowedMods.includes(mod);
-        }
-        // For 'Completos As' and specific item names 'Napolitano Grande'
-        else if (item.category === 'Completos As' && item.name === 'Napolitano Grande') {
-            const allowedNapolitanoGrandeMods = [...standardMods, ...napolitanoGrandeAsRestrictedOptions];
-            return allowedNapolitanoGrandeMods.includes(mod);
         }
         // For 'Completos As' and specific item names 'Queso Champiñon Normal' or 'Queso Champiñon Grande'
         else if (item.category === 'Completos As' && (item.name.includes('Queso Champiñon'))) {
-            const allowedQuesoChampiñonMods = [...standardMods, ...quesoChampiñonMods];
+            const allowedQuesoChampiñonMods = [...standardMods, ...quesoChampiñonAsMods];
             return allowedQuesoChampiñonMods.includes(mod);
         }
          // For 'Promo Churrasco' and item name 'Chacarero'
@@ -231,3 +213,5 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
 };
 
 export default ModificationDialog;
+
+```
