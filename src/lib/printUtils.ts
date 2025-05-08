@@ -138,11 +138,12 @@ export const formatKitchenOrderReceipt = (
 
 
 export const formatCustomerReceipt = (
- orderItems: OrderItem[],
-    totalAmount: number,
+    orderItems: OrderItem[],
+    totalAmount: number, // This is now the grand total including tip
     paymentMethod: string,
     tableId: string | number,
-    deliveryInfo?: DeliveryInfo | null
+    deliveryInfo?: DeliveryInfo | null,
+    tipAmount?: number // Optional tip amount
 ): string => {
     const isDelivery = tableId === 'delivery';
     const title = "BOLETA";
@@ -150,10 +151,11 @@ export const formatCustomerReceipt = (
     const time = formatDateTime(new Date());
     const orderIdentifier = isDelivery ? `Delivery: ${deliveryInfo?.name || 'Cliente'}` : `Mesa ${tableId}`;
 
-
+    let subtotal = 0;
     let itemsHtml = '';
     orderItems.forEach(item => {
         const itemTotal = item.finalPrice * item.quantity;
+        subtotal += itemTotal;
         const modificationsText = item.selectedModifications && item.selectedModifications.length > 0
             ? `<br><small style="margin-left: 10px; font-weight: bold;">(${item.selectedModifications.join(', ')})</small>`
             : '';
@@ -178,7 +180,19 @@ export const formatCustomerReceipt = (
             <td style="text-align: right; font-weight: bold;">${formatCurrency(deliveryInfo.deliveryFee)}</td>
         </tr>
         `;
+        subtotal += deliveryInfo.deliveryFee; // Add delivery fee to subtotal for display
     }
+
+    let tipHtml = '';
+    if (tipAmount && tipAmount > 0) {
+        tipHtml = `
+        <tr>
+            <td colspan="2" style="font-weight: bold;">Propina (10%)</td>
+            <td style="text-align: right; font-weight: bold;">${formatCurrency(tipAmount)}</td>
+        </tr>
+        `;
+    }
+
 
     return `
     <html>
@@ -225,6 +239,7 @@ export const formatCustomerReceipt = (
       <div class="total-section">
         <table>
           <tbody>
+            ${tipHtml}
             <tr class="total-row">
               <td colspan="2">TOTAL</td>
               <td style="text-align: right;">${formatCurrency(totalAmount)}</td>
@@ -372,4 +387,4 @@ export const printHtml = (htmlContent: string): void => {
         }
     }
 };
-
+```

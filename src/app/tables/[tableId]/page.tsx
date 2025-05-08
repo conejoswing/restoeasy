@@ -90,7 +90,7 @@ interface PendingOrderStorageData {
 
 
 // Helper to format currency
-const formatCurrency = (amount: number) => {
+const globalFormatCurrency = (amount: number) => {
   return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
 };
 
@@ -545,7 +545,7 @@ const mockMenu: MenuItem[] = [
      { id: 84, name: 'Palta', price: 8800, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Bebida Lata', 'Papa Personal'] },
      { id: 85, name: 'Tomate', price: 8800, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Bebida Lata', 'Papa Personal'] },
      { id: 86, name: 'Brasileño', price: 9200, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Palta', 'Bebida Lata', 'Papa Personal'] },
-     { id: 87, name: 'Dinamico', price: 9300, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana', 'Bebida Lata', 'Papa Personal'] },
+     { id: 87, name: 'Dinamico', price: 9300, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta', 'Papa Personal'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana', 'Bebida Lata', 'Papa Personal'] },
      { id: 88, name: 'Campestre', price: 9500, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Lechuga', 'Bebida Lata', 'Papa Personal'] },
      { id: 89, name: 'Queso Champiñon', price: 9800, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Champiñon', 'Tocino', 'Bebida Lata', 'Papa Personal'] },
      { id: 90, name: 'Che milico', price: 10000, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Cebolla Caramelizada', 'Huevo', 'Bebida Lata', 'Papa Personal'] },
@@ -723,7 +723,7 @@ const ProductsPageContent = ({ onProductSelect, onEditProduct, onAddProduct }: {
         onEditProduct({ ...editingProduct, price: priceValue });
     }
 
-    toast({ title: "Precio Actualizado", description: `El precio de ${editingProduct.name} se actualizó a ${formatCurrency(priceValue)}.`});
+    toast({ title: "Precio Actualizado", description: `El precio de ${editingProduct.name} se actualizó a ${globalFormatCurrency(priceValue)}.`});
     setIsEditPriceDialogOpen(false);
     setEditingProduct(null);
     setNewPrice('');
@@ -754,7 +754,7 @@ const ProductsPageContent = ({ onProductSelect, onEditProduct, onAddProduct }: {
            onChange={(e) => setSearchTerm(e.target.value)}
            className="mb-4"
        />
-      <ScrollArea className="h-[calc(100vh-250px)] pr-3">
+      <ScrollArea className="h-[calc(100vh-250px)] pr-3"> {/* Adjusted height for better visibility */}
           {Object.keys(groupedMenu).length === 0 && (
              <p className="text-center text-muted-foreground py-10">
                {searchTerm ? 'No se encontraron productos.' : 'Cargando menú...'}
@@ -788,7 +788,7 @@ const ProductsPageContent = ({ onProductSelect, onEditProduct, onAddProduct }: {
                                               </p>
                                           </div>
                                           <div className="flex items-center">
-                                              <span className="text-sm font-mono mr-3">{formatCurrency(item.price)}</span>
+                                              <span className="text-sm font-mono mr-3">{globalFormatCurrency(item.price)}</span>
                                               {onEditProduct && (
                                                  <Button variant="ghost" size="icon" onClick={(e) => { e.stopPropagation(); openEditPriceDialog(item); }} className="h-7 w-7" title="Editar Precio">
                                                       <Edit className="h-4 w-4" />
@@ -1132,34 +1132,34 @@ export default function TableDetailPage() {
     setIsPaymentDialogOpen(true);
   };
 
-  const handleConfirmPayment = (paymentMethod: PaymentMethod) => {
+  const handleConfirmPayment = (paymentMethod: PaymentMethod, tipAmount: number, finalAmountWithTip: number) => {
     const ordersToPay = pendingOrderGroups.filter(group => selectedPendingOrderNumbers.includes(group.orderNumber));
     if (ordersToPay.length === 0) {
       toast({ title: "Error", description: "No se encontraron los pedidos seleccionados para pagar.", variant: "destructive" });
       return;
     }
 
-    // Calculate total for selected orders
-    let totalAmountForPayment = 0;
     let itemsForReceipt: OrderItem[] = [];
-    let deliveryFeeForPayment = 0; // For the receipt
+    let deliveryFeeForPayment = 0;
 
     ordersToPay.forEach(group => {
         group.items.forEach(item => {
-            totalAmountForPayment += item.finalPrice * item.quantity;
             itemsForReceipt.push(item);
-             // Deduct ingredients for each item in the paid orders
             deductIngredientsForOrderItem(item);
         });
-        // Add delivery fee if it's a delivery order and fee exists for this group
         if (isDelivery && group.deliveryInfo && group.deliveryInfo.deliveryFee) {
-            totalAmountForPayment += group.deliveryInfo.deliveryFee;
-            deliveryFeeForPayment = group.deliveryInfo.deliveryFee; // Assuming one delivery fee per payment batch for simplicity
+            deliveryFeeForPayment += group.deliveryInfo.deliveryFee;
         }
     });
 
-
-    const customerReceiptHtml = formatCustomerReceipt(itemsForReceipt, totalAmountForPayment, paymentMethod, tableIdParam, isDelivery ? deliveryInfo : null); // Use overall delivery info for receipt header
+    const customerReceiptHtml = formatCustomerReceipt(
+      itemsForReceipt,
+      finalAmountWithTip, // Use the final amount including tip for the receipt total
+      paymentMethod,
+      tableIdParam,
+      isDelivery ? deliveryInfo : null,
+      tipAmount // Pass tip amount for display on receipt
+    );
     printHtml(customerReceiptHtml);
 
 
@@ -1172,8 +1172,8 @@ export default function TableDetailPage() {
       id: Date.now(),
       date: new Date(),
       category: 'Ingreso Venta',
-      description: isDelivery ? `Venta Delivery: ${deliveryInfo?.name || tableIdParam}` : `Venta Mesa ${tableIdParam}` + ` (Pedidos: ${selectedPendingOrderNumbers.join(', ')})`,
-      amount: totalAmountForPayment,
+      description: isDelivery ? `Venta Delivery: ${deliveryInfo?.name || tableIdParam}` : `Venta Mesa ${tableIdParam}` + ` (Pedidos: ${selectedPendingOrderNumbers.join(', ')})` + (tipAmount > 0 ? ` Propina: ${globalFormatCurrency(tipAmount)}` : ''),
+      amount: finalAmountWithTip, // Record the final amount including tip
       paymentMethod: paymentMethod,
       deliveryFee: isDelivery ? deliveryFeeForPayment : undefined
     };
@@ -1181,29 +1181,27 @@ export default function TableDetailPage() {
     sessionStorage.setItem(CASH_MOVEMENTS_STORAGE_KEY, JSON.stringify(cashMovements.map(m => ({...m, date: m.date.toISOString()}))));
 
 
-    toast({ title: "Pago Completado", description: `${ordersToPay.length} pedido(s) pagado(s) con ${paymentMethod}. Total: ${formatCurrency(totalAmountForPayment)}.` });
+    toast({ title: "Pago Completado", description: `${ordersToPay.length} pedido(s) pagado(s) con ${paymentMethod}. Total: ${globalFormatCurrency(finalAmountWithTip)}.` });
 
 
     setPendingOrderGroups(prevGroups => prevGroups.filter(group => !selectedPendingOrderNumbers.includes(group.orderNumber)));
-    setSelectedPendingOrderNumbers([]); // Clear selection
+    setSelectedPendingOrderNumbers([]);
 
 
-    // If all pending orders are cleared and it's a delivery, clear deliveryInfo
     if (isDelivery && pendingOrderGroups.filter(group => !selectedPendingOrderNumbers.includes(group.orderNumber)).length === 0) {
         setDeliveryInfo(null);
         sessionStorage.removeItem(`deliveryInfo-${tableIdParam}`);
     }
 
 
-    if (pendingOrderGroups.filter(group => !selectedPendingOrderNumbers.includes(group.orderNumber)).length === 0) { // if all groups are paid
+    if (pendingOrderGroups.filter(group => !selectedPendingOrderNumbers.includes(group.orderNumber)).length === 0) {
         sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
-        if (!isDelivery) { // Only redirect for non-delivery tables automatically. Delivery might have more orders.
+        if (!isDelivery) {
            router.push('/tables');
-        } else if (currentOrder.length === 0) { // For delivery, if current order is also empty, redirect
+        } else if (currentOrder.length === 0) {
             router.push('/tables');
         }
     }
-
 
     setIsPaymentDialogOpen(false);
   };
@@ -1212,7 +1210,7 @@ export default function TableDetailPage() {
   const handleSaveDeliveryInfo = (info: DeliveryInfo) => {
       setDeliveryInfo(info);
       setIsDeliveryDialogOpen(false);
-      toast({ title: "Datos de Envío Guardados", description: `Cliente: ${info.name}, Costo Envío: ${formatCurrency(info.deliveryFee)}`});
+      toast({ title: "Datos de Envío Guardados", description: `Cliente: ${info.name}, Costo Envío: ${globalFormatCurrency(info.deliveryFee)}`});
   };
 
   const handleCancelDeliveryDialog = () => {
@@ -1235,17 +1233,18 @@ export default function TableDetailPage() {
     );
   };
 
-  const totalOfSelectedPendingOrders = useMemo(() => {
-    let total = 0;
+  // This calculates the subtotal of selected pending orders (before tip)
+  const subtotalOfSelectedPendingOrders = useMemo(() => {
+    let subtotal = 0;
     pendingOrderGroups.forEach(group => {
       if (selectedPendingOrderNumbers.includes(group.orderNumber)) {
-        total += calculateOrderTotal(group.items);
+        subtotal += calculateOrderTotal(group.items);
         if (isDelivery && group.deliveryInfo && group.deliveryInfo.deliveryFee) {
-          total += group.deliveryInfo.deliveryFee;
+          subtotal += group.deliveryInfo.deliveryFee;
         }
       }
     });
-    return total;
+    return subtotal;
   }, [pendingOrderGroups, selectedPendingOrderNumbers, isDelivery]);
 
 
@@ -1347,7 +1346,7 @@ export default function TableDetailPage() {
                 <CardDescription className="text-xs">
                     <span className="font-bold">Envío para: {deliveryInfo.name} - {deliveryInfo.address} - {deliveryInfo.phone}</span>
                     <br/>
-                    <span className="font-bold">Costo Envío Base: {formatCurrency(deliveryInfo.deliveryFee)}</span>
+                    <span className="font-bold">Costo Envío Base: {globalFormatCurrency(deliveryInfo.deliveryFee)}</span>
                      {/* Only show edit if there are no pending orders or the pending orders are NOT for delivery */}
                     {pendingOrderGroups.filter(g => g.deliveryInfo).length === 0 && (
                         <Button variant="ghost" size="sm" onClick={() => setIsDeliveryDialogOpen(true)} className="ml-2 h-6 px-1 py-0 text-xs">
@@ -1377,7 +1376,7 @@ export default function TableDetailPage() {
                             </Label>
                         </div>
                         <span className="font-bold text-base">
-                           {formatCurrency(calculateOrderTotal(group.items) + (group.deliveryInfo?.deliveryFee || 0))}
+                           {globalFormatCurrency(calculateOrderTotal(group.items) + (group.deliveryInfo?.deliveryFee || 0))}
                         </span>
                     </div>
                    {group.items.map(item => (
@@ -1393,14 +1392,14 @@ export default function TableDetailPage() {
                                        </p>
                                    )}
                                </div>
-                               <span className="font-bold">{formatCurrency(item.finalPrice * item.quantity)}</span>
+                               <span className="font-bold">{globalFormatCurrency(item.finalPrice * item.quantity)}</span>
                            </div>
                        </div>
                    ))}
                     {group.deliveryInfo && group.deliveryInfo.deliveryFee > 0 && (
                          <div className="ml-6 mt-1 text-sm flex justify-between">
                             <span className="font-bold">Costo Envío Pedido:</span>
-                            <span className="font-bold">{formatCurrency(group.deliveryInfo.deliveryFee)}</span>
+                            <span className="font-bold">{globalFormatCurrency(group.deliveryInfo.deliveryFee)}</span>
                         </div>
                     )}
                 </div>
@@ -1412,7 +1411,7 @@ export default function TableDetailPage() {
           <CardFooter className="p-4 mt-auto flex flex-col items-stretch gap-2">
              <div className="flex justify-between items-center text-lg font-semibold">
                <span>Total Seleccionado:</span>
-               <span>{formatCurrency(totalOfSelectedPendingOrders)}</span>
+               <span>{globalFormatCurrency(subtotalOfSelectedPendingOrders)}</span>
              </div>
             <Button onClick={handleFinalizeAndPay} className="w-full" disabled={selectedPendingOrderNumbers.length === 0}>
               <CreditCard className="mr-2 h-4 w-4" /> Imprimir Pago
@@ -1435,7 +1434,7 @@ export default function TableDetailPage() {
         <PaymentDialog
             isOpen={isPaymentDialogOpen}
             onOpenChange={setIsPaymentDialogOpen}
-            totalAmount={totalOfSelectedPendingOrders}
+            totalAmount={subtotalOfSelectedPendingOrders} // Pass subtotal here
             onConfirm={handleConfirmPayment}
         />
 
