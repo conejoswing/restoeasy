@@ -77,11 +77,16 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
   // Filter out specific modifications based on category and item name
     const availableModifications = item.modifications?.filter(mod => {
         const standardMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'];
-        const dinamicoVienesaRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta']; // For Completos Vienesas - Dinamico
-        const dinamicoAsRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta']; // For Completos As - Dinamico
+        const dinamicoVienesaRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta']; // For Completos Vienesas - Dinamico Grande
+        const dinamicoVienesaChicoRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta']; // For Completos Vienesas - Dinamico Chico
+
+        const dinamicoAsRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta']; // For Completos As - Dinamico Grande
+        const dinamicoAsChicoRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta']; // For Completos As - Dinamico Chico
+
 
         const chacareroAsMods = ['con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verde', 'con aji jalapeño', 'sin aji jalapeño'];
         const chacareroNormalSpecificIngredientMods = ['sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño'];
+        const chacareroGrandeSpecificIngredientMods = ['sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño'];
 
 
         const napolitanoAsMods = ['con queso', 'sin queso', 'con tomate', 'sin tomate', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna'];
@@ -91,13 +96,21 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
 
 
         // For 'Completos Vienesas' and specific item names 'Dinamico Normal' or 'Dinamico Grande'
-        if (item.category === 'Completos Vienesas' && (item.name === 'Dinamico Normal' || item.name === 'Dinamico Grande')) {
+        if (item.category === 'Completos Vienesas' && item.name === 'Dinamico Grande') {
             const allowedMods = [...standardMods, ...dinamicoVienesaRestrictedOptions];
             return allowedMods.includes(mod);
         }
+         if (item.category === 'Completos Vienesas' && item.name === 'Dinamico Normal') {
+            const allowedMods = [...standardMods, ...dinamicoVienesaChicoRestrictedOptions];
+            return allowedMods.includes(mod);
+        }
         // For 'Completos As' and item name 'Dinamico Normal' or 'Dinamico Grande'
-        else if (item.category === 'Completos As' && (item.name === 'Dinamico Normal' || item.name === 'Dinamico Grande')) {
+        else if (item.category === 'Completos As' && item.name === 'Dinamico Grande') {
             const allowedMods = [...standardMods, ...dinamicoAsRestrictedOptions];
+            return allowedMods.includes(mod);
+        }
+         else if (item.category === 'Completos As' && item.name === 'Dinamico Normal') {
+            const allowedMods = [...standardMods, ...dinamicoAsChicoRestrictedOptions];
             return allowedMods.includes(mod);
         }
         // For 'Completos As' and item name 'Chacarero Normal'
@@ -107,7 +120,7 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
         }
         // For 'Completos As' and item name 'Chacarero Grande'
         else if (item.category === 'Completos As' && item.name === 'Chacarero Grande') {
-            const allowedChacareroGrandeMods = [...standardMods, ...chacareroAsMods]; // Keeps original logic for Grande
+            const allowedChacareroGrandeMods = [...standardMods, ...chacareroGrandeSpecificIngredientMods];
             return allowedChacareroGrandeMods.includes(mod);
         }
          // For 'Completos As' and specific item names 'Napolitano Normal' or 'Napolitano Grande'
@@ -213,3 +226,4 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
 };
 
 export default ModificationDialog;
+
