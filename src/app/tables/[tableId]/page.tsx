@@ -23,6 +23,7 @@
 
 
 
+
 'use client';
 
 import * as React from 'react';
@@ -529,13 +530,13 @@ const mockMenu: MenuItem[] = [
          ingredients: ['Tomate', 'Palta', 'Bebida Lata', 'Papa Personal']
     },
     { id: 73, name: 'Chacarero', price: 7000, category: 'Promo Churrasco', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verde', 'con aji jalapeño', 'sin aji jalapeño'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Poroto Verde', 'Ají Oro', 'Ají Jalapeño', 'Bebida Lata', 'Papa Personal'] },
-    { id: 74, name: 'Queso', price: 6500, category: 'Promo Churrasco', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Bebida Lata'] },
+    { id: 74, name: 'Queso', price: 6500, category: 'Promo Churrasco', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Bebida Lata', 'Papa Personal'] },
     { id: 75, name: 'Palta', price: 6800, category: 'Promo Churrasco', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Bebida Lata', 'Papa Personal'] },
-    { id: 76, name: 'Tomate', price: 6800, category: 'Promo Churrasco', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Bebida Lata'] },
+    { id: 76, name: 'Tomate', price: 6800, category: 'Promo Churrasco', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Bebida Lata', 'Papa Personal'] },
     { id: 77, name: 'Brasileño', price: 7200, category: 'Promo Churrasco', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Queso', 'Bebida Lata', 'Papa Personal'] },
     { id: 78, name: 'Dinamico', price: 7300, category: 'Promo Churrasco', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana', 'Bebida Lata', 'Papa Personal'] },
     { id: 79, name: 'Campestre', price: 7500, category: 'Promo Churrasco', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Lechuga', 'Bebida Lata', 'Papa Personal'] },
-    { id: 80, name: 'Queso Champiñon', price: 7800, category: 'Promo Churrasco', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso Fundido', 'Champiñones Salteados', 'Bebida Lata'] },
+    { id: 80, name: 'Queso Champiñon', price: 7800, category: 'Promo Churrasco', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso Fundido', 'Champiñones Salteados', 'Bebida Lata', 'Papa Personal'] },
     { id: 81, name: 'Che milico', price: 8000, category: 'Promo Churrasco', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Cebolla Caramelizada', 'Huevo', 'Bebida Lata', 'Papa Personal'] },
     // --- Promo Mechada --- (Updated Modifications where applicable)
     {
@@ -652,6 +653,12 @@ const extractPromoNumber = (name: string): number => {
     const match = name.match(/^Promo (\d+)/i);
     return match ? parseInt(match[1], 10) : Infinity; // Place non-numbered promos last
 };
+
+// Helper to format currency (moved to higher scope)
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
+};
+
 
 // Sort menu items by category order first, then alphabetically by name
 const sortMenu = (menu: MenuItem[]): MenuItem[] => {
@@ -829,39 +836,37 @@ const ProductsPage = ({ onProductSelect, onEditProduct, onAddProduct }: {
 
        {/* Edit Price Dialog - Only rendered if onEditProduct is available */}
        {onEditProduct && isEditPriceDialogOpen && editingProduct && (
-        <Dialog open={isEditPriceDialogOpen} onOpenChange={setIsEditPriceDialogOpen}>
-           <EditDialogContent className="sm:max-w-[425px]">
-               <EditDialogHeader>
-                   <EditDialogTitle>Editar Precio de {editingProduct?.name}</EditDialogTitle>
-                   <EditDialogDescription>
-                       Actualice el precio base para este producto.
-                   </EditDialogDescription>
-               </EditDialogHeader>
-               <div className="grid gap-4 py-4">
-                   <div className="grid grid-cols-4 items-center gap-4">
-                       <Label htmlFor="price" className="text-right">
-                           Nuevo Precio (CLP)
-                       </Label>
-                       <Input
-                           id="price"
-                           type="number"
-                           value={newPrice}
-                           onChange={handlePriceChange}
-                           className="col-span-3"
-                           required
-                           min="0"
-                           step="1"
-                       />
-                   </div>
+        <EditDialogContent className="sm:max-w-[425px]">
+           <EditDialogHeader>
+               <EditDialogTitle>Editar Precio de {editingProduct?.name}</EditDialogTitle>
+               <EditDialogDescription>
+                   Actualice el precio base para este producto.
+               </EditDialogDescription>
+           </EditDialogHeader>
+           <div className="grid gap-4 py-4">
+               <div className="grid grid-cols-4 items-center gap-4">
+                   <Label htmlFor="price" className="text-right">
+                       Nuevo Precio (CLP)
+                   </Label>
+                   <Input
+                       id="price"
+                       type="number"
+                       value={newPrice}
+                       onChange={handlePriceChange}
+                       className="col-span-3"
+                       required
+                       min="0"
+                       step="1"
+                   />
                </div>
-               <EditDialogFooter>
-                   <EditDialogCloseButton asChild>
-                       <Button type="button" variant="secondary" onClick={() => setIsEditPriceDialogOpen(false)}>Cancelar</Button>
-                   </EditDialogCloseButton>
-                   <Button type="submit" onClick={handleUpdatePrice}>Guardar Cambios</Button>
-               </EditDialogFooter>
-           </EditDialogContent>
-        </Dialog>
+           </div>
+           <EditDialogFooter>
+               <EditDialogCloseButton asChild>
+                   <Button type="button" variant="secondary" onClick={() => setIsEditPriceDialogOpen(false)}>Cancelar</Button>
+               </EditDialogCloseButton>
+               <Button type="submit" onClick={handleUpdatePrice}>Guardar Cambios</Button>
+           </EditDialogFooter>
+        </EditDialogContent>
         )}
     </>
   );
@@ -1408,3 +1413,4 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
