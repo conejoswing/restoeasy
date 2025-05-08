@@ -8,6 +8,7 @@
 
 
 
+
 'use client';
 
 import * as React from 'react';
@@ -549,7 +550,7 @@ const mockMenu: MenuItem[] = [
      { id: 87, name: 'Dinamico', price: 9300, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana', 'Bebida Lata'] },
      { id: 88, name: 'Campestre', price: 9500, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Lechuga', 'Bebida Lata', 'Papa Personal'] },
      { id: 89, name: 'Queso Champiñon', price: 9800, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso Fundido', 'Champiñones Salteados', 'Bebida Lata'] },
-     { id: 90, name: 'Che milico', price: 10000, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso Fundido', 'Huevo Frito', 'Cebolla Frita', 'Papas Fritas', 'Bebida Lata'] },
+     { id: 90, name: 'Che milico', price: 10000, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Cebolla Caramelizada', 'Huevo', 'Bebida Lata', 'Papa Personal'] },
     // --- Promociones --- (Adding modifications)
     {
       id: 6,
@@ -903,8 +904,8 @@ export default function TableDetailPage() {
     const category = orderItem.category.toLowerCase();
 
     if (category === 'completos vienesas') {
-        if (itemName.includes('normal')) updateInventory('Pan especial normal', 1);
-        if (itemName.includes('grande')) updateInventory('Pan especial grande', 1);
+        if (itemName.includes('normal')) updateInventory('Pan especial normal', 1 * orderItem.quantity);
+        if (itemName.includes('grande')) updateInventory('Pan especial grande', 1 * orderItem.quantity);
         // Vienesa deduction logic
         if ((itemName.includes('completo normal') || itemName.includes('dinamico normal') || itemName.includes('hot dog normal') || itemName.includes('italiano normal') || itemName.includes('palta normal') || itemName.includes('tomate normal'))) {
             updateInventory('Vienesas', 1 * orderItem.quantity);
@@ -929,14 +930,14 @@ export default function TableDetailPage() {
         // For now, assuming each "Promo Churrasco" item uses one "Pan de marraqueta"
 
         // Check if the item name starts with "2x" or similar indicator for double quantity
-        const isDoubleItem = itemName.startsWith('2x') || ['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'palta', 'queso', 'queso champiñon', 'tomate'].includes(itemName);
-        const panDeduction = isDoubleItem ? 2 : 1;
+        const isDoubleItem = ['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'palta', 'queso', 'queso champiñon', 'tomate'].includes(itemName);
+        const panDeduction = isDoubleItem ? 2 : 1; // Default to 1, but if it's a known "double" item, deduct 2. This needs careful mapping or naming convention.
         updateInventory('Pan de marraqueta', panDeduction * orderItem.quantity);
 
 
     } else if (category === 'promo mechada') {
          // Similar to promo churrasco, assuming one "Pan de marraqueta" per item
-        const isDoubleItem = itemName.startsWith('2x') || ['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'palta', 'queso', 'queso champiñon', 'tomate'].includes(itemName);
+        const isDoubleItem = ['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'palta', 'queso', 'queso champiñon', 'tomate'].includes(itemName);
         const panDeduction = isDoubleItem ? 2 : 1;
         updateInventory('Pan de marraqueta', panDeduction * orderItem.quantity);
     } else if (category === 'bebidas') {
@@ -1405,6 +1406,7 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
 
 
 
