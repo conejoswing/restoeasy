@@ -1,4 +1,6 @@
 
+
+
 'use client';
 
 import * as React from 'react';
@@ -417,7 +419,7 @@ const mockMenu: MenuItem[] = [
         category: 'Churrascos',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-         ingredients: ['Palta']
+         ingredients: ['Palta', 'Bebida Lata', 'Papa Personal']
     },
     {
         id: 56,
@@ -720,7 +722,8 @@ const ProductsPage = ({ onProductSelect, onEditProduct, onAddProduct }: {
         onEditProduct({ ...editingProduct, price: priceValue });
     }
 
-    toast({ title: "Precio Actualizado", description: `El precio de ${editingProduct.name} se actualizó a ${formatCurrency(priceValue)}.`});
+    const toastDescription = `El precio de ${editingProduct.name} se actualizó a ${formatCurrency(priceValue)}.`;
+    toast({ title: "Precio Actualizado", description: toastDescription});
     setIsEditPriceDialogOpen(false);
     setEditingProduct(null);
     setNewPrice('');
@@ -896,12 +899,10 @@ export default function TableDetailPage() {
     if (category === 'completos vienesas') {
         if (itemName.includes('normal')) updateInventory('Pan especial normal', 1);
         if (itemName.includes('grande')) updateInventory('Pan especial grande', 1);
-        if (itemName.includes('normal') && !itemName.includes('dinamico') && !itemName.includes('completo') && !itemName.includes('italiano') && !itemName.includes('palta') && !itemName.includes('tomate') ) updateInventory('Vienesas', 1);
-        if (itemName.includes('grande') && !itemName.includes('dinamico') && !itemName.includes('completo') && !itemName.includes('italiano') && !itemName.includes('palta') && !itemName.includes('tomate')) updateInventory('Vienesas', 2);
-         if ((itemName.includes('completo normal') || itemName.includes('dinamico normal') || itemName.includes('hot dog normal') || itemName.includes('italiano normal') || itemName.includes('palta normal') || itemName.includes('tomate normal'))) {
+        // Vienesa deduction logic
+        if ((itemName.includes('completo normal') || itemName.includes('dinamico normal') || itemName.includes('hot dog normal') || itemName.includes('italiano normal') || itemName.includes('palta normal') || itemName.includes('tomate normal'))) {
             updateInventory('Vienesas', 1);
-        }
-        if ((itemName.includes('completo grande') || itemName.includes('dinamico grande') || itemName.includes('hot dog grande') || itemName.includes('italiano grande') || itemName.includes('palta grande') || itemName.includes('tomate grande'))) {
+        } else if ((itemName.includes('completo grande') || itemName.includes('dinamico grande') || itemName.includes('hot dog grande') || itemName.includes('italiano grande') || itemName.includes('palta grande') || itemName.includes('tomate grande'))) {
             updateInventory('Vienesas', 2);
         }
 
@@ -917,15 +918,8 @@ export default function TableDetailPage() {
         updateInventory('Pan de marraqueta', 1);
     } else if (category === 'promo churrasco') {
         updateInventory('Pan de marraqueta', 1); // Assuming 1 pan per item in promo
-        // For 2x items (original logic, kept for now but names changed)
-        // if (orderItem.name.toLowerCase().startsWith('2x')) {
-        //     updateInventory('Pan de marraqueta', 1); // Deduct an additional pan
-        // }
     } else if (category === 'promo mechada') {
         updateInventory('Pan de marraqueta', 1);
-        //  if (orderItem.name.toLowerCase().startsWith('2x')) {
-        //      updateInventory('Pan de marraqueta', 1);
-        //  }
     } else if (category === 'bebidas') {
         if (itemName.includes('1.5lt')) updateInventory('Bebida 1.5Lt', 1);
         if (itemName.includes('lata')) updateInventory('Lata', 1);
@@ -1378,3 +1372,4 @@ export default function TableDetailPage() {
     </div>
   );
 }
+

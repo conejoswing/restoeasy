@@ -18,6 +18,8 @@
 
 
 
+
+
 'use client';
 
 import * as React from 'react';
@@ -44,9 +46,18 @@ import {
   DialogClose,
 } from '@/components/ui/dialog'; // Import Dialog components
 import { Label } from '@/components/ui/label'; // Import Label
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Edit } from 'lucide-react'; // Import Edit icon
 import { useToast } from '@/hooks/use-toast'; // Import useToast
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { cn } from "@/lib/utils";
+import { useParams, useRouter } from 'next/navigation'; // Import for potential future use if this page becomes dynamic
 
 interface MenuItem {
   id: number;
@@ -388,7 +399,7 @@ const mockMenu: MenuItem[] = [
         category: 'Churrascos',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-         ingredients: ['Palta']
+         ingredients: ['Palta', 'Bebida Lata', 'Papa Personal']
     },
     {
         id: 56,
@@ -600,6 +611,12 @@ const extractPromoNumber = (name: string): number => {
     return match ? parseInt(match[1], 10) : Infinity; // Place non-numbered promos last
 };
 
+// Helper to format currency (moved to higher scope)
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
+};
+
+
 // Sort menu items by category order first, then alphabetically by name
 const sortMenu = (menu: MenuItem[]): MenuItem[] => {
   return [...menu].sort((a, b) => {
@@ -628,64 +645,91 @@ const sortMenu = (menu: MenuItem[]): MenuItem[] => {
   });
 };
 
+// Global state for menu items (consider Zustand or Redux for larger apps)
+let globalMenu: MenuItem[] = sortMenu(mockMenu);
 
-export default function ProductsPage() {
+const updateGlobalMenu = (newMenu: MenuItem[]) => {
+  globalMenu = sortMenu(newMenu);
+  // Persist to localStorage or a backend if needed
+};
+
+// Component to display and manage products (used in both /products and table detail page)
+const ProductsPageContent = ({ onProductSelect, onEditProduct, onAddProduct }: {
+  onProductSelect?: (product: MenuItem) => void; // Optional: if used for selection
+  onEditProduct?: (product: MenuItem) => void; // Optional: if editing is handled by parent
+  onAddProduct?: (product: Omit<MenuItem, 'id'>) => void; // Optional: if adding is handled by parent
+}) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [menu, setMenu] = useState<MenuItem[]>(sortMenu(mockMenu)); // State for menu items
-  const [isEditPriceDialogOpen, setIsEditPriceDialogOpen] = useState(false); // Renamed state for clarity
+  const [menu, setMenu] = useState<MenuItem[]>(globalMenu); // Local state for display, initialized from global
+  const [isEditPriceDialogOpen, setIsEditPriceDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<MenuItem | null>(null);
   const [newPrice, setNewPrice] = useState('');
-  const { toast } = useToast(); // Toast hook
+  const { toast } = useToast();
 
-  // Format currency
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
+  // Sync local menu with global changes (e.g., if another component updates it)
+  useEffect(() => {
+    setMenu(globalMenu);
+  }, []); // Removed globalMenu from dependency array as it causes infinite loop with current setup
+
+
+  const filteredProducts = menu.filter(product =>
+    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.category.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const openEditPriceDialog = (product: MenuItem) => {
+    setEditingProduct(product);
+    setNewPrice(product.price.toString());
+    setIsEditPriceDialogOpen(true);
   };
 
-   // No loading or auth check needed - AuthGuard handles this
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewPrice(e.target.value);
+  };
 
-   // Filter products based on search term
-   const filteredProducts = menu.filter(product =>
-     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     product.category.toLowerCase().includes(searchTerm.toLowerCase())
-   );
+  const handleUpdatePrice = () => {
+    if (!editingProduct || newPrice === '') {
+      toast({ title: "Error", description: "Debe ingresar un precio.", variant: "destructive"});
+      return;
+    }
+    const priceValue = parseInt(newPrice, 10);
+    if (isNaN(priceValue) || priceValue < 0) {
+      toast({ title: "Error", description: "El precio debe ser un número válido y no negativo.", variant: "destructive"});
+      return;
+    }
 
-   const openEditPriceDialog = (product: MenuItem) => {
-     setEditingProduct(product);
-     setNewPrice(product.price.toString()); // Pre-fill with current price
-     setIsEditPriceDialogOpen(true); // Open price edit dialog
-   };
+    const updatedMenu = menu.map(item =>
+      item.id === editingProduct.id ? { ...item, price: priceValue } : item
+    );
+    setMenu(sortMenu(updatedMenu)); // Update local state first for immediate UI feedback
+    updateGlobalMenu(updatedMenu); // Update global state
 
-   const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-     setNewPrice(e.target.value);
-   };
+    if (onEditProduct) {
+        onEditProduct({ ...editingProduct, price: priceValue });
+    }
+    const toastDescription = `El precio de ${editingProduct.name} se actualizó a ${formatCurrency(priceValue)}.`;
+    toast({ title: "Precio Actualizado", description: toastDescription});
+    setIsEditPriceDialogOpen(false);
+    setEditingProduct(null);
+    setNewPrice('');
+  };
 
-   const handleUpdatePrice = () => {
-     if (!editingProduct || newPrice === '') {
-       toast({ title: "Error", description: "Debe ingresar un precio.", variant: "destructive"});
-       return;
-     }
-     const priceValue = parseInt(newPrice, 10);
-     if (isNaN(priceValue) || priceValue < 0) {
-       toast({ title: "Error", description: "El precio debe ser un número válido y no negativo.", variant: "destructive"});
-       return;
-     }
-
-     // Update the product price in the menu state
-     setMenu(prevMenu =>
-       sortMenu( // Re-sort after update
-         prevMenu.map(item =>
-           item.id === editingProduct.id ? { ...item, price: priceValue } : item
-         )
-       )
-     );
-
-     toast({ title: "Precio Actualizado", description: `El precio de ${editingProduct.name} se actualizó a ${formatCurrency(priceValue)}.`});
-     setIsEditPriceDialogOpen(false); // Close price dialog
-     setEditingProduct(null); // Reset editing state
-     setNewPrice(''); // Clear price input
-   };
-
+  // Group products by category for accordion display
+  const groupedMenu = useMemo(() => {
+    const groups: { [key: string]: MenuItem[] } = {};
+    filteredProducts.forEach(item => {
+      if (!groups[item.category]) {
+        groups[item.category] = [];
+      }
+      groups[item.category].push(item);
+    });
+    return orderedCategories.reduce((acc, categoryName) => {
+      if (groups[categoryName]) {
+        acc[categoryName] = groups[categoryName];
+      }
+      return acc;
+    }, {} as { [key: string]: MenuItem[] });
+  }, [filteredProducts]);
 
   return (
     <div className="container mx-auto p-4">
@@ -697,23 +741,22 @@ export default function ProductsPage() {
            value={searchTerm}
            onChange={(e) => setSearchTerm(e.target.value)}
            className="max-w-sm"
-         />
-        {/* Optional: Add a button to add new products if needed later */}
+       />
       </div>
 
       <Card>
-         <CardHeader>
-             <CardTitle>Menú Completo</CardTitle>
-         </CardHeader>
+        <CardHeader>
+          <CardTitle>Menú</CardTitle>
+        </CardHeader>
         <CardContent>
             <Table>
             <TableHeader>
                 <TableRow>
                   <TableHead>Producto</TableHead>
                   <TableHead>Categoría</TableHead>
-                  <TableHead>Descripción</TableHead>{/* Changed header */}
+                  <TableHead>Ingredientes</TableHead>
                   <TableHead className="text-right">Precio Base</TableHead>
-                  <TableHead className="text-center w-20">Editar</TableHead>{/* Adjusted width for one button */}
+                  <TableHead className="text-right w-20">Acciones</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
@@ -722,24 +765,22 @@ export default function ProductsPage() {
                     <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell><Badge variant="secondary">{item.category}</Badge></TableCell>
                     <TableCell className="text-xs text-muted-foreground max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
-                        {item.ingredients && item.ingredients.length > 0 ? item.ingredients.join(', ') : '-'}
+                        {item.ingredients && item.ingredients.length > 0
+                        ? item.ingredients.join(', ')
+                        : '-'}
                     </TableCell>
                     <TableCell className="text-right font-mono">{formatCurrency(item.price)}</TableCell>
-                    <TableCell className="text-center">
-                        <div className="flex justify-center gap-1"> {/* Flex container for buttons */}
-                           {/* Edit Price Button */}
-                           <Button variant="ghost" size="icon" onClick={() => openEditPriceDialog(item)} className="h-7 w-7" title="Editar Precio">
-                              <Edit className="h-4 w-4" />
-                              <span className="sr-only">Editar Precio</span>
-                           </Button>
-                        </div>
+                    <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" onClick={() => openEditPriceDialog(item)} className="h-7 w-7" title="Editar Precio">
+                            <Edit className="h-4 w-4" />
+                        </Button>
                     </TableCell>
                 </TableRow>
                 ))}
                 {filteredProducts.length === 0 && (
                 <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">{/* Increased colSpan */}
-                     {searchTerm ? 'No se encontraron productos.' : 'No hay productos para mostrar.'}
+                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                    {searchTerm ? 'No se encontraron productos.' : 'Cargando menú...'}
                     </TableCell>
                 </TableRow>
                 )}
@@ -748,67 +789,49 @@ export default function ProductsPage() {
         </CardContent>
       </Card>
 
-      {/* Edit Price Dialog */}
+       {/* Edit Price Dialog */}
        <Dialog open={isEditPriceDialogOpen} onOpenChange={setIsEditPriceDialogOpen}>
          <DialogContent className="sm:max-w-[425px]">
            <DialogHeader>
              <DialogTitle>Editar Precio de {editingProduct?.name}</DialogTitle>
              <DialogDescription>
-               Actualice el precio base para este producto.
+                 Actualice el precio base para este producto.
              </DialogDescription>
            </DialogHeader>
            <div className="grid gap-4 py-4">
              <div className="grid grid-cols-4 items-center gap-4">
-               <Label htmlFor="price" className="text-right">
-                 Nuevo Precio (CLP)
-               </Label>
-               <Input
-                 id="price"
-                 type="number"
-                 value={newPrice}
-                 onChange={handlePriceChange}
-                 className="col-span-3"
-                 required
-                 min="0"
-                 step="1" // Allow integer prices
-               />
+                 <Label htmlFor="price" className="text-right">
+                     Nuevo Precio (CLP)
+                 </Label>
+                 <Input
+                     id="price"
+                     type="number"
+                     value={newPrice}
+                     onChange={handlePriceChange}
+                     className="col-span-3"
+                     required
+                     min="0"
+                     step="1"
+                 />
              </div>
            </div>
            <DialogFooter>
              <DialogClose asChild>
-               <Button type="button" variant="secondary">Cancelar</Button>
+                 <Button type="button" variant="secondary" onClick={() => setIsEditPriceDialogOpen(false)}>Cancelar</Button>
              </DialogClose>
              <Button type="submit" onClick={handleUpdatePrice}>Guardar Cambios</Button>
            </DialogFooter>
          </DialogContent>
        </Dialog>
-
-      {/* Edit Modifications Dialog Removed */}
-
     </div>
   );
+};
+
+
+// Wrapper component to satisfy Next.js page structure
+export default function ProductsPage() {
+    // This component can be enhanced later if ProductsPage needs specific logic (like fetching data)
+    // For now, it just renders the content component.
+    return <ProductsPageContent onEditProduct={(product) => console.log("Product edit from main page", product)} />;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
