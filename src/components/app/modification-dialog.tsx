@@ -10,6 +10,7 @@
 
 
 
+
 import * as React from 'react';
 import {
   Dialog,
@@ -93,6 +94,7 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
         const napolitanoAsMods = ['con queso', 'sin queso', 'con tomate', 'sin tomate', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna'];
         const quesoChampiñonMods = ['Queso', 'Champiñon', 'Tocino'];
         const promoChacareroMods = ['con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verde', 'con aji jalapeño', 'sin aji jalapeño'];
+        const promoMechadaDinamicoMods = ['con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta', 'Papa Personal'];
 
 
         // For 'Completos Vienesas' and specific item names 'Dinamico Normal' or 'Dinamico Grande'
@@ -124,6 +126,11 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
         else if (item.category === 'Promo Churrasco' && item.name === 'Chacarero') {
              const allowedPromoChacareroMods = [...standardMods, ...promoChacareroMods];
             return allowedPromoChacareroMods.includes(mod);
+        }
+        // For 'Promo Mechada' and item name 'Dinamico'
+        else if (item.category === 'Promo Mechada' && item.name === 'Dinamico') {
+             const allowedPromoMechadaDinamicoMods = [...standardMods, ...promoMechadaDinamicoMods];
+            return allowedPromoMechadaDinamicoMods.includes(mod);
         }
         // Standard filter for other Completos Vienesas (excluding dynamic ones)
         else if (item.category === 'Completos Vienesas') {
@@ -212,6 +219,7 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
 };
 
 export default ModificationDialog;
+
 
 
 
