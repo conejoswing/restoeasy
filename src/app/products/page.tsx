@@ -9,6 +9,7 @@
 
 
 
+
 'use client';
 
 import * as React from 'react';
@@ -388,7 +389,7 @@ const mockMenu: MenuItem[] = [
         category: 'Churrascos',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-         ingredients: ['Queso Fundido', 'Huevo Frito', 'Cebolla Frita']
+         ingredients: ['Tomate', 'Lechuga']
     },
     {
         id: 57,
@@ -713,12 +714,7 @@ export default function ProductsPage() {
                     <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell><Badge variant="secondary">{item.category}</Badge></TableCell>
                     <TableCell className="text-xs text-muted-foreground max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
-                        {item.modifications && item.modifications.length > 0
-                        ? item.modifications.map(mod => {
-                            const price = item.modificationPrices?.[mod];
-                            return price ? `${mod} (+${formatCurrency(price)})` : mod;
-                            }).join(', ')
-                        : (item.ingredients && item.ingredients.length > 0 ? item.ingredients.join(', ') : '-')}
+                        {item.ingredients && item.ingredients.length > 0 ? item.ingredients.join(', ') : '-'}
                     </TableCell>
                     <TableCell className="text-right font-mono">{formatCurrency(item.price)}</TableCell>
                     <TableCell className="text-center">
@@ -784,6 +780,7 @@ export default function ProductsPage() {
     </div>
   );
 }
+
 
 
 

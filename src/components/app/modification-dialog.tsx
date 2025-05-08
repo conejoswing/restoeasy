@@ -3,6 +3,7 @@
 
 
 
+
 import * as React from 'react';
 import {
   Dialog,
@@ -85,6 +86,7 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
         const chacareroAsMods = ['con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verde', 'con aji jalapeño', 'sin aji jalapeño']; // Corrected 'verve' to 'verde'
         const napolitanoAsMods = ['con queso', 'sin queso', 'con tomate', 'sin tomate', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna'];
         const quesoChampiñonMods = ['Queso', 'Champiñon', 'Tocino'];
+        const promoChacareroMods = ['con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verde', 'con aji jalapeño', 'sin aji jalapeño'];
 
 
         // For 'Completos Vienesas' and specific item names 'Dinamico Normal' or 'Dinamico Grande'
@@ -112,6 +114,11 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
             const allowedQuesoChampiñonMods = [...standardMods, ...quesoChampiñonMods];
             return allowedQuesoChampiñonMods.includes(mod);
         }
+         // For 'Promo Churrasco' and item name 'Chacarero'
+        else if (item.category === 'Promo Churrasco' && item.name === 'Chacarero') {
+             const allowedPromoChacareroMods = [...standardMods, ...promoChacareroMods];
+            return allowedPromoChacareroMods.includes(mod);
+        }
         // Standard filter for other Completos Vienesas (excluding dynamic ones)
         else if (item.category === 'Completos Vienesas') {
            return standardMods.includes(mod);
@@ -123,7 +130,7 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
          // Specific empty mods for Hamburguesas and Churrascos (as per previous requests to remove specific ingredients from mods)
         else if (['Hamburguesas', 'Churrascos'].includes(item.category)) {
              // For Big Cami, Simple, Doble, Italiana, Doble Italiana allow all standard mods
-            if (['Big Cami', 'Super Big Cami', 'Italiana', 'Doble Italiana', 'Simple', 'Doble'].includes(item.name)) {
+            if (['Big Cami', 'Super Big Cami', 'Italiana', 'Doble Italiana', 'Simple', 'Doble', 'Churrasco Campestre'].includes(item.name)) {
                 return standardMods.includes(mod);
             }
             // For other Hamburguesas (like 'Tapa Arteria') and Churrascos, only standard mods
@@ -199,6 +206,7 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
 };
 
 export default ModificationDialog;
+
 
 
 
