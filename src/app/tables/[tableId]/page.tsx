@@ -14,6 +14,7 @@
 
 
 
+
 'use client';
 
 import * as React from 'react';
@@ -554,7 +555,7 @@ const mockMenu: MenuItem[] = [
      { id: 86, name: 'Brasileño', price: 9200, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Palta', 'Bebida Lata', 'Papa Personal'] },
      { id: 87, name: 'Dinamico', price: 9300, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana', 'Bebida Lata', 'Papa Personal'] },
      { id: 88, name: 'Campestre', price: 9500, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Lechuga', 'Bebida Lata', 'Papa Personal'] },
-     { id: 89, name: 'Queso Champiñon', price: 9800, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso Fundido', 'Champiñones Salteados', 'Bebida Lata'] },
+     { id: 89, name: 'Queso Champiñon', price: 9800, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Champiñon', 'Tocino', 'Bebida Lata', 'Papa Personal'] },
      { id: 90, name: 'Che milico', price: 10000, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Cebolla Caramelizada', 'Huevo', 'Bebida Lata', 'Papa Personal'] },
     // --- Promociones --- (Adding modifications)
     {
@@ -913,9 +914,9 @@ export default function TableDetailPage() {
         if (itemName.includes('normal')) updateInventory('Pan especial normal', 1 * orderItem.quantity);
         if (itemName.includes('grande')) updateInventory('Pan especial grande', 1 * orderItem.quantity);
         // Vienesa deduction logic
-        if ((itemName.includes('completo normal') || itemName.includes('dinamico normal') || itemName.includes('hot dog normal') || itemName.includes('italiano normal') || itemName.includes('palta normal') || itemName.includes('tomate normal'))) {
+        if (['completo normal', 'dinamico normal', 'hot dog normal', 'italiano normal', 'palta normal', 'tomate normal'].some(namePart => itemName.includes(namePart))) {
             updateInventory('Vienesas', 1 * orderItem.quantity);
-        } else if ((itemName.includes('completo grande') || itemName.includes('dinamico grande') || itemName.includes('hot dog grande') || itemName.includes('italiano grande') || itemName.includes('palta grande') || itemName.includes('tomate grande'))) {
+        } else if (['completo grande', 'dinamico grande', 'hot dog grande', 'italiano grande', 'palta grande', 'tomate grande'].some(namePart => itemName.includes(namePart))) {
             updateInventory('Vienesas', 2 * orderItem.quantity);
         }
 
@@ -930,12 +931,12 @@ export default function TableDetailPage() {
     } else if (category === 'churrascos') {
         updateInventory('Pan de marraqueta', 1 * orderItem.quantity);
     } else if (category === 'promo churrasco') {
-        const panDeduction = (itemName.startsWith("2x ") || ['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'palta', 'queso', 'queso champiñon', 'tomate'].includes(itemName)) ? 1 : 1; // Default to 1, but if it's a known "double" item, deduct 2. This needs careful mapping or naming convention.
+        const panDeduction = ['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'palta', 'queso', 'queso champiñon', 'tomate'].includes(itemName) ? 1 : 1;
         updateInventory('Pan de marraqueta', panDeduction * orderItem.quantity);
 
 
     } else if (category === 'promo mechada') {
-        const panDeduction = (itemName.startsWith("2x ") || ['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'palta', 'queso', 'queso champiñon', 'tomate'].includes(itemName)) ? 1 : 1;
+        const panDeduction = ['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'palta', 'queso', 'queso champiñon', 'tomate'].includes(itemName) ? 1 : 1;
         updateInventory('Pan de marraqueta', panDeduction * orderItem.quantity);
     } else if (category === 'bebidas') {
         if (itemName.includes('1.5lt')) updateInventory('Bebida 1.5Lt', 1 * orderItem.quantity);
