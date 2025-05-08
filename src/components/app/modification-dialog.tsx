@@ -1,5 +1,6 @@
 
 
+
 import * as React from 'react';
 import {
   Dialog,
@@ -123,8 +124,8 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
             if (item.name === 'Big Cami' || item.name === 'Super Big Cami') {
                 return standardMods.includes(mod);
             }
-            // For other Hamburguesas and Churrascos, only standard mods without palta/tomate
-            return standardMods.includes(mod) && !mod.toLowerCase().includes('palta') && !mod.toLowerCase().includes('tomate');
+            // For other Hamburguesas (like 'Doble') and Churrascos, only standard mods
+            return standardMods.includes(mod);
         }
 
 
@@ -196,5 +197,6 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
 };
 
 export default ModificationDialog;
+
 
 
