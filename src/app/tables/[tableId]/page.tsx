@@ -25,6 +25,7 @@
 
 
 
+
 'use client';
 
 import * as React from 'react';
@@ -537,7 +538,7 @@ const mockMenu: MenuItem[] = [
     { id: 77, name: 'Brasileño', price: 7200, category: 'Promo Churrasco', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Queso', 'Bebida Lata', 'Papa Personal'] },
     { id: 78, name: 'Dinamico', price: 7300, category: 'Promo Churrasco', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana', 'Bebida Lata', 'Papa Personal'] },
     { id: 79, name: 'Campestre', price: 7500, category: 'Promo Churrasco', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Lechuga', 'Bebida Lata', 'Papa Personal'] },
-    { id: 80, name: 'Queso Champiñon', price: 7800, category: 'Promo Churrasco', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso Fundido', 'Champiñones Salteados', 'Bebida Lata', 'Papa Personal'] },
+    { id: 80, name: 'Queso Champiñon', price: 7800, category: 'Promo Churrasco', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Champiñon', 'Tocino', 'Bebida Lata', 'Papa Personal'] },
     { id: 81, name: 'Che milico', price: 8000, category: 'Promo Churrasco', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Cebolla Caramelizada', 'Huevo', 'Bebida Lata', 'Papa Personal'] },
     // --- Promo Mechada --- (Updated Modifications where applicable)
     {
@@ -693,7 +694,7 @@ const updateGlobalMenu = (newMenu: MenuItem[]) => {
 };
 
 // Component to display and manage products (used in both /products and table detail page)
-const ProductsPage = ({ onProductSelect, onEditProduct, onAddProduct }: {
+const ProductsPageContent = ({ onProductSelect, onEditProduct, onAddProduct }: {
   onProductSelect?: (product: MenuItem) => void; // Optional: if used for selection
   onEditProduct?: (product: MenuItem) => void; // Optional: if editing is handled by parent
   onAddProduct?: (product: Omit<MenuItem, 'id'>) => void; // Optional: if adding is handled by parent
@@ -1265,7 +1266,7 @@ export default function TableDetailPage() {
                         <SheetTitle className="text-xl">Menú de Productos</SheetTitle>
                     </SheetHeader>
                     <div className="flex-grow overflow-y-auto p-4">
-                        <ProductsPage onProductSelect={handleOpenModificationDialog} />
+                        <ProductsPageContent onProductSelect={handleOpenModificationDialog} />
                     </div>
                      {/* Removed the explicit close button from here, rely on Sheet's default close behavior or onOpenChange */}
                 </SheetContent>
@@ -1411,3 +1412,4 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
