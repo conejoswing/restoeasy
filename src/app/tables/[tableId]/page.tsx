@@ -1,5 +1,6 @@
 
 
+
 'use client';
 
 import * as React from 'react';
@@ -298,7 +299,7 @@ const mockMenu: MenuItem[] = [
         category: 'Hamburguesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-        ingredients: ['Lechuga', 'Tomate']
+        ingredients: ['Queso Cheddar', 'Salsa Cheddar', 'Tocino', 'Kétchup', 'Mostaza', 'Cebolla', 'Pepinillo']
     },
     {
         id: 18,
@@ -721,14 +722,15 @@ function ProductsPage({ onProductSelect }: { onProductSelect: (product: MenuItem
                     {selectedCategory ? `${selectedCategory}` : "Menú"}
                 </h1>
                 {/* Search input for categories or products */}
-                <Input
-                    type="text"
-                    placeholder={selectedCategory ? "Buscar producto..." : ""}
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="max-w-xs"
-                    disabled={!selectedCategory} // Disable search if no category is selected
-                />
+                 {selectedCategory && (
+                    <Input
+                        type="text"
+                        placeholder="Buscar producto..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="max-w-xs"
+                    />
+                 )}
             </div>
             {selectedCategory && (
                 <Button
@@ -894,13 +896,12 @@ export default function TableDetailPage() {
          // Pan Marraqueta para Churrascos y Promos
         if (orderItem.category === 'Churrascos' || orderItem.category.startsWith('Promo Churrasco') || orderItem.category.startsWith('Promo Mechada')) {
              let quantityPerItem = 1;
-             if (orderItem.category.startsWith('Promo') && (orderItem.name.startsWith('2x') || ['Promo 3', 'Promo 9', 'Promo 10', 'Promo 11', 'Promo 12'].includes(orderItem.name))) {
-                 // More specific promo logic might be needed if "2x" or specific names denote multiple bread units
-                 if (orderItem.name.startsWith('4') || ['Promo 3', 'Promo 9', 'Promo 10', 'Promo 11', 'Promo 12'].includes(orderItem.name)) { // Example for "4 Churrascos"
-                     quantityPerItem = 4;
-                 } else if (orderItem.name.startsWith('2') || ['Promo 4', 'Promo 5', 'Promo 6', 'Promo 7', 'Promo 8'].includes(orderItem.name)){ // Example for "2 Churrascos"
-                     quantityPerItem = 2;
-                 }
+             // For promo churrasco/mechada, deduct 2 units of Pan de marraqueta if the name implies 2 items (e.g. "2x ...")
+             // Update: Removed "2x" from promo names, so assuming single bread unit per promo item unless logic changes
+             if (orderItem.category.startsWith('Promo') && (orderItem.name.startsWith('4') || ['Promo 3', 'Promo 9', 'Promo 10', 'Promo 11', 'Promo 12'].includes(orderItem.name))) {
+                 quantityPerItem = 4;
+             } else if (orderItem.category.startsWith('Promo') && (orderItem.name.startsWith('2') || ['Promo 4', 'Promo 5', 'Promo 6', 'Promo 7', 'Promo 8'].includes(orderItem.name))){
+                 quantityPerItem = 2;
              }
             itemsToDeduct.push({ name: 'Pan de marraqueta', quantity: orderItem.quantity * quantityPerItem });
         }
@@ -1435,6 +1436,7 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
 
 
 
