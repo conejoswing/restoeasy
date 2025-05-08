@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -15,7 +16,7 @@ import {
 import {ScrollArea} from '@/components/ui/scroll-area';
 import {Separator} from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge'; // Added Badge import
+import { Badge } from '@/components/ui/badge';
 import {
   Sheet,
   SheetContent,
@@ -31,8 +32,8 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"; // Import Table components
-import { Utensils, PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard, ChevronRight, Banknote, Landmark, Home, Phone, User, DollarSign, PackageSearch, Edit, Trash2 } from 'lucide-react'; // Removed category specific icons, added Trash2 for delete
+} from "@/components/ui/table";
+import { Utensils, PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard, ChevronRight, Banknote, Landmark, Home, Phone, User, DollarSign, PackageSearch, Edit, Trash2 } from 'lucide-react';
 import {useToast} from '@/hooks/use-toast';
 import ModificationDialog from '@/components/app/modification-dialog';
 import PaymentDialog from '@/components/app/payment-dialog';
@@ -43,8 +44,8 @@ import type { DeliveryInfo } from '@/components/app/delivery-dialog';
 import DeliveryDialog from '@/components/app/delivery-dialog';
 import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
-import { Dialog, DialogClose as EditDialogCloseButton, DialogContent as EditDialogContent, DialogDescription as EditDialogDescription, DialogFooter as EditDialogFooter, DialogHeader as EditDialogHeader, DialogTitle as EditDialogTitle } from '@/components/ui/dialog'; // Renamed DialogTitle for price edit to avoid conflict
-import { Label } from '@/components/ui/label'; // For ProductsPage price edit
+import { Dialog, DialogClose as EditDialogCloseButton, DialogContent as EditDialogContent, DialogDescription as EditDialogDescription, DialogFooter as EditDialogFooter, DialogHeader as EditDialogHeader, DialogTitle as EditDialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import {
   Accordion,
   AccordionContent,
@@ -63,7 +64,7 @@ interface MenuItem {
   ingredients?: string[]; // Optional list of ingredients
 }
 
-export interface OrderItem extends Omit<MenuItem, 'price' | 'modificationPrices' | 'modifications' | 'ingredients'> {
+export interface OrderItem extends Omit<MenuItem, 'price' | 'modificationPrices' | 'modifications'> {
   orderItemId: string;
   quantity: number;
   selectedModifications?: string[];
@@ -79,6 +80,11 @@ interface PendingOrderData {
     deliveryInfo?: DeliveryInfo | null;
     totalAmount: number;
 }
+
+// Helper to format currency (moved to higher scope)
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
+};
 
 
 // Mock data - replace with actual API calls - Updated prices to CLP
@@ -675,12 +681,8 @@ const ProductsPage = ({ onProductSelect, onEditProduct, onAddProduct }: {
   // Sync local menu with global changes (e.g., if another component updates it)
   useEffect(() => {
     setMenu(globalMenu);
-  }, [globalMenu]);
+  }, []); // Removed globalMenu from dependency array as it causes infinite loop with current setup
 
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
-  };
 
   const filteredProducts = menu.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -756,7 +758,7 @@ const ProductsPage = ({ onProductSelect, onEditProduct, onAddProduct }: {
                {searchTerm ? 'No se encontraron productos.' : 'Cargando menú...'}
              </p>
           )}
-          <Accordion type="multiple" className="w-full">
+          <Accordion type="multiple" className="w-full" defaultValue={Object.keys(groupedMenu)}>
               {Object.entries(groupedMenu).map(([category, items]) => (
                   <AccordionItem value={category} key={category}>
                       <AccordionTrigger className="text-lg font-semibold hover:no-underline px-1 py-3">
@@ -801,38 +803,40 @@ const ProductsPage = ({ onProductSelect, onEditProduct, onAddProduct }: {
       </ScrollArea>
 
        {/* Edit Price Dialog - Only rendered if onEditProduct is available */}
-       {onEditProduct && (
-           <EditDialogContent className="sm:max-w-[425px]">
-               <EditDialogHeader>
-                   <EditDialogTitle>Editar Precio de {editingProduct?.name}</EditDialogTitle>
-                   <EditDialogDescription>
-                       Actualice el precio base para este producto.
-                   </EditDialogDescription>
-               </EditDialogHeader>
-               <div className="grid gap-4 py-4">
-                   <div className="grid grid-cols-4 items-center gap-4">
-                       <Label htmlFor="price" className="text-right">
-                           Nuevo Precio (CLP)
-                       </Label>
-                       <Input
-                           id="price"
-                           type="number"
-                           value={newPrice}
-                           onChange={handlePriceChange}
-                           className="col-span-3"
-                           required
-                           min="0"
-                           step="1"
-                       />
-                   </div>
-               </div>
-               <EditDialogFooter>
-                   <EditDialogCloseButton asChild>
-                       <Button type="button" variant="secondary">Cancelar</Button>
-                   </EditDialogCloseButton>
-                   <Button type="submit" onClick={handleUpdatePrice}>Guardar Cambios</Button>
-               </EditDialogFooter>
-           </EditDialogContent>
+       {onEditProduct && isEditPriceDialogOpen && editingProduct && (
+           <Dialog open={isEditPriceDialogOpen} onOpenChange={setIsEditPriceDialogOpen}>
+             <EditDialogContent className="sm:max-w-[425px]">
+                 <EditDialogHeader>
+                     <EditDialogTitle>Editar Precio de {editingProduct?.name}</EditDialogTitle>
+                     <EditDialogDescription>
+                         Actualice el precio base para este producto.
+                     </EditDialogDescription>
+                 </EditDialogHeader>
+                 <div className="grid gap-4 py-4">
+                     <div className="grid grid-cols-4 items-center gap-4">
+                         <Label htmlFor="price" className="text-right">
+                             Nuevo Precio (CLP)
+                         </Label>
+                         <Input
+                             id="price"
+                             type="number"
+                             value={newPrice}
+                             onChange={handlePriceChange}
+                             className="col-span-3"
+                             required
+                             min="0"
+                             step="1"
+                         />
+                     </div>
+                 </div>
+                 <EditDialogFooter>
+                     <EditDialogCloseButton asChild>
+                         <Button type="button" variant="secondary" onClick={() => setIsEditPriceDialogOpen(false)}>Cancelar</Button>
+                     </EditDialogCloseButton>
+                     <Button type="submit" onClick={handleUpdatePrice}>Guardar Cambios</Button>
+                 </EditDialogFooter>
+             </EditDialogContent>
+           </Dialog>
         )}
     </>
   );
@@ -892,8 +896,16 @@ export default function TableDetailPage() {
     if (category === 'completos vienesas') {
         if (itemName.includes('normal')) updateInventory('Pan especial normal', 1);
         if (itemName.includes('grande')) updateInventory('Pan especial grande', 1);
-        if (itemName.includes('normal')) updateInventory('Vienesas', 1);
-        if (itemName.includes('grande')) updateInventory('Vienesas', 2);
+        if (itemName.includes('normal') && !itemName.includes('dinamico') && !itemName.includes('completo') && !itemName.includes('italiano') && !itemName.includes('palta') && !itemName.includes('tomate') ) updateInventory('Vienesas', 1);
+        if (itemName.includes('grande') && !itemName.includes('dinamico') && !itemName.includes('completo') && !itemName.includes('italiano') && !itemName.includes('palta') && !itemName.includes('tomate')) updateInventory('Vienesas', 2);
+         if ((itemName.includes('completo normal') || itemName.includes('dinamico normal') || itemName.includes('hot dog normal') || itemName.includes('italiano normal') || itemName.includes('palta normal') || itemName.includes('tomate normal'))) {
+            updateInventory('Vienesas', 1);
+        }
+        if ((itemName.includes('completo grande') || itemName.includes('dinamico grande') || itemName.includes('hot dog grande') || itemName.includes('italiano grande') || itemName.includes('palta grande') || itemName.includes('tomate grande'))) {
+            updateInventory('Vienesas', 2);
+        }
+
+
     } else if (category === 'completos as') {
         if (itemName.includes('normal')) updateInventory('Pan especial normal', 1);
         if (itemName.includes('grande')) updateInventory('Pan especial grande', 1);
@@ -905,14 +917,15 @@ export default function TableDetailPage() {
         updateInventory('Pan de marraqueta', 1);
     } else if (category === 'promo churrasco') {
         updateInventory('Pan de marraqueta', 1); // Assuming 1 pan per item in promo
-        if (orderItem.name.toLowerCase().startsWith('2x')) { // For 2x items
-            updateInventory('Pan de marraqueta', 1); // Deduct an additional pan
-        }
+        // For 2x items (original logic, kept for now but names changed)
+        // if (orderItem.name.toLowerCase().startsWith('2x')) {
+        //     updateInventory('Pan de marraqueta', 1); // Deduct an additional pan
+        // }
     } else if (category === 'promo mechada') {
         updateInventory('Pan de marraqueta', 1);
-         if (orderItem.name.toLowerCase().startsWith('2x')) {
-             updateInventory('Pan de marraqueta', 1);
-         }
+        //  if (orderItem.name.toLowerCase().startsWith('2x')) {
+        //      updateInventory('Pan de marraqueta', 1);
+        //  }
     } else if (category === 'bebidas') {
         if (itemName.includes('1.5lt')) updateInventory('Bebida 1.5Lt', 1);
         if (itemName.includes('lata')) updateInventory('Lata', 1);
@@ -956,7 +969,7 @@ export default function TableDetailPage() {
 
     // Load delivery info specifically for delivery table
     if (isDelivery) {
-        const storedDeliveryInfo = sessionStorage.getItem(`${DELIVERY_INFO_STORAGE_KEY}-${tableIdParam}`);
+        const storedDeliveryInfo = sessionStorage.getItem(`deliveryInfo-${tableIdParam}`);
         if (storedDeliveryInfo) {
             try {
                 const parsed = JSON.parse(storedDeliveryInfo);
@@ -968,7 +981,7 @@ export default function TableDetailPage() {
     setHasBeenInitialized(true);
     console.log(`Initialization complete for ${tableIdParam}.`);
 
-  }, [tableIdParam, hasBeenInitialized, isDelivery]); // Dependencies ensure this runs once per table ID
+  }, [tableIdParam, isDelivery, hasBeenInitialized]);
 
 
   // --- Effect to save state changes to sessionStorage and update table status ---
@@ -991,10 +1004,10 @@ export default function TableDetailPage() {
 
     // Save delivery info (only if it's a delivery table and info exists)
     if (isDelivery && deliveryInfo) {
-      sessionStorage.setItem(`${DELIVERY_INFO_STORAGE_KEY}-${tableIdParam}`, JSON.stringify(deliveryInfo));
+      sessionStorage.setItem(`deliveryInfo-${tableIdParam}`, JSON.stringify(deliveryInfo));
     } else if (isDelivery && !deliveryInfo) {
       // If it's delivery but info is cleared, remove it from storage
-      sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY}-${tableIdParam}`);
+      sessionStorage.removeItem(`deliveryInfo-${tableIdParam}`);
     }
 
     // Update table status based on orders or delivery info
@@ -1018,7 +1031,7 @@ export default function TableDetailPage() {
 
   const handleAddProductToOrder = (product: MenuItem, selectedMods?: string[]) => {
     const finalPrice = calculateItemPrice(product, selectedMods);
-    const orderItemId = `${product.id}-${selectedMods ? selectedMods.join('-') : 'no-mods'}`; // Unique ID based on product and mods
+    const orderItemId = `${product.id}-${selectedMods ? selectedMods.join('-') : 'no-mods'}-${Date.now()}`; // Ensure unique ID
 
     // Check if an identical item (same product ID and same modifications) already exists
     const existingItemIndex = currentOrder.findIndex(
@@ -1112,7 +1125,7 @@ export default function TableDetailPage() {
 
   const handleConfirmPayment = (paymentMethod: PaymentMethod) => {
     // 1. Print customer receipt
-    const customerReceiptHtml = formatCustomerReceipt(pendingOrder, pendingOrderTotal, paymentMethod, tableIdParam, deliveryInfo);
+    const customerReceiptHtml = formatCustomerReceipt(pendingOrder, pendingOrderTotal + (isDelivery && deliveryInfo ? deliveryInfo.deliveryFee : 0), paymentMethod, tableIdParam, deliveryInfo);
     printHtml(customerReceiptHtml);
 
     // 2. Record the transaction in cash register (sessionStorage for now)
@@ -1129,7 +1142,7 @@ export default function TableDetailPage() {
       date: new Date(),
       category: 'Ingreso Venta',
       description: isDelivery ? `Venta Delivery: ${deliveryInfo?.name || tableIdParam}` : `Venta Mesa ${tableIdParam}`,
-      amount: pendingOrderTotal, // Total amount of the sale
+      amount: pendingOrderTotal + (isDelivery && deliveryInfo ? deliveryInfo.deliveryFee : 0), // Total amount of the sale including delivery
       paymentMethod: paymentMethod, // Track payment method
       deliveryFee: isDelivery ? deliveryInfo?.deliveryFee : undefined // Track delivery fee for sales
     };
@@ -1138,14 +1151,14 @@ export default function TableDetailPage() {
     sessionStorage.setItem(CASH_MOVEMENTS_STORAGE_KEY, JSON.stringify(cashMovements.map(m => ({...m, date: m.date.toISOString()}))));
 
 
-    toast({ title: "Pago Completado", description: `Mesa ${tableIdParam} pagada con ${paymentMethod}. Total: ${formatCurrency(pendingOrderTotal)}.` });
+    toast({ title: "Pago Completado", description: `Mesa ${tableIdParam} pagada con ${paymentMethod}. Total: ${formatCurrency(pendingOrderTotal + (isDelivery && deliveryInfo ? deliveryInfo.deliveryFee : 0))}.` });
 
     // 3. Clear pending order and delivery info (if applicable)
     setPendingOrder([]);
     setPendingOrderTotal(0);
     if (isDelivery) {
         setDeliveryInfo(null); // Clear delivery info after successful payment
-        sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY}-${tableIdParam}`); // Also remove from storage
+        sessionStorage.removeItem(`deliveryInfo-${tableIdParam}`); // Also remove from storage
     }
 
     // 4. Mark table as available in sessionStorage
@@ -1197,7 +1210,9 @@ export default function TableDetailPage() {
            {isDelivery ? `Pedido Delivery: ${deliveryInfo?.name || 'Nuevo Pedido'}` : `Mesa ${tableIdParam}`}
          </h1>
          {/* Placeholder for potential actions like "Change Table" */}
-         <div className="w-28"></div> {/* Ensures title is centered */}
+         <div className="w-auto min-w-[120px] text-right"> {/* Adjusted width and alignment */}
+            {/* Content for the right side if any */}
+         </div>
        </div>
 
         {/* Main Content: Menu Button and Order Sections */}
@@ -1208,14 +1223,14 @@ export default function TableDetailPage() {
                         <PackageSearch className="mr-2 h-5 w-5"/> Ver Menú
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-full sm:w-[500px] p-0 flex flex-col"> {/* Increased width for better readability */}
+                <SheetContent side="left" className="w-full sm:w-[500px] p-0 flex flex-col">
                     <SheetHeader className="p-4 border-b">
                         <SheetTitle className="text-xl">Menú de Productos</SheetTitle>
                     </SheetHeader>
                     <div className="flex-grow overflow-y-auto p-4">
                         <ProductsPage onProductSelect={handleOpenModificationDialog} />
                     </div>
-                     <div className="p-4 border-t">
+                     <div className="p-4 border-t mt-auto"> {/* Ensure close button is at the bottom */}
                          <SheetClose asChild>
                              <Button variant="outline" className="w-full">Cerrar Menú</Button>
                          </SheetClose>
@@ -1225,16 +1240,16 @@ export default function TableDetailPage() {
         </div>
 
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow overflow-auto">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 flex-grow overflow-hidden"> {/* Use overflow-hidden here */}
         {/* Current Order Section */}
-        <Card className="flex flex-col">
+        <Card className="flex flex-col h-full"> {/* Ensure Card takes full height */}
           <CardHeader>
             <CardTitle>Pedido Actual</CardTitle>
           </CardHeader>
-          <ScrollArea className="flex-grow p-0">
+          <ScrollArea className="flex-grow p-0"> {/* ScrollArea will handle inner content scrolling */}
             <CardContent className="p-4">
                 {currentOrder.length === 0 ? (
-                <p className="text-muted-foreground">No hay productos en el pedido actual.</p>
+                <p className="text-muted-foreground font-bold">No hay productos en el pedido actual.</p>
                 ) : (
                 currentOrder.map((item) => (
                     <div key={item.orderItemId} className="mb-3 pb-3 border-b last:border-b-0">
@@ -1247,8 +1262,8 @@ export default function TableDetailPage() {
                                 </p>
                                 )}
                                  {item.ingredients && item.ingredients.length > 0 && (
-                                    <p className="text-xs text-muted-foreground">
-                                      Ingredientes: {item.ingredients.join(', ')}
+                                    <p className="text-xs text-muted-foreground font-bold">
+                                      Ingredientes: ({item.ingredients.join(', ')})
                                     </p>
                                   )}
                             </div>
@@ -1271,7 +1286,7 @@ export default function TableDetailPage() {
             </CardContent>
           </ScrollArea>
           <Separator />
-          <CardFooter className="p-4">
+          <CardFooter className="p-4 mt-auto"> {/* mt-auto to push footer to bottom */}
             <Button onClick={handlePrintKitchenOrder} className="w-full" disabled={currentOrder.length === 0}>
               <Printer className="mr-2 h-4 w-4" /> Imprimir Comanda
             </Button>
@@ -1279,23 +1294,24 @@ export default function TableDetailPage() {
         </Card>
 
         {/* Pending Order Section */}
-        <Card className="flex flex-col">
+        <Card className="flex flex-col h-full"> {/* Ensure Card takes full height */}
           <CardHeader>
             <CardTitle>Pedidos Pendientes de Pago</CardTitle>
             {isDelivery && deliveryInfo && (
                 <CardDescription className="text-xs">
-                    Envío para: {deliveryInfo.name} - {deliveryInfo.address} - {deliveryInfo.phone}
-                    <br/>Costo Envío: {formatCurrency(deliveryInfo.deliveryFee)}
+                    <span className="font-bold">Envío para: {deliveryInfo.name} - {deliveryInfo.address} - {deliveryInfo.phone}</span>
+                    <br/>
+                    <span className="font-bold">Costo Envío: {formatCurrency(deliveryInfo.deliveryFee)}</span>
                     <Button variant="ghost" size="sm" onClick={() => setIsDeliveryDialogOpen(true)} className="ml-2 h-6 px-1 py-0 text-xs">
                         <Edit className="h-3 w-3 mr-1"/> Editar
                     </Button>
                 </CardDescription>
             )}
           </CardHeader>
-          <ScrollArea className="flex-grow p-0">
+          <ScrollArea className="flex-grow p-0"> {/* ScrollArea will handle inner content scrolling */}
             <CardContent className="p-4">
             {pendingOrder.length === 0 ? (
-              <p className="text-muted-foreground">No hay pedidos pendientes.</p>
+              <p className="text-muted-foreground font-bold">No hay pedidos pendientes.</p>
             ) : (
               pendingOrder.map((item) => (
                 <div key={item.orderItemId} className="mb-2 pb-2 border-b last:border-b-0">
@@ -1316,7 +1332,7 @@ export default function TableDetailPage() {
             </CardContent>
           </ScrollArea>
            <Separator />
-          <CardFooter className="p-4 flex flex-col items-stretch gap-2">
+          <CardFooter className="p-4 mt-auto flex flex-col items-stretch gap-2"> {/* mt-auto to push footer to bottom */}
              <div className="flex justify-between items-center text-lg font-semibold">
                <span>Total Pendiente:</span>
                {/* Display total from pendingOrderTotal which includes delivery fee if applicable */}
