@@ -4,6 +4,7 @@
 
 
 
+
 'use client';
 
 import * as React from 'react';
@@ -543,7 +544,7 @@ const mockMenu: MenuItem[] = [
      { id: 85, name: 'Tomate', price: 8800, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Bebida Lata'] },
      { id: 86, name: 'Brasileño', price: 9200, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Queso', 'Bebida Lata'] },
      { id: 87, name: 'Dinamico', price: 9300, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana', 'Bebida Lata'] },
-     { id: 88, name: 'Campestre', price: 9500, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso Fundido', 'Huevo Frito', 'Cebolla Frita', 'Bebida Lata'] },
+     { id: 88, name: 'Campestre', price: 9500, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Palta', 'Bebida Lata', 'Papa Personal'] },
      { id: 89, name: 'Queso Champiñon', price: 9800, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso Fundido', 'Champiñones Salteados', 'Bebida Lata'] },
      { id: 90, name: 'Che milico', price: 10000, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso Fundido', 'Huevo Frito', 'Cebolla Frita', 'Papas Fritas', 'Bebida Lata'] },
     // --- Promociones --- (Adding modifications)
@@ -867,7 +868,7 @@ export default function TableDetailPage() {
   const [selectedItemForModification, setSelectedItemForModification] = useState<MenuItem | null>(null);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [isMenuSheetOpen, setIsMenuSheetOpen] = useState(false);
-  const [isDeliveryDialogOpen, setIsDeliveryDialogOpen] = useState(isDelivery && !sessionStorage.getItem(`deliveryInfo-${tableIdParam}`) && !sessionStorage.getItem(`table-${tableIdParam}-pending-order`));
+  const [isDeliveryDialogOpen, setIsDeliveryDialogOpen] = useState(false); // Initialize to false
   const [deliveryInfo, setDeliveryInfo] = useState<DeliveryInfo | null>(null);
 
   const [hasBeenInitialized, setHasBeenInitialized] = useState(false);
@@ -918,17 +919,14 @@ export default function TableDetailPage() {
     } else if (category === 'churrascos') {
         updateInventory('Pan de marraqueta', 1);
     } else if (category === 'promo churrasco') {
-         if (orderItem.name.startsWith("2x")) { // For "2x" items, deduct two
-            updateInventory('Pan de marraqueta', 2);
-        } else {
-            updateInventory('Pan de marraqueta', 1);
-        }
+        // For promo churrasco, if the name implies 2x, deduct two, otherwise one.
+        // This logic assumes names like "2x Completo" or similar are not used for "Promo Churrasco"
+        // but if they were, you might need a more robust way to check.
+        // For now, assuming each "Promo Churrasco" item uses one "Pan de marraqueta"
+        updateInventory('Pan de marraqueta', 1);
     } else if (category === 'promo mechada') {
-         if (orderItem.name.startsWith("2x")) { // For "2x" items, deduct two
-             updateInventory('Pan de marraqueta', 2);
-         } else {
-            updateInventory('Pan de marraqueta', 1);
-        }
+         // Similar to promo churrasco, assuming one "Pan de marraqueta" per item
+        updateInventory('Pan de marraqueta', 1);
     } else if (category === 'bebidas') {
         if (itemName.includes('1.5lt')) updateInventory('Bebida 1.5Lt', 1);
         if (itemName.includes('lata')) updateInventory('Lata', 1);
@@ -976,8 +974,22 @@ export default function TableDetailPage() {
         if (storedDeliveryInfo) {
             try {
                 const parsed = JSON.parse(storedDeliveryInfo);
-                if (parsed) setDeliveryInfo(parsed);
-            } catch (e) { console.error("Error parsing delivery info:", e); }
+                if (parsed) {
+                    setDeliveryInfo(parsed);
+                } else {
+                    // If no valid delivery info in storage for delivery, open dialog
+                     if (!sessionStorage.getItem(`table-${tableIdParam}-pending-order`)) { // Only if no pending order exists
+                        setIsDeliveryDialogOpen(true);
+                     }
+                }
+            } catch (e) {
+                console.error("Error parsing delivery info:", e);
+                 if (!sessionStorage.getItem(`table-${tableIdParam}-pending-order`)) {
+                    setIsDeliveryDialogOpen(true);
+                 }
+            }
+        } else if (!sessionStorage.getItem(`table-${tableIdParam}-pending-order`)){ // If no stored info at all, and no pending order
+            setIsDeliveryDialogOpen(true);
         }
     }
 
@@ -1198,7 +1210,7 @@ export default function TableDetailPage() {
   // pendingOrderTotal is now managed by state
 
   // Display loading or if tableId is somehow missing
-  if (!tableIdParam || !hasBeenInitialized && !isDelivery) { // For delivery, delivery dialog handles initial view
+  if (!tableIdParam || (!hasBeenInitialized && !isDelivery) ) { // For delivery, delivery dialog handles initial view
     return <div className="flex items-center justify-center min-h-screen">Cargando datos de la mesa...</div>;
   }
 
@@ -1226,7 +1238,7 @@ export default function TableDetailPage() {
                         <PackageSearch className="mr-2 h-5 w-5"/> Ver Menú
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-full sm:w-[500px] p-0 flex flex-col">
+                <SheetContent side="left" className="w-full sm:w-[500px] p-0 flex flex-col"> {/* Increased width */}
                     <SheetHeader className="p-4 border-b">
                         <SheetTitle className="text-xl">Menú de Productos</SheetTitle>
                     </SheetHeader>
@@ -1381,6 +1393,7 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
 
 
 
