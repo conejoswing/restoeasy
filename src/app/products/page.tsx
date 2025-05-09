@@ -49,7 +49,7 @@ import type { CashMovement } from '@/app/expenses/page'; // Import CashMovement 
 import type { InventoryItem } from '@/app/inventory/page'; // Import InventoryItem type
 import ModificationDialog from '@/components/app/modification-dialog';
 import PaymentDialog from '@/components/app/payment-dialog';
-import DeliveryDialog from '@/components/app/delivery-dialog';
+// import DeliveryDialog from '@/components/app/delivery-dialog'; // Not used directly on this page
 
 interface MenuItem {
   id: number;
@@ -78,7 +78,7 @@ const mockMenu: MenuItem[] = [
       name: 'Italiano Grande',
       price: 4500,
       category: 'Completos Vienesas',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
       modificationPrices: { 'Agregado Queso': 1000 },
       ingredients: ['Palta', 'Tomate']
     },
@@ -457,7 +457,7 @@ const mockMenu: MenuItem[] = [
     { id: 62, name: 'Papas Fritas XL', price: 8000, category: 'Papas Fritas', ingredients: ['Papas Fritas'] },
     { id: 63, name: 'Salchipapas', price: 7000, category: 'Papas Fritas', ingredients: ['Vienesas'] },
     { id: 64, name: 'Chorrillana 2', price: 12000, category: 'Papas Fritas', ingredients: ['Carne', 'Cebolla Frita', 'Longaniza', '2 Huevos Fritos'] },
-    { id: 65, name: 'Chorrillana 4', price: 18000, category: 'Papas Fritas', ingredients: ['Carne x2', 'Cebolla Frita x2', 'Huevo Frito x4'] },
+    { id: 65, name: 'Chorrillana 4', price: 18000, category: 'Papas Fritas', ingredients: ['Carne', 'Cebolla Frita', 'Longaniza', '4 Huevos Fritos'] },
     { id: 66, name: 'Box Cami', price: 15000, category: 'Papas Fritas', ingredients: ['2 Papas XL', '8 Porciones Aro Cebolla', '8 Empanadas de Queso', '1 Porción Carne Vacuno', '6 Laminas Queso Cheddar', 'Tocino', 'Salsa Cheddar', 'Bebida 1.5Lt'] },
     // --- Promo Churrasco --- (Updated Modifications where applicable)
     {
@@ -828,15 +828,15 @@ export default function ProductsPageContainer() {
 
 
 // Keeping the types and interfaces that might be shared or reused
-interface PendingOrderGroup {
-  orderNumber: number;
-  items: OrderItem[];
-  deliveryInfo?: DeliveryInfo | null;
-}
+// interface PendingOrderGroup { // Already defined at the top of tableId/page.tsx
+//   orderNumber: number;
+//   items: OrderItem[];
+//   deliveryInfo?: DeliveryInfo | null;
+// }
 
-interface PendingOrderStorageData {
-    groups: PendingOrderGroup[];
-}
+// interface PendingOrderStorageData { // Already defined at the top of tableId/page.tsx
+//     groups: PendingOrderGroup[];
+// }
 
 
 // Example of how TableDetailPage *could* be structured if it were still a table detail page
