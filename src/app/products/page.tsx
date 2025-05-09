@@ -872,3 +872,5 @@ export default function TableDetailPage({}: TableDetailPageProps) {
 }
 */
 
+
+    

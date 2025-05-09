@@ -755,7 +755,10 @@ const ProductsPage = () => {
       </div>
 
        <Card>
-         <CardContent className="p-0">
+         <CardHeader className="p-0">
+           {/* This CardHeader seems to be empty, can be removed or used if title/desc is needed */}
+         </CardHeader>
+        <CardContent className="p-0"> {/* Changed p-6 to p-0 to allow table to span full width */}
             <Table>
             <TableHeader>
                 <TableRow>
@@ -1499,3 +1502,6 @@ export default function TableDetailPage() {
   );
 }
 
+
+
+    
