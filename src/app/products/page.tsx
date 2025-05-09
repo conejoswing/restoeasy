@@ -13,8 +13,8 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge'; // Import Badge
-import { Button } from '@/components/ui/button'; // Import Button
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogClose,
@@ -24,44 +24,42 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog'; // Import Dialog components
-import { Label } from '@/components/ui/label'; // Import Label
+} from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
 import { useState, useEffect, useMemo } from 'react';
-import { Edit } from 'lucide-react'; // Import Edit icon
-import { useToast } from '@/hooks/use-toast'; // Import useToast
+import { Edit } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Accordion,
-
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { cn } from "@/lib/utils";
-import { useParams, useRouter } from 'next/navigation'; // Import for potential future use if this page becomes dynamic
-import { Dialog as ShadDialog, DialogClose as ShadDialogClose, DialogContent as ShadDialogContent, DialogDescription as ShadDialogDescription, DialogFooter as ShadDialogFooter, DialogHeader as ShadDialogHeader, DialogTitle as ShadDialogTitle, DialogTrigger as ShadDialogTrigger } from '@/components/ui/dialog'; // Renamed to avoid conflict
-import { formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils'; // Import for currency formatting
-import { PlusCircle, XCircle, Printer, ArrowLeft, CreditCard, PackageSearch, Trash2, MinusCircle } from 'lucide-react'; // Import necessary icons
+import { useParams, useRouter } from 'next/navigation';
+import { Dialog as ShadDialog, DialogClose as ShadDialogClose, DialogContent as ShadDialogContent, DialogDescription as ShadDialogDescription, DialogFooter as ShadDialogFooter, DialogHeader as ShadDialogHeader, DialogTitle as ShadDialogTitle, DialogTrigger as ShadDialogTrigger } from '@/components/ui/dialog';
+import { formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
+import { PlusCircle, XCircle, Printer, ArrowLeft, CreditCard, PackageSearch, Trash2, MinusCircle } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'; // Import Sheet components
-import type { OrderItem, PaymentMethod, DeliveryInfo } from '@/app/tables/[tableId]/page'; // Assuming these types are exported from tableId page
-import type { CashMovement } from '@/app/expenses/page'; // Import CashMovement type
-import type { InventoryItem } from '@/app/inventory/page'; // Import InventoryItem type
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import type { OrderItem, PaymentMethod, DeliveryInfo } from '@/app/tables/[tableId]/page';
+import type { CashMovement } from '@/app/expenses/page';
+import type { InventoryItem } from '@/app/inventory/page';
 import ModificationDialog from '@/components/app/modification-dialog';
 import PaymentDialog from '@/components/app/payment-dialog';
-// import DeliveryDialog from '@/components/app/delivery-dialog'; // Not used directly on this page
+
 
 interface MenuItem {
   id: number;
   name: string;
-  price: number; // Base price
+  price: number;
   category: string;
-  modifications?: string[]; // Optional list of modifications
-  modificationPrices?: { [key: string]: number }; // Optional map of modification name to additional price
-  ingredients?: string[]; // Optional list of ingredients
+  modifications?: string[];
+  modificationPrices?: { [key: string]: number };
+  ingredients?: string[];
 }
 
-// Mock data - reused from table detail page (Consider moving to a shared service)
 const mockMenu: MenuItem[] = [
     // --- Completos Vienesas ---
     {
@@ -172,7 +170,7 @@ const mockMenu: MenuItem[] = [
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana']
     },
-    // --- Completos As --- (Updated mods for Dinamico and Chacarero)
+    // --- Completos As ---
     {
       id: 10,
       name: 'Italiano Normal',
@@ -265,7 +263,7 @@ const mockMenu: MenuItem[] = [
     },
     { id: 51, name: 'Queso Champiñon Normal', price: 7000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Sin Queso', 'Sin Champiñon', 'Sin Tocino'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Champiñon', 'Tocino'] },
     { id: 52, name: 'Queso Champiñon Grande', price: 7500, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Sin Queso', 'Sin Champiñon', 'Sin Tocino'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Champiñon', 'Tocino'] },
-    // --- Fajitas --- (Updated to standard modifications)
+    // --- Fajitas ---
     { id: 104, name: 'Italiana', price: 9500, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'palta', 'tomate', 'aceituna', 'bebida lata', 'papa personal'] },
     { id: 105, name: 'Brasileño', price: 9200, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'cebolla caramelizada', 'papas hilo'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Queso Amarillo', 'Papas Hilo', 'Aceituna', 'bebida lata', 'papa personal'] },
     { id: 106, name: 'Chacarero', price: 9800, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Poroto Verde', 'Ají Oro', 'Aceituna', 'Bebida Lata', 'Papa Personal'] },
@@ -274,12 +272,12 @@ const mockMenu: MenuItem[] = [
     { id: 109, name: 'Golosasa', price: 10500, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'tocino', 'champiñón', 'queso amarillo', 'choclo', 'cebolla', 'aceituna', 'papas hilo', 'bebida lata', 'papa personal'] },
     { id: 110, name: '4 Ingredientes', price: 11000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'Bebida Lata', 'Papa Personal'] },
     { id: 111, name: '6 Ingredientes', price: 12000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'Bebida Lata', 'Papa Personal'] },
-    // --- Hamburguesas --- (Updated Modifications)
+    // --- Promo Hamburguesas ---
     {
         id: 17,
         name: 'Simple',
         price: 7000,
-        category: 'Hamburguesas',
+        category: 'Promo Hamburguesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Queso Cheddar', 'Salsa Cheddar', 'Tocino', 'Kétchup', 'Mostaza', 'Cebolla', 'Pepinillo', 'Bebida Lata', 'Papa Personal']
@@ -288,7 +286,7 @@ const mockMenu: MenuItem[] = [
         id: 18,
         name: 'Doble',
         price: 8500,
-        category: 'Hamburguesas',
+        category: 'Promo Hamburguesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
          ingredients: ['Queso Cheddar', 'Salsa Cheddar', 'Tocino', 'Kétchup', 'Mostaza', 'Cebolla', 'Pepinillo', 'Bebida Lata', 'Papa Personal']
@@ -297,7 +295,7 @@ const mockMenu: MenuItem[] = [
         id: 67,
         name: 'Italiana',
         price: 7800,
-        category: 'Hamburguesas',
+        category: 'Promo Hamburguesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
          ingredients: ['Palta', 'Tomate', 'Bebida Lata', 'Papa Personal']
@@ -306,7 +304,7 @@ const mockMenu: MenuItem[] = [
         id: 68,
         name: 'Doble Italiana',
         price: 9500,
-        category: 'Hamburguesas',
+        category: 'Promo Hamburguesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
          ingredients: ['Palta', 'Tomate', 'Bebida Lata', 'Papa Personal']
@@ -315,7 +313,7 @@ const mockMenu: MenuItem[] = [
         id: 69,
         name: 'Tapa Arteria',
         price: 10500,
-        category: 'Hamburguesas',
+        category: 'Promo Hamburguesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
          ingredients: ['Huevo Frito', 'Cebolla Frita', 'Bacon']
@@ -324,7 +322,7 @@ const mockMenu: MenuItem[] = [
         id: 70,
         name: 'Super Tapa Arteria',
         price: 13000,
-        category: 'Hamburguesas',
+        category: 'Promo Hamburguesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
          ingredients: ['Queso Cheddar', 'Aro Cebolla', 'Salsa Cheddar', 'Cebolla Caramelizada', 'Tocino', 'Kétchup', 'Mostaza', 'Pepinillo', 'Bebida Lata', 'Papa Personal']
@@ -333,7 +331,7 @@ const mockMenu: MenuItem[] = [
         id: 71,
         name: 'Big Cami',
         price: 9800,
-        category: 'Hamburguesas',
+        category: 'Promo Hamburguesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
          ingredients: ['Tomate', 'Lechuga', 'Queso Cheddar', 'Salsa Cheddar', 'Tocino', 'Pepinillo', 'Salsa de la Casa', 'Kétchup', 'Mostaza', 'Cebolla', 'Bebida Lata', 'Papa Personal']
@@ -342,12 +340,12 @@ const mockMenu: MenuItem[] = [
         id: 72,
         name: 'Super Big Cami',
         price: 12500,
-        category: 'Hamburguesas',
+        category: 'Promo Hamburguesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
          ingredients: ['Tomate', 'Lechuga', 'Queso Cheddar', 'Salsa Cheddar', 'Tocino', 'Pepinillo', 'Salsa de la Casa', 'Kétchup', 'Mostaza', 'Cebolla', 'Bebida Lata', 'Papa Personal']
     },
-    // --- Churrascos --- (Updated Modifications)
+    // --- Churrascos ---
     {
         id: 19,
         name: 'Churrasco Italiano',
@@ -438,7 +436,7 @@ const mockMenu: MenuItem[] = [
         modificationPrices: { 'Agregado Queso': 1000 },
          ingredients: ['Queso Champiñón', 'Tocino']
     },
-    // --- Papas Fritas --- (No modifications)
+    // --- Papas Fritas ---
     {
         id: 21,
         name: 'Papas Fritas Normal',
@@ -475,7 +473,7 @@ const mockMenu: MenuItem[] = [
         modificationPrices: { 'Agregado Queso': 1000, 'Agregado Huevos': 1000, 'Agregado Tocino': 2000, 'Agregado Cheddar': 2000 }
     },
     { id: 66, name: 'Box Cami', price: 15000, category: 'Papas Fritas', ingredients: ['2 Papas XL', '8 Porciones Aro Cebolla', '8 Empanadas de Queso', '1 Porción Carne Vacuno', '6 Laminas Queso Cheddar', 'Tocino', 'Salsa Cheddar', 'Bebida 1.5Lt'] },
-    // --- Promo Churrasco --- (Updated Modifications where applicable)
+    // --- Promo Churrasco ---
     {
         id: 25,
         name: 'Completo',
@@ -503,7 +501,7 @@ const mockMenu: MenuItem[] = [
     { id: 79, name: 'Campestre', price: 7500, category: 'Promo Churrasco', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Lechuga', 'Bebida Lata', 'Papa Personal'] },
     { id: 80, name: 'Queso Champiñon', price: 7800, category: 'Promo Churrasco', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Champiñon', 'Tocino', 'Bebida Lata', 'Papa Personal'] },
     { id: 81, name: 'Che milico', price: 8000, category: 'Promo Churrasco', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Cebolla Caramelizada', 'Huevo', 'Bebida Lata', 'Papa Personal'] },
-    // --- Promo Mechada --- (Updated Modifications where applicable)
+    // --- Promo Mechada ---
     {
       id: 4,
       name: 'Completo',
@@ -531,7 +529,7 @@ const mockMenu: MenuItem[] = [
      { id: 88, name: 'Campestre', price: 9500, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Lechuga', 'Bebida Lata', 'Papa Personal'] },
      { id: 89, name: 'Queso Champiñon', price: 9800, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Champiñon', 'Tocino', 'Bebida Lata', 'Papa Personal'] },
      { id: 90, name: 'Che milico', price: 10000, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Cebolla Caramelizada', 'Huevo', 'Bebida Lata', 'Papa Personal'] },
-    // --- Promociones --- (Adding modifications)
+    // --- Promociones ---
     {
       id: 6,
       name: 'Promo 1',
@@ -568,10 +566,10 @@ const mockMenu: MenuItem[] = [
     { id: 97, name: 'Promo 10', price: 9500, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['4 Completo Vienesas Grande', '1 Bebida 1.5Lt', 'Papa Mediana'] },
     { id: 98, name: 'Promo 11', price: 10000, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['4 Completo As Normal', '1 Bebida 1.5Lt', 'Papa Mediana'] },
     { id: 99, name: 'Promo 12', price: 10500, category: 'Promociones', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['4 Completo As Grande', '1 Bebida 1.5Lt', 'Papa Mediana'] },
-    // --- Bebidas --- (No modifications)
+    // --- Bebidas ---
     {
       id: 100,
-      name: 'Bebida 1.5Lt', // Changed L to Lt
+      name: 'Bebida 1.5Lt',
       price: 2000,
       category: 'Bebidas',
     },
@@ -593,16 +591,15 @@ const mockMenu: MenuItem[] = [
       price: 2500,
       category: 'Bebidas',
     },
-     // --- Colaciones --- (No modifications usually)
+     // --- Colaciones ---
 ].filter(item => !(item.category === 'Fajitas' && [1, 2, 8].includes(item.id)));
 
 
-// Define the desired order for categories
 const orderedCategories = [
   'Completos Vienesas',
   'Completos As',
   'Fajitas',
-  'Hamburguesas',
+  'Promo Hamburguesas', // Changed from Hamburguesas
   'Churrascos',
   'Papas Fritas',
   'Promo Churrasco',
@@ -613,14 +610,12 @@ const orderedCategories = [
 ];
 
 
-// Helper function to extract number from promo name
 const extractPromoNumber = (name: string): number => {
     const match = name.match(/^Promo (\d+)/i);
     return match ? parseInt(match[1], 10) : Infinity;
 };
 
 
-// Sort menu items by category order first, then alphabetically by name
 const sortMenu = (menu: MenuItem[]): MenuItem[] => {
   return [...menu].sort((a, b) => {
     const categoryAIndex = orderedCategories.indexOf(a.category);
@@ -646,30 +641,24 @@ const sortMenu = (menu: MenuItem[]): MenuItem[] => {
   });
 };
 
-// Global state for menu items (consider Zustand or Redux for larger apps)
 let globalMenu: MenuItem[] = sortMenu(mockMenu);
 
 const updateGlobalMenu = (newMenu: MenuItem[]) => {
   globalMenu = sortMenu(newMenu);
-  // Persist to localStorage or a backend if needed
 };
 
 
-// Component to display and manage products (used in both /products and table detail page)
-// This component is now self-contained for the products page,
-// and a simplified version will be used for the table detail page's menu sheet.
-const ProductsManagementPage = () => { // Renamed to avoid conflict with ProductsPage in table detail
+const ProductsManagementPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [menu, setMenu] = useState<MenuItem[]>(globalMenu); // Local state for display, initialized from global
+  const [menu, setMenu] = useState<MenuItem[]>(globalMenu);
   const [isEditPriceDialogOpen, setIsEditPriceDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<MenuItem | null>(null);
   const [newPrice, setNewPrice] = useState('');
   const { toast } = useToast();
 
-  // Sync local menu with global changes (e.g., if another component updates it)
   useEffect(() => {
     setMenu(globalMenu);
-  }, []); // Removed globalMenu from dependency array as it causes infinite loop with current setup
+  }, []);
 
 
   const filteredProducts = menu.filter(product =>
@@ -701,8 +690,8 @@ const ProductsManagementPage = () => { // Renamed to avoid conflict with Product
     const updatedMenu = menu.map(item =>
       item.id === editingProduct.id ? { ...item, price: priceValue } : item
     );
-    setMenu(sortMenu(updatedMenu)); // Update local state first for immediate UI feedback
-    updateGlobalMenu(updatedMenu); // Update global state
+    setMenu(sortMenu(updatedMenu));
+    updateGlobalMenu(updatedMenu);
 
     const toastDescription = `El precio de ${editingProduct.name} se actualizó a ${printUtilsFormatCurrency(priceValue)}.`;
     toast({ title: "Precio Actualizado", description: toastDescription});
@@ -711,7 +700,6 @@ const ProductsManagementPage = () => { // Renamed to avoid conflict with Product
     setNewPrice('');
   };
 
-  // Group products by category for accordion display
   const groupedMenu = useMemo(() => {
     const groups: { [key: string]: MenuItem[] } = {};
     filteredProducts.forEach(item => {
@@ -786,7 +774,6 @@ const ProductsManagementPage = () => { // Renamed to avoid conflict with Product
        </Card>
 
 
-       {/* Edit Price Dialog */}
        <ShadDialog open={isEditPriceDialogOpen} onOpenChange={setIsEditPriceDialogOpen}>
          <ShadDialogContent className="sm:max-w-[425px]">
            <ShadDialogHeader>
@@ -825,68 +812,8 @@ const ProductsManagementPage = () => { // Renamed to avoid conflict with Product
 };
 
 interface TableDetailPageProps {
-    // Define any specific props if this page could receive them
-    // For now, it seems to primarily rely on useParams and sessionStorage
 }
 
-// New main export for the products page
 export default function ProductsPageContainer() {
-    // This component only renders the ProductsManagementPage
     return <ProductsManagementPage />;
 }
-
-
-// --- Original TableDetailPage logic below (now for reference or potential future use if this page becomes dynamic again) ---
-// This part would need to be refactored significantly if /products is meant to be a standalone management page
-// and not a table detail page. The current structure is confusing.
-// For now, I'm assuming /products is the management page using ProductsManagementPage component.
-// The old TableDetailPage logic might be entirely removed or moved to a different route if not needed.
-
-
-// Keeping the types and interfaces that might be shared or reused
-// interface PendingOrderGroup { // Already defined at the top of tableId/page.tsx
-//   orderNumber: number;
-//   items: OrderItem[];
-//   deliveryInfo?: DeliveryInfo | null;
-// }
-
-// interface PendingOrderStorageData { // Already defined at the top of tableId/page.tsx
-//     groups: PendingOrderGroup[];
-// }
-
-
-// Example of how TableDetailPage *could* be structured if it were still a table detail page
-// but this seems to be superseded by making /products the management page.
-/*
-export default function TableDetailPage({}: TableDetailPageProps) {
-  const params = useParams();
-  const tableIdParam = params.tableId as string; // This would be undefined for /products
-  const router = useRouter();
-  const { toast } = useToast();
-
-  // ... (all the state and logic from the original TableDetailPage)
-
-  // If this component is meant to be dynamic based on tableId,
-  // it needs to handle the case where tableId is not present (e.g., for a general products view).
-  // However, given the new ProductsManagementPage, this component as TableDetailPage
-  // might be redundant for the /products route.
-
-  if (!tableIdParam) {
-     // This indicates we are likely on a route that isn't a specific table,
-     // like a general /products page. In this case, we render the management UI.
-     // return <ProductsManagementPage />; // This is now the default export.
-  }
-
-  // ... (rest of the original TableDetailPage JSX and logic for a specific table)
-
-  return (
-    <div>
-      If this page were for a specific table ({tableIdParam}), its content would be here.
-      But for /products, we now render the ProductsManagementPage.
-    </div>
-  );
-}
-*/
-
-
-    
