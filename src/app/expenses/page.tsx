@@ -44,7 +44,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { PlusCircle, Calendar as CalendarIcon, FileCheck, Banknote, CreditCard, Landmark, Truck, Gift } from 'lucide-react';
+import { PlusCircle, Calendar as CalendarIcon, FileCheck, Banknote, CreditCard, Landmark, Truck, Gift, TrendingUp } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
@@ -145,7 +145,8 @@ export default function CashRegisterPage() {
        dailyTipsTotal,
        dailyTotalIncome,
        dailyExpenses,
-       dailyNetTotal
+       dailyNetTotal,
+       dailyGrossTotal // Added for the new total
     } = useMemo(() => {
         const today = startOfDay(new Date());
         let cash = 0;
@@ -165,14 +166,15 @@ export default function CashRegisterPage() {
                         case 'Tarjeta Débito': debit += movement.amount; break;
                         case 'Tarjeta Crédito': credit += movement.amount; break;
                         case 'Transferencia': transfer += movement.amount; break;
-                        default: cash += movement.amount;
+                        default: cash += movement.amount; // Default to cash if payment method is not specified or unknown
                     }
                     if (movement.deliveryFee && movement.deliveryFee > 0) {
                          deliveryFees += movement.deliveryFee;
                     }
-                    const tipMatch = movement.description.match(/Propina: (?:CLP)?\$(\d{1,3}(?:\.\d{3})*)/);
+                    // Regex to find tip in description, handles CLP$ and $ prefixes, and thousands separators.
+                    const tipMatch = movement.description.match(/Propina: (?:CLP)?\$?(\d{1,3}(?:\.\d{3})*)/);
                     if (tipMatch && tipMatch[1]) {
-                        const tipString = tipMatch[1].replace(/\./g, '');
+                        const tipString = tipMatch[1].replace(/\./g, ''); // Remove dots for parsing
                         const parsedTip = parseInt(tipString, 10);
                         if (!isNaN(parsedTip)) {
                             tips += parsedTip;
@@ -180,7 +182,7 @@ export default function CashRegisterPage() {
                     }
 
                 } else if (movement.amount > 0 && movement.category === 'Otros Ingresos') {
-                    cash += movement.amount;
+                    cash += movement.amount; // Assuming other income is cash for simplicity
                 }
                  else if (movement.amount < 0) {
                     expenses += Math.abs(movement.amount);
@@ -189,6 +191,7 @@ export default function CashRegisterPage() {
         });
 
         const totalIncome = cash + debit + credit + transfer;
+        const grossTotal = totalIncome + deliveryFees + tips; // Calculate gross total
 
         return {
             dailyCashIncome: cash,
@@ -197,9 +200,10 @@ export default function CashRegisterPage() {
             dailyTransferIncome: transfer,
             dailyDeliveryFees: deliveryFees,
             dailyTipsTotal: tips,
-            dailyTotalIncome: totalIncome,
+            dailyTotalIncome: totalIncome, // This is total income from sales (excluding delivery/tips for this specific var)
             dailyExpenses: expenses,
-            dailyNetTotal: totalIncome - expenses,
+            dailyNetTotal: totalIncome - expenses, // Net total based on sales income vs expenses
+            dailyGrossTotal: grossTotal // New total including delivery fees and tips
         };
    }, [cashMovements]);
 
@@ -543,19 +547,33 @@ export default function CashRegisterPage() {
               </AlertDialogContent>
           </AlertDialog>
 
-           <Card className="text-center flex-grow max-w-xs">
-                 <CardHeader className="p-2 pb-0">
-                     <CardTitle className="text-sm font-medium">Total Neto Hoy</CardTitle>
-                 </CardHeader>
-                 <CardContent className="p-2 pt-0">
-                     <p className={cn(
-                        "text-xl font-bold",
-                         dailyNetTotal >= 0 ? "text-green-600" : "text-red-600"
-                     )}>
-                         {formatCurrency(dailyNetTotal)}
-                     </p>
-                 </CardContent>
-           </Card>
+            <div className="flex gap-4">
+                <Card className="text-center flex-grow max-w-xs">
+                    <CardHeader className="p-2 pb-0 flex flex-row items-center justify-center space-x-2">
+                        <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                        <CardTitle className="text-sm font-medium">Total Hoy</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-2 pt-0">
+                        <p className="text-xl font-bold text-green-600">
+                            {formatCurrency(dailyGrossTotal)}
+                        </p>
+                    </CardContent>
+                </Card>
+
+               <Card className="text-center flex-grow max-w-xs">
+                     <CardHeader className="p-2 pb-0">
+                         <CardTitle className="text-sm font-medium">Total Neto Hoy</CardTitle>
+                     </CardHeader>
+                     <CardContent className="p-2 pt-0">
+                         <p className={cn(
+                            "text-xl font-bold",
+                             dailyNetTotal >= 0 ? "text-green-600" : "text-red-600"
+                         )}>
+                             {formatCurrency(dailyNetTotal)}
+                         </p>
+                     </CardContent>
+               </Card>
+           </div>
       </div>
 
 
@@ -602,3 +620,4 @@ export default function CashRegisterPage() {
     </div>
   );
 }
+
