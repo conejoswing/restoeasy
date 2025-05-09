@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -47,7 +46,7 @@ import type { DeliveryInfo } from '@/components/app/delivery-dialog';
 import DeliveryDialog from '@/components/app/delivery-dialog'; // Corrected import
 import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
-import { Dialog as ShadDialog, DialogClose as ShadDialogClose, DialogContent as ShadDialogContent, DialogDescription as ShadDialogDescription, DialogFooter as ShadDialogFooter, DialogHeader as ShadDialogHeader, DialogTitle as ShadDialogTitle } from '@/components/ui/dialog'; // Renamed to avoid conflict
+import { Dialog as ShadDialog, DialogClose as ShadDialogClose, DialogContent as ShadDialogContent, DialogDescription as ShadDialogDescription, DialogFooter as ShadDialogFooter, DialogHeader as ShadDialogHeader, DialogTitle as ShadDialogTitle, DialogTrigger as ShadDialogTrigger } from '@/components/ui/dialog'; // Renamed to avoid conflict
 import { Label } from '@/components/ui/label';
 import {
   Accordion,
@@ -90,8 +89,8 @@ interface PendingOrderStorageData {
     groups: PendingOrderGroup[];
 }
 
-
-// Helper to format currency
+// Helper function to format currency (consistent with other parts of the app)
+// Moved to global scope or a utils file if used across multiple components
 const globalFormatCurrency = (amount: number) => {
   return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
 };
@@ -105,7 +104,7 @@ const mockMenu: MenuItem[] = [
       name: 'Italiano Normal',
       price: 4000,
       category: 'Completos Vienesas',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta', ],
       modificationPrices: { 'Agregado Queso': 1000 },
       ingredients: ['Palta', 'Tomate']
     },
@@ -214,7 +213,7 @@ const mockMenu: MenuItem[] = [
       name: 'Italiano Normal',
       price: 5500,
       category: 'Completos As',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta', 'con americana', 'con chucrut', 'con palta'],
       modificationPrices: { 'Agregado Queso': 1000 },
        ingredients: ['Palta', 'Tomate']
     },
@@ -223,7 +222,7 @@ const mockMenu: MenuItem[] = [
       name: 'Italiano Grande',
       price: 6000,
       category: 'Completos As',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta', 'con americana', 'con chucrut', 'con palta'],
       modificationPrices: { 'Agregado Queso': 1000 },
       ingredients: ['Palta', 'Tomate']
     },
@@ -303,13 +302,13 @@ const mockMenu: MenuItem[] = [
     { id: 52, name: 'Queso Champiñon Grande', price: 7500, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Sin Queso', 'Sin Champiñon', 'Sin Tocino'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Champiñon', 'Tocino'] },
     // --- Fajitas --- (Updated to standard modifications)
     { id: 104, name: 'Italiana', price: 9500, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Palta', 'Tomate'] },
-    { id: 105, name: 'Brasileño', price: 9200, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Queso Amarillo', 'Papas Hilo', 'Aceituna'] },
+    { id: 105, name: 'Brasileño', price: 9200, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'cebolla caramelizada', 'papas hilo'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Queso Amarillo', 'Papas Hilo', 'Aceituna'] },
     { id: 106, name: 'Chacarero', price: 9800, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Poroto Verde', 'Ají Oro', 'Aceituna', 'Bebida Lata', 'Papa Personal'] },
     { id: 107, name: 'Americana', price: 8900, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'Queso Cheddar', 'Salsa Cheddar', 'Tocino', 'Cebolla Caramelizada', 'Aceituna'] },
     { id: 108, name: 'Primavera', price: 9000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Palta', 'Choclo', 'Tomate'] },
     { id: 109, name: 'Golosasa', price: 10500, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Queso', 'Champiñones', 'Papas Hilo', 'Pimentón'] },
     { id: 110, name: '4 Ingredientes', price: 11000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'Bebida Lata', 'Papa Personal'] },
-    { id: 111, name: '6 Ingredientes', price: 12000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno'] },
+    { id: 111, name: '6 Ingredientes', price: 12000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'Bebida Lata', 'Papa Personal'] },
     // --- Hamburguesas --- (Updated Modifications)
     {
         id: 17,
@@ -546,7 +545,7 @@ const mockMenu: MenuItem[] = [
      { id: 83, name: 'Queso', price: 8500, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Bebida Lata', 'Papa Personal'] },
      { id: 84, name: 'Palta', price: 8800, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Bebida Lata', 'Papa Personal'] },
      { id: 85, name: 'Tomate', price: 8800, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Bebida Lata', 'Papa Personal'] },
-     { id: 86, name: 'Brasileño', price: 9200, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Palta', 'Bebida Lata', 'Papa Personal'] },
+     { id: 86, name: 'Brasileño', price: 9200, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Queso Amarillo', 'Papas Hilo', 'Aceituna', 'Bebida Lata', 'Papa Personal'] },
      { id: 87, name: 'Dinamico', price: 9300, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta', 'Papa Personal'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana', 'Bebida Lata', 'Papa Personal'] },
      { id: 88, name: 'Campestre', price: 9500, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Lechuga', 'Bebida Lata', 'Papa Personal'] },
      { id: 89, name: 'Queso Champiñon', price: 9800, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Champiñon', 'Tocino', 'Bebida Lata', 'Papa Personal'] },
@@ -678,19 +677,11 @@ const updateGlobalMenu = (newMenu: MenuItem[]) => {
 // Component to display and manage products (used in both /products and table detail page)
 // This component is now self-contained for the products page,
 // and a simplified version will be used for the table detail page's menu sheet.
-const ProductsPage = ({ onProductSelect, onEditProduct, onAddProduct }: {
+const ProductsPage = ({ onProductSelect }: {
   onProductSelect?: (product: MenuItem) => void;
-  onEditProduct?: (product: MenuItem) => void;
-  onAddProduct?: (product: Omit<MenuItem, 'id'>) => void;
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [menu, setMenu] = useState<MenuItem[]>(globalMenu); // Local state for display
-  const [isEditPriceDialogOpen, setIsEditPriceDialogOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<MenuItem | null>(null);
-  const [newPrice, setNewPrice] = useState('');
-  const { toast } = useToast();
-  const router = useRouter();
-
 
   useEffect(() => {
     setMenu(globalMenu); // Sync with global on mount or global changes
@@ -700,43 +691,6 @@ const ProductsPage = ({ onProductSelect, onEditProduct, onAddProduct }: {
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
-
-  const openEditPriceDialog = (product: MenuItem) => {
-    setEditingProduct(product);
-    setNewPrice(product.price.toString());
-    setIsEditPriceDialogOpen(true);
-  };
-
-  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNewPrice(e.target.value);
-  };
-
-  const handleUpdatePrice = () => {
-    if (!editingProduct || newPrice === '') {
-      toast({ title: "Error", description: "Debe ingresar un precio.", variant: "destructive"});
-      return;
-    }
-    const priceValue = parseInt(newPrice, 10);
-    if (isNaN(priceValue) || priceValue < 0) {
-      toast({ title: "Error", description: "El precio debe ser un número válido y no negativo.", variant: "destructive"});
-      return;
-    }
-
-    const updatedMenu = menu.map(item =>
-      item.id === editingProduct.id ? { ...item, price: priceValue } : item
-    );
-    setMenu(sortMenu(updatedMenu)); // Update local state first for immediate UI feedback
-    updateGlobalMenu(updatedMenu); // Update global state (if this component is meant to modify global)
-
-    if (onEditProduct) { // If this component is used elsewhere with this prop
-        onEditProduct({ ...editingProduct, price: priceValue });
-    }
-    const toastDescription = `El precio de ${editingProduct.name} se actualizó a ${globalFormatCurrency(priceValue)}.`;
-    toast({ title: "Precio Actualizado", description: toastDescription});
-    setIsEditPriceDialogOpen(false);
-    setEditingProduct(null);
-    setNewPrice('');
-  };
 
   const groupedMenu = useMemo(() => {
     const groups: { [key: string]: MenuItem[] } = {};
@@ -764,6 +718,7 @@ const ProductsPage = ({ onProductSelect, onEditProduct, onAddProduct }: {
         onChange={(e) => setSearchTerm(e.target.value)}
         className="mb-4 w-full"
       />
+
       <Accordion type="multiple" className="w-full" defaultValue={orderedCategories}>
         {Object.entries(groupedMenu).map(([category, items]) => (
           <AccordionItem value={category} key={category} className="border-b-0">
@@ -785,21 +740,13 @@ const ProductsPage = ({ onProductSelect, onEditProduct, onAddProduct }: {
                     <CardContent className="flex-grow px-4 pb-3">
                       <div className="flex justify-between items-center">
                         <span className="text-base font-semibold text-primary">{globalFormatCurrency(item.price)}</span>
-                        {onProductSelect && (
+                        {onProductSelect && ( // Only show "Añadir" button if onProductSelect prop is passed (meaning it's for the table detail sheet)
                           <Button size="sm" variant="outline" onClick={() => onProductSelect(item)} className="rounded-md">
                             <PlusCircle className="mr-2 h-4 w-4" /> Añadir
                           </Button>
                         )}
                       </div>
                     </CardContent>
-                     {/* Edit button for standalone products page */}
-                    {onEditProduct && (
-                         <CardFooter className="p-2 border-t">
-                            <Button variant="ghost" size="sm" onClick={() => openEditPriceDialog(item)} className="w-full justify-start text-xs">
-                                <Edit className="mr-2 h-3 w-3" /> Editar Precio
-                            </Button>
-                        </CardFooter>
-                    )}
                   </Card>
                 ))}
               </div>
@@ -807,47 +754,9 @@ const ProductsPage = ({ onProductSelect, onEditProduct, onAddProduct }: {
           </AccordionItem>
         ))}
       </Accordion>
-       {/* Edit Price Dialog (if this page manages edits) */}
-       {/* If this products page is standalone, then this dialog is relevant here */}
-       {onEditProduct && ( // Only show if onEditProduct prop is passed (meaning it's for the /products page)
-           <ShadDialog open={isEditPriceDialogOpen} onOpenChange={setIsEditPriceDialogOpen}>
-             <ShadDialogContent className="sm:max-w-[425px]">
-               <ShadDialogHeader>
-                 <ShadDialogTitle>Editar Precio de {editingProduct?.name}</ShadDialogTitle>
-                 <ShadDialogDescription>
-                     Actualice el precio base para este producto.
-                 </ShadDialogDescription>
-               </ShadDialogHeader>
-               <div className="grid gap-4 py-4">
-                 <div className="grid grid-cols-4 items-center gap-4">
-                     <Label htmlFor="price" className="text-right">
-                         Nuevo Precio (CLP)
-                     </Label>
-                     <Input
-                         id="price"
-                         type="number"
-                         value={newPrice}
-                         onChange={handlePriceChange}
-                         className="col-span-3"
-                         required
-                         min="0"
-                         step="1"
-                     />
-                 </div>
-               </div>
-               <ShadDialogFooter>
-                 <ShadDialogClose asChild>
-                     <Button type="button" variant="secondary" onClick={() => setIsEditPriceDialogOpen(false)}>Cancelar</Button>
-                 </ShadDialogClose>
-                 <Button type="submit" onClick={handleUpdatePrice}>Guardar Cambios</Button>
-               </ShadDialogFooter>
-             </ShadDialogContent>
-           </ShadDialog>
-       )}
     </>
-  );
+);
 };
-
 
 export default function TableDetailPage() {
   const params = useParams();
@@ -1096,7 +1005,7 @@ export default function TableDetailPage() {
                 itemsToDeduct.push({ name: 'Pan especial grande', quantity: 1 * orderItem.quantity });
             }
         } else if (orderItem.category === 'Churrascos' || orderItem.category === 'Promo Churrasco' || orderItem.category === 'Promo Mechada') {
-             itemsToDeduct.push({ name: 'Pan de marraqueta', quantity: (orderItem.category === 'Promo Churrasco' || orderItem.category === 'Promo Mechada' ? 2 : 1) * orderItem.quantity });
+             itemsToDeduct.push({ name: 'Pan de marraqueta', quantity: (orderItem.category === 'Promo Churrasco' || orderItem.category === 'Promo Mechada' ? 1 : 1) * orderItem.quantity }); // Changed from 2 to 1 for promos
         } else if (orderItem.category === 'Hamburguesas') {
              if (orderItem.name.includes('Simple') || orderItem.name.includes('Italiana') || orderItem.name.includes('Tapa Arteria') || orderItem.name.includes('Big Cami')) {
                 itemsToDeduct.push({ name: 'Pan de hamburguesa normal', quantity: 1 * orderItem.quantity });
@@ -1104,7 +1013,7 @@ export default function TableDetailPage() {
                 itemsToDeduct.push({ name: 'Pan de hamburguesa grande', quantity: 1 * orderItem.quantity });
             }
         }
-
+        // TODO: Add deductions for Fajitas if specific bread/tortilla item exists
 
         // Specific item deductions
         if (orderItem.name === 'Bebida 1.5Lt') itemsToDeduct.push({ name: 'Bebida 1.5Lt', quantity: 1 * orderItem.quantity });
@@ -1199,7 +1108,7 @@ export default function TableDetailPage() {
          <Button variant="outline" onClick={() => router.push('/tables')} className="group rounded-md shadow-sm hover:shadow-md transition-shadow">
            <ArrowLeft className="h-5 w-5 mr-2 transition-transform group-hover:-translate-x-1" />
            Volver a Mesas
-         </Button>
+           </Button>
        </div>
 
       <h1 className="text-3xl font-bold mb-6 text-center">
@@ -1236,7 +1145,7 @@ export default function TableDetailPage() {
                         <SheetTitle className="text-2xl font-semibold">Menú</SheetTitle>
                     </SheetHeader>
                     <ScrollArea className="flex-grow p-4">
-                         <ProductsPage onProductSelect={handleOpenModificationDialog} />
+                        <ProductsPage onProductSelect={handleOpenModificationDialog} />
                     </ScrollArea>
                 </SheetContent>
             </Sheet>
@@ -1252,18 +1161,23 @@ export default function TableDetailPage() {
           <CardContent className="flex-grow overflow-y-auto p-0">
              <ScrollArea className="h-[calc(100%-0px)] sm:h-[300px] md:h-[350px] lg:h-[400px] p-4">
                 {currentOrder.length === 0 ? (
-                <p className="text-muted-foreground text-center py-4">No hay productos en el pedido actual.</p>
+                <p className="text-muted-foreground text-center py-4 font-bold">No hay productos en el pedido actual.</p>
                 ) : (
                 <div className="space-y-3">
                     {currentOrder.map(item => (
                     <div key={item.orderItemId} className="border p-3 rounded-md shadow-sm">
                         <div className="flex justify-between items-start">
                         <div>
-                            <p className="font-bold">{item.name} <span className="text-xs text-muted-foreground">({globalFormatCurrency(item.finalPrice)} c/u)</span></p>
-                            {item.selectedModifications && item.selectedModifications.length > 0 && (
+                            <p className="font-bold">{item.name} <span className="text-xs text-muted-foreground font-bold">({globalFormatCurrency(item.finalPrice)} c/u)</span></p>
+                             {item.selectedModifications && item.selectedModifications.length > 0 && (
                             <p className="text-xs text-muted-foreground font-bold">
                                 ({item.selectedModifications.join(', ')})
                             </p>
+                            )}
+                             {item.ingredients && item.ingredients.length > 0 && (
+                                <p className="text-xs text-muted-foreground italic font-bold">
+                                    Ingredientes: {item.ingredients.join(', ')}
+                                </p>
                             )}
                         </div>
                         <Button variant="ghost" size="icon" className="text-destructive h-7 w-7" onClick={() => handleRemoveOrderItem(item.orderItemId)}>
@@ -1279,7 +1193,7 @@ export default function TableDetailPage() {
                             <PlusCircle className="h-4 w-4" />
                         </Button>
                         <span className="ml-4 w-20 text-right font-bold">{globalFormatCurrency(item.finalPrice * item.quantity)}</span>
-                        </div>
+                         </div>
                     </div>
                     ))}
                 </div>
@@ -1289,8 +1203,8 @@ export default function TableDetailPage() {
           <Separator />
           <CardFooter className="p-4 flex flex-col items-stretch gap-3">
             <div className="flex justify-between items-center text-lg font-semibold">
-              <span>Total Actual:</span>
-              <span>{globalFormatCurrency(currentOrderTotal)}</span>
+              <span className="font-bold">Total Actual:</span>
+              <span className="font-bold">{globalFormatCurrency(currentOrderTotal)}</span>
             </div>
             <Button onClick={handlePrintKitchenOrder} className="w-full" disabled={currentOrder.length === 0}>
               <Printer className="mr-2 h-4 w-4" /> Imprimir Comanda
@@ -1307,7 +1221,7 @@ export default function TableDetailPage() {
           <CardContent className="flex-grow overflow-y-auto p-0">
             <ScrollArea className="h-[calc(100%-0px)] sm:h-[300px] md:h-[350px] lg:h-[400px] p-4">
                 {pendingOrderGroups.length === 0 ? (
-                <p className="text-muted-foreground text-center py-4">No hay pedidos pendientes.</p>
+                <p className="text-muted-foreground text-center py-4 font-bold">No hay pedidos pendientes.</p>
                 ) : (
                 <div className="space-y-4">
                     {pendingOrderGroups.map((group) => {
@@ -1319,8 +1233,8 @@ export default function TableDetailPage() {
                                         <CardTitle className="text-base font-bold">
                                             Orden Nº: {String(group.orderNumber).padStart(3, '0')}
                                             {group.deliveryInfo && (
-                                                <span className="text-xs block text-muted-foreground font-normal">
-                                                    (Delivery: {group.deliveryInfo.name} - {globalFormatCurrency(group.deliveryInfo.deliveryFee)})
+                                                <span className="text-xs block text-muted-foreground font-normal font-bold">
+                                                     (Delivery: {group.deliveryInfo.name} - {globalFormatCurrency(group.deliveryInfo.deliveryFee)})
                                                 </span>
                                             )}
                                         </CardTitle>
@@ -1334,11 +1248,16 @@ export default function TableDetailPage() {
                                     {group.items.map(item => (
                                         <div key={item.orderItemId} className="flex justify-between items-start border-b border-dashed pb-1 last:border-b-0 last:pb-0">
                                         <div>
-                                            <p className="font-bold">{item.quantity}x {item.name} <span className="text-xs text-muted-foreground font-normal">({globalFormatCurrency(item.finalPrice)} c/u)</span></p>
-                                            {item.selectedModifications && item.selectedModifications.length > 0 && (
+                                            <p className="font-bold">{item.quantity}x {item.name} <span className="text-xs text-muted-foreground font-bold">({globalFormatCurrency(item.finalPrice)} c/u)</span></p>
+                                             {item.selectedModifications && item.selectedModifications.length > 0 && (
                                             <p className="text-xs text-muted-foreground font-bold">
                                                 ({item.selectedModifications.join(', ')})
                                             </p>
+                                            )}
+                                             {item.ingredients && item.ingredients.length > 0 && (
+                                                <p className="text-xs text-muted-foreground italic font-bold">
+                                                    Ingredientes: {item.ingredients.join(', ')}
+                                                </p>
                                             )}
                                         </div>
                                         <div className="flex items-center">
@@ -1351,8 +1270,8 @@ export default function TableDetailPage() {
                                     ))}
                                     </div>
                                     <div className="mt-2 pt-2 border-t flex justify-end font-semibold">
-                                        Total Pedido: {globalFormatCurrency(groupTotal)}
-                                    </div>
+                                        <span className="font-bold">Total Pedido: {globalFormatCurrency(groupTotal)}</span>
+                                     </div>
                                 </CardContent>
                             </Card>
                         );
@@ -1382,6 +1301,7 @@ export default function TableDetailPage() {
             />
         )}
     </div>
-  );
-}
 
+
+      );
+}
