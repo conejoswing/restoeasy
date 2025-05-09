@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -15,7 +14,7 @@ import {
 } from '@/components/ui/card';
 import {ScrollArea}
 from '@/components/ui/scroll-area';
-import {Separator} from '@/components/ui/separator';
+import {Separator}from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox'; // Import Checkbox
@@ -36,7 +35,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Utensils, PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard, ChevronRight, Banknote, Landmark, Home, Phone, User, DollarSign, PackageSearch, Edit, Trash2 } from 'lucide-react';
-import {useToast} from '@/hooks/use-toast';
+import {useToast}from '@/hooks/use-toast';
 import ModificationDialog from '@/components/app/modification-dialog';
 import PaymentDialog from '@/components/app/payment-dialog';
 import { isEqual } from 'lodash';
@@ -437,7 +436,7 @@ const mockMenu: MenuItem[] = [
         category: 'Churrascos',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-         ingredients: ['Tomate', 'Chucrut', 'Palta', 'Americana', 'Bebida Lata', 'Papa Personal']
+         ingredients: ['Tomate', 'Chucrut', 'Palta', 'Americana']
     },
     {
         id: 58,
@@ -836,6 +835,10 @@ const ProductsPage = () => {
 );
 };
 
+interface TableDetailPageProps {
+    // Define any specific props if this page could receive them
+    // For now, it seems to primarily rely on useParams and sessionStorage
+}
 
 // Helper function to format currency (consistent with other parts of the app)
 // Moved to global scope or a utils file if used across multiple components
@@ -904,7 +907,7 @@ export default function TableDetailPage() {
 
   // --- Effect to load and initialize state from sessionStorage ---
   useEffect(() => {
-    if (!isClient) return; // Prevent re-initialization or SSR execution
+    if (!isClient || hasBeenInitialized) return; // Prevent re-initialization or SSR execution
 
     console.log(`Initializing state for table ${tableIdParam}...`);
 
@@ -947,7 +950,7 @@ export default function TableDetailPage() {
     setHasBeenInitialized(true); // Mark as initialized
     console.log(`Initialization complete for ${tableIdParam}.`);
 
-  }, [tableIdParam, isDelivery, isClient, DELIVERY_INFO_STORAGE_KEY]);
+  }, [tableIdParam, isDelivery, isClient, DELIVERY_INFO_STORAGE_KEY, hasBeenInitialized]);
 
 
   // --- Effect to save state changes to sessionStorage and update table status ---
