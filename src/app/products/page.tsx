@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -201,7 +202,7 @@ const mockMenu: MenuItem[] = [
         name: 'Dinamico Normal',
         price: 6800,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta', 'con americana', 'con chucrut', 'con palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana']
     },
@@ -210,7 +211,7 @@ const mockMenu: MenuItem[] = [
         name: 'Dinamico Grande',
         price: 7300,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta', 'con americana', 'con chucrut', 'con palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
          ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana']
     },
@@ -219,7 +220,7 @@ const mockMenu: MenuItem[] = [
         name: 'Chacarero Normal',
         price: 6700,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño', 'con tomate', 'con aji oro', 'con poroto verde', 'con aji jalapeño'],
         modificationPrices: { 'Agregado Queso': 1000 },
          ingredients: ['Tomate', 'Poroto Verde', 'Ají Oro', 'Ají Jalapeño']
     },
@@ -228,7 +229,7 @@ const mockMenu: MenuItem[] = [
         name: 'Chacarero Grande',
         price: 7200,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño', 'con tomate', 'con aji oro', 'con poroto verde', 'con aji jalapeño'],
         modificationPrices: { 'Agregado Queso': 1000 },
          ingredients: ['Tomate', 'Poroto Verde', 'Ají Oro', 'Ají Jalapeño']
     },
@@ -237,7 +238,7 @@ const mockMenu: MenuItem[] = [
         name: 'Napolitano Normal',
         price: 6900,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin queso', 'sin tomate', 'sin oregano', 'sin aceituna'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin queso', 'sin tomate', 'sin oregano', 'sin aceituna', 'con queso', 'con tomate', 'con oregano', 'con aceituna'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Queso', 'Tomate', 'Orégano', 'Aceituna']
     },
@@ -246,7 +247,7 @@ const mockMenu: MenuItem[] = [
         name: 'Napolitano Grande',
         price: 7400,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin queso', 'sin tomate', 'sin oregano', 'sin aceituna'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin queso', 'sin tomate', 'sin oregano', 'sin aceituna', 'con queso', 'con tomate', 'con oregano', 'con aceituna'],
         modificationPrices: { 'Agregado Queso': 1000 },
          ingredients: ['Queso', 'Tomate', 'Orégano', 'Aceituna']
     },
@@ -255,7 +256,7 @@ const mockMenu: MenuItem[] = [
     // --- Fajitas --- (Updated to standard modifications)
     { id: 104, name: 'Italiana', price: 9500, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Palta', 'Tomate'] },
     { id: 105, name: 'Brasileño', price: 9200, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Queso Amarillo', 'Papas Hilo', 'Aceituna'] },
-    { id: 106, name: 'Chacarero', price: 9800, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Tomate', 'Poroto Verde', 'Ají Verde'] },
+    { id: 106, name: 'Chacarero', price: 9800, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Poroto Verde', 'Ají Oro', 'Aceituna', 'Bebida Lata', 'Papa Personal'] },
     { id: 107, name: 'Americana', price: 8900, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'Queso Cheddar', 'Salsa Cheddar', 'Tocino', 'Cebolla Caramelizada', 'Aceituna'] },
     { id: 108, name: 'Primavera', price: 9000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Palta', 'Choclo', 'Tomate'] },
     { id: 109, name: 'Golosasa', price: 10500, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Queso', 'Champiñones', 'Papas Hilo', 'Pimentón'] },
@@ -812,3 +813,4 @@ export default function ProductsPage() {
 const globalFormatCurrency = (amount: number) => {
   return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
 };
+
