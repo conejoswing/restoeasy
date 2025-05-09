@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -391,7 +392,7 @@ const mockMenu: MenuItem[] = [
         category: 'Churrascos',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-         ingredients: ['Tomate', 'Chucrut', 'Americana', 'Bebida Lata', 'Papa Personal']
+         ingredients: ['Tomate', 'Chucrut', 'Americana']
     },
     {
         id: 53,
@@ -669,7 +670,7 @@ const updateGlobalMenu = (newMenu: MenuItem[]) => {
 // Component to display and manage products (used in both /products and table detail page)
 // This component is now self-contained for the products page,
 // and a simplified version will be used for the table detail page's menu sheet.
-const ProductsPage = () => { // Renamed to avoid conflict with ProductsPage in table detail
+const ProductsPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [menu, setMenu] = useState<MenuItem[]>(globalMenu); // Local state for display, initialized from global
   const [isEditPriceDialogOpen, setIsEditPriceDialogOpen] = useState(false);
@@ -865,6 +866,8 @@ export default function TableDetailPage() {
 
 
   const isDelivery = tableIdParam === 'delivery';
+  const DELIVERY_INFO_STORAGE_KEY = `deliveryInfo-${tableIdParam}`; // Make key specific to tableId for deliveries
+
 
   // Load order number from localStorage
   useEffect(() => {
@@ -901,7 +904,7 @@ export default function TableDetailPage() {
 
   // --- Effect to load and initialize state from sessionStorage ---
   useEffect(() => {
-    if (hasBeenInitialized || !isClient) return; // Prevent re-initialization or SSR execution
+    if (!isClient) return; // Prevent re-initialization or SSR execution
 
     console.log(`Initializing state for table ${tableIdParam}...`);
 
@@ -931,7 +934,7 @@ export default function TableDetailPage() {
 
     // Load delivery info (only if it's a delivery table)
     if (isDelivery) {
-      const storedDeliveryInfo = sessionStorage.getItem(`${DELIVERY_INFO_STORAGE_KEY}-${tableIdParam}`);
+      const storedDeliveryInfo = sessionStorage.getItem(DELIVERY_INFO_STORAGE_KEY);
       if (storedDeliveryInfo) {
         try {
           setDeliveryInfo(JSON.parse(storedDeliveryInfo));
@@ -944,7 +947,7 @@ export default function TableDetailPage() {
     setHasBeenInitialized(true); // Mark as initialized
     console.log(`Initialization complete for ${tableIdParam}.`);
 
-  }, [tableIdParam, hasBeenInitialized, isDelivery, isClient]);
+  }, [tableIdParam, isDelivery, isClient, DELIVERY_INFO_STORAGE_KEY]);
 
 
   // --- Effect to save state changes to sessionStorage and update table status ---
@@ -959,7 +962,7 @@ export default function TableDetailPage() {
 
 
     if (isDelivery && deliveryInfo) {
-      sessionStorage.setItem(`${DELIVERY_INFO_STORAGE_KEY}-${tableIdParam}`, JSON.stringify(deliveryInfo));
+      sessionStorage.setItem(DELIVERY_INFO_STORAGE_KEY, JSON.stringify(deliveryInfo));
     }
 
     // Update table status based on whether there are pending orders or (for delivery) delivery info
@@ -968,7 +971,7 @@ export default function TableDetailPage() {
 
     console.log(`State saved. Table ${tableIdParam} status: ${isOccupied ? 'occupied' : 'available'}`);
 
-  }, [currentOrder, pendingOrderGroups, deliveryInfo, tableIdParam, hasBeenInitialized, isDelivery, isClient]);
+  }, [currentOrder, pendingOrderGroups, deliveryInfo, tableIdParam, hasBeenInitialized, isDelivery, isClient, DELIVERY_INFO_STORAGE_KEY]);
 
   // --- Inventory Management ---
   const updateInventory = useCallback((itemsToDeduct: { name: string; quantity: number }[]) => {
@@ -1194,7 +1197,7 @@ export default function TableDetailPage() {
     // If it was a delivery and all pending orders for this delivery are cleared, clear deliveryInfo
     if (isDelivery && pendingOrderGroups.filter(group => group.orderNumber !== groupToPay.orderNumber).length === 0) {
       setDeliveryInfo(null);
-      sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY}-${tableIdParam}`);
+      sessionStorage.removeItem(DELIVERY_INFO_STORAGE_KEY);
     }
     setIsPaymentDialogOpen(false); // Close payment dialog
     setSelectedPendingOrderGroup(null); // Clear selected group
@@ -1278,7 +1281,7 @@ export default function TableDetailPage() {
                         <PackageSearch className="mr-2 h-5 w-5"/> Ver Menú
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="bottom" className="h-[90vh] flex flex-col rounded-t-lg">
+                <SheetContent side="bottom" className="h-[90vh] w-full sm:w-[80vw] md:w-[70vw] lg:w-[60vw] xl:w-[50vw] mx-auto flex flex-col rounded-t-lg">
                     <SheetHeader className="p-4 border-b">
                         <SheetTitle className="text-2xl text-center">Menú</SheetTitle>
                     </SheetHeader>
@@ -1298,7 +1301,7 @@ export default function TableDetailPage() {
                                         {category}
                                     </AccordionTrigger>
                                     <AccordionContent className="pt-0 pb-0">
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 p-3">
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 p-3">
                                             {items.map(item => (
                                                 <Card
                                                     key={item.id}
@@ -1324,9 +1327,6 @@ export default function TableDetailPage() {
                             ))}
                         </Accordion>
                     </ScrollArea>
-                     <SheetClose asChild>
-                        <Button type="button" variant="outline" className="m-4">Cerrar Menú</Button>
-                    </SheetClose>
                 </SheetContent>
             </Sheet>
         </div>
@@ -1334,7 +1334,7 @@ export default function TableDetailPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Current Order Section */}
-        <Card className="flex flex-col h-[calc(100vh-220px)]"> {/* Adjust height as needed */}
+        <Card className="flex flex-col h-[calc(100vh-280px)]"> {/* Adjust height as needed */}
           <CardHeader>
             <CardTitle className="text-2xl">Pedido Actual</CardTitle>
             {isDelivery && deliveryInfo && (
@@ -1355,7 +1355,7 @@ export default function TableDetailPage() {
                     <li key={item.orderItemId} className="border p-3 rounded-md shadow-sm bg-card">
                         <div className="flex justify-between items-start">
                             <div>
-                                <p className="font-bold text-base">{item.name} <span className="text-sm text-muted-foreground">({globalFormatCurrency(item.finalPrice)})</span></p>
+                                <p className="font-bold text-base">{item.name} <span className="text-sm text-muted-foreground font-bold">({globalFormatCurrency(item.finalPrice)})</span></p>
                                 {item.selectedModifications && item.selectedModifications.length > 0 && (
                                 <p className="text-xs text-muted-foreground font-bold">
                                     ({item.selectedModifications.join(', ')})
@@ -1397,7 +1397,7 @@ export default function TableDetailPage() {
         </Card>
 
         {/* Pending Orders Section */}
-         <Card className="flex flex-col h-[calc(100vh-220px)]"> {/* Adjust height as needed */}
+         <Card className="flex flex-col h-[calc(100vh-280px)]"> {/* Adjust height as needed */}
           <CardHeader>
             <CardTitle className="text-2xl">Pedidos Pendientes de Pago</CardTitle>
              {pendingOrderGroups.length > 0 && (
@@ -1426,14 +1426,14 @@ export default function TableDetailPage() {
                                  </Button>
                              </div>
                             {group.deliveryInfo && (
-                                 <p className="text-xs text-muted-foreground mb-1">
+                                 <p className="text-xs text-muted-foreground mb-1 font-bold">
                                      <span className="font-semibold">Envío:</span> {group.deliveryInfo.name} - {globalFormatCurrency(group.deliveryInfo.deliveryFee)}
                                  </p>
                             )}
-                            <ul className="space-y-1 text-sm">
+                            <ul className="space-y-1 text-sm font-bold">
                             {group.items.map((item) => (
                                 <li key={item.orderItemId} className="flex justify-between">
-                                <span>{item.quantity}x {item.name} {item.selectedModifications && item.selectedModifications.length > 0 ? <span className="font-bold text-muted-foreground">({item.selectedModifications.join(', ')})</span> : ''}</span>
+                                <span>{item.quantity}x {item.name} {item.selectedModifications && item.selectedModifications.length > 0 ? <span className="text-muted-foreground">({item.selectedModifications.join(', ')})</span> : ''}</span>
                                 <span>{globalFormatCurrency(item.finalPrice * item.quantity)}</span>
                                 </li>
                             ))}
