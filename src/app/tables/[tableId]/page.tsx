@@ -45,7 +45,7 @@ import type { DeliveryInfo } from '@/components/app/delivery-dialog';
 import DeliveryDialog from '@/components/app/delivery-dialog';
 import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
-import { Dialog as EditDialog, DialogClose as EditDialogCloseButton, DialogContent as EditDialogContent, DialogDescription as EditDialogDescription, DialogFooter as EditDialogFooter, DialogHeader as EditDialogHeader, DialogTitle as EditDialogTitle } from '@/components/ui/dialog';
+import { Dialog as ShadDialog, DialogClose as ShadDialogClose, DialogContent as ShadDialogContent, DialogDescription as ShadDialogDescription, DialogFooter as ShadDialogFooter, DialogHeader as ShadDialogHeader, DialogTitle as ShadDialogTitle } from '@/components/ui/dialog'; // Renamed to avoid conflict
 import { Label } from '@/components/ui/label';
 import {
   Accordion,
@@ -301,7 +301,7 @@ const mockMenu: MenuItem[] = [
     { id: 52, name: 'Queso Champiñon Grande', price: 7500, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Sin Queso', 'Sin Champiñon', 'Sin Tocino'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Champiñon', 'Tocino'] },
     // --- Fajitas --- (Updated to standard modifications)
     { id: 104, name: 'Italiana', price: 9500, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Palta', 'Tomate'] },
-    { id: 105, name: 'Brasileño', price: 9200, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Palta', 'Queso'] },
+    { id: 105, name: 'Brasileño', price: 9200, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Queso Amarillo', 'Papas Hilo', 'Aceituna'] },
     { id: 106, name: 'Chacarero', price: 9800, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Tomate', 'Poroto Verde', 'Ají Verde'] },
     { id: 107, name: 'Americana', price: 8900, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'Queso Cheddar', 'Salsa Cheddar', 'Tocino', 'Cebolla Caramelizada', 'Aceituna'] },
     { id: 108, name: 'Primavera', price: 9000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Palta', 'Choclo', 'Tomate'] },
@@ -806,14 +806,14 @@ const ProductsPageContent = ({ onProductSelect, onEditProduct, onAddProduct }: {
       </ScrollArea>
 
        {onEditProduct && isEditPriceDialogOpen && editingProduct && (
-        <EditDialog open={isEditPriceDialogOpen} onOpenChange={setIsEditPriceDialogOpen}>
-            <EditDialogContent className="sm:max-w-[425px]">
-            <EditDialogHeader>
-                <EditDialogTitle>Editar Precio de {editingProduct?.name}</EditDialogTitle>
-                <EditDialogDescription>
+        <ShadDialog open={isEditPriceDialogOpen} onOpenChange={setIsEditPriceDialogOpen}>
+            <ShadDialogContent className="sm:max-w-[425px]">
+            <ShadDialogHeader>
+                <ShadDialogTitle>Editar Precio de {editingProduct?.name}</ShadDialogTitle>
+                <ShadDialogDescription>
                     Actualice el precio base para este producto.
-                </EditDialogDescription>
-            </EditDialogHeader>
+                </ShadDialogDescription>
+            </ShadDialogHeader>
             <div className="grid gap-4 py-4">
                 <div className="grid grid-cols-4 items-center gap-4">
                     <Label htmlFor="price" className="text-right">
@@ -831,14 +831,14 @@ const ProductsPageContent = ({ onProductSelect, onEditProduct, onAddProduct }: {
                     />
                 </div>
             </div>
-            <EditDialogFooter>
-                <EditDialogCloseButton asChild>
+            <ShadDialogFooter>
+                <ShadDialogClose asChild>
                     <Button type="button" variant="secondary" onClick={() => setIsEditPriceDialogOpen(false)}>Cancelar</Button>
-                </EditDialogCloseButton>
+                </ShadDialogClose>
                 <Button type="submit" onClick={handleUpdatePrice}>Guardar Cambios</Button>
-            </EditDialogFooter>
-            </EditDialogContent>
-        </EditDialog>
+            </ShadDialogFooter>
+            </ShadDialogContent>
+        </ShadDialog>
         )}
     </>
   );
@@ -902,31 +902,32 @@ export default function TableDetailPage() {
   const deductIngredientsForOrderItem = (orderItem: OrderItem) => {
     const itemName = orderItem.name.toLowerCase();
     const category = orderItem.category.toLowerCase();
+    const quantity = orderItem.quantity;
 
     if (category === 'completos vienesas') {
-        if (itemName.includes('normal')) updateInventory('Pan especial normal', 1 * orderItem.quantity);
-        if (itemName.includes('grande')) updateInventory('Pan especial grande', 1 * orderItem.quantity);
         if (['completo normal', 'dinamico normal', 'hot dog normal', 'italiano normal', 'palta normal', 'tomate normal'].some(namePart => itemName.includes(namePart))) {
-            updateInventory('Vienesas', 1 * orderItem.quantity);
+            updateInventory('Pan especial normal', 1 * quantity);
+            updateInventory('Vienesas', 1 * quantity);
         } else if (['completo grande', 'dinamico grande', 'hot dog grande', 'italiano grande', 'palta grande', 'tomate grande'].some(namePart => itemName.includes(namePart))) {
-            updateInventory('Vienesas', 2 * orderItem.quantity);
+            updateInventory('Pan especial grande', 1 * quantity);
+            updateInventory('Vienesas', 2 * quantity);
         }
     } else if (category === 'completos as') {
-        if (itemName.includes('normal')) updateInventory('Pan especial normal', 1 * orderItem.quantity);
-        if (itemName.includes('grande')) updateInventory('Pan especial grande', 1 * orderItem.quantity);
+        if (itemName.includes('normal')) updateInventory('Pan especial normal', 1 * quantity);
+        if (itemName.includes('grande')) updateInventory('Pan especial grande', 1 * quantity);
     } else if (category === 'fajitas') {
-         updateInventory('Pan de marraqueta', 1 * orderItem.quantity); // All fajitas use Pan de Marraqueta
+         updateInventory('Pan de marraqueta', 1 * quantity);
     } else if (category === 'churrascos') {
-        updateInventory('Pan de marraqueta', 1 * orderItem.quantity);
+        updateInventory('Pan de marraqueta', 1 * quantity);
     } else if (category === 'promo churrasco') {
-        updateInventory('Pan de marraqueta', 1 * orderItem.quantity);
+         updateInventory('Pan de marraqueta', (itemName.startsWith('2x') ? 2 : 1) * quantity);
     } else if (category === 'promo mechada') {
-        updateInventory('Pan de marraqueta', 1 * orderItem.quantity);
+         updateInventory('Pan de marraqueta', (itemName.startsWith('2x') ? 2 : 1) * quantity);
     } else if (category === 'bebidas') {
-        if (itemName.includes('1.5lt')) updateInventory('Bebida 1.5Lt', 1 * orderItem.quantity);
-        if (itemName.includes('lata')) updateInventory('Lata', 1 * orderItem.quantity);
-        if (itemName.includes('cafe chico')) updateInventory('Cafe Chico', 1 * orderItem.quantity);
-        if (itemName.includes('cafe grande')) updateInventory('Cafe Grande', 1 * orderItem.quantity);
+        if (itemName.includes('1.5lt')) updateInventory('Bebida 1.5Lt', 1 * quantity);
+        if (itemName.includes('lata')) updateInventory('Lata', 1 * quantity);
+        if (itemName.includes('cafe chico')) updateInventory('Cafe Chico', 1 * quantity);
+        if (itemName.includes('cafe grande')) updateInventory('Cafe Grande', 1 * quantity);
     }
   };
 
@@ -985,7 +986,7 @@ export default function TableDetailPage() {
     setHasBeenInitialized(true);
     console.log(`Initialization complete for ${tableIdParam}.`);
 
-  }, [tableIdParam, isDelivery, pendingOrderGroups.length, hasBeenInitialized]); // Added hasBeenInitialized
+  }, [tableIdParam, isDelivery, hasBeenInitialized]); // Removed pendingOrderGroups.length from dependencies
 
 
   useEffect(() => {
@@ -1195,7 +1196,7 @@ export default function TableDetailPage() {
         sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
         if (!isDelivery) {
            router.push('/tables');
-        } else if (currentOrder.length === 0) {
+        } else if (currentOrder.length === 0) { // Only redirect for delivery if current order is also empty
             router.push('/tables');
         }
     }
@@ -1451,4 +1452,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-
