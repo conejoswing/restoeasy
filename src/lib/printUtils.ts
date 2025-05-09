@@ -3,6 +3,7 @@
 
 import type { OrderItem } from '@/app/tables/[tableId]/page';
 import type { DeliveryInfo } from '@/components/app/delivery-dialog';
+import type { CashMovement } from '@/app/expenses/page'; // Import CashMovement type
 
 // Helper to format currency (consistent with other parts of the app)
 export const formatCurrency = (amount: number): string => {
@@ -75,7 +76,7 @@ export const formatKitchenOrderReceipt = (
           width: 70mm;
           color: #000;
           background-color: #fff;
-          font-weight: bold; /* Make all text bold */
+          font-weight: bold;
         }
         h1 {
             font-size: 14pt;
@@ -110,8 +111,8 @@ export const formatKitchenOrderReceipt = (
             border-top: 1px dashed #000;
             margin: 10px 0;
         }
-        strong { font-weight: bold; } /* Already bold, but good to keep */
-        small { font-size: 8pt; font-weight: bold; } /* Ensure small is also bold */
+        strong { font-weight: bold; }
+        small { font-size: 8pt; font-weight: bold; }
       </style>
     </head>
     <body>
@@ -140,11 +141,11 @@ export const formatKitchenOrderReceipt = (
 
 export const formatCustomerReceipt = (
     orderItems: OrderItem[],
-    totalAmount: number, // This is now the grand total including tip
+    totalAmount: number,
     paymentMethod: string,
     tableId: string | number,
     deliveryInfo?: DeliveryInfo | null,
-    tipAmount?: number // Optional tip amount
+    tipAmount?: number
 ): string => {
     const isDelivery = tableId === 'delivery';
     const title = "BOLETA";
@@ -181,7 +182,7 @@ export const formatCustomerReceipt = (
             <td style="text-align: right; font-weight: bold;">${formatCurrency(deliveryInfo.deliveryFee)}</td>
         </tr>
         `;
-        subtotal += deliveryInfo.deliveryFee; // Add delivery fee to subtotal for display
+        subtotal += deliveryInfo.deliveryFee;
     }
 
     let tipHtml = '';
@@ -206,20 +207,20 @@ export const formatCustomerReceipt = (
             font-size: 10pt; width: 70mm; 
             color: #000; 
             background-color: #fff; 
-            font-weight: bold; /* Make all text bold */
+            font-weight: bold;
          }
          h1, h2 { text-align: center; margin: 5px 0; font-weight: bold; }
          h1 { font-size: 14pt; }
          h2 { font-size: 12pt; }
          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-         th, td { padding: 3px 0; font-weight: bold; } /* Ensure th and td are bold */
+         th, td { padding: 3px 0; font-weight: bold; }
          th { text-align: left; border-bottom: 1px solid #000; font-weight: bold;}
          .header-info, .footer-info { text-align: center; margin-bottom: 10px; font-size: 9pt; font-weight: bold; }
          .total-section { margin-top: 10px; padding-top: 5px; border-top: 1px solid #000; }
          .total-row td { font-weight: bold; }
          hr { border: none; border-top: 1px dashed #000; margin: 10px 0; }
-         strong { font-weight: bold; } /* Already bold */
-         small { font-size: 8pt; font-weight: bold; } /* Ensure small is bold */
+         strong { font-weight: bold; }
+         small { font-size: 8pt; font-weight: bold; }
          .right { text-align: right; font-weight: bold; }
       </style>
     </head>
@@ -275,16 +276,56 @@ export const formatCashClosingReceipt = (
         dailyCreditCardIncome: number;
         dailyTransferIncome: number;
         dailyDeliveryFees: number;
-        dailyTipsTotal: number; // Added dailyTipsTotal
+        dailyTipsTotal: number;
         dailyTotalIncome: number;
         dailyExpenses: number;
         dailyNetTotal: number;
-    }
+    },
+    salesDetails: CashMovement[] // Added parameter for sales details
 ): string => {
     const {
         dailyCashIncome, dailyDebitCardIncome, dailyCreditCardIncome, dailyTransferIncome,
-        dailyDeliveryFees, dailyTipsTotal, dailyTotalIncome, dailyExpenses, dailyNetTotal // Destructure dailyTipsTotal
+        dailyDeliveryFees, dailyTipsTotal, dailyTotalIncome, dailyExpenses, dailyNetTotal
     } = dailyTotals;
+
+    let salesHtml = '';
+    if (salesDetails.length > 0) {
+        salesDetails.forEach(sale => {
+            let saleDesc = sale.description;
+            // Simple truncation for display on a narrow receipt
+            if (saleDesc.length > 25) { // Adjust length as needed
+                saleDesc = saleDesc.substring(0, 22) + "...";
+            }
+            salesHtml += `
+              <tr>
+                <td style="font-weight: bold; max-width: 35mm; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${saleDesc}</td>
+                <td style="text-align: center; font-weight: bold; font-size: 8pt;">${sale.paymentMethod || 'Efectivo'}</td>
+                <td style="text-align: right; font-weight: bold;">${formatCurrency(sale.amount)}</td>
+              </tr>
+            `;
+        });
+    } else {
+        salesHtml = '<tr><td colspan="3" style="text-align: center; font-style: italic; font-weight: bold;">No hay ventas registradas.</td></tr>';
+    }
+
+    const salesDetailsSection = `
+        <hr>
+        <div class="sales-details-section" style="margin-top: 10px;">
+          <h3 style="text-align: center; font-size: 11pt; margin-bottom: 5px; font-weight: bold;">DETALLE DE VENTAS</h3>
+          <table style="width: 100%; font-size: 8pt;">
+            <thead>
+              <tr>
+                <th style="text-align: left; font-weight: bold; width: 50%;">Desc.</th>
+                <th style="text-align: center; font-weight: bold; width: 25%;">Método</th>
+                <th style="text-align: right; font-weight: bold; width: 25%;">Monto</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${salesHtml}
+            </tbody>
+          </table>
+        </div>
+    `;
 
     return `
     <html>
@@ -297,17 +338,20 @@ export const formatCashClosingReceipt = (
             font-size: 10pt; width: 70mm; 
             color: #000; 
             background-color: #fff; 
-            font-weight: bold; /* Make all text bold */
+            font-weight: bold;
         }
          h1 { font-size: 14pt; text-align: center; margin-bottom: 5px; font-weight: bold; }
          .date { text-align: center; font-size: 9pt; margin-bottom: 15px; font-weight: bold; }
          table { width: 100%; border-collapse: collapse; }
-         td { padding: 3px 0; font-weight: bold; } /* Ensure td is bold */
+         td { padding: 3px 0; font-weight: bold; }
          .label { padding-right: 10px; font-weight: bold;}
          .amount { text-align: right; font-weight: bold;}
          .total-row td { font-weight: bold; border-top: 1px solid #000; padding-top: 5px; }
          hr { border: none; border-top: 1px dashed #000; margin: 10px 0; }
-         strong { font-weight: bold; } /* Already bold */
+         strong { font-weight: bold; }
+         .sales-details-section table th, .sales-details-section table td {
+            padding: 1px 0; /* Reduce padding for sales details */
+         }
       </style>
     </head>
     <body>
@@ -320,7 +364,7 @@ export const formatCashClosingReceipt = (
           <tr><td class="label">Ingresos T. Crédito:</td><td class="amount">${formatCurrency(dailyCreditCardIncome)}</td></tr>
           <tr><td class="label">Ingresos Transfer.:</td><td class="amount">${formatCurrency(dailyTransferIncome)}</td></tr>
           <tr><td class="label">Total Costo Envío:</td><td class="amount">${formatCurrency(dailyDeliveryFees)}</td></tr>
-          <tr><td class="label">Total Propinas:</td><td class="amount">${formatCurrency(dailyTipsTotal)}</td></tr> {/* Added tip display */}
+          <tr><td class="label">Total Propinas:</td><td class="amount">${formatCurrency(dailyTipsTotal)}</td></tr>
           <tr class="total-row">
              <td class="label">TOTAL INGRESOS:</td>
              <td class="amount">${formatCurrency(dailyTotalIncome)}</td>
@@ -334,6 +378,7 @@ export const formatCashClosingReceipt = (
           </tr>
         </tbody>
       </table>
+      ${salesDetailsSection}
     </body>
     </html>
   `;

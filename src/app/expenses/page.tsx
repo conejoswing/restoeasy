@@ -13,7 +13,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Button, buttonVariants } from '@/components/ui/button'; // Import buttonVariants
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   Dialog,
@@ -44,37 +44,35 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { PlusCircle, Calendar as CalendarIcon, FileCheck, Banknote, CreditCard, Landmark, Truck, Gift } from 'lucide-react'; // Added Gift icon
+import { PlusCircle, Calendar as CalendarIcon, FileCheck, Banknote, CreditCard, Landmark, Truck, Gift } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import type { PaymentMethod } from '@/app/tables/[tableId]/page'; // Import PaymentMethod type
-import { formatCashClosingReceipt, printHtml } from '@/lib/printUtils'; // Import printing utilities
+import type { PaymentMethod } from '@/app/tables/[tableId]/page';
+import { formatCashClosingReceipt, printHtml } from '@/lib/printUtils';
 
 
-export interface CashMovement { // Export interface for use in table page
+export interface CashMovement {
   id: number;
-  date: Date | string; // Allow string for JSON parsing, convert back to Date
+  date: Date | string;
   category: string;
   description: string;
   amount: number;
-  paymentMethod?: PaymentMethod; // Optional: Track payment method for sales
-  deliveryFee?: number; // Optional: Track delivery fee for sales
+  paymentMethod?: PaymentMethod;
+  deliveryFee?: number;
 }
 
 const movementCategories = ['Ingreso Venta', 'Suministros', 'Mantenimiento', 'Servicios', 'Alquiler', 'Salarios', 'Marketing', 'Otros Egresos', 'Otros Ingresos'];
 
-// Initial movements are now just a fallback if nothing is in storage
-const initialMovements: CashMovement[] = []; // Start with empty initial movements
+const initialMovements: CashMovement[] = [];
 
-// Storage key
 const CASH_MOVEMENTS_STORAGE_KEY = 'cashMovements';
 
 export default function CashRegisterPage() {
   const [cashMovements, setCashMovements] = useState<CashMovement[]>([]);
-  const [isInitialized, setIsInitialized] = useState(false); // Track initialization
+  const [isInitialized, setIsInitialized] = useState(false);
   const [newMovement, setNewMovement] = useState<{
     date: Date | undefined;
     category: string;
@@ -83,12 +81,11 @@ export default function CashRegisterPage() {
     type: 'income' | 'expense';
   }>({ date: undefined, category: '', description: '', amount: '', type: 'expense' });
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
-  const [isClosingDialogOpen, setIsClosingDialogOpen] = useState(false); // State for closing dialog
+  const [isClosingDialogOpen, setIsClosingDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  // Load movements from sessionStorage on mount
   useEffect(() => {
-    if (isInitialized) return; // Prevent running multiple times
+    if (isInitialized) return;
 
     console.log("Initializing cash movements from storage...");
     const storedMovements = sessionStorage.getItem(CASH_MOVEMENTS_STORAGE_KEY);
@@ -98,10 +95,9 @@ export default function CashRegisterPage() {
       try {
         const parsed = JSON.parse(storedMovements);
         if (Array.isArray(parsed)) {
-          // Convert date strings back to Date objects
-          loadedMovements = parsed.map((m: any) => ({ // Use any temporarily for parsing flexibility
+          loadedMovements = parsed.map((m: any) => ({
             ...m,
-            date: new Date(m.date), // Ensure date is a Date object
+            date: new Date(m.date),
           }));
            console.log("Loaded cash movements:", loadedMovements);
         } else {
@@ -110,31 +106,28 @@ export default function CashRegisterPage() {
         }
       } catch (error) {
         console.error("Failed to parse stored cash movements:", error);
-        loadedMovements = initialMovements; // Fallback to initial on error
+        loadedMovements = initialMovements;
       }
     } else {
       console.log("No cash movements found in storage, using initial data.");
-      loadedMovements = initialMovements; // Use initial if nothing in storage
+      loadedMovements = initialMovements;
     }
 
-    // Sort movements by date (most recent first)
     loadedMovements.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     setCashMovements(loadedMovements);
-    setIsInitialized(true); // Mark as initialized
+    setIsInitialized(true);
     console.log("Cash movements initialization complete.");
 
   }, [isInitialized]);
 
-   // Save movements to sessionStorage whenever they change
    useEffect(() => {
-     if (!isInitialized) return; // Only save after initial load
+     if (!isInitialized) return;
 
      console.log("Saving cash movements to storage...");
      try {
-        // Store dates as ISO strings for reliable JSON serialization/parsing
         const movementsToStore = cashMovements.map(m => ({
             ...m,
-            date: m.date instanceof Date ? m.date.toISOString() : m.date // Store as ISO string
+            date: m.date instanceof Date ? m.date.toISOString() : m.date
         }));
        sessionStorage.setItem(CASH_MOVEMENTS_STORAGE_KEY, JSON.stringify(movementsToStore));
        console.log("Cash movements saved.");
@@ -143,14 +136,13 @@ export default function CashRegisterPage() {
      }
    }, [cashMovements, isInitialized]);
 
-   // Calculate daily totals per payment method, delivery fees, and tips
    const {
        dailyCashIncome,
        dailyDebitCardIncome,
        dailyCreditCardIncome,
        dailyTransferIncome,
        dailyDeliveryFees,
-       dailyTipsTotal, // Added tips total
+       dailyTipsTotal,
        dailyTotalIncome,
        dailyExpenses,
        dailyNetTotal
@@ -161,7 +153,7 @@ export default function CashRegisterPage() {
         let credit = 0;
         let transfer = 0;
         let deliveryFees = 0;
-        let tips = 0; // Initialize tips
+        let tips = 0;
         let expenses = 0;
 
         cashMovements.forEach(movement => {
@@ -178,11 +170,9 @@ export default function CashRegisterPage() {
                     if (movement.deliveryFee && movement.deliveryFee > 0) {
                          deliveryFees += movement.deliveryFee;
                     }
-                    // Extract tip from description
-                    // Expected format: "Propina: CLP$1.000" or "Propina: $1.000"
                     const tipMatch = movement.description.match(/Propina: (?:CLP)?\$(\d{1,3}(?:\.\d{3})*)/);
                     if (tipMatch && tipMatch[1]) {
-                        const tipString = tipMatch[1].replace(/\./g, ''); // Remove dots for parsing
+                        const tipString = tipMatch[1].replace(/\./g, '');
                         const parsedTip = parseInt(tipString, 10);
                         if (!isNaN(parsedTip)) {
                             tips += parsedTip;
@@ -198,7 +188,7 @@ export default function CashRegisterPage() {
             }
         });
 
-        const totalIncome = cash + debit + credit + transfer; // This already includes tips
+        const totalIncome = cash + debit + credit + transfer;
 
         return {
             dailyCashIncome: cash,
@@ -206,7 +196,7 @@ export default function CashRegisterPage() {
             dailyCreditCardIncome: credit,
             dailyTransferIncome: transfer,
             dailyDeliveryFees: deliveryFees,
-            dailyTipsTotal: tips, // Return calculated tips
+            dailyTipsTotal: tips,
             dailyTotalIncome: totalIncome,
             dailyExpenses: expenses,
             dailyNetTotal: totalIncome - expenses,
@@ -215,7 +205,6 @@ export default function CashRegisterPage() {
 
 
   const formatCurrency = (amount: number) => {
-    // Format as CLP with no decimals
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
   };
 
@@ -227,7 +216,7 @@ export default function CashRegisterPage() {
   };
 
   const handleSelectChange = (value: string, key: keyof typeof newMovement) => {
-    const isIncome = value === 'Ingreso Venta' || value === 'Otros Ingresos'; // Specific check for income categories
+    const isIncome = value === 'Ingreso Venta' || value === 'Otros Ingresos';
     setNewMovement((prev) => ({
       ...prev,
       [key]: value,
@@ -243,9 +232,7 @@ export default function CashRegisterPage() {
     setNewMovement((prev) => ({ ...prev, type: value }));
   }
 
-  // Helper to get the next available ID
   const getNextMovementId = (currentMovements: CashMovement[]): number => {
-      // Ensure IDs are numbers before finding the max
       const maxId = currentMovements.reduce((max, m) => Math.max(max, typeof m.id === 'number' ? m.id : 0), 0);
       return maxId + 1;
   };
@@ -263,20 +250,17 @@ export default function CashRegisterPage() {
     }
     const finalAmount = newMovement.type === 'expense' ? -Math.abs(amountValue) : Math.abs(amountValue);
 
-     // Read current movements from state (which should be synced with storage)
     const currentMovements = cashMovements;
     const newId = getNextMovementId(currentMovements);
 
     const addedMovement: CashMovement = {
       id: newId,
-      date: newMovement.date, // Already a Date object
+      date: newMovement.date,
       category: newMovement.category,
       description: newMovement.description,
       amount: finalAmount,
-      // Payment method and delivery fee only added for sales from table detail page
     }
 
-    // Update state, which will trigger the useEffect to save to storage
     setCashMovements((prev) =>
         [...prev, addedMovement].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     );
@@ -287,28 +271,33 @@ export default function CashRegisterPage() {
   };
 
   const handleConfirmClosing = () => {
-     // Format the data for the receipt
      const closingDate = format(new Date(), 'dd/MM/yyyy');
      const totals = {
          dailyCashIncome, dailyDebitCardIncome, dailyCreditCardIncome, dailyTransferIncome,
-         dailyDeliveryFees, dailyTipsTotal, dailyTotalIncome, dailyExpenses, dailyNetTotal // Added dailyTipsTotal
+         dailyDeliveryFees, dailyTipsTotal, dailyTotalIncome, dailyExpenses, dailyNetTotal
      };
-     const closingReceiptHtml = formatCashClosingReceipt(closingDate, totals);
 
-     // Print the receipt
+     // Filter cashMovements for today's sales to pass to the receipt
+     const salesDetailsForReceipt = cashMovements.filter(movement => {
+        const movementDate = movement.date instanceof Date ? movement.date : new Date(movement.date);
+        // Ensure category is 'Ingreso Venta' and the movement is for today
+        return movement.category === 'Ingreso Venta' && isToday(movementDate);
+     });
+     // Sort sales by date/time for the receipt (oldest first for chronological order)
+     salesDetailsForReceipt.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+     const closingReceiptHtml = formatCashClosingReceipt(closingDate, totals, salesDetailsForReceipt);
+
      printHtml(closingReceiptHtml);
      console.log("Imprimiendo resumen de cierre de caja...");
 
-    // Clear the movements in state
     setCashMovements([]);
-    // Clear the movements in sessionStorage
     sessionStorage.removeItem(CASH_MOVEMENTS_STORAGE_KEY);
 
-    setIsClosingDialogOpen(false); // Close the dialog
+    setIsClosingDialogOpen(false);
     toast({ title: "Cierre de Caja Impreso y Realizado", description: "Se han borrado todos los movimientos registrados hoy.", variant: "default"});
   }
 
-   // Wait for local state init - AuthGuard handles loading/auth checks
    if (!isInitialized) {
      return <div className="flex items-center justify-center min-h-screen">Cargando Caja...</div>;
    }
@@ -316,12 +305,9 @@ export default function CashRegisterPage() {
 
   return (
     <div className="container mx-auto p-4">
-      {/* Title first */}
       <h1 className="text-3xl font-bold mb-6">Gestión de Caja</h1>
 
-      {/* Buttons and Summary Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        {/* Register Movement Button */}
         <div className="md:col-span-1 flex items-start">
             <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                 <DialogTrigger asChild>
@@ -389,7 +375,6 @@ export default function CashRegisterPage() {
                                 </SelectTrigger>
                                 <SelectContent>
                                     {movementCategories
-                                    // Filter based on the selected type (income/expense)
                                     .filter(cat => {
                                         const isIncomeCat = cat === 'Ingreso Venta' || cat === 'Otros Ingresos';
                                         return newMovement.type === 'income' ? isIncomeCat : !isIncomeCat;
@@ -438,8 +423,7 @@ export default function CashRegisterPage() {
             </Dialog>
         </div>
 
-         {/* Daily Summary Cards */}
-         <div className="md:col-span-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2"> {/* Adjusted for 6 cards */}
+         <div className="md:col-span-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
              <Card className="text-center">
                  <CardHeader className="p-2 pb-0 flex flex-row items-center justify-center space-x-2">
                     <Banknote className="h-4 w-4 text-muted-foreground" />
@@ -476,7 +460,6 @@ export default function CashRegisterPage() {
                       <p className="text-lg font-bold text-indigo-600">{formatCurrency(dailyTransferIncome)}</p>
                   </CardContent>
              </Card>
-              {/* Delivery Fee Card */}
               <Card className="text-center">
                    <CardHeader className="p-2 pb-0 flex flex-row items-center justify-center space-x-2">
                       <Truck className="h-4 w-4 text-muted-foreground" />
@@ -486,7 +469,6 @@ export default function CashRegisterPage() {
                        <p className="text-lg font-bold text-orange-600">{formatCurrency(dailyDeliveryFees)}</p>
                    </CardContent>
               </Card>
-               {/* Tip Card */}
               <Card className="text-center">
                    <CardHeader className="p-2 pb-0 flex flex-row items-center justify-center space-x-2">
                       <Gift className="h-4 w-4 text-muted-foreground" />
@@ -499,9 +481,7 @@ export default function CashRegisterPage() {
          </div>
       </div>
 
-      {/* Cash Closing Button & Net Total Summary (Swapped positions) */}
       <div className="flex justify-between items-center mb-6 gap-4">
-           {/* Cash Closing Button */}
           <AlertDialog open={isClosingDialogOpen} onOpenChange={setIsClosingDialogOpen}>
               <AlertDialogTrigger asChild>
                  <Button variant="default">
@@ -563,7 +543,6 @@ export default function CashRegisterPage() {
               </AlertDialogContent>
           </AlertDialog>
 
-            {/* Net Total Summary Card */}
            <Card className="text-center flex-grow max-w-xs">
                  <CardHeader className="p-2 pb-0">
                      <CardTitle className="text-sm font-medium">Total Neto Hoy</CardTitle>
