@@ -89,12 +89,6 @@ interface PendingOrderStorageData {
     groups: PendingOrderGroup[];
 }
 
-// Helper function to format currency (consistent with other parts of the app)
-const globalFormatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
-};
-
-
 // Mock data - replace with actual API calls - Updated prices to CLP
 const mockMenu: MenuItem[] = [
     // --- Completos Vienesas ---
@@ -248,7 +242,7 @@ const mockMenu: MenuItem[] = [
         name: 'Dinamico Normal',
         price: 6800,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta', 'con americana', 'con chucrut', 'con palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana']
     },
@@ -257,7 +251,7 @@ const mockMenu: MenuItem[] = [
         name: 'Dinamico Grande',
         price: 7300,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta', 'con americana', 'con chucrut', 'con palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
          ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana']
     },
@@ -266,7 +260,7 @@ const mockMenu: MenuItem[] = [
         name: 'Chacarero Normal',
         price: 6700,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño', 'con tomate', 'con aji oro', 'con poroto verde', 'con aji jalapeño'],
         modificationPrices: { 'Agregado Queso': 1000 },
          ingredients: ['Tomate', 'Poroto Verde', 'Ají Oro', 'Ají Jalapeño']
     },
@@ -275,7 +269,7 @@ const mockMenu: MenuItem[] = [
         name: 'Chacarero Grande',
         price: 7200,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño', 'con tomate', 'con aji oro', 'con poroto verde', 'con aji jalapeño'],
         modificationPrices: { 'Agregado Queso': 1000 },
          ingredients: ['Tomate', 'Poroto Verde', 'Ají Oro', 'Ají Jalapeño']
     },
@@ -284,7 +278,7 @@ const mockMenu: MenuItem[] = [
         name: 'Napolitano Normal',
         price: 6900,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin queso', 'sin tomate', 'sin oregano', 'sin aceituna'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin queso', 'sin tomate', 'sin oregano', 'sin aceituna', 'con queso', 'con tomate', 'con oregano', 'con aceituna'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Queso', 'Tomate', 'Orégano', 'Aceituna']
     },
@@ -293,7 +287,7 @@ const mockMenu: MenuItem[] = [
         name: 'Napolitano Grande',
         price: 7400,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin queso', 'sin tomate', 'sin oregano', 'sin aceituna'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin queso', 'sin tomate', 'sin oregano', 'sin aceituna', 'con queso', 'con tomate', 'con oregano', 'con aceituna'],
         modificationPrices: { 'Agregado Queso': 1000 },
          ingredients: ['Queso', 'Tomate', 'Orégano', 'Aceituna']
     },
@@ -729,7 +723,7 @@ const ProductsPage = ({ onProductSelect, onEditProduct, onAddProduct }: {
     if (onEditProduct) {
         onEditProduct({ ...editingProduct, price: priceValue });
     }
-    const toastDescription = `El precio de ${editingProduct.name} se actualizó a ${globalFormatCurrency(priceValue)}.`;
+    const toastDescription = `El precio de ${editingProduct.name} se actualizó a ${printUtilsFormatCurrency(priceValue)}.`;
     toast({ title: "Precio Actualizado", description: toastDescription});
     setIsEditPriceDialogOpen(false);
     setEditingProduct(null);
@@ -784,7 +778,7 @@ const ProductsPage = ({ onProductSelect, onEditProduct, onAddProduct }: {
                     </CardHeader>
                     <CardContent className="flex-grow px-4 pb-3">
                       <div className="flex justify-between items-center">
-                        <span className="text-base font-semibold text-primary">{globalFormatCurrency(item.price)}</span>
+                        <span className="text-base font-semibold text-primary">{printUtilsFormatCurrency(item.price)}</span>
                         {onProductSelect && ( // Only show "Añadir" button if onProductSelect prop is passed (meaning it's for the table detail sheet)
                           <Button size="sm" variant="outline" onClick={() => onProductSelect(item)} className="rounded-md">
                             <PlusCircle className="mr-2 h-4 w-4" /> Añadir
@@ -1116,7 +1110,7 @@ export default function TableDetailPage() {
     // Remove the paid group from pending orders
     setPendingOrderGroups(prevGroups => prevGroups.filter(group => group.orderNumber !== orderNumber));
 
-    toast({ title: "Pago Exitoso", description: `Total Pagado: ${globalFormatCurrency(finalAmountWithTip)} con ${paymentMethod}.` });
+    toast({ title: "Pago Exitoso", description: `Total Pagado: ${printUtilsFormatCurrency(finalAmountWithTip)} con ${paymentMethod}.` });
     setIsPaymentDialogOpen(false);
     setSelectedPendingOrderGroup(null);
 
@@ -1249,7 +1243,7 @@ export default function TableDetailPage() {
                     <div key={item.orderItemId} className="border p-3 rounded-md shadow-sm">
                         <div className="flex justify-between items-start">
                         <div>
-                            <p className="font-bold">{item.name} <span className="text-xs text-muted-foreground font-bold">({globalFormatCurrency(item.finalPrice)} c/u)</span></p>
+                            <p className="font-bold">{item.name} <span className="text-xs text-muted-foreground font-bold">({printUtilsFormatCurrency(item.finalPrice)} c/u)</span></p>
                              {item.selectedModifications && item.selectedModifications.length > 0 && (
                             <p className="text-xs text-muted-foreground font-bold">
                                 ({item.selectedModifications.join(', ')})
@@ -1273,7 +1267,7 @@ export default function TableDetailPage() {
                         <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => updateOrderItemQuantity(item.orderItemId, 1)}>
                             <PlusCircle className="h-4 w-4" />
                         </Button>
-                        <span className="ml-4 w-20 text-right font-bold">{globalFormatCurrency(item.finalPrice * item.quantity)}</span>
+                        <span className="ml-4 w-20 text-right font-bold">{printUtilsFormatCurrency(item.finalPrice * item.quantity)}</span>
                          </div>
                     </div>
                     ))}
@@ -1285,7 +1279,7 @@ export default function TableDetailPage() {
           <CardFooter className="p-4 flex flex-col items-stretch gap-3">
             <div className="flex justify-between items-center text-lg font-semibold">
               <span className="font-bold">Total Actual:</span>
-              <span className="font-bold">{globalFormatCurrency(currentOrderTotal)}</span>
+              <span className="font-bold">{printUtilsFormatCurrency(currentOrderTotal)}</span>
             </div>
             <Button onClick={handlePrintKitchenOrder} className="w-full" disabled={currentOrder.length === 0}>
               <Printer className="mr-2 h-4 w-4" /> Imprimir Comanda
@@ -1315,7 +1309,7 @@ export default function TableDetailPage() {
                                             Orden Nº: {String(group.orderNumber).padStart(3, '0')}
                                             {group.deliveryInfo && (
                                                 <span className="text-xs block text-muted-foreground font-normal font-bold">
-                                                     (Delivery: {group.deliveryInfo.name} - {globalFormatCurrency(group.deliveryInfo.deliveryFee)})
+                                                     (Delivery: {group.deliveryInfo.name} - {printUtilsFormatCurrency(group.deliveryInfo.deliveryFee)})
                                                 </span>
                                             )}
                                         </CardTitle>
@@ -1329,7 +1323,7 @@ export default function TableDetailPage() {
                                     {group.items.map(item => (
                                         <div key={item.orderItemId} className="flex justify-between items-start border-b border-dashed pb-1 last:border-b-0 last:pb-0">
                                         <div>
-                                            <p className="font-bold">{item.quantity}x {item.name} <span className="text-xs text-muted-foreground font-bold">({globalFormatCurrency(item.finalPrice)} c/u)</span></p>
+                                            <p className="font-bold">{item.quantity}x {item.name} <span className="text-xs text-muted-foreground font-bold">({printUtilsFormatCurrency(item.finalPrice)} c/u)</span></p>
                                              {item.selectedModifications && item.selectedModifications.length > 0 && (
                                             <p className="text-xs text-muted-foreground font-bold">
                                                 ({item.selectedModifications.join(', ')})
@@ -1342,7 +1336,7 @@ export default function TableDetailPage() {
                                             )}
                                         </div>
                                         <div className="flex items-center">
-                                            <span className="font-bold mr-2">{globalFormatCurrency(item.finalPrice * item.quantity)}</span>
+                                            <span className="font-bold mr-2">{printUtilsFormatCurrency(item.finalPrice * item.quantity)}</span>
                                             <Button variant="ghost" size="icon" className="text-destructive h-6 w-6" onClick={() => handleRemoveOrderItem(item.orderItemId, group.orderNumber)}>
                                                 <Trash2 className="h-3 w-3" />
                                             </Button>
@@ -1351,7 +1345,7 @@ export default function TableDetailPage() {
                                     ))}
                                     </div>
                                     <div className="mt-2 pt-2 border-t flex justify-end font-semibold">
-                                        <span className="font-bold">Total Pedido: {globalFormatCurrency(groupTotal)}</span>
+                                        <span className="font-bold">Total Pedido: {printUtilsFormatCurrency(groupTotal)}</span>
                                      </div>
                                 </CardContent>
                             </Card>

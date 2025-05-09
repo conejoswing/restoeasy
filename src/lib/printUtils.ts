@@ -5,7 +5,7 @@ import type { OrderItem } from '@/app/tables/[tableId]/page';
 import type { DeliveryInfo } from '@/components/app/delivery-dialog';
 
 // Helper to format currency (consistent with other parts of the app)
-const formatCurrency = (amount: number): string => {
+export const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
 };
 
