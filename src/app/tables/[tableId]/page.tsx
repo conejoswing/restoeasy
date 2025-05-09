@@ -194,7 +194,7 @@ const mockMenu: MenuItem[] = [
         name: 'Dinamico Normal',
         price: 4400,
         category: 'Completos Vienesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta', 'con americana', 'con chucrut', 'con palta'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana']
     },
@@ -203,7 +203,7 @@ const mockMenu: MenuItem[] = [
         name: 'Dinamico Grande',
         price: 4900,
         category: 'Completos Vienesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta', 'con americana', 'con chucrut', 'con palta'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana']
     },
@@ -213,7 +213,7 @@ const mockMenu: MenuItem[] = [
       name: 'Italiano Normal',
       price: 5500,
       category: 'Completos As',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta', 'con americana', 'con chucrut', 'con palta'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
       modificationPrices: { 'Agregado Queso': 1000 },
        ingredients: ['Palta', 'Tomate']
     },
@@ -222,7 +222,7 @@ const mockMenu: MenuItem[] = [
       name: 'Italiano Grande',
       price: 6000,
       category: 'Completos As',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta', 'con americana', 'con chucrut', 'con palta'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
       modificationPrices: { 'Agregado Queso': 1000 },
       ingredients: ['Palta', 'Tomate']
     },
@@ -249,7 +249,7 @@ const mockMenu: MenuItem[] = [
         name: 'Dinamico Normal',
         price: 6800,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta', 'con americana', 'con chucrut', 'con palta'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana']
     },
@@ -258,7 +258,7 @@ const mockMenu: MenuItem[] = [
         name: 'Dinamico Grande',
         price: 7300,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta', 'con americana', 'con chucrut', 'con palta'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
          ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana']
     },
@@ -267,7 +267,7 @@ const mockMenu: MenuItem[] = [
         name: 'Chacarero Normal',
         price: 6700,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño', 'con tomate', 'con aji oro', 'con poroto verde', 'con aji jalapeño'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño'],
         modificationPrices: { 'Agregado Queso': 1000 },
          ingredients: ['Tomate', 'Poroto Verde', 'Ají Oro', 'Ají Jalapeño']
     },
@@ -276,7 +276,7 @@ const mockMenu: MenuItem[] = [
         name: 'Chacarero Grande',
         price: 7200,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño', 'con tomate', 'con aji oro', 'con poroto verde', 'con aji jalapeño'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño'],
         modificationPrices: { 'Agregado Queso': 1000 },
          ingredients: ['Tomate', 'Poroto Verde', 'Ají Oro', 'Ají Jalapeño']
     },
@@ -285,7 +285,7 @@ const mockMenu: MenuItem[] = [
         name: 'Napolitano Normal',
         price: 6900,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin queso', 'sin tomate', 'sin oregano', 'sin aceituna', 'con queso', 'con tomate', 'con oregano', 'con aceituna'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin queso', 'sin tomate', 'sin oregano', 'sin aceituna'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Queso', 'Tomate', 'Orégano', 'Aceituna']
     },
@@ -294,7 +294,7 @@ const mockMenu: MenuItem[] = [
         name: 'Napolitano Grande',
         price: 7400,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin queso', 'sin tomate', 'sin oregano', 'sin aceituna', 'con queso', 'con tomate', 'con oregano', 'con aceituna'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin queso', 'sin tomate', 'sin oregano', 'sin aceituna'],
         modificationPrices: { 'Agregado Queso': 1000 },
          ingredients: ['Queso', 'Tomate', 'Orégano', 'Aceituna']
     },
@@ -304,7 +304,7 @@ const mockMenu: MenuItem[] = [
     { id: 104, name: 'Italiana', price: 9500, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Palta', 'Tomate'] },
     { id: 105, name: 'Brasileño', price: 9200, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'cebolla caramelizada', 'papas hilo'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Queso Amarillo', 'Papas Hilo', 'Aceituna'] },
     { id: 106, name: 'Chacarero', price: 9800, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Poroto Verde', 'Ají Oro', 'Aceituna', 'Bebida Lata', 'Papa Personal'] },
-    { id: 107, name: 'Americana', price: 8900, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'Queso Cheddar', 'Salsa Cheddar', 'Tocino', 'Cebolla Caramelizada', 'Aceituna'] },
+    { id: 107, name: 'Americana', price: 8900, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'Queso Cheddar', 'Salsa Cheddar', 'Tocino', 'Cebolla Caramelizada', 'Aceituna', 'bebida lata', 'papa personal'] },
     { id: 108, name: 'Primavera', price: 9000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Palta', 'Choclo', 'Tomate'] },
     { id: 109, name: 'Golosasa', price: 10500, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne Fajita', 'Queso', 'Champiñones', 'Papas Hilo', 'Pimentón'] },
     { id: 110, name: '4 Ingredientes', price: 11000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'Bebida Lata', 'Papa Personal'] },
@@ -677,21 +677,67 @@ const updateGlobalMenu = (newMenu: MenuItem[]) => {
 // Component to display and manage products (used in both /products and table detail page)
 // This component is now self-contained for the products page,
 // and a simplified version will be used for the table detail page's menu sheet.
-const ProductsPage = ({ onProductSelect }: {
-  onProductSelect?: (product: MenuItem) => void;
+const ProductsPage = ({ onProductSelect, onEditProduct, onAddProduct }: {
+  onProductSelect?: (product: MenuItem) => void; // Optional: if used for selection
+  onEditProduct?: (product: MenuItem) => void; // Optional: if editing is handled by parent
+  onAddProduct?: (product: Omit<MenuItem, 'id'>) => void; // Optional: if adding is handled by parent
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [menu, setMenu] = useState<MenuItem[]>(globalMenu); // Local state for display
+  const [menu, setMenu] = useState<MenuItem[]>(globalMenu); // Local state for display, initialized from global
+  const [isEditPriceDialogOpen, setIsEditPriceDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<MenuItem | null>(null);
+  const [newPrice, setNewPrice] = useState('');
+  const { toast } = useToast();
 
+  // Sync local menu with global changes (e.g., if another component updates it)
   useEffect(() => {
-    setMenu(globalMenu); // Sync with global on mount or global changes
-  }, []); // Re-sync if globalMenu changes externally (though not directly done in this app structure)
+    setMenu(globalMenu);
+  }, []); // Removed globalMenu from dependency array as it causes infinite loop with current setup
+
 
   const filteredProducts = menu.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const openEditPriceDialog = (product: MenuItem) => {
+    setEditingProduct(product);
+    setNewPrice(product.price.toString());
+    setIsEditPriceDialogOpen(true);
+  };
+
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewPrice(e.target.value);
+  };
+
+  const handleUpdatePrice = () => {
+    if (!editingProduct || newPrice === '') {
+      toast({ title: "Error", description: "Debe ingresar un precio.", variant: "destructive"});
+      return;
+    }
+    const priceValue = parseInt(newPrice, 10);
+    if (isNaN(priceValue) || priceValue < 0) {
+      toast({ title: "Error", description: "El precio debe ser un número válido y no negativo.", variant: "destructive"});
+      return;
+    }
+
+    const updatedMenu = menu.map(item =>
+      item.id === editingProduct.id ? { ...item, price: priceValue } : item
+    );
+    setMenu(sortMenu(updatedMenu)); // Update local state first for immediate UI feedback
+    updateGlobalMenu(updatedMenu); // Update global state
+
+    if (onEditProduct) {
+        onEditProduct({ ...editingProduct, price: priceValue });
+    }
+    const toastDescription = `El precio de ${editingProduct.name} se actualizó a ${globalFormatCurrency(priceValue)}.`;
+    toast({ title: "Precio Actualizado", description: toastDescription});
+    setIsEditPriceDialogOpen(false);
+    setEditingProduct(null);
+    setNewPrice('');
+  };
+
+  // Group products by category for accordion display
   const groupedMenu = useMemo(() => {
     const groups: { [key: string]: MenuItem[] } = {};
     filteredProducts.forEach(item => {
@@ -754,6 +800,40 @@ const ProductsPage = ({ onProductSelect }: {
           </AccordionItem>
         ))}
       </Accordion>
+       {/* Edit Price Dialog */}
+       <ShadDialog open={isEditPriceDialogOpen} onOpenChange={setIsEditPriceDialogOpen}>
+         <ShadDialogContent className="sm:max-w-[425px]">
+           <ShadDialogHeader>
+             <ShadDialogTitle>Editar Precio de {editingProduct?.name}</ShadDialogTitle>
+             <ShadDialogDescription>
+                 Actualice el precio base para este producto.
+             </ShadDialogDescription>
+           </ShadDialogHeader>
+           <div className="grid gap-4 py-4">
+             <div className="grid grid-cols-4 items-center gap-4">
+                 <Label htmlFor="price" className="text-right">
+                     Nuevo Precio (CLP)
+                 </Label>
+                 <Input
+                     id="price"
+                     type="number"
+                     value={newPrice}
+                     onChange={handlePriceChange}
+                     className="col-span-3"
+                     required
+                     min="0"
+                     step="1"
+                 />
+             </div>
+           </div>
+           <ShadDialogFooter>
+             <ShadDialogClose asChild>
+                 <Button type="button" variant="secondary" onClick={() => setIsEditPriceDialogOpen(false)}>Cancelar</Button>
+             </ShadDialogClose>
+             <Button type="submit" onClick={handleUpdatePrice}>Guardar Cambios</Button>
+           </ShadDialogFooter>
+         </ShadDialogContent>
+       </ShadDialog>
     </>
 );
 };
@@ -1005,15 +1085,17 @@ export default function TableDetailPage() {
                 itemsToDeduct.push({ name: 'Pan especial grande', quantity: 1 * orderItem.quantity });
             }
         } else if (orderItem.category === 'Churrascos' || orderItem.category === 'Promo Churrasco' || orderItem.category === 'Promo Mechada') {
-             itemsToDeduct.push({ name: 'Pan de marraqueta', quantity: (orderItem.category === 'Promo Churrasco' || orderItem.category === 'Promo Mechada' ? 1 : 1) * orderItem.quantity }); // Changed from 2 to 1 for promos
+            const quantityPerItem = (orderItem.category === 'Promo Churrasco' || orderItem.category === 'Promo Mechada') && !orderItem.name.toLowerCase().includes("2x") ? 1 : 1; // Default to 1 unless specific logic for "2x" is needed elsewhere
+            itemsToDeduct.push({ name: 'Pan de marraqueta', quantity: quantityPerItem * orderItem.quantity });
         } else if (orderItem.category === 'Hamburguesas') {
              if (orderItem.name.includes('Simple') || orderItem.name.includes('Italiana') || orderItem.name.includes('Tapa Arteria') || orderItem.name.includes('Big Cami')) {
                 itemsToDeduct.push({ name: 'Pan de hamburguesa normal', quantity: 1 * orderItem.quantity });
             } else if (orderItem.name.includes('Doble') || orderItem.name.includes('Super')) { // Assuming 'Super' implies larger or double
                 itemsToDeduct.push({ name: 'Pan de hamburguesa grande', quantity: 1 * orderItem.quantity });
             }
+        } else if (orderItem.category === 'Fajitas') {
+            // Add specific deductions for Fajitas if needed, e.g., a 'Tortilla' item
         }
-        // TODO: Add deductions for Fajitas if specific bread/tortilla item exists
 
         // Specific item deductions
         if (orderItem.name === 'Bebida 1.5Lt') itemsToDeduct.push({ name: 'Bebida 1.5Lt', quantity: 1 * orderItem.quantity });
