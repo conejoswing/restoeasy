@@ -400,7 +400,7 @@ const mockMenu: MenuItem[] = [
         category: 'Churrascos',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-         ingredients: ['Tomate', 'Lechuga', 'Bebida Lata', 'Papa Personal']
+         ingredients: ['Tomate', 'Lechuga']
     },
     {
         id: 57,
@@ -871,5 +871,6 @@ export default function TableDetailPage({}: TableDetailPageProps) {
   );
 }
 */
+
 
 
