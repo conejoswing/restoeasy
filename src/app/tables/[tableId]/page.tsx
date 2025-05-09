@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -290,15 +291,15 @@ const mockMenu: MenuItem[] = [
     },
     { id: 51, name: 'Queso Champiñon Normal', price: 7000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Sin Queso', 'Sin Champiñon', 'Sin Tocino'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Champiñon', 'Tocino'] },
     { id: 52, name: 'Queso Champiñon Grande', price: 7500, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Sin Queso', 'Sin Champiñon', 'Sin Tocino'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Champiñon', 'Tocino'] },
-    // --- Fajitas ---
-    { id: 104, name: 'Italiana', price: 9500, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'palta', 'tomate', 'aceituna', 'bebida lata', 'papa personal'] },
-    { id: 105, name: 'Brasileño', price: 9200, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'cebolla caramelizada', 'papas hilo'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Queso Amarillo', 'Papas Hilo', 'Aceituna', 'bebida lata', 'papa personal'] },
-    { id: 106, name: 'Chacarero', price: 9800, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Poroto Verde', 'Ají Oro', 'Aceituna', 'Bebida Lata', 'Papa Personal'] },
-    { id: 107, name: 'Americana', price: 8900, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'Queso Cheddar', 'Salsa Cheddar', 'Tocino', 'Cebolla Caramelizada', 'Aceituna', 'bebida lata', 'papa personal'] },
-    { id: 108, name: 'Primavera', price: 9000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'tomate', 'poroto verde', 'choclo', 'aceituna', 'bebida lata', 'papa personal'] },
-    { id: 109, name: 'Golosasa', price: 10500, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'tocino', 'champiñón', 'queso amarillo', 'choclo', 'cebolla', 'aceituna', 'papas hilo', 'bebida lata', 'papa personal'] },
-    { id: 110, name: '4 Ingredientes', price: 11000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'Bebida Lata', 'Papa Personal'] },
-    { id: 111, name: '6 Ingredientes', price: 12000, category: 'Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'Bebida Lata', 'Papa Personal'] },
+    // --- Promo Fajitas ---
+    { id: 104, name: 'Italiana', price: 9500, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'palta', 'tomate', 'aceituna', 'bebida lata', 'papa personal'] },
+    { id: 105, name: 'Brasileño', price: 9200, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'cebolla caramelizada', 'papas hilo'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Queso Amarillo', 'Papas Hilo', 'Aceituna', 'bebida lata', 'papa personal'] },
+    { id: 106, name: 'Chacarero', price: 9800, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Poroto Verde', 'Ají Oro', 'Aceituna', 'Bebida Lata', 'Papa Personal'] },
+    { id: 107, name: 'Americana', price: 8900, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'Queso Cheddar', 'Salsa Cheddar', 'Tocino', 'Cebolla Caramelizada', 'Aceituna', 'bebida lata', 'papa personal'] },
+    { id: 108, name: 'Primavera', price: 9000, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'tomate', 'poroto verde', 'choclo', 'aceituna', 'bebida lata', 'papa personal'] },
+    { id: 109, name: 'Golosasa', price: 10500, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'tocino', 'champiñón', 'queso amarillo', 'choclo', 'cebolla', 'aceituna', 'papas hilo', 'bebida lata', 'papa personal'] },
+    { id: 110, name: '4 Ingredientes', price: 11000, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'Bebida Lata', 'Papa Personal'] },
+    { id: 111, name: '6 Ingredientes', price: 12000, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'Bebida Lata', 'Papa Personal'] },
     // --- Promo Hamburguesas ---
     {
         id: 17,
@@ -619,14 +620,14 @@ const mockMenu: MenuItem[] = [
       category: 'Bebidas',
     },
      // --- Colaciones ---
-].filter(item => !(item.category === 'Fajitas' && [1, 2, 8].includes(item.id)));
+].filter(item => !(item.category === 'Promo Fajitas' && [1, 2, 8].includes(item.id)));
 
 
 const orderedCategories = [
   'Completos Vienesas',
   'Completos As',
-  'Fajitas',
-  'Promo Hamburguesas', // Changed from Hamburguesas
+  'Promo Fajitas',
+  'Promo Hamburguesas',
   'Churrascos',
   'Papas Fritas',
   'Promo Churrasco',
@@ -791,6 +792,7 @@ export default function TableDetailPage() {
 
 
   const isDelivery = tableIdParam === 'delivery';
+  const DELIVERY_INFO_STORAGE_KEY = 'deliveryInfo'; // Define for this component's scope
 
    // --- Effect to initialize state from sessionStorage ---
    useEffect(() => {
@@ -822,10 +824,10 @@ export default function TableDetailPage() {
 
     // Load delivery info (only for delivery table)
     if (isDelivery) {
-      const storedDeliveryInfo = sessionStorage.getItem(`${DELIVERY_INFO_STORAGE_KEY}-${tableIdParam}`);
-      if (storedDeliveryInfo) {
+      const storedDeliveryInfoForTable = sessionStorage.getItem(`${DELIVERY_INFO_STORAGE_KEY}-${tableIdParam}`);
+      if (storedDeliveryInfoForTable) {
         try {
-          setDeliveryInfo(JSON.parse(storedDeliveryInfo));
+          setDeliveryInfo(JSON.parse(storedDeliveryInfoForTable));
         } catch (e) { console.error("Error parsing delivery info from sessionStorage:", e); }
       } else {
         // If delivery and no info, open dialog
@@ -894,12 +896,21 @@ export default function TableDetailPage() {
         } else if (orderItem.category === 'Completos As') {
             if (orderItem.name.includes('Normal')) itemsToDeduct.push({ name: 'Pan especial normal', quantity: 1 * orderItem.quantity });
             if (orderItem.name.includes('Grande')) itemsToDeduct.push({ name: 'Pan especial grande', quantity: 1 * orderItem.quantity });
-        } else if (orderItem.category === 'Fajitas') {
+        } else if (orderItem.category === 'Promo Fajitas') {
             // For Fajitas, we might not deduct a specific "pan" but other ingredients.
             // This part needs specific mapping if certain Fajitas always use a specific bread/wrap type.
             // For now, let's assume no specific bread deduction unless mapped.
-        } else if (orderItem.category === 'Churrascos' || orderItem.category === 'Promo Churrasco' || orderItem.category === 'Promo Mechada') {
+        } else if (orderItem.category === 'Churrascos') {
             itemsToDeduct.push({ name: 'Pan de marraqueta', quantity: 1 * orderItem.quantity });
+        } else if (orderItem.category === 'Promo Churrasco') {
+             // For promo churrasco, if it's a "2x" deal or implies multiple units, adjust quantity.
+             // Assuming each "promo" item implies 2 units of bread for now.
+             // This needs to be more robust if "2x" is not consistently in the name.
+             const quantityMultiplier = orderItem.name.toLowerCase().startsWith('2x') ? 2 : 1;
+             itemsToDeduct.push({ name: 'Pan de marraqueta', quantity: quantityMultiplier * orderItem.quantity });
+        } else if (orderItem.category === 'Promo Mechada') {
+             const quantityMultiplier = orderItem.name.toLowerCase().startsWith('2x') ? 2 : 1;
+             itemsToDeduct.push({ name: 'Pan de marraqueta', quantity: quantityMultiplier * orderItem.quantity });
         }
          else if (orderItem.category === 'Promo Hamburguesas') {
            if (orderItem.name.includes('Simple') || orderItem.name.includes('Italiana') || orderItem.name.includes('Big Cami') || orderItem.name.includes('Tapa Arteria')) {
@@ -1201,7 +1212,7 @@ export default function TableDetailPage() {
   return (
     <div className="container mx-auto p-4 flex flex-col h-screen">
       <div className="flex items-center justify-between mb-6">
-         <Button variant="outline" onClick={handleGoBack}>
+         <Button variant="outline" onClick={handleGoBack} className="bg-secondary hover:bg-secondary/90 text-secondary-foreground">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Volver a Mesas
          </Button>
@@ -1214,7 +1225,7 @@ export default function TableDetailPage() {
              </Button>
            )}
         </h1>
-         <div style={{ width: '100px' }}></div> {/* Spacer to balance title */}
+         <div style={{ width: '150px' }}></div> {/* Spacer to balance title, adjusted width */}
       </div>
 
         {/* Delivery Info Display */}
@@ -1249,7 +1260,7 @@ export default function TableDetailPage() {
 
       <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-6 overflow-hidden">
         {/* Current Order Section */}
-        <Card className="flex flex-col">
+        <Card className="flex flex-col max-h-[calc(100vh-250px)]"> {/* Adjusted max-h */}
           <CardHeader>
             <CardTitle className="text-xl">Pedido Actual</CardTitle>
           </CardHeader>
@@ -1267,6 +1278,11 @@ export default function TableDetailPage() {
                           ({item.selectedModifications.join(', ')})
                         </p>
                       )}
+                       {item.ingredients && item.ingredients.length > 0 && (
+                            <p className="text-xs text-muted-foreground mt-0.5 italic">
+                                Ing: {item.ingredients.join(', ')}
+                            </p>
+                        )}
                     </div>
                     <div className="flex items-center gap-2">
                       <Button variant="ghost" size="icon" onClick={() => handleDecreaseQuantity(item.orderItemId)} className="h-7 w-7">
@@ -1286,10 +1302,10 @@ export default function TableDetailPage() {
             </CardContent>
           </ScrollArea>
           {currentOrder.length > 0 && <Separator />}
-          <CardFooter className="p-4 flex flex-col items-stretch gap-2">
+          <CardFooter className="p-4 flex flex-col items-stretch gap-2 mt-auto"> {/* Ensure footer is at bottom */}
             <div className="flex justify-between items-center text-lg font-semibold">
               <span className="font-bold">Total Actual:</span>
-              <span className="font-bold">{printUtilsFormatCurrency(currentOrderTotal)}</span>
+              <span className="font-bold">{globalFormatCurrency(currentOrderTotal)}</span>
             </div>
             <Button onClick={handlePrintKitchenOrder} className="w-full" disabled={currentOrder.length === 0}>
               <Printer className="mr-2 h-4 w-4" /> Imprimir Comanda
@@ -1299,7 +1315,7 @@ export default function TableDetailPage() {
 
 
         {/* Pending Orders Section */}
-        <Card className="flex flex-col">
+        <Card className="flex flex-col max-h-[calc(100vh-250px)]"> {/* Adjusted max-h */}
             <CardHeader>
                 <CardTitle className="text-xl">Pedidos Pendientes de Pago</CardTitle>
             </CardHeader>
@@ -1329,19 +1345,24 @@ export default function TableDetailPage() {
                                 {item.selectedModifications && item.selectedModifications.length > 0 && (
                                 <span className="text-xs text-muted-foreground ml-1 font-bold">({item.selectedModifications.join(', ')})</span>
                                 )}
+                                {item.ingredients && item.ingredients.length > 0 && (
+                                    <p className="text-xs text-muted-foreground mt-0.5 italic">
+                                        Ing: {item.ingredients.join(', ')}
+                                    </p>
+                                )}
                             </div>
-                            <span className="font-mono font-bold">{printUtilsFormatCurrency(item.finalPrice * item.quantity)}</span>
+                            <span className="font-mono font-bold">{globalFormatCurrency(item.finalPrice * item.quantity)}</span>
                             </div>
                         ))}
                         {isDelivery && group.deliveryInfo && group.deliveryInfo.deliveryFee > 0 && (
                              <div className="flex justify-between items-center pt-1 border-t border-dashed mt-1.5">
                                  <span className="font-bold">Costo Envío:</span>
-                                 <span className="font-mono font-bold">{printUtilsFormatCurrency(group.deliveryInfo.deliveryFee)}</span>
+                                 <span className="font-mono font-bold">{globalFormatCurrency(group.deliveryInfo.deliveryFee)}</span>
                              </div>
                          )}
                         <div className="flex justify-between items-center text-base font-bold pt-1.5 border-t">
                             <span>Total Pedido:</span>
-                            <span>{printUtilsFormatCurrency(calculatePendingOrderTotal(group))}</span>
+                            <span>{globalFormatCurrency(calculatePendingOrderTotal(group))}</span>
                         </div>
                         </CardContent>
                     </Card>
@@ -1386,3 +1407,4 @@ export default function TableDetailPage() {
     </div>
   );
 }
+

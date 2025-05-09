@@ -1,4 +1,5 @@
 
+
 import * as React from 'react';
 import {
   Dialog,
@@ -93,8 +94,8 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
         const chorrillanaMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Quitar Huevos', 'Agregado Huevos', 'Agregado Tocino', 'Agregado Cheddar'];
 
 
-        // Specific rule for "4 Ingredientes" and "6 Ingredientes" in Fajitas
-        if (item.category === 'Fajitas' && (item.name === '4 Ingredientes' || item.name === '6 Ingredientes')) {
+        // Specific rule for "4 Ingredientes" and "6 Ingredientes" in Promo Fajitas
+        if (item.category === 'Promo Fajitas' && (item.name === '4 Ingredientes' || item.name === '6 Ingredientes')) {
             return [...standardMods, ...fajitaChoiceMods].includes(mod);
         }
 
@@ -138,11 +139,11 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
            return standardMods.includes(mod);
         }
          // Standard mods for most other categories that allow them
-        else if (['Completos As', 'Fajitas', 'Promo Churrasco', 'Promo Mechada', 'Promociones'].includes(item.category)) {
+        else if (['Completos As', 'Promo Fajitas', 'Promo Churrasco', 'Promo Mechada', 'Promociones'].includes(item.category)) {
             return standardMods.includes(mod);
         }
          // Specific empty mods for Hamburguesas and Churrascos (as per previous requests to remove specific ingredients from mods)
-        else if (['Hamburguesas', 'Churrascos'].includes(item.category)) {
+        else if (['Promo Hamburguesas', 'Churrascos'].includes(item.category)) {
             // For these categories, only standard mayo/cheese mods apply based on current logic
             return standardMods.includes(mod);
         }
@@ -224,3 +225,4 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
 };
 
 export default ModificationDialog;
+
