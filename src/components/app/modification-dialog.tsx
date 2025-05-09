@@ -90,6 +90,7 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
         const promoChacareroMods = ['con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verde', 'con aji jalapeño', 'sin aji jalapeño'];
         const promoMechadaDinamicoOptions = ['con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta', 'Papa Personal'];
         const fajitaChoiceMods = ['tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'];
+        const chorrillanaMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Quitar Huevos', 'Agregado Huevos', 'Agregado Tocino', 'Agregado Cheddar'];
 
 
         // Specific rule for "4 Ingredientes" and "6 Ingredientes" in Fajitas
@@ -146,11 +147,19 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
             return standardMods.includes(mod);
         }
 
+        // Specific modifications for Chorrillana 2 and Chorrillana 4
+        if (item.category === 'Papas Fritas' && (item.name === 'Chorrillana 2' || item.name === 'Chorrillana 4')) {
+            return chorrillanaMods.includes(mod);
+        }
 
-        // Categories without modifications
-        if (['Papas Fritas', 'Bebidas', 'Colaciones'].includes(item.category)) {
+        // Categories without modifications (unless specifically handled above, like Chorrillanas)
+        if (item.category === 'Papas Fritas' && !['Chorrillana 2', 'Chorrillana 4'].includes(item.name)) {
             return false;
         }
+        if (['Bebidas', 'Colaciones'].includes(item.category)) {
+            return false;
+        }
+
 
         return true; // Include by default if not explicitly excluded
   }) ?? [];
@@ -215,5 +224,3 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
 };
 
 export default ModificationDialog;
-
-    
