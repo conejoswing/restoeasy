@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -16,13 +17,13 @@ import { Badge } from '@/components/ui/badge'; // Import Badge
 import { Button } from '@/components/ui/button'; // Import Button
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogClose,
 } from '@/components/ui/dialog'; // Import Dialog components
 import { Label } from '@/components/ui/label'; // Import Label
 import { useState, useEffect, useMemo } from 'react';
@@ -372,7 +373,7 @@ const mockMenu: MenuItem[] = [
         category: 'Churrascos',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-         ingredients: ['Queso', 'Bebida Lata', 'Papa Personal']
+         ingredients: ['Queso']
     },
     {
         id: 54,
@@ -381,7 +382,7 @@ const mockMenu: MenuItem[] = [
         category: 'Churrascos',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-         ingredients: ['Tomate', 'Bebida Lata', 'Papa Personal']
+         ingredients: ['Tomate']
     },
     {
         id: 55,
@@ -390,7 +391,7 @@ const mockMenu: MenuItem[] = [
         category: 'Churrascos',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-         ingredients: ['Palta', 'Bebida Lata', 'Papa Personal']
+         ingredients: ['Palta']
     },
     {
         id: 56,
@@ -417,7 +418,7 @@ const mockMenu: MenuItem[] = [
         category: 'Churrascos',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-         ingredients: ['Queso', 'Tomate', 'Orégano', 'Aceituna', 'Bebida Lata', 'Papa Personal']
+         ingredients: ['Queso', 'Tomate', 'Orégano', 'Aceituna']
     },
     {
         id: 59,
@@ -435,7 +436,7 @@ const mockMenu: MenuItem[] = [
         category: 'Churrascos',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-         ingredients: ['Queso Champiñón', 'Tocino', 'Bebida Lata', 'Papa Personal']
+         ingredients: ['Queso Champiñón', 'Tocino']
     },
     // --- Papas Fritas --- (No modifications)
     {
@@ -870,3 +871,4 @@ export default function TableDetailPage({}: TableDetailPageProps) {
   );
 }
 */
+

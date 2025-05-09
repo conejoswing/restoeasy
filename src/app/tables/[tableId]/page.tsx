@@ -401,7 +401,7 @@ const mockMenu: MenuItem[] = [
         category: 'Churrascos',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-         ingredients: ['Queso', 'Bebida Lata', 'Papa Personal']
+         ingredients: ['Queso']
     },
     {
         id: 54,
@@ -410,7 +410,7 @@ const mockMenu: MenuItem[] = [
         category: 'Churrascos',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-         ingredients: ['Tomate', 'Bebida Lata', 'Papa Personal']
+         ingredients: ['Tomate']
     },
     {
         id: 55,
@@ -419,7 +419,7 @@ const mockMenu: MenuItem[] = [
         category: 'Churrascos',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-         ingredients: ['Palta', 'Bebida Lata', 'Papa Personal']
+         ingredients: ['Palta']
     },
     {
         id: 56,
@@ -446,7 +446,7 @@ const mockMenu: MenuItem[] = [
         category: 'Churrascos',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-         ingredients: ['Queso', 'Tomate', 'Orégano', 'Aceituna', 'Bebida Lata', 'Papa Personal']
+         ingredients: ['Queso', 'Tomate', 'Orégano', 'Aceituna']
     },
     {
         id: 59,
@@ -464,7 +464,7 @@ const mockMenu: MenuItem[] = [
         category: 'Churrascos',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-         ingredients: ['Queso Champiñón', 'Tocino', 'Bebida Lata', 'Papa Personal']
+         ingredients: ['Queso Champiñón', 'Tocino']
     },
     // --- Papas Fritas --- (No modifications)
     {
@@ -1352,7 +1352,7 @@ export default function TableDetailPage() {
           <ScrollArea className="flex-grow">
             <CardContent className="pr-2"> {/* Add padding to right of content for scrollbar */}
                 {currentOrder.length === 0 ? (
-                <p className="text-muted-foreground">Aún no se han añadido artículos al pedido actual.</p>
+                <p className="text-muted-foreground font-bold">Aún no se han añadido artículos al pedido actual.</p>
                 ) : (
                 <ul className="space-y-3">
                     {currentOrder.map((item) => (
@@ -1405,7 +1405,7 @@ export default function TableDetailPage() {
           <CardHeader>
             <CardTitle className="text-2xl">Pedidos Pendientes de Pago</CardTitle>
              {pendingOrderGroups.length > 0 && (
-                <CardDescription>
+                <CardDescription className="font-bold">
                     Total Pendiente General: {globalFormatCurrency(pendingOrderTotal)}
                 </CardDescription>
             )}
@@ -1413,7 +1413,7 @@ export default function TableDetailPage() {
           <ScrollArea className="flex-grow">
             <CardContent className="pr-2">
                 {pendingOrderGroups.length === 0 ? (
-                <p className="text-muted-foreground">No hay pedidos pendientes de pago.</p>
+                <p className="text-muted-foreground font-bold">No hay pedidos pendientes de pago.</p>
                 ) : (
                 <ul className="space-y-3">
                     {pendingOrderGroups.map((group) => {
@@ -1437,8 +1437,8 @@ export default function TableDetailPage() {
                             <ul className="space-y-1 text-sm font-bold">
                             {group.items.map((item) => (
                                 <li key={item.orderItemId} className="flex justify-between">
-                                <span>{item.quantity}x {item.name} {item.selectedModifications && item.selectedModifications.length > 0 ? <span className="text-muted-foreground">({item.selectedModifications.join(', ')})</span> : ''}</span>
-                                <span>{globalFormatCurrency(item.finalPrice * item.quantity)}</span>
+                                <span className="font-bold">{item.quantity}x {item.name} {item.selectedModifications && item.selectedModifications.length > 0 ? <span className="text-muted-foreground font-bold">({item.selectedModifications.join(', ')})</span> : ''}</span>
+                                <span className="font-bold">{globalFormatCurrency(item.finalPrice * item.quantity)}</span>
                                 </li>
                             ))}
                             </ul>
@@ -1454,8 +1454,8 @@ export default function TableDetailPage() {
              {/* Example: Total for all pending orders */}
              {pendingOrderGroups.length > 0 && (
                 <div className="flex justify-between items-center text-lg font-semibold">
-                    <span>Total Todos Pendientes:</span>
-                    <span>{globalFormatCurrency(pendingOrderTotal)}</span>
+                    <span className="font-bold">Total Todos Pendientes:</span>
+                    <span className="font-bold">{globalFormatCurrency(pendingOrderTotal)}</span>
                 </div>
              )}
            </CardFooter>
@@ -1498,3 +1498,4 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
