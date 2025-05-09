@@ -36,7 +36,7 @@ export const formatKitchenOrderReceipt = (
             ? `<br><small style="margin-left: 10px; font-weight: bold;">(${item.selectedModifications.join(', ')})</small>`
             : '';
         const ingredientsText = item.ingredients && item.ingredients.length > 0
-            ? `<br><small style="margin-left: 10px; color: #333; font-style: italic;">Ingredientes: ${item.ingredients.join(', ')}</small>`
+            ? `<br><small style="margin-left: 10px; color: #000; font-style: italic; font-weight: bold;">Ingredientes: ${item.ingredients.join(', ')}</small>`
             : '';
 
         itemsHtml += `
@@ -54,7 +54,7 @@ export const formatKitchenOrderReceipt = (
     let deliveryHtml = '';
     if (orderIdentifier.toLowerCase().startsWith('delivery') && deliveryInfo) {
         deliveryHtml = `
-        <div style="margin-top: 15px; border-top: 1px dashed #000; padding-top: 10px;">
+        <div style="margin-top: 15px; border-top: 1px dashed #000; padding-top: 10px; font-weight: bold;">
             <strong>Enviar a:</strong><br>
             ${deliveryInfo.name}<br>
             ${deliveryInfo.address}<br>
@@ -75,6 +75,7 @@ export const formatKitchenOrderReceipt = (
           width: 70mm;
           color: #000;
           background-color: #fff;
+          font-weight: bold; /* Make all text bold */
         }
         h1 {
             font-size: 14pt;
@@ -109,8 +110,8 @@ export const formatKitchenOrderReceipt = (
             border-top: 1px dashed #000;
             margin: 10px 0;
         }
-        strong { font-weight: bold; }
-        small { font-size: 8pt; }
+        strong { font-weight: bold; } /* Already bold, but good to keep */
+        small { font-size: 8pt; font-weight: bold; } /* Ensure small is also bold */
       </style>
     </head>
     <body>
@@ -123,7 +124,7 @@ export const formatKitchenOrderReceipt = (
       <div class="items-section">
         <table>
          <thead>
-            <tr><th colspan="2">Productos:</th></tr>
+            <tr><th colspan="2" style="font-weight: bold;">Productos:</th></tr>
          </thead>
           <tbody>
             ${itemsHtml}
@@ -200,20 +201,26 @@ export const formatCustomerReceipt = (
       <title>${title}</title>
       <style>
          @page { margin: 5mm; }
-         body { font-family: 'Courier New', Courier, monospace; font-size: 10pt; width: 70mm; color: #000; background-color: #fff; }
-         h1, h2 { text-align: center; margin: 5px 0; }
+         body { 
+            font-family: 'Courier New', Courier, monospace; 
+            font-size: 10pt; width: 70mm; 
+            color: #000; 
+            background-color: #fff; 
+            font-weight: bold; /* Make all text bold */
+         }
+         h1, h2 { text-align: center; margin: 5px 0; font-weight: bold; }
          h1 { font-size: 14pt; }
          h2 { font-size: 12pt; }
          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
-         th, td { padding: 3px 0; }
+         th, td { padding: 3px 0; font-weight: bold; } /* Ensure th and td are bold */
          th { text-align: left; border-bottom: 1px solid #000; font-weight: bold;}
-         .header-info, .footer-info { text-align: center; margin-bottom: 10px; font-size: 9pt; }
+         .header-info, .footer-info { text-align: center; margin-bottom: 10px; font-size: 9pt; font-weight: bold; }
          .total-section { margin-top: 10px; padding-top: 5px; border-top: 1px solid #000; }
          .total-row td { font-weight: bold; }
          hr { border: none; border-top: 1px dashed #000; margin: 10px 0; }
-         strong { font-weight: bold; }
-         small { font-size: 8pt; }
-         .right { text-align: right; }
+         strong { font-weight: bold; } /* Already bold */
+         small { font-size: 8pt; font-weight: bold; } /* Ensure small is bold */
+         .right { text-align: right; font-weight: bold; }
       </style>
     </head>
     <body>
@@ -245,7 +252,7 @@ export const formatCustomerReceipt = (
               <td style="text-align: right;">${formatCurrency(totalAmount)}</td>
             </tr>
              <tr>
-               <td colspan="3" style="padding-top: 5px;">Método Pago: ${paymentMethod}</td>
+               <td colspan="3" style="padding-top: 5px; font-weight: bold;">Método Pago: ${paymentMethod}</td>
              </tr>
           </tbody>
         </table>
@@ -285,16 +292,22 @@ export const formatCashClosingReceipt = (
       <title>Cierre de Caja</title>
        <style>
          @page { margin: 5mm; }
-         body { font-family: 'Courier New', Courier, monospace; font-size: 10pt; width: 70mm; color: #000; background-color: #fff; }
-         h1 { font-size: 14pt; text-align: center; margin-bottom: 5px; }
-         .date { text-align: center; font-size: 9pt; margin-bottom: 15px; }
+         body { 
+            font-family: 'Courier New', Courier, monospace; 
+            font-size: 10pt; width: 70mm; 
+            color: #000; 
+            background-color: #fff; 
+            font-weight: bold; /* Make all text bold */
+        }
+         h1 { font-size: 14pt; text-align: center; margin-bottom: 5px; font-weight: bold; }
+         .date { text-align: center; font-size: 9pt; margin-bottom: 15px; font-weight: bold; }
          table { width: 100%; border-collapse: collapse; }
-         td { padding: 3px 0; }
-         .label { padding-right: 10px; }
-         .amount { text-align: right; }
+         td { padding: 3px 0; font-weight: bold; } /* Ensure td is bold */
+         .label { padding-right: 10px; font-weight: bold;}
+         .amount { text-align: right; font-weight: bold;}
          .total-row td { font-weight: bold; border-top: 1px solid #000; padding-top: 5px; }
          hr { border: none; border-top: 1px dashed #000; margin: 10px 0; }
-         strong { font-weight: bold; }
+         strong { font-weight: bold; } /* Already bold */
       </style>
     </head>
     <body>
