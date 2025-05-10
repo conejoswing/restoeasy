@@ -10,7 +10,7 @@ import {cn} from '@/lib/utils';
 import { Store, Truck, Utensils, LogOut } from 'lucide-react'; // Added LogOut, corrected Store icon
 import { useAuth } from '@/context/AuthContext'; // Import useAuth
 import { useRouter } from 'next/navigation'; // Import useRouter
-
+import type { DeliveryInfo } from '@/components/app/delivery-dialog'; // For checking delivery info type
 
 interface Table {
   id: number | string; // Allow string IDs for Meson and Delivery
@@ -31,7 +31,13 @@ const specialTables: Table[] = [
 ];
 
 const initialTables: Table[] = [...numberedTables, ...specialTables];
-const DELIVERY_INFO_STORAGE_KEY = 'deliveryInfo'; // Add storage key constant
+const PENDING_ORDERS_STORAGE_KEY_PREFIX = 'table-'; // For current and pending orders
+const DELIVERY_INFO_STORAGE_KEY_PREFIX = 'deliveryInfo-'; // For delivery specific info
+
+// Helper to check if a table ID corresponds to the delivery table
+const isDeliveryTable = (id: string | number): boolean => {
+  return String(id).toLowerCase() === 'delivery';
+};
 
 
 export default function TablesPage() {
@@ -42,91 +48,76 @@ export default function TablesPage() {
 
   /**
    * useEffect hook to initialize table status from sessionStorage on component mount.
-   * It checks for existing order, pending order, and delivery info for each table
-   * to determine if the table should be marked as 'occupied'.
+   * It first checks for an explicitly set status (e.g., 'occupied' or 'available').
+   * If not found, it falls back to checking for existing current order, pending orders,
+   * or delivery info for the 'delivery' table to determine occupancy.
    */
   useEffect(() => {
-    // Ensure this effect runs only once after the initial render
     if (isInitialized) return;
-
     console.log("TablesPage: Initializing table statuses from sessionStorage...");
 
     const updatedTables = initialTables.map(table => {
-      const orderKey = `table-${table.id}-order`;
-      const pendingOrderKey = `table-${table.id}-pending-order`;
-      const deliveryInfoKey = `${DELIVERY_INFO_STORAGE_KEY}-${table.id}`;
+      // Try to get the explicitly set status first
+      const explicitStatus = sessionStorage.getItem(`table-${table.id}-status`) as 'available' | 'occupied' | null;
 
-      const storedOrder = sessionStorage.getItem(orderKey);
-      const storedPendingOrder = sessionStorage.getItem(pendingOrderKey);
-      const storedDeliveryInfo = table.id === 'delivery' ? sessionStorage.getItem(deliveryInfoKey) : null;
+      if (explicitStatus === 'occupied' || explicitStatus === 'available') {
+        console.log(`TablesPage: Using explicit status for ${table.id}: ${explicitStatus}`);
+        return { ...table, status: explicitStatus };
+      }
+
+      // Fallback logic if no explicit status is found
+      console.log(`TablesPage: No explicit status for ${table.id}, using fallback logic.`);
+      const currentOrderKey = `${PENDING_ORDERS_STORAGE_KEY_PREFIX}${table.id}-currentOrder`;
+      const pendingOrdersKey = `${PENDING_ORDERS_STORAGE_KEY_PREFIX}${table.id}-pendingOrders`;
+      const deliveryInfoKey = isDeliveryTable(table.id) ? `${DELIVERY_INFO_STORAGE_KEY_PREFIX}${table.id}` : null;
+
+      const storedCurrentOrder = sessionStorage.getItem(currentOrderKey);
+      const storedPendingOrdersData = sessionStorage.getItem(pendingOrdersKey);
 
       let isOccupied = false;
-      let determinedStatus: 'available' | 'occupied' = 'available'; // Use a different name
 
       try {
-        // Check if there's a valid current order
-        const parsedOrder = storedOrder ? JSON.parse(storedOrder) : null;
-        if (Array.isArray(parsedOrder) && parsedOrder.length > 0) {
+        const parsedCurrentOrder = storedCurrentOrder ? JSON.parse(storedCurrentOrder) : null;
+        if (Array.isArray(parsedCurrentOrder) && parsedCurrentOrder.length > 0) {
           isOccupied = true;
         }
 
-        // Check if there's a valid pending order
-        const parsedPendingOrder = storedPendingOrder ? JSON.parse(storedPendingOrder) : null;
-        if (Array.isArray(parsedPendingOrder) && parsedPendingOrder.length > 0) {
-          isOccupied = true;
+        if (storedPendingOrdersData) {
+            const parsedPending = JSON.parse(storedPendingOrdersData);
+            const groups = Array.isArray(parsedPending) ? parsedPending : (parsedPending?.groups || []);
+            if (groups.length > 0) {
+                isOccupied = true;
+            }
         }
 
-        // Check for delivery info specifically for the delivery table
-        if (table.id === 'delivery' && storedDeliveryInfo) {
-            const parsedDeliveryInfo = JSON.parse(storedDeliveryInfo);
-             if (parsedDeliveryInfo) { // Simply check for existence after parsing
-               isOccupied = true;
-             }
+        if (deliveryInfoKey) {
+            const storedDeliveryInfo = sessionStorage.getItem(deliveryInfoKey);
+            if (storedDeliveryInfo) {
+                const parsedDeliveryInfo = JSON.parse(storedDeliveryInfo) as DeliveryInfo | null;
+                 if (parsedDeliveryInfo && (parsedDeliveryInfo.name || parsedDeliveryInfo.address || parsedDeliveryInfo.phone || parsedDeliveryInfo.deliveryFee > 0)) {
+                     // For delivery, having any delivery info means it's "in use"
+                     isOccupied = true;
+                 }
+            }
         }
 
-        determinedStatus = isOccupied ? 'occupied' : 'available'; // Set status based on checks
-
-        // Update session storage status first, regardless of clearing
-         const storedStatus = sessionStorage.getItem(`table-${table.id}-status`);
-         if (storedStatus !== determinedStatus) {
-            console.log(`TablesPage: Initializing/Updating status for ${table.id} from ${storedStatus || 'none'} to ${determinedStatus}`);
-            sessionStorage.setItem(`table-${table.id}-status`, determinedStatus);
-         } else {
-              console.log(`TablesPage: Status for ${table.id} is already ${storedStatus}`);
-         }
-
-        // Now clear outdated items ONLY if the determined status is 'available'
-        if (determinedStatus === 'available') {
-            if (storedOrder) sessionStorage.removeItem(orderKey);
-            if (storedPendingOrder) sessionStorage.removeItem(pendingOrderKey);
-            if (table.id === 'delivery' && storedDeliveryInfo) sessionStorage.removeItem(deliveryInfoKey);
-            console.log(`TablesPage: Cleared stored orders/info for available table ${table.id}`);
-        } else {
-            console.log(`TablesPage: Table ${table.id} determined as occupied.`);
-        }
-
-        return { ...table, status: determinedStatus }; // Return the updated table object
+        const determinedStatus: 'available' | 'occupied' = isOccupied ? 'occupied' : 'available';
+        // Save the determined status so it becomes the explicit status for next time
+        sessionStorage.setItem(`table-${table.id}-status`, determinedStatus);
+        console.log(`TablesPage: Fallback determined status for ${table.id}: ${determinedStatus} and saved it.`);
+        return { ...table, status: determinedStatus };
 
       } catch (e) {
-        console.error(`TablesPage: Error processing stored data for ${table.id}:`, e);
-        // Clear potentially corrupted data if parsing fails
-        sessionStorage.removeItem(orderKey);
-        sessionStorage.removeItem(pendingOrderKey);
-        if (table.id === 'delivery') sessionStorage.removeItem(deliveryInfoKey);
-
-        // Default to available and update storage if there's an error parsing
-        determinedStatus = 'available';
-        sessionStorage.setItem(`table-${table.id}-status`, determinedStatus);
-
-        return { ...table, status: determinedStatus }; // Return the updated table object
+        console.error(`TablesPage: Error processing stored data for ${table.id} during fallback:`, e);
+        sessionStorage.setItem(`table-${table.id}-status`, 'available'); // Default to available on error
+        return { ...table, status: 'available' };
       }
-    }); // End of .map() callback
+    });
 
     setTables(updatedTables);
-    setIsInitialized(true); // Mark as initialized
+    setIsInitialized(true);
     console.log("TablesPage: Initialization complete.");
-
-  }, [isInitialized]); // Run only once after initial render
+  }, [isInitialized]);
 
 
   /**
@@ -135,7 +126,7 @@ export default function TablesPage() {
    * @returns The LucideReact icon component.
    */
   const getIcon = (tableId: number | string) => {
-      if (tableId === 'mesón') return <Store className="h-6 w-6 mb-1 mx-auto text-foreground"/>; // Use Mesón
+      if (tableId === 'mesón') return <Store className="h-6 w-6 mb-1 mx-auto text-foreground"/>;
       if (tableId === 'delivery') return <Truck className="h-6 w-6 mb-1 mx-auto text-foreground"/>;
       // Default icon for regular tables
       return <Utensils className="h-6 w-6 mb-1 mx-auto text-foreground"/>;
@@ -208,3 +199,4 @@ export default function TablesPage() {
     </div>
   );
 }
+
