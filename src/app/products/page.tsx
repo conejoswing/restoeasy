@@ -16,38 +16,19 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
-  Dialog,
   DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { useState, useEffect, useMemo } from 'react';
 import { Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { ScrollArea } from "@/components/ui/scroll-area";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { cn } from "@/lib/utils";
-import { useParams, useRouter } from 'next/navigation';
-import { Dialog as ShadDialog, DialogClose as ShadDialogClose, DialogContent as ShadDialogContent, DialogDescription as ShadDialogDescription, DialogFooter as ShadDialogFooter, DialogHeader as ShadDialogHeader, DialogTitle as ShadDialogTitle, DialogTrigger as ShadDialogTrigger } from '@/components/ui/dialog';
+import { Dialog as ShadDialog } from '@/components/ui/dialog'; // Renamed to avoid conflict
 import { formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
-import { PlusCircle, XCircle, Printer, ArrowLeft, CreditCard, PackageSearch, Trash2, MinusCircle } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import type { OrderItem, PaymentMethod, DeliveryInfo } from '@/app/tables/[tableId]/page';
-import type { CashMovement } from '@/app/expenses/page';
-import type { InventoryItem } from '@/app/inventory/page';
-import ModificationDialog from '@/components/app/modification-dialog';
-import PaymentDialog from '@/components/app/payment-dialog';
 
 
 interface MenuItem {
@@ -59,6 +40,8 @@ interface MenuItem {
   modificationPrices?: { [key: string]: number };
   ingredients?: string[];
 }
+
+const MENU_STORAGE_KEY = 'restaurantMenuData';
 
 const mockMenu: MenuItem[] = [
     // --- Completos Vienesas ---
@@ -265,7 +248,7 @@ const mockMenu: MenuItem[] = [
     { id: 52, name: 'Queso Champiñon Grande', price: 7500, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Sin Queso', 'Sin Champiñon', 'Sin Tocino'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Champiñon', 'Tocino'] },
     // --- Promo Fajitas ---
     { id: 104, name: 'Italiana', price: 9500, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'palta', 'tomate', 'aceituna', 'bebida lata', 'papa personal'] },
-    { id: 105, name: 'Brasileño', price: 9200, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'cebolla caramelizada', 'papas hilo'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Queso Amarillo', 'Papas Hilo', 'Aceituna', 'bebida lata', 'papa personal'] },
+    { id: 105, name: 'Brasileño', price: 9200, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Queso Amarillo', 'Papas Hilo', 'Aceituna', 'bebida lata', 'papa personal'] },
     { id: 106, name: 'Chacarero', price: 9800, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Poroto Verde', 'Ají Oro', 'Aceituna', 'Bebida Lata', 'Papa Personal'] },
     { id: 107, name: 'Americana', price: 8900, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'Queso Cheddar', 'Salsa Cheddar', 'Tocino', 'Cebolla Caramelizada', 'Aceituna', 'bebida lata', 'papa personal'] },
     { id: 108, name: 'Primavera', price: 9000, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'tomate', 'poroto verde', 'choclo', 'aceituna', 'bebida lata', 'papa personal'] },
@@ -641,23 +624,45 @@ const sortMenu = (menu: MenuItem[]): MenuItem[] => {
   });
 };
 
-let globalMenu: MenuItem[] = sortMenu(mockMenu);
-
-const updateGlobalMenu = (newMenu: MenuItem[]) => {
-  globalMenu = sortMenu(newMenu);
+const getPersistedMenu = (): MenuItem[] => {
+  if (typeof window === 'undefined') {
+    return sortMenu(mockMenu); // SSR fallback
+  }
+  const storedMenuJson = localStorage.getItem(MENU_STORAGE_KEY);
+  if (storedMenuJson) {
+    try {
+      const parsedMenu = JSON.parse(storedMenuJson);
+      if (Array.isArray(parsedMenu) && parsedMenu.length > 0) {
+        return sortMenu(parsedMenu);
+      }
+    } catch (e) {
+      console.error("Failed to parse menu from localStorage:", e);
+    }
+  }
+  const initialSortedMenu = sortMenu(mockMenu);
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(initialSortedMenu));
+    } catch (e) {
+      console.error("Failed to save initial menu to localStorage:", e);
+    }
+  }
+  return initialSortedMenu;
 };
 
 
 const ProductsManagementPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [menu, setMenu] = useState<MenuItem[]>(globalMenu);
+  const [menu, setMenu] = useState<MenuItem[]>([]);
+  const [isMenuInitialized, setIsMenuInitialized] = useState(false);
   const [isEditPriceDialogOpen, setIsEditPriceDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<MenuItem | null>(null);
   const [newPrice, setNewPrice] = useState('');
   const { toast } = useToast();
 
   useEffect(() => {
-    setMenu(globalMenu);
+    setMenu(getPersistedMenu());
+    setIsMenuInitialized(true);
   }, []);
 
 
@@ -690,8 +695,18 @@ const ProductsManagementPage = () => {
     const updatedMenu = menu.map(item =>
       item.id === editingProduct.id ? { ...item, price: priceValue } : item
     );
-    setMenu(sortMenu(updatedMenu));
-    updateGlobalMenu(updatedMenu);
+    const sortedMenu = sortMenu(updatedMenu);
+
+    setMenu(sortedMenu);
+
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(sortedMenu));
+      } catch (e) {
+        console.error("Error saving menu to localStorage:", e);
+        toast({title: "Error", description: "No se pudo guardar el cambio de precio de forma persistente.", variant: "destructive"});
+      }
+    }
 
     const toastDescription = `El precio de ${editingProduct.name} se actualizó a ${printUtilsFormatCurrency(priceValue)}.`;
     toast({ title: "Precio Actualizado", description: toastDescription});
@@ -715,6 +730,10 @@ const ProductsManagementPage = () => {
       return acc;
     }, {} as { [key: string]: MenuItem[] });
   }, [filteredProducts]);
+
+  if (!isMenuInitialized) {
+    return <div className="flex items-center justify-center min-h-screen">Cargando productos...</div>;
+  }
 
 
   return (
@@ -775,13 +794,13 @@ const ProductsManagementPage = () => {
 
 
        <ShadDialog open={isEditPriceDialogOpen} onOpenChange={setIsEditPriceDialogOpen}>
-         <ShadDialogContent className="sm:max-w-[425px]">
-           <ShadDialogHeader>
-             <ShadDialogTitle>Editar Precio de {editingProduct?.name}</ShadDialogTitle>
-             <ShadDialogDescription>
+         <DialogContent className="sm:max-w-[425px]">
+           <DialogHeader>
+             <DialogTitle>Editar Precio de {editingProduct?.name}</DialogTitle>
+             <DialogDescription>
                  Actualice el precio base para este producto.
-             </ShadDialogDescription>
-           </ShadDialogHeader>
+             </DialogDescription>
+           </DialogHeader>
            <div className="grid gap-4 py-4">
              <div className="grid grid-cols-4 items-center gap-4">
                  <Label htmlFor="price" className="text-right">
@@ -799,13 +818,13 @@ const ProductsManagementPage = () => {
                  />
              </div>
            </div>
-           <ShadDialogFooter>
-             <ShadDialogClose asChild>
+           <DialogFooter>
+             <DialogClose asChild>
                  <Button type="button" variant="secondary" onClick={() => setIsEditPriceDialogOpen(false)}>Cancelar</Button>
-             </ShadDialogClose>
+             </DialogClose>
              <Button type="submit" onClick={handleUpdatePrice}>Guardar Cambios</Button>
-           </ShadDialogFooter>
-         </ShadDialogContent>
+           </DialogFooter>
+         </DialogContent>
        </ShadDialog>
     </div>
 );
@@ -822,4 +841,3 @@ const ProductsPageContent = () => {
 export default function ProductsPage() {
     return <ProductsPageContent />;
 }
-
