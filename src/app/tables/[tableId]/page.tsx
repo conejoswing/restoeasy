@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import * as React from 'react';
@@ -15,7 +13,7 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import {ScrollArea }from '@/components/ui/scroll-area';
-import {Separator}from '@/components/ui/separator';
+import {Separator }from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 // import { Checkbox } from '@/components/ui/checkbox'; // No longer directly used here, but in ModificationDialog
@@ -36,14 +34,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Utensils, PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard, ChevronRight, Banknote, Landmark, Home, Phone, User, DollarSign, PackageSearch, Edit, Trash2 } from 'lucide-react';
-import {useToast}from '@/hooks/use-toast';
+import {useToast }from '@/hooks/use-toast';
 import ModificationDialog from '@/components/app/modification-dialog';
 import PaymentDialog from '@/components/app/payment-dialog';
 import { isEqual } from 'lodash';
 import { cn } from '@/lib/utils';
 import type { CashMovement } from '@/app/expenses/page';
 import type { DeliveryInfo } from '@/components/app/delivery-dialog';
-import DeliveryDialog from '@/components/app/delivery-dialog';
+import DeliveryDialog from '@/components/app/delivery-dialog'; // Corrected import
 import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
 import { Dialog as ShadDialog, DialogClose as ShadDialogClose, DialogContent as ShadDialogContent, DialogDescription as ShadDialogDescription, DialogFooter as ShadDialogFooter, DialogHeader as ShadDialogHeader, DialogTitle as ShadDialogTitle, DialogTrigger as ShadDialogTrigger } from '@/components/ui/dialog';
@@ -106,7 +104,7 @@ const mockMenu: MenuItem[] = [
       name: 'Italiano Grande',
       price: 4500,
       category: 'Completos Vienesas',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'],
       modificationPrices: { 'Agregado Queso': 1000 },
       ingredients: ['Palta', 'Tomate']
     },
@@ -124,7 +122,7 @@ const mockMenu: MenuItem[] = [
         name: 'Hot Dog Grande',
         price: 4700,
         category: 'Completos Vienesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Salsas']
     },
@@ -142,7 +140,7 @@ const mockMenu: MenuItem[] = [
         name: 'Completo Grande',
         price: 4800,
         category: 'Completos Vienesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate', 'Chucrut', 'Americana']
     },
@@ -160,7 +158,7 @@ const mockMenu: MenuItem[] = [
         name: 'Palta Grande',
         price: 4600,
         category: 'Completos Vienesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Palta']
     },
@@ -178,7 +176,7 @@ const mockMenu: MenuItem[] = [
         name: 'Tomate Grande',
         price: 4600,
         category: 'Completos Vienesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate']
     },
@@ -196,7 +194,7 @@ const mockMenu: MenuItem[] = [
         name: 'Dinamico Grande',
         price: 4900,
         category: 'Completos Vienesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana']
     },
@@ -215,7 +213,7 @@ const mockMenu: MenuItem[] = [
       name: 'Italiano Grande',
       price: 6000,
       category: 'Completos As',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'],
       modificationPrices: { 'Agregado Queso': 1000 },
       ingredients: ['Palta', 'Tomate']
     },
@@ -228,11 +226,11 @@ const mockMenu: MenuItem[] = [
        modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate', 'Chucrut', 'Americana']
     },
-    { id: 36, name: 'Completo Grande', price: 7000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Chucrut', 'Americana'] },
-    { id: 37, name: 'Palta Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta'] },
-    { id: 38, name: 'Palta Grande', price: 6300, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta'] },
-    { id: 39, name: 'Tomate Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate'] },
-    { id: 40, name: 'Tomate Grande', price: 6300, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate'] },
+    { id: 36, name: 'Completo Grande', price: 7000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Chucrut', 'Americana'] },
+    { id: 37, name: 'Palta Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta'] },
+    { id: 38, name: 'Palta Grande', price: 6300, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta'] },
+    { id: 39, name: 'Tomate Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate'] },
+    { id: 40, name: 'Tomate Grande', price: 6300, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate'] },
     { id: 41, name: 'Queso Normal', price: 6000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso'] },
     { id: 42, name: 'Queso Grande', price: 6500, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso'] },
     { id: 43, name: 'Solo Carne Normal', price: 5000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: [] },
@@ -251,7 +249,7 @@ const mockMenu: MenuItem[] = [
         name: 'Dinamico Grande',
         price: 7300,
         category: 'Completos As',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
          ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana']
     },
@@ -294,12 +292,12 @@ const mockMenu: MenuItem[] = [
     { id: 51, name: 'Queso Champiñon Normal', price: 7000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Sin Queso', 'Sin Champiñon', 'Sin Tocino'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Champiñon', 'Tocino'] },
     { id: 52, name: 'Queso Champiñon Grande', price: 7500, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Sin Queso', 'Sin Champiñon', 'Sin Tocino'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Champiñon', 'Tocino'] },
     // --- Promo Fajitas ---
-    { id: 104, name: 'Italiana', price: 9500, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'palta', 'tomate', 'aceituna', 'bebida lata', 'papa personal'] },
-    { id: 105, name: 'Brasileño', price: 9200, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Queso Amarillo', 'Papas Hilo', 'Aceituna', 'bebida lata', 'papa personal'] },
-    { id: 106, name: 'Chacarero', price: 9800, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Poroto Verde', 'Ají Oro', 'Aceituna', 'Bebida Lata', 'Papa Personal'] },
-    { id: 107, name: 'Americana', price: 8900, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'Queso Cheddar', 'Salsa Cheddar', 'Tocino', 'Cebolla Caramelizada', 'Aceituna', 'bebida lata', 'papa personal'] },
-    { id: 108, name: 'Primavera', price: 9000, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'tomate', 'poroto verde', 'choclo', 'aceituna', 'bebida lata', 'papa personal'] },
-    { id: 109, name: 'Golosasa', price: 10500, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'tocino', 'champiñón', 'queso amarillo', 'choclo', 'cebolla', 'aceituna', 'papas hilo', 'bebida lata', 'papa personal'] },
+    { id: 104, name: 'Italiana', price: 9500, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'palta', 'tomate', 'aceituna', 'bebida lata', 'papa personal'] },
+    { id: 105, name: 'Brasileño', price: 9200, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Queso Amarillo', 'Papas Hilo', 'Aceituna', 'bebida lata', 'papa personal'] },
+    { id: 106, name: 'Chacarero', price: 9800, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Poroto Verde', 'Ají Oro', 'Aceituna', 'Bebida Lata', 'Papa Personal'] },
+    { id: 107, name: 'Americana', price: 8900, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'Queso Cheddar', 'Salsa Cheddar', 'Tocino', 'Cebolla Caramelizada', 'Aceituna', 'bebida lata', 'papa personal'] },
+    { id: 108, name: 'Primavera', price: 9000, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'tomate', 'poroto verde', 'choclo', 'aceituna', 'bebida lata', 'papa personal'] },
+    { id: 109, name: 'Golosasa', price: 10500, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'tocino', 'champiñón', 'queso amarillo', 'choclo', 'cebolla', 'aceituna', 'papas hilo', 'bebida lata', 'papa personal'] },
     { id: 110, name: '4 Ingredientes', price: 11000, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'Bebida Lata', 'Papa Personal'] },
     { id: 111, name: '6 Ingredientes', price: 12000, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'Bebida Lata', 'Papa Personal'] },
     // --- Promo Hamburguesas ---
@@ -711,6 +709,7 @@ interface ProductsMenuSheetProps {
 }
 
 const ProductsMenuSheet: React.FC<ProductsMenuSheetProps> = ({ menu, onAddProduct, onClose }) => {
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
 
   const groupedMenu = useMemo(() => {
     const groups: { [key: string]: MenuItem[] } = {};
@@ -728,54 +727,77 @@ const ProductsMenuSheet: React.FC<ProductsMenuSheetProps> = ({ menu, onAddProduc
     }, {} as { [key: string]: MenuItem[] });
   }, [menu]);
 
+  const itemsForSelectedCategory = selectedCategory ? groupedMenu[selectedCategory] : [];
+
   return (
-    <SheetContent side="right" className="w-full max-w-2xl flex flex-col p-0"> {/* Increased width */}
+    <SheetContent side="right" className="w-full max-w-2xl flex flex-col p-0">
       <SheetHeader className="p-4 border-b">
-        <SheetTitle className="text-2xl">Menú de Productos</SheetTitle>
+        <SheetTitle className="text-2xl">
+          {selectedCategory ? `Productos: ${selectedCategory}` : 'Menú de Productos'}
+        </SheetTitle>
+        {selectedCategory && (
+          <Button variant="outline" size="sm" onClick={() => setSelectedCategory(null)} className="mt-2 self-start">
+            <ArrowLeft className="mr-2 h-4 w-4" /> Volver a Categorías
+          </Button>
+        )}
       </SheetHeader>
       <ScrollArea className="flex-grow p-1">
-        <Accordion type="multiple" defaultValue={orderedCategories} className="w-full">
-          {Object.entries(groupedMenu).map(([category, items]) => (
-            <AccordionItem value={category} key={category} className="border-b-0">
-              <AccordionTrigger className="text-xl font-semibold hover:bg-muted/50 px-4 py-3 rounded-md hover:no-underline">
+        {!selectedCategory ? (
+          // Category List
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3">
+            {Object.keys(groupedMenu).map((category) => (
+              <Button
+                key={category}
+                variant="outline"
+                className="w-full h-auto py-4 text-lg justify-between items-center"
+                onClick={() => setSelectedCategory(category)}
+              >
                 {category}
-              </AccordionTrigger>
-              <AccordionContent className="px-2 pt-0 pb-2">
-                <div className="grid grid-cols-1 gap-2">
-                  {items.map((item) => (
-                    <Card key={item.id} className="flex items-center justify-between p-3 shadow-sm hover:shadow-md transition-shadow rounded-md">
-                      <div className="flex-grow">
-                        <h4 className="font-semibold text-base">{item.name}</h4>
-                        {item.ingredients && item.ingredients.length > 0 && (
-                            <p className="text-xs text-muted-foreground mt-0.5">
-                                ({item.ingredients.join(', ')})
-                            </p>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-mono">{printUtilsFormatCurrency(item.price)}</span>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => onAddProduct(item)}
-                          className="h-8 px-3"
-                        >
-                          <PlusCircle className="mr-1.5 h-4 w-4" /> Añadir
-                        </Button>
-                      </div>
-                    </Card>
-                  ))}
+                <ChevronRight className="h-5 w-5" />
+              </Button>
+            ))}
+          </div>
+        ) : (
+          // Product List for Selected Category
+          <div className="grid grid-cols-1 gap-2 p-3">
+            {itemsForSelectedCategory.map((item) => (
+              <Card key={item.id} className="flex items-center justify-between p-3 shadow-sm hover:shadow-md transition-shadow rounded-md">
+                <div className="flex-grow">
+                  <h4 className="font-semibold text-base">{item.name}</h4>
+                  {item.ingredients && item.ingredients.length > 0 && (
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      ({item.ingredients.join(', ')})
+                    </p>
+                  )}
                 </div>
-              </AccordionContent>
-            </AccordionItem>
-          ))}
-        </Accordion>
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-mono">{printUtilsFormatCurrency(item.price)}</span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                        onAddProduct(item);
+                        // Optionally, you might want to close the sheet or go back to categories
+                        // onClose(); // or setSelectedCategory(null);
+                    }}
+                    className="h-8 px-3"
+                  >
+                    <PlusCircle className="mr-1.5 h-4 w-4" /> Añadir
+                  </Button>
+                </div>
+              </Card>
+            ))}
+             {itemsForSelectedCategory.length === 0 && (
+                <p className="text-muted-foreground text-center py-4">No hay productos en esta categoría.</p>
+             )}
+          </div>
+        )}
       </ScrollArea>
-        <div className="p-4 border-t">
-            <Button onClick={onClose} className="w-full" variant="outline">
-                Cerrar Menú
-            </Button>
-        </div>
+      <div className="p-4 border-t mt-auto">
+          <Button onClick={onClose} className="w-full" variant="outline">
+              Cerrar Menú
+          </Button>
+      </div>
     </SheetContent>
   );
 };
@@ -844,7 +866,11 @@ export default function TableDetailPage() {
           setDeliveryInfo(JSON.parse(storedDeliveryInfoForTable));
         } catch (e) { console.error("Error parsing delivery info from sessionStorage:", e); }
       } else {
-        setIsDeliveryDialogOpen(true);
+        // Only open delivery dialog if no current order and no pending orders exist
+        // to prevent it from opening when re-entering a delivery session with an active order.
+        if (!storedCurrentOrder && !storedPendingOrders) {
+             setIsDeliveryDialogOpen(true);
+        }
       }
     }
 
@@ -984,7 +1010,7 @@ export default function TableDetailPage() {
       addItemToCurrentOrder(orderItem);
       toast({ title: `${orderItem.name} añadido`, description: `1 unidad añadida al pedido actual.`});
     }
-     setIsMenuSheetOpen(false);
+     // Keep menu sheet open: setIsMenuSheetOpen(false);
   };
 
   const addItemToCurrentOrder = (newItem: OrderItem) => {
@@ -1121,7 +1147,7 @@ export default function TableDetailPage() {
       { orderNumber: newOrderNumber, items: currentOrder, deliveryInfo: isDelivery ? deliveryInfo : null }
     ]);
     setCurrentOrder([]);
-    if (isDelivery) setDeliveryInfo(null);
+    if (isDelivery) setDeliveryInfo(null); // Clear delivery info for this specific group in current order
 
     toast({ title: `Comanda #${newOrderNumber} Impresa`, description: "El pedido ha sido enviado a cocina y movido a pendientes." });
   };
@@ -1158,7 +1184,7 @@ export default function TableDetailPage() {
       date: new Date(),
       category: 'Ingreso Venta',
       description: `Venta Orden #${orderNumber}${deliveryIdentifier}${tipDescription}`,
-      amount: saleBaseAmount + saleDeliveryFee,
+      amount: saleBaseAmount + saleDeliveryFee, // Amount is subtotal + delivery fee, tip is separate in description for now
       paymentMethod: paymentMethod,
       deliveryFee: isDelivery ? saleDeliveryFee : undefined,
     };
@@ -1208,8 +1234,8 @@ export default function TableDetailPage() {
   return (
     <div className="container mx-auto p-4 flex flex-col h-screen">
       <div className="flex items-center justify-between mb-6">
-         <Button variant="outline" onClick={handleGoBack} className="bg-secondary hover:bg-secondary/90 text-secondary-foreground">
-            <ArrowLeft className="mr-2 h-4 w-4" />
+         <Button variant="outline" onClick={handleGoBack} className="bg-secondary hover:bg-secondary/90 text-secondary-foreground px-4 py-2 rounded-md shadow-sm">
+            <ArrowLeft className="mr-2 h-5 w-5" />
             Volver a Mesas
          </Button>
         <h1 className="text-3xl font-bold text-center flex-grow">
@@ -1253,9 +1279,9 @@ export default function TableDetailPage() {
 
 
       <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-6 overflow-hidden">
-        <Card className="flex flex-col max-h-[calc(100vh-250px)]">
+        <Card className="flex flex-col max-h-[calc(100vh-350px)]"> {/* Adjusted max-height */}
           <CardHeader>
-            <CardTitle className="text-xl">Pedido Actual</CardTitle>
+            <CardTitle className="text-xl font-bold">Pedido Actual</CardTitle>
           </CardHeader>
           <ScrollArea className="flex-grow">
             <CardContent className="space-y-3 p-4">
@@ -1266,6 +1292,7 @@ export default function TableDetailPage() {
                   <div key={item.orderItemId} className="flex items-center justify-between p-3 bg-background rounded-md shadow-sm">
                     <div className="font-bold">
                       <p className="text-sm font-bold">{item.name}</p>
+                       <p className="text-xs text-muted-foreground font-bold">{item.category}</p> {/* Display category */}
                       {item.selectedModifications && item.selectedModifications.length > 0 && (
                         <p className="text-xs text-muted-foreground font-bold">
                           ({item.selectedModifications.join(', ')})
@@ -1307,9 +1334,9 @@ export default function TableDetailPage() {
         </Card>
 
 
-        <Card className="flex flex-col max-h-[calc(100vh-250px)]">
+        <Card className="flex flex-col max-h-[calc(100vh-350px)]"> {/* Adjusted max-height */}
             <CardHeader>
-                <CardTitle className="text-xl">Pedidos Pendientes de Pago</CardTitle>
+                <CardTitle className="text-xl font-bold">Pedidos Pendientes de Pago</CardTitle>
             </CardHeader>
             <ScrollArea className="flex-grow">
                 <CardContent className="space-y-4 p-4">
