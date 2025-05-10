@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -874,7 +875,7 @@ export function TableDetailPage() {
          }
       }
        else if (lowerCategory === 'promo fajitas') {
-            if (lowerItemName === '4 ingredientes' || lowerItemName === '6 ingredientes') {
+            if (lowerItemName === '4 ingredientes' || lowerItemName === '6 ingredientes' || lowerItemName === 'americana') {
                 inventory = updateStock(inventory, 'Fajita', quantity);
                 inventory = updateStock(inventory, 'Lata', quantity); // Assuming "Bebida Lata" is part of the promo
                 itemFoundAndDeducted = true;
@@ -1455,4 +1456,5 @@ export function TableDetailPage() {
 }
 
 export default TableDetailPage;
+
 
