@@ -34,17 +34,17 @@ export const formatKitchenOrderReceipt = (
     let itemsHtml = '';
     orderItems.forEach(item => {
         const modificationsText = item.selectedModifications && item.selectedModifications.length > 0
-            ? `<br><small style="margin-left: 10px; font-weight: bold;">(${item.selectedModifications.join(', ')})</small>`
+            ? `<br><small style="margin-left: 10px; font-weight: bold; font-size: 14pt;">(${item.selectedModifications.join(', ')})</small>`
             : '';
         const ingredientsText = item.ingredients && item.ingredients.length > 0
-            ? `<br><small style="margin-left: 10px; color: #000; font-style: italic; font-weight: bold;">Ingredientes: ${item.ingredients.join(', ')}</small>`
+            ? `<br><small style="margin-left: 10px; color: #000; font-style: italic; font-weight: bold; font-size: 14pt;">Ingredientes: ${item.ingredients.join(', ')}</small>`
             : '';
 
         itemsHtml += `
       <tr>
-        <td style="vertical-align: top; padding-right: 10px; font-weight: bold;">${item.quantity}x</td>
+        <td style="vertical-align: top; padding-right: 10px; font-weight: bold; font-size: 14pt;">${item.quantity}x</td>
         <td>
-          <span style="font-weight: bold;">${item.name}</span>
+          <span style="font-weight: bold; font-size: 14pt;">${item.name}</span>
           ${modificationsText}
           ${ingredientsText}
         </td>
@@ -72,7 +72,7 @@ export const formatKitchenOrderReceipt = (
         @page { margin: 5mm; }
         body {
           font-family: 'Courier New', Courier, monospace;
-          font-size: 10pt;
+          font-size: 10pt; /* Base font size, specific elements will override */
           width: 70mm;
           color: #000;
           background-color: #fff;
@@ -94,10 +94,10 @@ export const formatKitchenOrderReceipt = (
         .header-info {
             text-align: center;
             margin-bottom: 15px;
-            font-size: 9pt;
+            font-size: 9pt; /* Kept smaller as it's secondary info */
         }
         .order-number {
-            font-size: 12pt;
+            font-size: 12pt; /* Kept slightly smaller than main title */
             font-weight: bold;
             text-align: center;
             margin-bottom: 5px;
@@ -113,7 +113,8 @@ export const formatKitchenOrderReceipt = (
             margin: 10px 0;
         }
         strong { font-weight: bold; }
-        small { font-size: 8pt; font-weight: bold; }
+        /* Default small style if not overridden by inline styles */
+        small { font-size: 8pt; font-weight: bold; } 
       </style>
     </head>
     <body>
@@ -126,7 +127,7 @@ export const formatKitchenOrderReceipt = (
       <div class="items-section">
         <table>
          <thead>
-            <tr><th colspan="2" style="font-weight: bold;">Productos:</th></tr>
+            <tr><th colspan="2" style="font-weight: bold; font-size: 14pt;">Productos:</th></tr>
          </thead>
           <tbody>
             ${itemsHtml}
@@ -145,7 +146,7 @@ export const formatCustomerReceipt = (
     totalAmount: number,
     paymentMethod: string,
     tableId: string | number,
-    orderNumber: number, // Added orderNumber parameter
+    orderNumber: number, 
     deliveryInfo?: DeliveryInfo | null,
     tipAmount?: number
 ): string => {
@@ -153,7 +154,7 @@ export const formatCustomerReceipt = (
     const title = "BOLETA";
     const shopName = "El Bajón de la Cami";
     const time = formatDateTime(new Date());
-    // Construct orderIdentifier to include the order number
+    
     const orderIdentifier = isDelivery 
         ? `Delivery: ${deliveryInfo?.name || 'Cliente'} - Orden #${String(orderNumber).padStart(3, '0')}` 
         : `Mesa ${tableId} - Orden #${String(orderNumber).padStart(3, '0')}`;
@@ -187,7 +188,6 @@ export const formatCustomerReceipt = (
             <td style="text-align: right; font-weight: bold;">${formatCurrency(deliveryInfo.deliveryFee)}</td>
         </tr>
         `;
-        subtotal += deliveryInfo.deliveryFee; // This subtotal is only for display logic within this function
     }
 
     let tipHtml = '';
@@ -286,7 +286,7 @@ export const formatCashClosingReceipt = (
         dailyExpenses: number;
         dailyNetTotal: number;
     },
-    salesDetails: CashMovement[] // Added parameter for sales details
+    salesDetails: CashMovement[] 
 ): string => {
     const {
         dailyCashIncome, dailyDebitCardIncome, dailyCreditCardIncome, dailyTransferIncome,
@@ -297,8 +297,8 @@ export const formatCashClosingReceipt = (
     if (salesDetails.length > 0) {
         salesDetails.forEach(sale => {
             let saleDesc = sale.description;
-            // Simple truncation for display on a narrow receipt
-            if (saleDesc.length > 25) { // Adjust length as needed
+            
+            if (saleDesc.length > 25) { 
                 saleDesc = saleDesc.substring(0, 22) + "...";
             }
             salesHtml += `
@@ -355,7 +355,7 @@ export const formatCashClosingReceipt = (
          hr { border: none; border-top: 1px dashed #000; margin: 10px 0; }
          strong { font-weight: bold; }
          .sales-details-section table th, .sales-details-section table td {
-            padding: 1px 0; /* Reduce padding for sales details */
+            padding: 1px 0; 
          }
       </style>
     </head>
@@ -390,13 +390,6 @@ export const formatCashClosingReceipt = (
 };
 
 
-/**
- * Prints the given HTML content using a hidden iframe and the browser's print API.
- * Note: This method relies on the browser's print dialog and requires manual
- * printer selection by the user each time. For silent/direct printing,
- * a dedicated middleware or native application interacting with the printer SDK is recommended.
- * @param htmlContent The HTML string to print.
- */
 export const printHtml = (htmlContent: string): void => {
     console.log("Attempting to print...");
 
@@ -452,4 +445,3 @@ export const printHtml = (htmlContent: string): void => {
         }
     }
 };
-
