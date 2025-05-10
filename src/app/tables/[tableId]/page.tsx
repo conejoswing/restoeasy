@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -1244,11 +1245,11 @@ export function TableDetailPage() {
                       ))}
                     </Accordion>
                   </ScrollArea>
-                  <DialogFooter className="p-4 border-t">
+                  <ShadDialogFooter className="p-4 border-t">
                     <SheetClose asChild>
                         <Button>Confirmar</Button>
                     </SheetClose>
-                </DialogFooter>
+                </ShadDialogFooter>
               </SheetContent>
           </Sheet>
       </div>
