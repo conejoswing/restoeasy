@@ -44,12 +44,12 @@ interface MenuItem {
 const MENU_STORAGE_KEY = 'restaurantMenuData';
 
 const mockMenu: MenuItem[] = [
-    // --- Vienesas ---
+    // --- Completos Vienesas ---
     {
       id: 13,
       name: 'Italiano Normal',
       price: 4000,
-      category: 'Vienesas',
+      category: 'Completos Vienesas',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
       modificationPrices: { 'Agregado Queso': 1000 },
       ingredients: ['Palta', 'Tomate']
@@ -58,7 +58,7 @@ const mockMenu: MenuItem[] = [
       id: 14,
       name: 'Italiano Grande',
       price: 4500,
-      category: 'Vienesas',
+      category: 'Completos Vienesas',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
       modificationPrices: { 'Agregado Queso': 1000 },
       ingredients: ['Palta', 'Tomate']
@@ -67,7 +67,7 @@ const mockMenu: MenuItem[] = [
       id: 15,
       name: 'Hot Dog Normal',
       price: 4200,
-      category: 'Vienesas',
+      category: 'Completos Vienesas',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
       modificationPrices: { 'Agregado Queso': 1000 },
       ingredients: ['Salsas']
@@ -76,7 +76,7 @@ const mockMenu: MenuItem[] = [
         id: 27,
         name: 'Hot Dog Grande',
         price: 4700,
-        category: 'Vienesas',
+        category: 'Completos Vienesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Salsas']
@@ -85,7 +85,7 @@ const mockMenu: MenuItem[] = [
         id: 28,
         name: 'Completo Normal',
         price: 4300,
-        category: 'Vienesas',
+        category: 'Completos Vienesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate', 'Chucrut', 'Americana']
@@ -94,7 +94,7 @@ const mockMenu: MenuItem[] = [
         id: 29,
         name: 'Completo Grande',
         price: 4800,
-        category: 'Vienesas',
+        category: 'Completos Vienesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate', 'Chucrut', 'Americana']
@@ -103,7 +103,7 @@ const mockMenu: MenuItem[] = [
         id: 30,
         name: 'Palta Normal',
         price: 4100,
-        category: 'Vienesas',
+        category: 'Completos Vienesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Palta']
@@ -112,7 +112,7 @@ const mockMenu: MenuItem[] = [
         id: 31,
         name: 'Palta Grande',
         price: 4600,
-        category: 'Vienesas',
+        category: 'Completos Vienesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Palta']
@@ -121,7 +121,7 @@ const mockMenu: MenuItem[] = [
         id: 32,
         name: 'Tomate Normal',
         price: 4100,
-        category: 'Vienesas',
+        category: 'Completos Vienesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate']
@@ -130,7 +130,7 @@ const mockMenu: MenuItem[] = [
         id: 33,
         name: 'Tomate Grande',
         price: 4600,
-        category: 'Vienesas',
+        category: 'Completos Vienesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate']
@@ -139,7 +139,7 @@ const mockMenu: MenuItem[] = [
         id: 34,
         name: 'Dinamico Normal',
         price: 4400,
-        category: 'Vienesas',
+        category: 'Completos Vienesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana']
@@ -148,7 +148,7 @@ const mockMenu: MenuItem[] = [
         id: 35,
         name: 'Dinamico Grande',
         price: 4900,
-        category: 'Vienesas',
+        category: 'Completos Vienesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana']
@@ -632,7 +632,7 @@ const mockMenu: MenuItem[] = [
 
 
 const orderedCategories = [
-  'Vienesas',
+  'Completos Vienesas',
   'As',
   'Completos As',
   'Promo Fajitas',
@@ -899,4 +899,5 @@ const ProductsPageContent = () => {
 export default function ProductsPage() {
     return <ProductsPageContent />;
 }
+
 
