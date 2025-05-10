@@ -246,6 +246,43 @@ const mockMenu: MenuItem[] = [
     },
     { id: 51, name: 'Queso Champiñon Normal', price: 7000, category: 'As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Sin Queso', 'Sin Champiñon', 'Sin Tocino'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Champiñon', 'Tocino'] },
     { id: 52, name: 'Queso Champiñon Grande', price: 7500, category: 'As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Sin Queso', 'Sin Champiñon', 'Sin Tocino'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Champiñon', 'Tocino'] },
+    // --- Completo As ---
+    {
+      id: 112,
+      name: 'Completo As Italiano Normal',
+      price: 6000,
+      category: 'Completo As',
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+      modificationPrices: { 'Agregado Queso': 1000 },
+      ingredients: ['Palta', 'Tomate', 'Carne As']
+    },
+    {
+      id: 113,
+      name: 'Completo As Italiano Grande',
+      price: 6500,
+      category: 'Completo As',
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+      modificationPrices: { 'Agregado Queso': 1000 },
+      ingredients: ['Palta', 'Tomate', 'Carne As']
+    },
+    {
+      id: 114,
+      name: 'Completo As Completo Normal',
+      price: 6800,
+      category: 'Completo As',
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
+      modificationPrices: { 'Agregado Queso': 1000 },
+      ingredients: ['Tomate', 'Chucrut', 'Americana', 'Carne As']
+    },
+    {
+      id: 115,
+      name: 'Completo As Completo Grande',
+      price: 7300,
+      category: 'Completo As',
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+      modificationPrices: { 'Agregado Queso': 1000 },
+      ingredients: ['Tomate', 'Chucrut', 'Americana', 'Carne As']
+    },
     // --- Promo Fajitas ---
     { id: 104, name: 'Italiana', price: 9500, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'palta', 'tomate', 'aceituna', 'bebida lata', 'papa personal'] },
     { id: 105, name: 'Brasileño', price: 9200, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Queso Amarillo', 'Papas Hilo', 'Aceituna', 'bebida lata', 'papa personal'] },
@@ -581,6 +618,7 @@ const mockMenu: MenuItem[] = [
 const orderedCategories = [
   'Vienesas',
   'As',
+  'Completo As',
   'Promo Fajitas',
   'Promo Hamburguesas',
   'Churrascos',
@@ -769,23 +807,27 @@ const ProductsManagementPage = () => {
                     </TableCell>
                   </TableRow>
                 )}
-                {filteredProducts.map((item) => (
-                <TableRow key={item.id}>
-                    <TableCell className="font-medium">{item.name}</TableCell>
-                    <TableCell><Badge variant="secondary">{item.category}</Badge></TableCell>
-                    <TableCell className="text-xs text-muted-foreground max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
-                        {item.ingredients && item.ingredients.length > 0
-                        ? item.ingredients.join(', ')
-                        : '-'}
-                    </TableCell>
-                    <TableCell className="text-right font-mono">{printUtilsFormatCurrency(item.price)}</TableCell>
-                    <TableCell className="text-center">
-                    <Button variant="outline" size="icon" onClick={() => openEditPriceDialog(item)} className="h-8 w-8">
-                        <Edit className="h-4 w-4" />
-                        <span className="sr-only">Editar Precio</span>
-                    </Button>
-                    </TableCell>
-                </TableRow>
+                {Object.entries(groupedMenu).map(([category, items]) => (
+                  <React.Fragment key={category}>
+                    {items.map((item) => (
+                    <TableRow key={item.id}>
+                        <TableCell className="font-medium">{item.name}</TableCell>
+                        <TableCell><Badge variant="secondary">{item.category}</Badge></TableCell>
+                        <TableCell className="text-xs text-muted-foreground max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
+                            {item.ingredients && item.ingredients.length > 0
+                            ? item.ingredients.join(', ')
+                            : '-'}
+                        </TableCell>
+                        <TableCell className="text-right font-mono">{printUtilsFormatCurrency(item.price)}</TableCell>
+                        <TableCell className="text-center">
+                        <Button variant="outline" size="icon" onClick={() => openEditPriceDialog(item)} className="h-8 w-8">
+                            <Edit className="h-4 w-4" />
+                            <span className="sr-only">Editar Precio</span>
+                        </Button>
+                        </TableCell>
+                    </TableRow>
+                    ))}
+                  </React.Fragment>
                 ))}
             </TableBody>
             </Table>

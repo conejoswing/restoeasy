@@ -293,6 +293,43 @@ const mockMenu: MenuItem[] = [
     },
     { id: 51, name: 'Queso Champiñon Normal', price: 7000, category: 'As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Sin Queso', 'Sin Champiñon', 'Sin Tocino'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Champiñon', 'Tocino'] },
     { id: 52, name: 'Queso Champiñon Grande', price: 7500, category: 'As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Sin Queso', 'Sin Champiñon', 'Sin Tocino'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Champiñon', 'Tocino'] },
+    // --- Completo As ---
+    {
+      id: 112,
+      name: 'Completo As Italiano Normal',
+      price: 6000,
+      category: 'Completo As',
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+      modificationPrices: { 'Agregado Queso': 1000 },
+      ingredients: ['Palta', 'Tomate', 'Carne As']
+    },
+    {
+      id: 113,
+      name: 'Completo As Italiano Grande',
+      price: 6500,
+      category: 'Completo As',
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+      modificationPrices: { 'Agregado Queso': 1000 },
+      ingredients: ['Palta', 'Tomate', 'Carne As']
+    },
+    {
+      id: 114,
+      name: 'Completo As Completo Normal',
+      price: 6800,
+      category: 'Completo As',
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
+      modificationPrices: { 'Agregado Queso': 1000 },
+      ingredients: ['Tomate', 'Chucrut', 'Americana', 'Carne As']
+    },
+    {
+      id: 115,
+      name: 'Completo As Completo Grande',
+      price: 7300,
+      category: 'Completo As',
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+      modificationPrices: { 'Agregado Queso': 1000 },
+      ingredients: ['Tomate', 'Chucrut', 'Americana', 'Carne As']
+    },
     // --- Promo Fajitas ---
     { id: 104, name: 'Italiana', price: 9500, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'palta', 'tomate', 'aceituna', 'bebida lata', 'papa personal'] },
     { id: 105, name: 'Brasileño', price: 9200, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Queso Amarillo', 'Papas Hilo', 'Aceituna', 'bebida lata', 'papa personal'] },
@@ -628,6 +665,7 @@ const mockMenu: MenuItem[] = [
 const orderedCategories = [
   'Vienesas',
   'As',
+  'Completo As',
   'Promo Fajitas',
   'Promo Hamburguesas',
   'Churrascos',
@@ -686,7 +724,17 @@ const getPersistedMenuForTablePage = (): MenuItem[] => {
       console.error("Failed to parse menu from localStorage on table page:", e);
     }
   }
-  return sortMenu(mockMenu);
+  // If localStorage is empty or parsing fails, save the initial mockMenu and return it.
+  // This ensures that the menu data is always available in localStorage for other pages.
+  const initialSortedMenu = sortMenu(mockMenu);
+  if (typeof window !== 'undefined') {
+    try {
+        localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(initialSortedMenu));
+    } catch (e) {
+        console.error("Failed to save initial menu to localStorage on table page:", e);
+    }
+  }
+  return initialSortedMenu;
 };
 
 
@@ -712,10 +760,21 @@ interface ProductsMenuSheetProps {
 
 const ProductsMenuSheet: React.FC<ProductsMenuSheetProps> = ({ menu, onAddProduct, onClose }) => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+
+
+  const filteredMenu = useMemo(() => {
+    if (!searchTerm) return menu;
+    return menu.filter(item =>
+        item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        item.category.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [menu, searchTerm]);
+
 
   const groupedMenu = useMemo(() => {
     const groups: { [key: string]: MenuItem[] } = {};
-    menu.forEach(item => {
+    filteredMenu.forEach(item => {
       if (!groups[item.category]) {
         groups[item.category] = [];
       }
@@ -727,37 +786,54 @@ const ProductsMenuSheet: React.FC<ProductsMenuSheetProps> = ({ menu, onAddProduc
       }
       return acc;
     }, {} as { [key: string]: MenuItem[] });
-  }, [menu]);
+  }, [filteredMenu]);
 
-  const itemsForSelectedCategory = selectedCategory ? groupedMenu[selectedCategory] : [];
+  const itemsForSelectedCategory = selectedCategory ? groupedMenu[selectedCategory] || [] : [];
 
   return (
     <SheetContent side="left" className="w-full max-w-2xl flex flex-col p-0">
-      <SheetHeader className="p-4 border-b">
-        <SheetTitle className="text-2xl">
-          {selectedCategory ? `Productos: ${selectedCategory}` : 'Menú de Productos'}
-        </SheetTitle>
-        {selectedCategory && (
-          <Button variant="outline" size="sm" onClick={() => setSelectedCategory(null)} className="mt-2 self-start">
-            <ArrowLeft className="mr-2 h-4 w-4" /> Volver a Categorías
-          </Button>
+      <SheetHeader className="p-4 border-b sticky top-0 bg-background z-10">
+        <div className="flex justify-between items-center">
+            <SheetTitle className="text-2xl">
+              {selectedCategory ? `${selectedCategory}` : 'Menú de Productos'}
+            </SheetTitle>
+             {selectedCategory && (
+              <Button variant="outline" size="sm" onClick={() => setSelectedCategory(null)} className="ml-auto">
+                <ArrowLeft className="mr-2 h-4 w-4" /> Volver a Categorías
+              </Button>
+            )}
+        </div>
+        {!selectedCategory && (
+             <Input
+                type="text"
+                placeholder="Buscar producto o categoría..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="mt-2"
+             />
         )}
+
       </SheetHeader>
       <ScrollArea className="flex-grow p-1">
         {!selectedCategory ? (
           // Category List
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3">
             {Object.keys(groupedMenu).map((category) => (
-              <Button
-                key={category}
-                variant="outline"
-                className="w-full h-auto py-4 text-lg justify-between items-center"
-                onClick={() => setSelectedCategory(category)}
-              >
-                {category}
-                <ChevronRight className="h-5 w-5" />
-              </Button>
+                groupedMenu[category].length > 0 && ( // Only show category if it has items after filtering
+                  <Button
+                    key={category}
+                    variant="outline"
+                    className="w-full h-auto py-4 text-lg justify-between items-center"
+                    onClick={() => setSelectedCategory(category)}
+                  >
+                    {category}
+                    <ChevronRight className="h-5 w-5" />
+                  </Button>
+                )
             ))}
+             {Object.values(groupedMenu).every(items => items.length === 0) && searchTerm && (
+                <p className="text-muted-foreground text-center py-4 col-span-full">No se encontraron productos o categorías.</p>
+             )}
           </div>
         ) : (
           // Product List for Selected Category
@@ -795,7 +871,7 @@ const ProductsMenuSheet: React.FC<ProductsMenuSheetProps> = ({ menu, onAddProduc
           </div>
         )}
       </ScrollArea>
-      <div className="p-4 border-t mt-auto">
+      <div className="p-4 border-t mt-auto sticky bottom-0 bg-background z-10">
           <Button onClick={onClose} className="w-full" variant="outline">
               Cerrar Menú
           </Button>
@@ -922,7 +998,7 @@ export default function TableDetailPage() {
             if (['Completo Grande', 'Dinamico Grande', 'Hot Dog Grande', 'Italiano Grande', 'Palta Grande', 'Tomate Grande'].includes(orderItem.name)) {
                 itemsToDeduct.push({ name: 'Vienesas', quantity: 2 * orderItem.quantity });
             }
-        } else if (orderItem.category === 'As') {
+        } else if (orderItem.category === 'As' || orderItem.category === 'Completo As') { // Added Completo As
             if (orderItem.name.includes('Normal')) itemsToDeduct.push({ name: 'Pan especial normal', quantity: 1 * orderItem.quantity });
             if (orderItem.name.includes('Grande')) itemsToDeduct.push({ name: 'Pan especial grande', quantity: 1 * orderItem.quantity });
         } else if (orderItem.category === 'Promo Fajitas') {
@@ -930,10 +1006,10 @@ export default function TableDetailPage() {
         } else if (orderItem.category === 'Churrascos') {
             itemsToDeduct.push({ name: 'Pan de marraqueta', quantity: 1 * orderItem.quantity });
         } else if (orderItem.category === 'Promo Churrasco') {
-             const quantityMultiplier = 1; // Names no longer have "2x"
+             const quantityMultiplier = 1;
              itemsToDeduct.push({ name: 'Pan de marraqueta', quantity: quantityMultiplier * orderItem.quantity });
         } else if (orderItem.category === 'Promo Mechada') {
-             const quantityMultiplier = 1; // Names no longer have "2x"
+             const quantityMultiplier = 1;
              itemsToDeduct.push({ name: 'Pan de marraqueta', quantity: quantityMultiplier * orderItem.quantity });
         }
          else if (orderItem.category === 'Promo Hamburguesas') {
@@ -1425,4 +1501,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-
