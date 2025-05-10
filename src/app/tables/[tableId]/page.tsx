@@ -11,10 +11,10 @@ import {
   CardHeader,
   CardTitle,
   CardDescription,
-  CardFooter,
+  CardFooter, // Ensure CardFooter is imported
 } from '@/components/ui/card';
 import {ScrollArea }from '@/components/ui/scroll-area';
-import {Separator }from '@/components/ui/separator';
+import {Separator }from '@/components/ui/separator'; // Ensure Separator is imported
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 // import { Checkbox } from '@/components/ui/checkbox'; // No longer directly used here, but in ModificationDialog
@@ -23,7 +23,7 @@ import {
   SheetContent,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
+  SheetTrigger, // Ensure SheetTrigger is imported
   SheetClose,
 } from '@/components/ui/sheet';
 import {
@@ -42,10 +42,10 @@ import { isEqual } from 'lodash';
 import { cn } from '@/lib/utils';
 import type { CashMovement } from '@/app/expenses/page';
 import type { DeliveryInfo } from '@/components/app/delivery-dialog';
-import DeliveryDialog from '@/components/app/delivery-dialog'; // Corrected import
+import DeliveryDialog from '@/components/app/delivery-dialog';
 import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
-import { Dialog as ShadDialog, DialogClose as ShadDialogClose, DialogContent as ShadDialogContent, DialogDescription as ShadDialogDescription, DialogFooter as ShadDialogFooter, DialogHeader as ShadDialogHeader, DialogTitle as ShadDialogTitle, DialogTrigger as ShadDialogTrigger } from '@/components/ui/dialog'; // Renamed to avoid conflict
+import { Dialog as ShadDialog, DialogClose as ShadDialogClose, DialogContent as ShadDialogContent, DialogDescription as ShadDialogDescription, DialogFooter as ShadDialogFooter, DialogHeader as ShadDialogHeader, DialogTitle as ShadDialogTitle, DialogTrigger as ShadDialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import {
   Accordion,
@@ -205,152 +205,99 @@ const mockMenu: MenuItem[] = [
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana']
     },
-    // --- As ---
+    // --- Completos As ---
     {
       id: 10,
       name: 'Italiano Normal',
       price: 5500,
-      category: 'As',
+      category: 'Completos As',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
       modificationPrices: { 'Agregado Queso': 1000 },
-       ingredients: ['Palta', 'Tomate']
+       ingredients: ['Palta', 'Tomate', 'Carne As']
     },
     {
       id: 11,
       name: 'Italiano Grande',
       price: 6000,
-      category: 'As',
+      category: 'Completos As',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
       modificationPrices: { 'Agregado Queso': 1000 },
-      ingredients: ['Palta', 'Tomate']
+      ingredients: ['Palta', 'Tomate', 'Carne As']
     },
     {
       id: 12,
       name: 'Completo Normal',
       price: 6500,
-      category: 'As',
+      category: 'Completos As',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
        modificationPrices: { 'Agregado Queso': 1000 },
-        ingredients: ['Tomate', 'Chucrut', 'Americana']
+        ingredients: ['Tomate', 'Chucrut', 'Americana', 'Carne As']
     },
-    { id: 36, name: 'Completo Grande', price: 7000, category: 'As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Chucrut', 'Americana'] },
-    { id: 37, name: 'Palta Normal', price: 5800, category: 'As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta'] },
-    { id: 38, name: 'Palta Grande', price: 6300, category: 'As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta'] },
-    { id: 39, name: 'Tomate Normal', price: 5800, category: 'As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate'] },
-    { id: 40, name: 'Tomate Grande', price: 6300, category: 'As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate'] },
-    { id: 41, name: 'Queso Normal', price: 6000, category: 'As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso'] },
-    { id: 42, name: 'Queso Grande', price: 6500, category: 'As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso'] },
-    { id: 43, name: 'Solo Carne Normal', price: 5000, category: 'As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: [] },
-    { id: 44, name: 'Solo Carne Grande', price: 5500, category: 'As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: [] },
+    { id: 36, name: 'Completo Grande', price: 7000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Chucrut', 'Americana', 'Carne As'] },
+    { id: 37, name: 'Palta Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Carne As'] },
+    { id: 38, name: 'Palta Grande', price: 6300, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Carne As'] },
+    { id: 39, name: 'Tomate Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Carne As'] },
+    { id: 40, name: 'Tomate Grande', price: 6300, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Carne As'] },
+    { id: 41, name: 'Queso Normal', price: 6000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Carne As'] },
+    { id: 42, name: 'Queso Grande', price: 6500, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Carne As'] },
+    { id: 43, name: 'Solo Carne Normal', price: 5000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne As'] },
+    { id: 44, name: 'Solo Carne Grande', price: 5500, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne As'] },
     {
         id: 45,
         name: 'Dinamico Normal',
         price: 6800,
-        category: 'As',
+        category: 'Completos As',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
-        ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana']
+        ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana', 'Carne As']
     },
     {
         id: 46,
         name: 'Dinamico Grande',
         price: 7300,
-        category: 'As',
+        category: 'Completos As',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
         modificationPrices: { 'Agregado Queso': 1000 },
-         ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana']
+         ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana', 'Carne As']
     },
     {
         id: 47,
         name: 'Chacarero Normal',
         price: 6700,
-        category: 'As',
+        category: 'Completos As',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño'],
         modificationPrices: { 'Agregado Queso': 1000 },
-         ingredients: ['Tomate', 'Poroto Verde', 'Ají Oro', 'Ají Jalapeño']
+         ingredients: ['Tomate', 'Poroto Verde', 'Ají Oro', 'Ají Jalapeño', 'Carne As']
     },
     {
         id: 48,
         name: 'Chacarero Grande',
         price: 7200,
-        category: 'As',
+        category: 'Completos As',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño'],
         modificationPrices: { 'Agregado Queso': 1000 },
-         ingredients: ['Tomate', 'Poroto Verde', 'Ají Oro', 'Ají Jalapeño']
+         ingredients: ['Tomate', 'Poroto Verde', 'Ají Oro', 'Ají Jalapeño', 'Carne As']
     },
     {
         id: 49,
         name: 'Napolitano Normal',
         price: 6900,
-        category: 'As',
+        category: 'Completos As',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin queso', 'sin tomate', 'sin oregano', 'sin aceituna'],
         modificationPrices: { 'Agregado Queso': 1000 },
-        ingredients: ['Queso', 'Tomate', 'Orégano', 'Aceituna']
+        ingredients: ['Queso', 'Tomate', 'Orégano', 'Aceituna', 'Carne As']
     },
     {
         id: 50,
         name: 'Napolitano Grande',
         price: 7400,
-        category: 'As',
+        category: 'Completos As',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin queso', 'sin tomate', 'sin oregano', 'sin aceituna'],
         modificationPrices: { 'Agregado Queso': 1000 },
-         ingredients: ['Queso', 'Tomate', 'Orégano', 'Aceituna']
+         ingredients: ['Queso', 'Tomate', 'Orégano', 'Aceituna', 'Carne As']
     },
-    { id: 51, name: 'Queso Champiñon Normal', price: 7000, category: 'As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Sin Queso', 'Sin Champiñon', 'Sin Tocino'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Champiñon', 'Tocino'] },
-    { id: 52, name: 'Queso Champiñon Grande', price: 7500, category: 'As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Sin Queso', 'Sin Champiñon', 'Sin Tocino'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Champiñon', 'Tocino'] },
-    // --- Completos As ---
-    {
-      id: 112,
-      name: 'Italiano Normal', // Changed from 'Completo As Italiano Normal'
-      price: 6000,
-      category: 'Completos As',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
-      modificationPrices: { 'Agregado Queso': 1000 },
-      ingredients: ['Palta', 'Tomate', 'Carne As']
-    },
-    {
-      id: 113,
-      name: 'Italiano Grande', // Changed from 'Completo As Italiano Grande'
-      price: 6500,
-      category: 'Completos As',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
-      modificationPrices: { 'Agregado Queso': 1000 },
-      ingredients: ['Palta', 'Tomate', 'Carne As']
-    },
-    {
-      id: 114,
-      name: 'Completo Normal', // Changed from 'Completo As Completo Normal'
-      price: 6800,
-      category: 'Completos As',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
-      modificationPrices: { 'Agregado Queso': 1000 },
-      ingredients: ['Tomate', 'Chucrut', 'Americana', 'Carne As']
-    },
-    {
-      id: 115,
-      name: 'Completo Grande', // Changed from 'Completo As Completo Grande'
-      price: 7300,
-      category: 'Completos As',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
-      modificationPrices: { 'Agregado Queso': 1000 },
-      ingredients: ['Tomate', 'Chucrut', 'Americana', 'Carne As']
-    },
-    { id: 116, name: 'Palta Normal', price: 6200, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Carne As'] },
-    { id: 117, name: 'Palta Grande', price: 6700, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Carne As'] },
-    { id: 118, name: 'Tomate Normal', price: 6200, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Carne As'] },
-    { id: 119, name: 'Tomate Grande', price: 6700, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Carne As'] },
-    { id: 120, name: 'Queso Normal', price: 7000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Carne As'] },
-    { id: 121, name: 'Queso Grande', price: 7500, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Carne As'] },
-    { id: 122, name: 'Solo Carne Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne As'] },
-    { id: 123, name: 'Solo Carne Grande', price: 6300, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne As'] },
-    { id: 124, name: 'Dinamico Normal', price: 7100, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana', 'Carne As'] },
-    { id: 125, name: 'Dinamico Grande', price: 7600, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana', 'Carne As'] },
-    { id: 126, name: 'Chacarero Normal', price: 7200, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Poroto Verde', 'Ají Oro', 'Ají Jalapeño', 'Carne As'] },
-    { id: 127, name: 'Chacarero Grande', price: 7700, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Poroto Verde', 'Ají Oro', 'Ají Jalapeño', 'Carne As'] },
-    { id: 128, name: 'Napolitano Normal', price: 7300, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin queso', 'sin tomate', 'sin oregano', 'sin aceituna'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Tomate', 'Orégano', 'Aceituna', 'Carne As'] },
-    { id: 129, name: 'Napolitano Grande', price: 7800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin queso', 'sin tomate', 'sin oregano', 'sin aceituna'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Tomate', 'Orégano', 'Aceituna', 'Carne As'] },
-    { id: 130, name: 'Queso Champiñon Normal', price: 7500, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Sin Queso', 'Sin Champiñon', 'Sin Tocino'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Champiñon', 'Tocino', 'Carne As'] },
-    { id: 131, name: 'Queso Champiñon Grande', price: 8000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Sin Queso', 'Sin Champiñon', 'Sin Tocino'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Champiñon', 'Tocino', 'Carne As'] },
+    { id: 51, name: 'Queso Champiñon Normal', price: 7000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Sin Queso', 'Sin Champiñon', 'Sin Tocino'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Champiñon', 'Tocino', 'Carne As'] },
+    { id: 52, name: 'Queso Champiñon Grande', price: 7500, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Sin Queso', 'Sin Champiñon', 'Sin Tocino'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Champiñon', 'Tocino', 'Carne As'] },
     // --- Promo Fajitas ---
     { id: 104, name: 'Italiana', price: 9500, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'palta', 'tomate', 'aceituna', 'bebida lata', 'papa personal'] },
     { id: 105, name: 'Brasileño', price: 9200, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Queso Amarillo', 'Papas Hilo', 'Aceituna', 'bebida lata', 'papa personal'] },
@@ -685,7 +632,6 @@ const mockMenu: MenuItem[] = [
 
 const orderedCategories = [
   'Completos Vienesas',
-  'As',
   'Completos As',
   'Promo Fajitas',
   'Promo Hamburguesas',
@@ -730,11 +676,6 @@ const sortMenu = (menu: MenuItem[]): MenuItem[] => {
   });
 };
 
-// Helper function to format currency (consistent with other parts of the app)
-// Moved to global scope or a utils file if used across multiple components
-const globalFormatCurrency = (amount: number) => {
-  return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
-};
 
 const getPersistedMenu = (): MenuItem[] => {
   if (typeof window === 'undefined') {
@@ -762,201 +703,6 @@ const getPersistedMenu = (): MenuItem[] => {
   return initialSortedMenu;
 };
 
-
-const ProductsManagementPage = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [menu, setMenu] = useState<MenuItem[]>([]);
-  const [isMenuInitialized, setIsMenuInitialized] = useState(false);
-  const [isEditPriceDialogOpen, setIsEditPriceDialogOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<MenuItem | null>(null);
-  const [newPrice, setNewPrice] = useState('');
-  const { toast } = useToast();
-
-  useEffect(() => {
-    setMenu(getPersistedMenu());
-    setIsMenuInitialized(true);
-  }, []);
-
-
-  const filteredProducts = menu.filter(product =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const openEditPriceDialog = (product: MenuItem) => {
-    setEditingProduct(product);
-    setNewPrice(product.price.toString());
-    setIsEditPriceDialogOpen(true);
-  };
-
-  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNewPrice(e.target.value);
-  };
-
-  const handleUpdatePrice = () => {
-    if (!editingProduct || newPrice === '') {
-      toast({ title: "Error", description: "Debe ingresar un precio.", variant: "destructive"});
-      return;
-    }
-    const priceValue = parseInt(newPrice, 10);
-    if (isNaN(priceValue) || priceValue < 0) {
-      toast({ title: "Error", description: "El precio debe ser un número válido y no negativo.", variant: "destructive"});
-      return;
-    }
-
-    const updatedMenu = menu.map(item =>
-      item.id === editingProduct.id ? { ...item, price: priceValue } : item
-    );
-    const sortedMenu = sortMenu(updatedMenu);
-
-    setMenu(sortedMenu);
-
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(sortedMenu));
-      } catch (e) {
-        console.error("Error saving menu to localStorage:", e);
-        toast({title: "Error", description: "No se pudo guardar el cambio de precio de forma persistente.", variant: "destructive"});
-      }
-    }
-
-    const toastDescription = `El precio de ${editingProduct.name} se actualizó a ${printUtilsFormatCurrency(priceValue)}.`;
-    toast({ title: "Precio Actualizado", description: toastDescription});
-    setIsEditPriceDialogOpen(false);
-    setEditingProduct(null);
-    setNewPrice('');
-  };
-
-  const groupedMenu = useMemo(() => {
-    const groups: { [key: string]: MenuItem[] } = {};
-    filteredProducts.forEach(item => {
-      if (!groups[item.category]) {
-        groups[item.category] = [];
-      }
-      groups[item.category].push(item);
-    });
-    return orderedCategories.reduce((acc, categoryName) => {
-      if (groups[categoryName]) {
-        acc[categoryName] = groups[categoryName];
-      }
-      return acc;
-    }, {} as { [key: string]: MenuItem[] });
-  }, [filteredProducts]);
-
-  if (!isMenuInitialized) {
-    return <div className="flex items-center justify-center min-h-screen">Cargando productos...</div>;
-  }
-
-
-  return (
-    <div className="container mx-auto p-4">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Lista de Productos</h1>
-        <Input
-           type="text"
-           placeholder="Buscar producto o categoría..."
-           value={searchTerm}
-           onChange={(e) => setSearchTerm(e.target.value)}
-           className="max-w-sm"
-         />
-      </div>
-
-       <Card>
-         <CardContent className="p-0">
-            <Table>
-            <TableHeader>
-                <TableRow>
-                  <TableHead>Producto</TableHead>
-                  <TableHead>Categoría</TableHead>
-                  <TableHead>Ingredientes</TableHead>
-                  <TableHead className="text-right">Precio Base</TableHead>
-                  <TableHead className="text-center w-28">Acciones</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {filteredProducts.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                      No se encontraron productos.
-                    </TableCell>
-                  </TableRow>
-                )}
-                {Object.entries(groupedMenu).map(([category, items]) => (
-                  <React.Fragment key={category}>
-                    {items.map((item) => (
-                    <TableRow key={item.id}>
-                        <TableCell className="font-medium">{item.name}</TableCell>
-                        <TableCell><Badge variant="secondary">{item.category}</Badge></TableCell>
-                        <TableCell className="text-xs text-muted-foreground max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
-                            {item.ingredients && item.ingredients.length > 0
-                            ? item.ingredients.join(', ')
-                            : '-'}
-                        </TableCell>
-                        <TableCell className="text-right font-mono">{printUtilsFormatCurrency(item.price)}</TableCell>
-                        <TableCell className="text-center">
-                        <Button variant="outline" size="icon" onClick={() => openEditPriceDialog(item)} className="h-8 w-8">
-                            <Edit className="h-4 w-4" />
-                            <span className="sr-only">Editar Precio</span>
-                        </Button>
-                        </TableCell>
-                    </TableRow>
-                    ))}
-                  </React.Fragment>
-                ))}
-            </TableBody>
-            </Table>
-         </CardContent>
-       </Card>
-
-
-       <ShadDialog open={isEditPriceDialogOpen} onOpenChange={setIsEditPriceDialogOpen}>
-         <ShadDialogContent className="sm:max-w-[425px]">
-           <ShadDialogHeader>
-             <ShadDialogTitle>Editar Precio de {editingProduct?.name}</ShadDialogTitle>
-             <ShadDialogDescription>
-                 Actualice el precio base para este producto.
-             </ShadDialogDescription>
-           </ShadDialogHeader>
-           <div className="grid gap-4 py-4">
-             <div className="grid grid-cols-4 items-center gap-4">
-                 <Label htmlFor="price" className="text-right">
-                     Nuevo Precio (CLP)
-                 </Label>
-                 <Input
-                     id="price"
-                     type="number"
-                     value={newPrice}
-                     onChange={handlePriceChange}
-                     className="col-span-3"
-                     required
-                     min="0"
-                     step="1"
-                 />
-             </div>
-           </div>
-           <ShadDialogFooter>
-             <ShadDialogClose asChild>
-                 <Button type="button" variant="secondary" onClick={() => setIsEditPriceDialogOpen(false)}>Cancelar</Button>
-             </ShadDialogClose>
-             <Button type="submit" onClick={handleUpdatePrice}>Guardar Cambios</Button>
-           </ShadDialogFooter>
-         </ShadDialogContent>
-       </ShadDialog>
-    </div>
-);
-};
-
-interface TableDetailPageProps {
-}
-
-// Renaming the component to avoid conflict with the page itself if it were default exported
-const ProductsPageContent = () => {
-    return <ProductsManagementPage />;
-}
-
-export default function ProductsPage() {
-    return <ProductsPageContent />;
-}
 
 // Helper function to get the next order number
 const getNextOrderNumber = (): number => {
@@ -1096,13 +842,9 @@ export function TableDetailPage() {
       let inventory: InventoryItem[] = JSON.parse(storedInventory);
       let itemFoundAndDeducted = false;
 
-      // Specific deduction logic based on menu item name and category
-      // This is where you'll map menu item names to inventory item names and quantities
-
       const lowerItemName = itemName.toLowerCase();
       const lowerCategory = menuItemCategory?.toLowerCase();
 
-      // COMPLETOS VIENESAS
       if (lowerCategory === 'completos vienesas') {
         if (lowerItemName.includes('normal')) {
           inventory = updateStock(inventory, 'Pan especial normal', quantity);
@@ -1110,49 +852,56 @@ export function TableDetailPage() {
           itemFoundAndDeducted = true;
         } else if (lowerItemName.includes('grande')) {
           inventory = updateStock(inventory, 'Pan especial grande', quantity);
-          inventory = updateStock(inventory, 'Vienesas', quantity * 2); 
+          inventory = updateStock(inventory, 'Vienesas', quantity * 2);
           itemFoundAndDeducted = true;
         }
       }
-      // COMPLETOS AS
       else if (lowerCategory === 'completos as') {
          if (lowerItemName.includes('normal')) {
            inventory = updateStock(inventory, 'Pan especial normal', quantity);
+           // Note: Meat for 'As' is not deducted here, assumed to be managed separately or not tracked granularly
            itemFoundAndDeducted = true;
          } else if (lowerItemName.includes('grande')) {
            inventory = updateStock(inventory, 'Pan especial grande', quantity);
+           // Note: Meat for 'As' is not deducted here
            itemFoundAndDeducted = true;
          }
       }
-       // PROMO FAJITAS 
        else if (lowerCategory === 'promo fajitas') {
-            // inventory = updateStock(inventory, 'Pan de Fajita', quantity); // Example, ensure 'Pan de Fajita' exists
-            itemFoundAndDeducted = true;
+            // Assuming 'Pan de Fajita' or similar is not tracked, or ingredients like 'Pollo', 'Lomito' are managed differently
+            itemFoundAndDeducted = true; // Placeholder, actual deduction depends on tracked items
        }
-       // CHURRASCOS
        else if (lowerCategory === 'churrascos') {
             inventory = updateStock(inventory, 'Pan de marraqueta', quantity);
             itemFoundAndDeducted = true;
        }
-       // PROMO CHURRASCO
-        else if (lowerCategory === 'promo churrasco') {
-            // Check if item name implies 2 units of bread (e.g. "2x Completo")
-            // This is a simplified check; more robust parsing might be needed if names vary widely
-            const isTwoUnitPromo = lowerItemName.startsWith('2x '); 
-            const breadUnitsToDeduct = isTwoUnitPromo ? quantity * 2 : quantity;
-            inventory = updateStock(inventory, 'Pan de marraqueta', breadUnitsToDeduct);
+       else if (lowerCategory === 'promo churrasco') {
+            // For promos, bread deduction might be 1 per promo item, not per person if it's a combo
+            inventory = updateStock(inventory, 'Pan de marraqueta', quantity); // Assuming 1 bread per promo item
             itemFoundAndDeducted = true;
         }
-        // PROMO MECHADA
         else if (lowerCategory === 'promo mechada') {
-            const isTwoUnitPromo = lowerItemName.startsWith('2x ');
-            const breadUnitsToDeduct = isTwoUnitPromo ? quantity * 2 : quantity;
-            inventory = updateStock(inventory, 'Pan de marraqueta', breadUnitsToDeduct);
+            inventory = updateStock(inventory, 'Pan de marraqueta', quantity); // Assuming 1 bread per promo item
             itemFoundAndDeducted = true;
+        }
+        // Bebidas
+        else if (lowerCategory === 'bebidas') {
+            if (lowerItemName === 'bebida 1.5lt') {
+                inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity);
+                itemFoundAndDeducted = true;
+            } else if (lowerItemName === 'lata') {
+                inventory = updateStock(inventory, 'Lata', quantity);
+                itemFoundAndDeducted = true;
+            } else if (lowerItemName === 'cafe chico') {
+                inventory = updateStock(inventory, 'Cafe Chico', quantity);
+                itemFoundAndDeducted = true;
+            } else if (lowerItemName === 'cafe grande') {
+                inventory = updateStock(inventory, 'Cafe Grande', quantity);
+                itemFoundAndDeducted = true;
+            }
         }
 
 
-      // Generic deduction if not handled by specific category logic above
       if (!itemFoundAndDeducted) {
         const inventoryItem = inventory.find(invItem => invItem.name.toLowerCase() === itemName.toLowerCase());
         if (inventoryItem) {
@@ -1188,7 +937,7 @@ export function TableDetailPage() {
 
 
   const addItemToOrder = (item: MenuItem, modifications?: string[]) => {
-    const orderItemId = `${item.id}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`; // Unique ID for the order item instance
+    const orderItemId = `${item.id}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
 
     let finalPrice = item.price;
     if (modifications && item.modificationPrices) {
@@ -1202,12 +951,12 @@ export function TableDetailPage() {
       orderItemId: orderItemId,
       quantity: 1,
       selectedModifications: modifications,
-      basePrice: item.price, // Store original base price
-      finalPrice: finalPrice, // Store final price with modifications
-      ingredients: item.ingredients, // Include ingredients
+      basePrice: item.price,
+      finalPrice: finalPrice,
+      ingredients: item.ingredients,
     };
     setCurrentOrder(prevOrder => [...prevOrder, newItem]);
-    setIsMenuSheetOpen(false); // Close menu sheet after adding
+    setIsMenuSheetOpen(false);
     toast({ title: `${item.name} añadido`, description: "Producto agregado al pedido actual."});
   };
 
@@ -1243,9 +992,8 @@ export function TableDetailPage() {
       return;
     }
 
-    const newOrderNumber = getNextOrderNumber(); // Get unique order number
+    const newOrderNumber = getNextOrderNumber();
 
-    // Assign order number to each item in the current order before moving
     const itemsWithOrderNumber = currentOrder.map(item => ({
         ...item,
         orderNumber: newOrderNumber
@@ -1254,24 +1002,21 @@ export function TableDetailPage() {
 
     const newPendingGroup: PendingOrderGroup = {
         orderNumber: newOrderNumber,
-        items: itemsWithOrderNumber, // Use items with the new order number
-        deliveryInfo: isDelivery ? deliveryInfo : null // Add delivery info if applicable
+        items: itemsWithOrderNumber,
+        deliveryInfo: isDelivery ? deliveryInfo : null
     };
 
-    // Add to pending orders
     setPendingOrderGroups(prevGroups => [...prevGroups, newPendingGroup]);
 
 
-    // Print comanda for the new group
     const kitchenReceiptHtml = formatKitchenOrderReceipt(
-        itemsWithOrderNumber, // Pass items of the new group
+        itemsWithOrderNumber,
         isDelivery ? `Delivery #${newOrderNumber}` : `Mesa ${tableIdParam} / Orden #${newOrderNumber}`,
-        newOrderNumber, // Pass the unique order number
+        newOrderNumber,
         isDelivery ? deliveryInfo : null
     );
     printHtml(kitchenReceiptHtml);
 
-    // Clear current order
     setCurrentOrder([]);
     toast({ title: "Comanda Impresa", description: `Pedido #${newOrderNumber} enviado a cocina y añadido a pendientes.` });
   };
@@ -1286,7 +1031,7 @@ export function TableDetailPage() {
   const handleFinalizeAndPay = (
       paymentMethod: PaymentMethod,
       tipAmount: number,
-      finalAmountWithTip: number // This is the grand total from PaymentDialog
+      finalAmountWithTip: number
     ) => {
         if (!orderToPay) {
             toast({ title: "Error", description: "No se ha seleccionado un pedido para pagar.", variant: "destructive" });
@@ -1294,31 +1039,27 @@ export function TableDetailPage() {
             return;
         }
 
-        const orderToFinalize = orderToPay; // The group that was selected for payment
+        const orderToFinalize = orderToPay;
 
 
-    // Calculate subtotal of the order being paid (excluding tip here, as it's passed separately)
     let orderSubtotal = orderToFinalize.items.reduce((sum, item) => sum + (item.finalPrice * item.quantity), 0);
 
-    // Add delivery fee to subtotal *if* it's a delivery order and fee exists in the group
     let deliveryFeeForThisOrder = 0;
     if (orderToFinalize.deliveryInfo && orderToFinalize.deliveryInfo.deliveryFee > 0) {
         deliveryFeeForThisOrder = orderToFinalize.deliveryInfo.deliveryFee;
         orderSubtotal += deliveryFeeForThisOrder;
     }
 
-    // Log the sale to cash movements
     const saleMovement: CashMovement = {
-      id: Date.now(), // Or a more robust ID generation
+      id: Date.now(),
       date: new Date(),
       category: 'Ingreso Venta',
       description: isDelivery
-        ? `Venta Delivery #${orderToFinalize.orderNumber} a ${orderToFinalize.deliveryInfo?.name || 'Cliente'}` + (tipAmount > 0 ? ` (Propina: ${globalFormatCurrency(tipAmount)})` : '')
-        : `Venta Mesa ${tableIdParam} / Orden #${orderToFinalize.orderNumber}` + (tipAmount > 0 ? ` (Propina: ${globalFormatCurrency(tipAmount)})` : ''),
-      amount: orderSubtotal, // Log the subtotal of items + delivery fee
+        ? `Venta Delivery #${orderToFinalize.orderNumber} a ${orderToFinalize.deliveryInfo?.name || 'Cliente'}` + (tipAmount > 0 ? ` (Propina: ${printUtilsFormatCurrency(tipAmount)})` : '')
+        : `Venta Mesa ${tableIdParam} / Orden #${orderToFinalize.orderNumber}` + (tipAmount > 0 ? ` (Propina: ${printUtilsFormatCurrency(tipAmount)})` : ''),
+      amount: orderSubtotal,
       paymentMethod: paymentMethod,
       deliveryFee: deliveryFeeForThisOrder > 0 ? deliveryFeeForThisOrder : undefined,
-      // Tip is handled via description, and dailyTipsTotal in expenses page will sum it up
     };
 
     const storedCashMovements = sessionStorage.getItem(CASH_MOVEMENTS_STORAGE_KEY);
@@ -1326,31 +1067,27 @@ export function TableDetailPage() {
     cashMovements.push(saleMovement);
     sessionStorage.setItem(CASH_MOVEMENTS_STORAGE_KEY, JSON.stringify(cashMovements));
 
-    // Deduct items from inventory
     orderToFinalize.items.forEach(item => {
       deductInventory(item.name, item.quantity, item.category);
     });
 
-    // Print customer receipt using finalAmountWithTip (which already includes tip)
     const customerReceiptHtml = formatCustomerReceipt(
         orderToFinalize.items,
-        finalAmountWithTip, // Pass the grand total including tip
+        finalAmountWithTip,
         paymentMethod,
         tableIdParam,
         orderToFinalize.orderNumber,
         orderToFinalize.deliveryInfo,
-        tipAmount // Pass tip separately for display on receipt
+        tipAmount
     );
     printHtml(customerReceiptHtml);
 
-    // Remove the paid group from pendingOrderGroups
     setPendingOrderGroups(prevGroups => prevGroups.filter(group => group.orderNumber !== orderToFinalize.orderNumber));
 
-    toast({ title: "Pago Realizado", description: `Pago de ${globalFormatCurrency(finalAmountWithTip)} para Orden #${orderToFinalize.orderNumber} registrado. Boleta impresa.` });
+    toast({ title: "Pago Realizado", description: `Pago de ${printUtilsFormatCurrency(finalAmountWithTip)} para Orden #${orderToFinalize.orderNumber} registrado. Boleta impresa.` });
     setIsPaymentDialogOpen(false);
     setOrderToPay(null);
 
-    // If it was a delivery order and now no pending groups, clear delivery info
     if (isDelivery && pendingOrderGroups.length === 1 && pendingOrderGroups[0].orderNumber === orderToFinalize.orderNumber) {
         setDeliveryInfo(null);
         sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`);
@@ -1385,7 +1122,6 @@ export function TableDetailPage() {
       }
       groups[item.category].push(item);
     });
-    // Ensure categories are displayed in the predefined order
     return orderedCategories.reduce((acc, categoryName) => {
       if (groups[categoryName]) {
         acc[categoryName] = groups[categoryName];
@@ -1401,17 +1137,14 @@ export function TableDetailPage() {
    };
 
    const handleCancelDeliveryInfo = () => {
-       // If no items in current order or pending orders, and delivery info is still null,
-       // it means they cancelled the initial dialog. Redirect back.
        if (currentOrder.length === 0 && pendingOrderGroups.length === 0 && !deliveryInfo) {
            toast({ title: "Envío Cancelado", description: "Se requieren datos de envío para continuar.", variant: "destructive" });
-           router.push('/tables'); // Go back if initial dialog is cancelled
+           router.push('/tables');
        } else {
-           setIsDeliveryDialogOpen(false); // Otherwise, just close the dialog
+           setIsDeliveryDialogOpen(false);
        }
    };
 
-   // Function to remove a pending order group (e.g., if it was a mistake)
    const handleRemovePendingOrderGroup = (orderNumberToRemove: number) => {
        setPendingOrderGroups(prevGroups =>
            prevGroups.filter(group => group.orderNumber !== orderNumberToRemove)
@@ -1494,7 +1227,7 @@ export function TableDetailPage() {
                                     )}
                                   </div>
                                   <div className="flex items-center gap-2">
-                                      <span className="font-mono text-sm">{globalFormatCurrency(item.price)}</span>
+                                      <span className="font-mono text-sm">{printUtilsFormatCurrency(item.price)}</span>
                                       <ChevronRight className="h-4 w-4 text-muted-foreground" />
                                   </div>
                                 </div>
@@ -1505,25 +1238,19 @@ export function TableDetailPage() {
                       ))}
                     </Accordion>
                   </ScrollArea>
-                   {/* <SheetFooter className="p-4 border-t">
-                      <SheetClose asChild>
-                          <Button variant="outline">Cerrar Menú</Button>
-                      </SheetClose>
-                  </SheetFooter> */}
               </SheetContent>
           </Sheet>
       </div>
 
 
       <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-6 overflow-hidden">
-        {/* Current Order Section */}
         <Card className="flex flex-col overflow-hidden h-full shadow-lg">
           <CardHeader>
             <CardTitle className="text-2xl">Pedido Actual</CardTitle>
             <CardDescription>Artículos para la comanda actual.</CardDescription>
           </CardHeader>
           <ScrollArea className="flex-grow">
-            <CardContent className="pt-0 pr-2"> {/* Adjusted padding for scrollbar */}
+            <CardContent className="pt-0 pr-2">
               {currentOrder.length === 0 ? (
                 <p className="text-muted-foreground">No hay artículos en el pedido actual.</p>
               ) : (
@@ -1540,11 +1267,6 @@ export function TableDetailPage() {
                               ({item.selectedModifications.join(', ')})
                             </p>
                           )}
-                           {item.ingredients && item.ingredients.length > 0 && !item.selectedModifications?.some(mod => mod.toLowerCase().startsWith('sin')) && (
-                                <p className="text-xs text-muted-foreground font-normal">
-                                    {/* Ingredientes: {item.ingredients.join(', ')} */}
-                                </p>
-                            )}
                         </div>
                         <Button variant="ghost" size="icon" onClick={() => removeItem(item.orderItemId)} className="h-7 w-7 text-destructive hover:text-destructive/90">
                           <XCircle className="h-4 w-4" />
@@ -1558,7 +1280,6 @@ export function TableDetailPage() {
                         <Button variant="outline" size="icon" onClick={() => increaseQuantity(item.orderItemId)} className="h-7 w-7">
                           <PlusCircle className="h-4 w-4" />
                         </Button>
-                        {/* Price not shown in current order */}
                       </div>
                     </li>
                   ))}
@@ -1568,10 +1289,10 @@ export function TableDetailPage() {
           </ScrollArea>
           <Separator />
           <CardFooter className="p-4 flex flex-col items-stretch gap-3">
-            {/* <div className="flex justify-between items-center text-lg font-semibold">
+            <div className="flex justify-between items-center text-lg font-semibold">
               <span className="font-bold">Total Actual:</span>
-              <span className="font-bold">{globalFormatCurrency(currentOrderTotal)}</span>
-            </div> */}
+              <span className="font-bold">{printUtilsFormatCurrency(currentOrderTotal)}</span>
+            </div>
             <Button onClick={handlePrintKitchenOrder} className="w-full" disabled={currentOrder.length === 0}>
               <Printer className="mr-2 h-4 w-4" /> Imprimir Comanda
             </Button>
@@ -1581,14 +1302,13 @@ export function TableDetailPage() {
           </CardFooter>
         </Card>
 
-        {/* Pending Orders Section */}
         <Card className="flex flex-col overflow-hidden h-full shadow-lg">
           <CardHeader>
             <CardTitle className="text-2xl">Pedidos Pendientes de Pago</CardTitle>
             <CardDescription>Comandas enviadas a cocina, listas para cobrar.</CardDescription>
           </CardHeader>
           <ScrollArea className="flex-grow">
-            <CardContent className="pt-0 pr-2"> {/* Adjusted padding */}
+            <CardContent className="pt-0 pr-2">
               {pendingOrderGroups.length === 0 ? (
                 <p className="text-muted-foreground">No hay pedidos pendientes de pago.</p>
               ) : (
@@ -1602,7 +1322,7 @@ export function TableDetailPage() {
                       <AccordionItem value={`order-${group.orderNumber}`} key={group.orderNumber} className="border rounded-md shadow-sm bg-background">
                         <AccordionTrigger className="p-3 text-base font-semibold hover:no-underline hover:bg-muted/30 rounded-t-md data-[state=open]:rounded-b-none">
                           <div className="flex justify-between w-full items-center">
-                            <span>Orden #{String(group.orderNumber).padStart(3, '0')} - Total: {globalFormatCurrency(groupTotalWithDelivery)}</span>
+                            <span>Orden #{String(group.orderNumber).padStart(3, '0')} - Total: {printUtilsFormatCurrency(groupTotalWithDelivery)}</span>
                              {group.deliveryInfo && <Badge variant="outline">Envío: {group.deliveryInfo.name}</Badge>}
                           </div>
                         </AccordionTrigger>
@@ -1620,13 +1340,8 @@ export function TableDetailPage() {
                                         ({item.selectedModifications.join(', ')})
                                       </p>
                                     )}
-                                    {item.ingredients && item.ingredients.length > 0 && !item.selectedModifications?.some(mod => mod.toLowerCase().startsWith('sin')) && (
-                                        <p className="text-xs text-muted-foreground font-normal">
-                                            {/* Ingredientes: {item.ingredients.join(', ')} */}
-                                        </p>
-                                    )}
                                   </div>
-                                  <span className="font-mono font-bold">{globalFormatCurrency(item.finalPrice * item.quantity)}</span>
+                                  <span className="font-mono font-bold">{printUtilsFormatCurrency(item.finalPrice * item.quantity)}</span>
                                 </div>
                               </li>
                             ))}
@@ -1634,7 +1349,7 @@ export function TableDetailPage() {
                                 <li className="text-sm mt-2 pt-2 border-t border-dashed">
                                     <div className="flex justify-between items-center">
                                         <p className="font-bold">Costo Envío:</p>
-                                        <span className="font-mono font-bold">{globalFormatCurrency(group.deliveryInfo.deliveryFee)}</span>
+                                        <span className="font-mono font-bold">{printUtilsFormatCurrency(group.deliveryInfo.deliveryFee)}</span>
                                     </div>
                                 </li>
                             )}
@@ -1656,15 +1371,10 @@ export function TableDetailPage() {
               )}
             </CardContent>
           </ScrollArea>
-           {/* <Separator />
-           <CardFooter className="p-4">
-             <p className="text-sm text-muted-foreground">Total de todos los pedidos pendientes: {globalFormatCurrency(pendingOrderGroups.reduce((total, group) => total + group.items.reduce((sum, item) => sum + (item.finalPrice * item.quantity), 0) + (group.deliveryInfo?.deliveryFee ?? 0), 0))}</p>
-           </CardFooter> */}
         </Card>
       </div>
 
 
-       {/* Modification Dialog */}
       {itemToModify && (
         <ModificationDialog
           isOpen={isModificationDialogOpen}
@@ -1684,7 +1394,6 @@ export function TableDetailPage() {
         />
       )}
 
-        {/* Payment Dialog */}
         {orderToPay && (
             <PaymentDialog
                 isOpen={isPaymentDialogOpen}
@@ -1697,12 +1406,11 @@ export function TableDetailPage() {
         )}
 
 
-       {/* Delivery Info Dialog (only for delivery table) */}
        {isDelivery && (
            <DeliveryDialog
                isOpen={isDeliveryDialogOpen}
                onOpenChange={setIsDeliveryDialogOpen}
-               initialData={deliveryInfo} // Pass existing data for editing
+               initialData={deliveryInfo}
                onConfirm={handleConfirmDeliveryInfo}
                onCancel={handleCancelDeliveryInfo}
            />
@@ -1711,3 +1419,4 @@ export function TableDetailPage() {
   );
 }
 
+export default TableDetailPage;

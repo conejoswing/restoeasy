@@ -114,7 +114,7 @@ export const formatKitchenOrderReceipt = (
         }
         strong { font-weight: bold; }
         /* Default small style if not overridden by inline styles */
-        small { font-size: 8pt; font-weight: bold; } 
+        small { font-size: 8pt; font-weight: bold; }
       </style>
     </head>
     <body>
@@ -146,7 +146,7 @@ export const formatCustomerReceipt = (
     totalAmount: number,
     paymentMethod: string,
     tableId: string | number,
-    orderNumber: number, 
+    orderNumber: number,
     deliveryInfo?: DeliveryInfo | null,
     tipAmount?: number
 ): string => {
@@ -154,9 +154,9 @@ export const formatCustomerReceipt = (
     const title = "BOLETA";
     const shopName = "El Bajón de la Cami";
     const time = formatDateTime(new Date());
-    
-    const orderIdentifier = isDelivery 
-        ? `Delivery: ${deliveryInfo?.name || 'Cliente'} - Orden #${String(orderNumber).padStart(3, '0')}` 
+
+    const orderIdentifier = isDelivery
+        ? `Delivery: ${deliveryInfo?.name || 'Cliente'} - Orden #${String(orderNumber).padStart(3, '0')}`
         : `Mesa ${tableId} - Orden #${String(orderNumber).padStart(3, '0')}`;
 
     let subtotal = 0;
@@ -207,11 +207,11 @@ export const formatCustomerReceipt = (
       <title>${title}</title>
       <style>
          @page { margin: 5mm; }
-         body { 
-            font-family: 'Courier New', Courier, monospace; 
-            font-size: 10pt; width: 70mm; 
-            color: #000; 
-            background-color: #fff; 
+         body {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 10pt; width: 70mm;
+            color: #000;
+            background-color: #fff;
             font-weight: bold;
          }
          h1, h2 { text-align: center; margin: 5px 0; font-weight: bold; }
@@ -286,7 +286,7 @@ export const formatCashClosingReceipt = (
         dailyExpenses: number;
         dailyNetTotal: number;
     },
-    salesDetails: CashMovement[] 
+    salesDetails: CashMovement[]
 ): string => {
     const {
         dailyCashIncome, dailyDebitCardIncome, dailyCreditCardIncome, dailyTransferIncome,
@@ -297,8 +297,8 @@ export const formatCashClosingReceipt = (
     if (salesDetails.length > 0) {
         salesDetails.forEach(sale => {
             let saleDesc = sale.description;
-            
-            if (saleDesc.length > 25) { 
+
+            if (saleDesc.length > 25) {
                 saleDesc = saleDesc.substring(0, 22) + "...";
             }
             salesHtml += `
@@ -338,11 +338,11 @@ export const formatCashClosingReceipt = (
       <title>Cierre de Caja</title>
        <style>
          @page { margin: 5mm; }
-         body { 
-            font-family: 'Courier New', Courier, monospace; 
-            font-size: 10pt; width: 70mm; 
-            color: #000; 
-            background-color: #fff; 
+         body {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 10pt; width: 70mm;
+            color: #000;
+            background-color: #fff;
             font-weight: bold;
         }
          h1 { font-size: 14pt; text-align: center; margin-bottom: 5px; font-weight: bold; }
@@ -355,7 +355,7 @@ export const formatCashClosingReceipt = (
          hr { border: none; border-top: 1px dashed #000; margin: 10px 0; }
          strong { font-weight: bold; }
          .sales-details-section table th, .sales-details-section table td {
-            padding: 1px 0; 
+            padding: 1px 0;
          }
       </style>
     </head>
