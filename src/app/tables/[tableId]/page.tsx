@@ -14,7 +14,7 @@ import {
   CardDescription,
   CardFooter,
 } from '@/components/ui/card';
-import {ScrollArea}from '@/components/ui/scroll-area';
+import {ScrollArea }from '@/components/ui/scroll-area';
 import {Separator}from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -1132,7 +1132,7 @@ export default function TableDetailPage() {
 
     const { items: paidItems, orderNumber, deliveryInfo: orderDeliveryInfo } = selectedPendingOrderGroup;
 
-    const customerReceiptHtml = formatCustomerReceipt(paidItems, finalAmountWithTip, paymentMethod, tableIdParam, orderDeliveryInfo, tipAmount);
+    const customerReceiptHtml = formatCustomerReceipt(paidItems, finalAmountWithTip, paymentMethod, tableIdParam, orderNumber, orderDeliveryInfo, tipAmount);
     printHtml(customerReceiptHtml);
     deductInventory(paidItems);
 
@@ -1271,10 +1271,10 @@ export default function TableDetailPage() {
               ) : (
                 currentOrder.map(item => (
                   <div key={item.orderItemId} className="flex items-center justify-between p-3 bg-background rounded-md shadow-sm">
-                    <div>
-                      <p className="font-bold text-sm">{item.name}</p>
+                    <div className="font-bold">
+                      <p className="text-sm">{item.name}</p>
                       {item.selectedModifications && item.selectedModifications.length > 0 && (
-                        <p className="text-xs text-muted-foreground font-bold">
+                        <p className="text-xs text-muted-foreground">
                           ({item.selectedModifications.join(', ')})
                         </p>
                       )}
@@ -1284,7 +1284,7 @@ export default function TableDetailPage() {
                             </p>
                         )}
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 font-bold">
                       <Button variant="ghost" size="icon" onClick={() => handleDecreaseQuantity(item.orderItemId)} className="h-7 w-7">
                         <MinusCircle className="h-4 w-4" />
                       </Button>
@@ -1337,13 +1337,13 @@ export default function TableDetailPage() {
                                 </Button>
                             </div>
                         </CardHeader>
-                        <CardContent className="p-3 text-sm space-y-1.5">
+                        <CardContent className="p-3 text-sm space-y-1.5 font-bold">
                         {group.items.map(item => (
                             <div key={item.orderItemId} className="flex justify-between items-center">
                             <div>
-                                <span className="font-bold">{item.quantity}x {item.name}</span>
+                                <span>{item.quantity}x {item.name}</span>
                                 {item.selectedModifications && item.selectedModifications.length > 0 && (
-                                <span className="text-xs text-muted-foreground ml-1 font-bold">({item.selectedModifications.join(', ')})</span>
+                                <span className="text-xs text-muted-foreground ml-1">({item.selectedModifications.join(', ')})</span>
                                 )}
                                 {item.ingredients && item.ingredients.length > 0 && (
                                     <p className="text-xs text-muted-foreground mt-0.5 italic">
@@ -1351,13 +1351,13 @@ export default function TableDetailPage() {
                                     </p>
                                 )}
                             </div>
-                            <span className="font-mono font-bold">{globalFormatCurrency(item.finalPrice * item.quantity)}</span>
+                            <span className="font-mono">{globalFormatCurrency(item.finalPrice * item.quantity)}</span>
                             </div>
                         ))}
                         {isDelivery && group.deliveryInfo && group.deliveryInfo.deliveryFee > 0 && (
                              <div className="flex justify-between items-center pt-1 border-t border-dashed mt-1.5">
-                                 <span className="font-bold">Costo Envío:</span>
-                                 <span className="font-mono font-bold">{globalFormatCurrency(group.deliveryInfo.deliveryFee)}</span>
+                                 <span>Costo Envío:</span>
+                                 <span className="font-mono">{globalFormatCurrency(group.deliveryInfo.deliveryFee)}</span>
                              </div>
                          )}
                         <div className="flex justify-between items-center text-base font-bold pt-1.5 border-t">

@@ -1,7 +1,7 @@
 
 'use client';
 
-import type { OrderItem } from '@/app/tables/[tableId]/page';
+import type { OrderItem, PaymentMethod } from '@/app/tables/[tableId]/page';
 import type { DeliveryInfo } from '@/components/app/delivery-dialog';
 import type { CashMovement } from '@/app/expenses/page'; // Import CashMovement type
 
@@ -82,6 +82,7 @@ export const formatKitchenOrderReceipt = (
             font-size: 14pt;
             text-align: center;
             margin-bottom: 10px;
+            font-weight: bold;
         }
         table {
           width: 100%;
@@ -144,6 +145,7 @@ export const formatCustomerReceipt = (
     totalAmount: number,
     paymentMethod: string,
     tableId: string | number,
+    orderNumber: number, // Added orderNumber parameter
     deliveryInfo?: DeliveryInfo | null,
     tipAmount?: number
 ): string => {
@@ -151,7 +153,10 @@ export const formatCustomerReceipt = (
     const title = "BOLETA";
     const shopName = "El Bajón de la Cami";
     const time = formatDateTime(new Date());
-    const orderIdentifier = isDelivery ? `Delivery: ${deliveryInfo?.name || 'Cliente'}` : `Mesa ${tableId}`;
+    // Construct orderIdentifier to include the order number
+    const orderIdentifier = isDelivery 
+        ? `Delivery: ${deliveryInfo?.name || 'Cliente'} - Orden #${String(orderNumber).padStart(3, '0')}` 
+        : `Mesa ${tableId} - Orden #${String(orderNumber).padStart(3, '0')}`;
 
     let subtotal = 0;
     let itemsHtml = '';
@@ -182,7 +187,7 @@ export const formatCustomerReceipt = (
             <td style="text-align: right; font-weight: bold;">${formatCurrency(deliveryInfo.deliveryFee)}</td>
         </tr>
         `;
-        subtotal += deliveryInfo.deliveryFee;
+        subtotal += deliveryInfo.deliveryFee; // This subtotal is only for display logic within this function
     }
 
     let tipHtml = '';
@@ -447,3 +452,4 @@ export const printHtml = (htmlContent: string): void => {
         }
     }
 };
+
