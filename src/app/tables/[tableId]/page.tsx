@@ -24,6 +24,7 @@ import {
   SheetTitle,
   SheetTrigger,
   SheetClose,
+  SheetFooter,
 } from '@/components/ui/sheet';
 import {
   Table,
@@ -111,7 +112,7 @@ const mockMenu: MenuItem[] = [
       name: 'Italiano Grande',
       price: 4500,
       category: 'Completos Vienesas',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
       modificationPrices: { 'Agregado Queso': 1000 },
       ingredients: ['Palta', 'Tomate']
     },
@@ -124,7 +125,7 @@ const mockMenu: MenuItem[] = [
       modificationPrices: { 'Agregado Queso': 1000 },
       ingredients: ['Salsas']
     },
-     {
+    {
         id: 27,
         name: 'Hot Dog Grande',
         price: 4700,
