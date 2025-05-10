@@ -99,8 +99,8 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
             return [...standardMods, ...fajitaChoiceMods].includes(mod);
         }
 
-        // For 'Completos Vienesas' and specific item names 'Dinamico Grande' or 'Dinamico Normal'
-        if (item.category === 'Completos Vienesas' && (item.name === 'Dinamico Grande' || item.name === 'Dinamico Normal')) {
+        // For 'Vienesas' and specific item names 'Dinamico Grande' or 'Dinamico Normal'
+        if (item.category === 'Vienesas' && (item.name === 'Dinamico Grande' || item.name === 'Dinamico Normal')) {
             const allowedMods = [...standardMods, ...dinamicoVienesaRestrictedOptions];
             return allowedMods.includes(mod);
         }
@@ -134,8 +134,8 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
              const allowedPromoMechadaDinamicoMods = [...standardMods, ...promoMechadaDinamicoOptions];
             return allowedPromoMechadaDinamicoMods.includes(mod);
         }
-        // Standard filter for other Completos Vienesas (excluding dynamic ones)
-        else if (item.category === 'Completos Vienesas') {
+        // Standard filter for other Vienesas (excluding dynamic ones)
+        else if (item.category === 'Vienesas') {
            return standardMods.includes(mod);
         }
          // Standard mods for most other categories that allow them
