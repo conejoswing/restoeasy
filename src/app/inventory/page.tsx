@@ -59,6 +59,7 @@ const predefinedItemNames: string[] = [
   'Cafe Chico', // Added from menu
   'Cafe Grande', // Added from menu
   'Vienesas', // Added for deduction
+  'Fajita', // Added for Promo Fajitas deduction
 ];
 
 // Initialize inventory state with predefined items having 0 stock
@@ -354,3 +355,4 @@ export default function InventoryPage() {
     </div>
   );
 }
+
