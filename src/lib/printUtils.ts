@@ -33,6 +33,7 @@ export const formatKitchenOrderReceipt = (
 
     let itemsHtml = '';
     orderItems.forEach(item => {
+        const categoryText = `<br><small style="margin-left: 10px; font-style: italic; font-weight: normal; font-size: 11pt; color: #555;">(${item.category})</small>`;
         const modificationsText = item.selectedModifications && item.selectedModifications.length > 0
             ? `<br><small style="margin-left: 10px; font-weight: bold; font-size: 14pt;">(${item.selectedModifications.join(', ')})</small>`
             : '';
@@ -45,6 +46,7 @@ export const formatKitchenOrderReceipt = (
         <td style="vertical-align: top; padding-right: 10px; font-weight: bold; font-size: 14pt;">${item.quantity}x</td>
         <td>
           <span style="font-weight: bold; font-size: 14pt;">${item.name}</span>
+          ${categoryText}
           ${modificationsText}
           ${ingredientsText}
         </td>
@@ -445,3 +447,4 @@ export const printHtml = (htmlContent: string): void => {
         }
     }
 };
+
