@@ -114,7 +114,7 @@ const mockMenu: MenuItem[] = [
       name: 'Italiano Normal',
       price: 4000,
       category: 'Completos Vienesas',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
       modificationPrices: { 'Agregado Queso': 1000 },
       ingredients: ['Palta', 'Tomate']
     },
@@ -123,7 +123,7 @@ const mockMenu: MenuItem[] = [
       name: 'Italiano Grande',
       price: 4500,
       category: 'Completos Vienesas',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
       modificationPrices: { 'Agregado Queso': 1000 },
       ingredients: ['Palta', 'Tomate']
     },
@@ -132,7 +132,7 @@ const mockMenu: MenuItem[] = [
       name: 'Hot Dog Normal',
       price: 4200,
       category: 'Completos Vienesas',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
       modificationPrices: { 'Agregado Queso': 1000 },
       ingredients: ['Salsas']
     },
@@ -141,7 +141,7 @@ const mockMenu: MenuItem[] = [
         name: 'Hot Dog Grande',
         price: 4700,
         category: 'Completos Vienesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Salsas']
     },
@@ -150,7 +150,7 @@ const mockMenu: MenuItem[] = [
         name: 'Completo Normal',
         price: 4300,
         category: 'Completos Vienesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate', 'Chucrut', 'Americana']
     },
@@ -159,7 +159,7 @@ const mockMenu: MenuItem[] = [
         name: 'Completo Grande',
         price: 4800,
         category: 'Completos Vienesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate', 'Chucrut', 'Americana']
     },
@@ -168,7 +168,7 @@ const mockMenu: MenuItem[] = [
         name: 'Palta Normal',
         price: 4100,
         category: 'Completos Vienesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Palta']
     },
@@ -177,7 +177,7 @@ const mockMenu: MenuItem[] = [
         name: 'Palta Grande',
         price: 4600,
         category: 'Completos Vienesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Palta']
     },
@@ -186,7 +186,7 @@ const mockMenu: MenuItem[] = [
         name: 'Tomate Normal',
         price: 4100,
         category: 'Completos Vienesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate']
     },
@@ -195,7 +195,7 @@ const mockMenu: MenuItem[] = [
         name: 'Tomate Grande',
         price: 4600,
         category: 'Completos Vienesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate']
     },
@@ -223,7 +223,7 @@ const mockMenu: MenuItem[] = [
       name: 'Italiano Normal',
       price: 5500,
       category: 'Completos As',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
       modificationPrices: { 'Agregado Queso': 1000 },
        ingredients: ['Palta', 'Tomate']
     },
@@ -232,7 +232,7 @@ const mockMenu: MenuItem[] = [
       name: 'Italiano Grande',
       price: 6000,
       category: 'Completos As',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
       modificationPrices: { 'Agregado Queso': 1000 },
       ingredients: ['Palta', 'Tomate']
     },
@@ -241,15 +241,15 @@ const mockMenu: MenuItem[] = [
       name: 'Completo Normal',
       price: 6500,
       category: 'Completos As',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
        modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate', 'Chucrut', 'Americana']
     },
-    { id: 36, name: 'Completo Grande', price: 7000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Chucrut', 'Americana'] },
-    { id: 37, name: 'Palta Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta'] },
-    { id: 38, name: 'Palta Grande', price: 6300, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta'] },
-    { id: 39, name: 'Tomate Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate'] },
-    { id: 40, name: 'Tomate Grande', price: 6300, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate'] },
+    { id: 36, name: 'Completo Grande', price: 7000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Chucrut', 'Americana'] },
+    { id: 37, name: 'Palta Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta'] },
+    { id: 38, name: 'Palta Grande', price: 6300, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta'] },
+    { id: 39, name: 'Tomate Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate'] },
+    { id: 40, name: 'Tomate Grande', price: 6300, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate'] },
     { id: 41, name: 'Queso Normal', price: 6000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso'] },
     { id: 42, name: 'Queso Grande', price: 6500, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso'] },
     { id: 43, name: 'Solo Carne Normal', price: 5000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: [] },
@@ -869,7 +869,7 @@ export function TableDetailPage() {
           itemFoundAndDeducted = true;
         } else if (lowerItemName.includes('grande')) {
           inventory = updateStock(inventory, 'Pan especial grande', quantity);
-           inventory = updateStock(inventory, 'Vienesas', quantity * 2);
+           inventory = updateStock(inventory, 'Vienesas', quantity * 2); // 2 vienesas for grande
           itemFoundAndDeducted = true;
         }
       }
@@ -891,8 +891,15 @@ export function TableDetailPage() {
             }
        }
        else if (lowerCategory === 'churrascos') {
-            inventory = updateStock(inventory, 'Pan de marraqueta', quantity);
-            itemFoundAndDeducted = true;
+            const churrascoItems = [
+                'churrasco campestre', 'churrasco che milico', 'churrasco completo',
+                'churrasco dinamico', 'churrasco italiano', 'churrasco napolitano',
+                'churrasco palta', 'churrasco queso', 'churrasco queso champiñon', 'churrasco tomate'
+            ];
+            if (churrascoItems.includes(lowerItemName)) {
+                inventory = updateStock(inventory, 'Pan de marraqueta', quantity);
+                itemFoundAndDeducted = true;
+            }
        }
         else if (lowerCategory === 'promo churrasco') {
             const promoChurrascoItems = [
@@ -901,7 +908,7 @@ export function TableDetailPage() {
                 'queso champiñon', 'tomate', 'palta'
             ];
             if (promoChurrascoItems.includes(lowerItemName)) {
-                inventory = updateStock(inventory, 'Pan de marraqueta', quantity);
+                inventory = updateStock(inventory, 'Pan de marraqueta', quantity); // 1 pan per item
                 inventory = updateStock(inventory, 'Lata', quantity);
                 itemFoundAndDeducted = true;
             }
@@ -913,9 +920,9 @@ export function TableDetailPage() {
                 'queso', 'queso champiñon', 'tomate'
             ];
             if (promoMechadaItems.includes(lowerItemName)) {
-                inventory = updateStock(inventory, 'Pan de marraqueta', quantity);
-                inventory = updateStock(inventory, 'Lata', quantity);
-                itemFoundAndDeducted = true;
+                 inventory = updateStock(inventory, 'Pan de marraqueta', quantity); // 1 pan per item
+                 inventory = updateStock(inventory, 'Lata', quantity);
+                 itemFoundAndDeducted = true;
             }
         }
          else if (lowerCategory === 'promo hamburguesas') {
@@ -924,11 +931,22 @@ export function TableDetailPage() {
                   inventory = updateStock(inventory, 'Lata', quantity);
                   itemFoundAndDeducted = true;
               } else if (['doble', 'doble italiana', 'super big cami', 'super tapa arteria'].includes(lowerItemName)) {
-                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity * 2); // 2 buns for double items
+                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity * 2);
                   inventory = updateStock(inventory, 'Lata', quantity);
                   itemFoundAndDeducted = true;
               }
          }
+        else if (lowerCategory === 'promociones') {
+            if (lowerItemName === 'promo 1' || lowerItemName === 'promo 2') {
+                inventory = updateStock(inventory, 'Pan de hamburguesa grande', quantity);
+                inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity);
+                itemFoundAndDeducted = true;
+            } else if (lowerItemName === 'promo 3') {
+                inventory = updateStock(inventory, 'Pan de marraqueta', quantity * 4);
+                inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity);
+                itemFoundAndDeducted = true;
+            }
+        }
         // Bebidas
         else if (lowerCategory === 'bebidas') {
             if (lowerItemName === 'bebida 1.5lt') {
@@ -942,13 +960,6 @@ export function TableDetailPage() {
                 itemFoundAndDeducted = true;
             } else if (lowerItemName === 'cafe grande') {
                 inventory = updateStock(inventory, 'Cafe Grande', quantity);
-                itemFoundAndDeducted = true;
-            }
-        }
-        else if (lowerCategory === 'promociones') {
-            if (lowerItemName === 'promo 1' || lowerItemName === 'promo 2') {
-                inventory = updateStock(inventory, 'Pan de hamburguesa grande', quantity);
-                inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity);
                 itemFoundAndDeducted = true;
             }
         }
@@ -1494,6 +1505,7 @@ export function TableDetailPage() {
 }
 
 export default TableDetailPage;
+
 
 
 
