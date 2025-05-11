@@ -46,7 +46,7 @@ const promoFajitasBaseModifications = [
     'Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso',
     'tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde',
     'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo',
-    'Pollo', 'Lomito', 'Vacuno', 'Lechuga' // Added new protein/base choices
+    'Pollo', 'Lomito', 'Vacuno', 'Lechuga'
 ];
 
 const mockMenu: MenuItem[] = [
@@ -642,9 +642,9 @@ const getPersistedMenu = (): MenuItem[] => {
         // Ensure all items have modifications array, and add new fajita mods if needed
         const menuWithEnsuredModifications = parsedMenu.map(item => {
           const newItem = { ...item, modifications: item.modifications || [] };
-          if (item.category === 'Promo Fajitas' && 
+          if (item.category === 'Promo Fajitas' &&
               ['Italiana', 'Brasileño', 'Chacarero', 'Americana', 'Primavera', 'Golosasa', '4 Ingredientes', '6 Ingredientes'].includes(item.name)) {
-            
+
             const existingMods = new Set(newItem.modifications);
             promoFajitasBaseModifications.forEach(mod => existingMods.add(mod));
             newItem.modifications = Array.from(existingMods);
@@ -660,9 +660,9 @@ const getPersistedMenu = (): MenuItem[] => {
   // Apply modifications to initial mockMenu before saving
   const initialMenuWithMods = mockMenu.map(item => {
     const newItem = { ...item, modifications: item.modifications || [] };
-    if (item.category === 'Promo Fajitas' && 
+    if (item.category === 'Promo Fajitas' &&
         ['Italiana', 'Brasileño', 'Chacarero', 'Americana', 'Primavera', 'Golosasa', '4 Ingredientes', '6 Ingredientes'].includes(item.name)) {
-      
+
       const existingMods = new Set(newItem.modifications);
       promoFajitasBaseModifications.forEach(mod => existingMods.add(mod));
       newItem.modifications = Array.from(existingMods);
