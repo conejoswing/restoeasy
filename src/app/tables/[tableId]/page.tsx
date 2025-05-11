@@ -1303,7 +1303,7 @@ export function TableDetailPage() {
                       <PackageSearch className="mr-2 h-5 w-5"/> Ver Menú
                   </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-full sm:w-full md:w-full lg:w-full xl:w-full h-full p-0 flex flex-col">
+              <SheetContent side="left" className="w-full sm:max-w-full md:max-w-full lg:max-w-full xl:max-w-full h-full p-0 flex flex-col">
                   <SheetHeader className="p-4 border-b">
                       <SheetTitle className="text-2xl">Menú</SheetTitle>
                   </SheetHeader>
