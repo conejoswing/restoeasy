@@ -160,18 +160,34 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
        const storedAuth = sessionStorage.getItem(AUTH_STATE_KEY);
        if (storedAuth) {
            try {
-               const { authenticated, username } = JSON.parse(storedAuth);
-               // Find user in the *just loaded* user list
-               const loggedInUser = loadedUsers.find(u => u.username.toLowerCase() === username?.toLowerCase());
-               if (authenticated && loggedInUser) {
-                   setIsAuthenticated(true);
-                   setUserRole(loggedInUser.role);
-                   console.log(`AuthContext: Restored session - User: ${loggedInUser.username}, Role: ${loggedInUser.role}, Authenticated: true`);
+               const parsedAuth = JSON.parse(storedAuth); // Parse first
+               if (parsedAuth && typeof parsedAuth === 'object') { // Check if it's a non-null object
+                   const { authenticated, username } = parsedAuth as { authenticated?: boolean, username?: string }; // Destructure safely
+
+                   // Further checks for authenticated and username being present and of correct type
+                   if (typeof authenticated === 'boolean' && typeof username === 'string') {
+                       const loggedInUser = loadedUsers.find(u => u.username.toLowerCase() === username.toLowerCase());
+                       if (authenticated && loggedInUser) {
+                           setIsAuthenticated(true);
+                           setUserRole(loggedInUser.role);
+                           console.log(`AuthContext: Restored session - User: ${loggedInUser.username}, Role: ${loggedInUser.role}, Authenticated: true`);
+                       } else {
+                            console.log("AuthContext: Invalid or expired session data (user not found or auth flag false). Clearing session.");
+                            setIsAuthenticated(false);
+                            setUserRole(null);
+                            sessionStorage.removeItem(AUTH_STATE_KEY);
+                       }
+                   } else {
+                       console.log("AuthContext: Parsed session data is missing 'authenticated' or 'username', or they have incorrect types. Clearing session.");
+                       setIsAuthenticated(false);
+                       setUserRole(null);
+                       sessionStorage.removeItem(AUTH_STATE_KEY);
+                   }
                } else {
-                    console.log("AuthContext: Invalid or expired session data found. Clearing session.");
-                    setIsAuthenticated(false);
-                    setUserRole(null);
-                    sessionStorage.removeItem(AUTH_STATE_KEY);
+                   console.log("AuthContext: Parsed session data is not a valid object (e.g., null or not an object). Clearing session.");
+                   setIsAuthenticated(false);
+                   setUserRole(null);
+                   sessionStorage.removeItem(AUTH_STATE_KEY);
                }
            } catch (error) {
                console.error("AuthContext: Failed to parse auth state from session storage:", error);
@@ -368,10 +384,14 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
       return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
   }
 
+  // If not loading, or if it's the login page, render children.
+  // This ensures login page is always renderable, and other pages render after auth check.
   if (!isLoading || pathname === '/login') {
      return <>{children}</>;
   }
-
+  
+  // Fallback loading screen if still loading and not on login page (should be brief)
   return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
 
 };
+
