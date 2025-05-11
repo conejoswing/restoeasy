@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea'; // Import Textarea
 import { Badge } from '@/components/ui/badge';
 import {
   Dialog as ShadDialog,
@@ -24,7 +25,7 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { useState, useEffect, useMemo } from 'react';
-import { Edit } from 'lucide-react';
+import { Edit, PlusCircle, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
 import { Button } from '@/components/ui/button';
@@ -634,6 +635,7 @@ const getPersistedMenu = (): MenuItem[] => {
   let baseMenu: MenuItem[] = mockMenu.map(item => ({
     ...item,
     modifications: item.modifications || [],
+    ingredients: item.ingredients || [],
   }));
 
   if (typeof window === 'undefined') {
@@ -697,6 +699,13 @@ const ProductsManagementPage = () => {
   const [isEditPriceDialogOpen, setIsEditPriceDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<MenuItem | null>(null);
   const [newPrice, setNewPrice] = useState('');
+
+  const [isEditIngredientsDialogOpen, setIsEditIngredientsDialogOpen] = useState(false);
+  const [editingIngredientsProduct, setEditingIngredientsProduct] = useState<MenuItem | null>(null);
+  const [currentIngredients, setCurrentIngredients] = useState<string[]>([]);
+  const [newIngredient, setNewIngredient] = useState('');
+
+
   const { toast } = useToast();
 
   useEffect(() => {
@@ -754,6 +763,60 @@ const ProductsManagementPage = () => {
     setNewPrice('');
   };
 
+  const openEditIngredientsDialog = (product: MenuItem) => {
+    setEditingIngredientsProduct(product);
+    setCurrentIngredients(product.ingredients ? [...product.ingredients] : []);
+    setNewIngredient('');
+    setIsEditIngredientsDialogOpen(true);
+  };
+
+  const handleIngredientTextChange = (index: number, value: string) => {
+    const updatedIngredients = [...currentIngredients];
+    updatedIngredients[index] = value;
+    setCurrentIngredients(updatedIngredients);
+  };
+
+  const handleAddNewIngredientField = () => {
+    if (newIngredient.trim() !== '') {
+        setCurrentIngredients(prev => [...prev, newIngredient.trim()]);
+        setNewIngredient(''); // Clear the input field for new ingredient
+    } else {
+        // If newIngredient is empty, just add an empty field for the user to type into
+        setCurrentIngredients(prev => [...prev, '']);
+    }
+  };
+
+  const handleRemoveIngredient = (indexToRemove: number) => {
+    setCurrentIngredients(prev => prev.filter((_, index) => index !== indexToRemove));
+  };
+
+  const handleUpdateIngredients = () => {
+    if (!editingIngredientsProduct) return;
+
+    const updatedIngredients = currentIngredients.map(ing => ing.trim()).filter(ing => ing !== '');
+
+    const updatedMenu = menu.map(item =>
+      item.id === editingIngredientsProduct.id ? { ...item, ingredients: updatedIngredients } : item
+    );
+    const sortedMenu = sortMenu(updatedMenu);
+    setMenu(sortedMenu);
+
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(sortedMenu));
+      } catch (e) {
+        console.error("Error saving menu to localStorage after updating ingredients:", e);
+        toast({title: "Error", description: "No se pudo guardar el cambio de ingredientes de forma persistente.", variant: "destructive"});
+      }
+    }
+    toast({ title: "Ingredientes Actualizados", description: `Los ingredientes de ${editingIngredientsProduct.name} han sido actualizados.`});
+    setIsEditIngredientsDialogOpen(false);
+    setEditingIngredientsProduct(null);
+    setCurrentIngredients([]);
+    setNewIngredient('');
+  };
+
+
   const groupedMenu = useMemo(() => {
     const groups: { [key: string]: MenuItem[] } = {};
     filteredProducts.forEach(item => {
@@ -797,7 +860,7 @@ const ProductsManagementPage = () => {
                   <TableHead>Categoría</TableHead>
                   <TableHead>Ingredientes</TableHead>
                   <TableHead className="text-right">Precio Base</TableHead>
-                  <TableHead className="text-center w-28">Acciones</TableHead>
+                  <TableHead className="text-center w-40">Acciones</TableHead> {/* Adjusted width for two buttons */}
                 </TableRow>
             </TableHeader>
             <TableBody>
@@ -821,10 +884,16 @@ const ProductsManagementPage = () => {
                         </TableCell>
                         <TableCell className="text-right font-mono">{printUtilsFormatCurrency(item.price)}</TableCell>
                         <TableCell className="text-center">
-                        <Button variant="outline" size="icon" onClick={() => openEditPriceDialog(item)} className="h-8 w-8">
-                            <Edit className="h-4 w-4" />
-                            <span className="sr-only">Editar Precio</span>
-                        </Button>
+                            <div className="flex justify-center gap-2">
+                                <Button variant="outline" size="icon" onClick={() => openEditPriceDialog(item)} className="h-8 w-8" title="Editar Precio">
+                                    <Edit className="h-4 w-4" />
+                                    <span className="sr-only">Editar Precio</span>
+                                </Button>
+                                <Button variant="outline" size="icon" onClick={() => openEditIngredientsDialog(item)} className="h-8 w-8" title="Editar Ingredientes">
+                                    <Edit className="h-4 w-4" /> {/* Consider a different icon, e.g., ListPlus or similar */}
+                                    <span className="sr-only">Editar Ingredientes</span>
+                                </Button>
+                            </div>
                         </TableCell>
                     </TableRow>
                     ))}
@@ -869,6 +938,54 @@ const ProductsManagementPage = () => {
            </ShadDialogFooter>
          </ShadDialogContent>
        </ShadDialog>
+
+      {/* Edit Ingredients Dialog */}
+      <ShadDialog open={isEditIngredientsDialogOpen} onOpenChange={setIsEditIngredientsDialogOpen}>
+        <ShadDialogContent className="sm:max-w-md">
+            <ShadDialogHeader>
+            <ShadDialogTitle>Editar Ingredientes de {editingIngredientsProduct?.name}</ShadDialogTitle>
+            <ShadDialogDescription>
+                Añada, modifique o elimine ingredientes para este producto.
+            </ShadDialogDescription>
+            </ShadDialogHeader>
+            <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
+                {currentIngredients.map((ingredient, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                    <Input
+                        value={ingredient}
+                        onChange={(e) => handleIngredientTextChange(index, e.target.value)}
+                        placeholder={`Ingrediente ${index + 1}`}
+                        className="flex-grow"
+                    />
+                    <Button variant="ghost" size="icon" onClick={() => handleRemoveIngredient(index)} className="text-destructive hover:text-destructive/90">
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Eliminar ingrediente</span>
+                    </Button>
+                    </div>
+                ))}
+                 <div className="flex items-center gap-2 mt-2">
+                     <Input
+                         value={newIngredient}
+                         onChange={(e) => setNewIngredient(e.target.value)}
+                         placeholder="Nuevo ingrediente"
+                         className="flex-grow"
+                         onKeyPress={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddNewIngredientField();}}}
+                     />
+                    <Button onClick={handleAddNewIngredientField} size="icon" variant="outline">
+                        <PlusCircle className="h-4 w-4" />
+                        <span className="sr-only">Añadir nuevo ingrediente</span>
+                    </Button>
+                 </div>
+            </div>
+            <ShadDialogFooter>
+            <ShadDialogClose asChild>
+                <Button type="button" variant="secondary" onClick={() => setIsEditIngredientsDialogOpen(false)}>Cancelar</Button>
+            </ShadDialogClose>
+            <Button type="submit" onClick={handleUpdateIngredients}>Guardar Ingredientes</Button>
+            </ShadDialogFooter>
+        </ShadDialogContent>
+      </ShadDialog>
+
     </div>
 );
 };
@@ -881,3 +998,4 @@ const ProductsPageContent = () => {
 export default function ProductsPage() {
     return <ProductsPageContent />;
 }
+
