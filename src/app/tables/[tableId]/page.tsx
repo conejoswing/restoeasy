@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -134,7 +135,7 @@ export default function TableDetailPage() {
 
   const tableDisplayName = useMemo(() => {
     if (isDelivery) return 'Delivery';
-    if (isMeson) return 'Mesón';
+    if (isMeson) return 'Mesón'; // Use "Mesón" for display
     if (!isNaN(Number(tableIdParam))) return `Mesa ${tableIdParam}`;
     return tableIdParam.charAt(0).toUpperCase() + tableIdParam.slice(1);
   }, [tableIdParam, isDelivery, isMeson]);
@@ -491,15 +492,27 @@ export default function TableDetailPage() {
            }
       }
       //Papas Fritas
-       if (orderItem.category === 'Papas Fritas' && itemNameLower === 'box cami') {
-            const bebidaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'bebida 1.5lt');
-            if (bebidaIndex !== -1 && updatedInventory[bebidaIndex].stock >= orderItem.quantity) {
-                updatedInventory[bebidaIndex].stock -= orderItem.quantity;
-                inventoryUpdateOccurred = true;
-            } else if (bebidaIndex !== -1) {
-                console.warn(`Stock insuficiente de Bebida 1.5Lt para Box Cami`);
+       if (orderItem.category === 'Papas Fritas') {
+            if (itemNameLower === 'box cami') {
+                const bebidaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'bebida 1.5lt');
+                if (bebidaIndex !== -1 && updatedInventory[bebidaIndex].stock >= orderItem.quantity) {
+                    updatedInventory[bebidaIndex].stock -= orderItem.quantity;
+                    inventoryUpdateOccurred = true;
+                } else if (bebidaIndex !== -1) {
+                    console.warn(`Stock insuficiente de Bebida 1.5Lt para Box Cami`);
+                }
+            } else if (itemNameLower === 'salchipapas') {
+                const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
+                const vienesasNeeded = orderItem.quantity * 3;
+                if (vienaIndex !== -1 && updatedInventory[vienaIndex].stock >= vienesasNeeded) {
+                    updatedInventory[vienaIndex].stock -= vienesasNeeded;
+                    inventoryUpdateOccurred = true;
+                } else if (vienaIndex !== -1) {
+                    console.warn(`Stock insuficiente de Vienesas para Salchipapas`);
+                }
             }
        }
+
 
       if (inventoryItemName) {
         const itemIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === inventoryItemName.toLowerCase());
@@ -658,7 +671,7 @@ export default function TableDetailPage() {
                         <PackageSearch className="mr-2 h-5 w-5"/> Ver Menú
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-full md:w-3/4 lg:w-1/2 p-0">
+                <SheetContent side="left" className="w-full md:w-3/4 lg:w-full p-0">
                   <SheetHeader className="p-4 border-b">
                     <SheetTitle className="text-2xl">Menú de Productos</SheetTitle>
                   </SheetHeader>
@@ -677,7 +690,7 @@ export default function TableDetailPage() {
                             {category}
                           </AccordionTrigger>
                           <AccordionContent className="pt-2 pb-0 px-0">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 p-2">
                               {items.map((item) => (
                                 <Card
                                   key={item.id}
