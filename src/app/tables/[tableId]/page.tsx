@@ -972,7 +972,12 @@ export function TableDetailPage() {
             } else if (lowerItemName === 'promo 9') {
                  inventory = updateStock(inventory, 'Pan especial normal', quantity * 4);
                  inventory = updateStock(inventory, 'Vienesas', quantity * 4);
-                 inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity * 1); // Promo 9 has 1 Bebida 1.5Lt
+                 inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity * 1);
+                 itemFoundAndDeducted = true;
+            } else if (lowerItemName === 'promo 10') {
+                 inventory = updateStock(inventory, 'Pan especial grande', quantity * 4);
+                 inventory = updateStock(inventory, 'Vienesas', quantity * 8);
+                 inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity * 1);
                  itemFoundAndDeducted = true;
             }
         }
@@ -1529,4 +1534,5 @@ export function TableDetailPage() {
 }
 
 export default TableDetailPage;
+
 
