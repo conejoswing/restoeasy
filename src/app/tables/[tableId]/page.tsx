@@ -925,6 +925,10 @@ export function TableDetailPage() {
                   inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity);
                   inventory = updateStock(inventory, 'Lata', quantity);
                   itemFoundAndDeducted = true;
+              } else if (lowerItemName === 'super big cami') {
+                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity * 2);
+                  inventory = updateStock(inventory, 'Lata', quantity);
+                  itemFoundAndDeducted = true;
               }
               // Add more specific Promo Hamburguesas deductions if needed
          }
@@ -1488,6 +1492,7 @@ export function TableDetailPage() {
 export default TableDetailPage;
 
   
+
 
 
 
