@@ -10,23 +10,24 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
-  Dialog as ShadDialog, // Aliased Dialog
-  DialogClose as ShadDialogClose, // Aliased DialogClose
+  Dialog as ShadDialog,
+  DialogClose as ShadDialogClose,
   DialogContent as ShadDialogContent,
-  DialogDescription as ShadDialogDescription, // Aliased DialogDescription
-  DialogFooter as ShadDialogFooter, // Aliased DialogFooter
-  DialogHeader as ShadDialogHeader, // Aliased DialogHeader
-  DialogTitle as ShadDialogTitle, // Aliased DialogTitle
+  DialogDescription as ShadDialogDescription,
+  DialogFooter as ShadDialogFooter,
+  DialogHeader as ShadDialogHeader,
+  DialogTitle as ShadDialogTitle,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { useState, useEffect, useMemo } from 'react';
 import { Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
+import { Button } from '@/components/ui/button';
 
 
 interface MenuItem {
@@ -651,7 +652,7 @@ const getPersistedMenu = (): MenuItem[] => {
           if (storedItem) {
             return {
               ...mockItem,
-              price: storedItem.price,
+              price: storedItem.price, // Use stored price
               modifications: storedItem.modifications && storedItem.modifications.length > 0 ? storedItem.modifications : (mockItem.modifications || []),
               ingredients: storedItem.ingredients && storedItem.ingredients.length > 0 ? storedItem.ingredients : (mockItem.ingredients || []),
             };
