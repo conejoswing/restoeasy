@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -874,29 +875,32 @@ export function TableDetailPage() {
          }
       }
        else if (lowerCategory === 'promo fajitas') {
-            if (['4 ingredientes', '6 ingredientes', 'americana', 'brasileño', 'chacarero'].includes(lowerItemName)) {
+            if (['4 ingredientes', '6 ingredientes', 'americana', 'brasileño', 'chacarero', 'golosasa', 'italiana', 'primavera'].includes(lowerItemName)) {
                 inventory = updateStock(inventory, 'Fajita', quantity);
-                inventory = updateStock(inventory, 'Lata', quantity); // Assuming "Bebida Lata" is part of the promo
+                inventory = updateStock(inventory, 'Lata', quantity);
                 itemFoundAndDeducted = true;
-            } else {
-                 // General promo fajitas might also deduct a fajita wrap, adjust as needed
-                 inventory = updateStock(inventory, 'Fajita', quantity);
-                 inventory = updateStock(inventory, 'Lata', quantity);
-                 itemFoundAndDeducted = true;
             }
        }
        else if (lowerCategory === 'churrascos') {
             inventory = updateStock(inventory, 'Pan de marraqueta', quantity);
             itemFoundAndDeducted = true;
        }
+        else if (lowerCategory === 'promo churrasco') {
+            inventory = updateStock(inventory, 'Pan de marraqueta', quantity * 2); // Each "2x" promo uses 2 breads
+            itemFoundAndDeducted = true;
+        }
         else if (lowerCategory === 'promo mechada') {
             inventory = updateStock(inventory, 'Pan de marraqueta', quantity * 2); // Each "2x" promo uses 2 breads
             itemFoundAndDeducted = true;
         }
-       else if (lowerCategory === 'promo churrasco') {
-            inventory = updateStock(inventory, 'Pan de marraqueta', quantity * 2); // Each "2x" promo uses 2 breads
-            itemFoundAndDeducted = true;
-        }
+         else if (lowerCategory === 'promo hamburguesas') {
+              if (lowerItemName === 'big cami') {
+                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity);
+                  inventory = updateStock(inventory, 'Lata', quantity);
+                  itemFoundAndDeducted = true;
+              }
+              // Add more specific Promo Hamburguesas deductions if needed
+         }
         // Bebidas
         else if (lowerCategory === 'bebidas') {
             if (lowerItemName === 'bebida 1.5lt') {
