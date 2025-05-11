@@ -35,41 +35,38 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Label } from '@/components/ui/label';
-import { PlusCircle, Trash2, MinusCircle } from 'lucide-react'; // Added MinusCircle
+import { PlusCircle, Trash2, MinusCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 
-export interface InventoryItem { // Export interface
+export interface InventoryItem {
   id: number;
   name: string;
   stock: number;
 }
 
-// Predefined items for initial inventory state (name only)
 const predefinedItemNames: string[] = [
   'Pan especial grande',
-  'Pan especial normal', // Changed from 'Pan especial chico'
+  'Pan especial normal',
   'Pan de marraqueta',
-  'Pan de hamburguesa normal', // Changed from 'Pan de hamburguesa chico'
+  'Pan de hamburguesa normal',
   'Pan de hamburguesa grande',
-  'Bebida 1.5Lt', // Added from menu
-  'Lata', // Added from menu
-  'Cafe Chico', // Added from menu
-  'Cafe Grande', // Added from menu
-  'Vienesas', // Added for deduction
-  'Fajita', // Added for Promo Fajitas deduction
+  'Bebida 1.5Lt',
+  'Lata',
+  'Cafe Chico',
+  'Cafe Grande',
+  'Vienesas',
+  'Fajita',
 ];
 
-// Initialize inventory state with predefined items having 0 stock
 const initialInventory: InventoryItem[] = predefinedItemNames.map((name, index) => ({
-  id: index + 1,
+  id: index + 1, // Initial IDs, will be re-evaluated if loading from storage
   name: name,
   stock: 0,
 }));
 
-// Storage key for localStorage
 const INVENTORY_STORAGE_KEY = 'restaurantInventory';
 
 
@@ -80,7 +77,6 @@ export default function InventoryPage() {
   const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  // Load inventory from localStorage on mount
   useEffect(() => {
     if (isInventoryInitialized) return;
 
@@ -92,13 +88,22 @@ export default function InventoryPage() {
       try {
         const parsed = JSON.parse(storedInventory);
         if (Array.isArray(parsed)) {
-          loadedInventory = parsed;
-           // Add any predefined items that are missing from storage
+          loadedInventory = parsed.filter(
+            (item: any): item is Partial<InventoryItem> =>
+              item &&
+              typeof item === 'object' &&
+              typeof item.name === 'string' &&
+              typeof item.stock === 'number'
+          ).map((itemValidated: Partial<InventoryItem>) => ({
+            id: typeof itemValidated.id === 'number' ? itemValidated.id : 0,
+            name: itemValidated.name!,
+            stock: itemValidated.stock!,
+          }));
+
            const storedNames = new Set(loadedInventory.map(item => item.name.toLowerCase()));
-           predefinedItemNames.forEach((name) => { // Removed index from forEach as it's not needed
+           predefinedItemNames.forEach((name) => {
                if (!storedNames.has(name.toLowerCase())) {
-                    // Ensure unique ID generation even if initialInventory wasn't used
-                    const maxId = loadedInventory.reduce((max, item) => Math.max(max, typeof item.id === 'number' ? item.id : 0), 0);
+                    const maxId = loadedInventory.reduce((max, item) => Math.max(max, item.id || 0), 0);
                     const newId = maxId + 1;
                    loadedInventory.push({ id: newId, name: name, stock: 0 });
                    console.log(`Added missing predefined item: ${name}`);
@@ -107,34 +112,30 @@ export default function InventoryPage() {
           console.log("Loaded and merged inventory:", loadedInventory);
         } else {
           console.warn("Invalid inventory data found in localStorage, using initial data.");
-          loadedInventory = [...initialInventory]; // Use a copy of initialInventory
+          loadedInventory = [...initialInventory];
         }
       } catch (error) {
         console.error("Failed to parse stored inventory:", error);
-        loadedInventory = [...initialInventory]; // Use a copy of initialInventory
+        loadedInventory = [...initialInventory];
       }
     } else {
       console.log("No inventory found in localStorage, using initial data.");
-      loadedInventory = [...initialInventory]; // Use a copy of initialInventory
+      loadedInventory = [...initialInventory];
     }
 
-    // Ensure all IDs are numbers and unique (important for robustness)
     const finalInventory = loadedInventory.map((item, index) => ({
       ...item,
-      id: typeof item.id === 'number' && item.id > 0 ? item.id : Date.now() + index // Ensure valid, unique IDs
+      id: typeof item.id === 'number' && item.id > 0 ? item.id : Date.now() + index + 1
     }));
 
-    // Sort the final processed inventory
     finalInventory.sort((a, b) => a.name.localeCompare(b.name));
     setInventory(finalInventory);
     setIsInventoryInitialized(true);
     console.log("Inventory initialization complete.");
 
-  }, [isInventoryInitialized]); // isInventoryInitialized ensures this runs only once
+  }, [isInventoryInitialized]);
 
-  // Save inventory to localStorage whenever it changes AFTER initialization
   useEffect(() => {
-    // Only save after the initial load is complete
     if (!isInventoryInitialized) return;
 
     console.log("Saving inventory to localStorage...");
@@ -145,10 +146,8 @@ export default function InventoryPage() {
       console.error("Failed to save inventory to localStorage:", error);
       toast({ title: "Error", description: "No se pudo guardar el inventario.", variant: "destructive" });
     }
-  // Depend only on 'inventory' and 'isInventoryInitialized' for saving
   }, [inventory, isInventoryInitialized, toast]);
 
-   // Loading state while inventory is being initialized from localStorage
    if (!isInventoryInitialized) {
      return <div className="flex items-center justify-center min-h-screen">Cargando Inventario...</div>;
    }
@@ -170,34 +169,30 @@ export default function InventoryPage() {
        return;
      }
 
-     // Check if item name already exists (case-insensitive)
      const existingItem = inventory.find(item => item.name.trim().toLowerCase() === newProductData.name.trim().toLowerCase());
      if (existingItem) {
          toast({ title: "Error", description: `El producto "${newProductData.name.trim()}" ya existe.`, variant: "destructive" });
          return;
      }
 
-     // Ensure unique ID generation
-     const maxId = inventory.reduce((max, item) => Math.max(max, typeof item.id === 'number' ? item.id : 0), 0);
+     const maxId = inventory.reduce((max, item) => Math.max(max, item.id || 0), 0);
      const newId = maxId + 1;
 
      const newProduct: InventoryItem = {
        id: newId,
-       name: newProductData.name.trim(), // Trim whitespace
+       name: newProductData.name.trim(),
        stock: stockValue,
      };
 
-     // Update state, which triggers the save useEffect
      setInventory(prevInventory => [...prevInventory, newProduct].sort((a, b) => a.name.localeCompare(b.name)));
-     setNewProductData({ name: '', stock: '' }); // Clear form
-     setIsAddProductDialogOpen(false); // Close dialog
+     setNewProductData({ name: '', stock: '' });
+     setIsAddProductDialogOpen(false);
      toast({ title: "Éxito", description: `Producto "${newProduct.name}" añadido con ${newProduct.stock} unidades.` });
    };
 
    const handleDeleteProduct = (idToDelete: number) => {
         const productToDelete = inventory.find(item => item.id === idToDelete);
         if (productToDelete) {
-             // Update state, which triggers the save useEffect
             setInventory(prevInventory => prevInventory.filter(item => item.id !== idToDelete));
             toast({ title: "Eliminado", description: `Producto "${productToDelete.name}" eliminado.`, variant: "destructive" });
         } else {
@@ -206,15 +201,13 @@ export default function InventoryPage() {
    };
 
    const handleAdjustStock = (id: number, amount: number) => {
-        // Update state, which triggers the save useEffect
         setInventory(prevInventory =>
             prevInventory.map(item =>
                 item.id === id
-                    ? { ...item, stock: Math.max(0, item.stock + amount) } // Ensure stock doesn't go below 0
+                    ? { ...item, stock: Math.max(0, item.stock + amount) }
                     : item
-            ).sort((a, b) => a.name.localeCompare(b.name)) // Keep sorted after adjustment
+            ).sort((a, b) => a.name.localeCompare(b.name))
         );
-        // Removed toast message for stock adjustment
    };
 
 
@@ -222,7 +215,6 @@ export default function InventoryPage() {
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Gestión del Inventario</h1>
-        {/* Dialog for adding new products */}
         <Dialog open={isAddProductDialogOpen} onOpenChange={setIsAddProductDialogOpen}>
             <DialogTrigger asChild>
                 <Button>
@@ -262,7 +254,7 @@ export default function InventoryPage() {
                             className="col-span-3"
                             required
                             min="0"
-                            step="1" // Allow only whole numbers for stock
+                            step="1"
                             placeholder="0"
                         />
                     </div>
@@ -280,30 +272,24 @@ export default function InventoryPage() {
       <Card>
         <Table>
           <TableHeader>
-             {/* Adjusted table headers */}
             <TableRow>
               <TableHead>Producto</TableHead>
               <TableHead className="text-center w-48">Cantidad / Ajustar</TableHead>
               <TableHead className="text-right w-20">Eliminar</TableHead>
             </TableRow>
           </TableHeader>
-          {/* Render TableBody only after initialization */}
           {isInventoryInitialized && (
             <TableBody>
                 {inventory.map((item) => (
                 <TableRow key={item.id}>
                     <TableCell className="font-medium">{item.name}</TableCell>
-                    {/* Cell for Quantity and Adjustment Buttons */}
                     <TableCell className="text-center w-48">
                        <div className="flex items-center justify-center gap-2">
-                            {/* Decrease Button */}
                             <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleAdjustStock(item.id, -1)} disabled={item.stock <= 0}>
                                 <MinusCircle className="h-4 w-4" />
                                 <span className="sr-only">Disminuir</span>
                             </Button>
-                            {/* Quantity Display */}
                             <span className="font-medium w-10 text-center">{item.stock}</span>
-                            {/* Increase Button */}
                             <Button variant="ghost" size="icon" className="h-7 w-7 text-primary" onClick={() => handleAdjustStock(item.id, 1)}>
                                 <PlusCircle className="h-4 w-4" />
                                 <span className="sr-only">Aumentar</span>
@@ -311,7 +297,6 @@ export default function InventoryPage() {
                        </div>
                     </TableCell>
                     <TableCell className="text-right">
-                         {/* Delete Confirmation Dialog */}
                         <AlertDialog>
                             <AlertDialogTrigger asChild>
                             <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:text-destructive/90" title="Eliminar Producto">
@@ -340,7 +325,6 @@ export default function InventoryPage() {
                     </TableCell>
                 </TableRow>
                 ))}
-                {/* Display message if inventory is empty */}
                 {inventory.length === 0 && (
                 <TableRow>
                     <TableCell colSpan={3} className="h-24 text-center text-muted-foreground">
@@ -355,4 +339,3 @@ export default function InventoryPage() {
     </div>
   );
 }
-

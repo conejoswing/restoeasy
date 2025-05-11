@@ -95,11 +95,25 @@ export default function CashRegisterPage() {
       try {
         const parsed = JSON.parse(storedMovements);
         if (Array.isArray(parsed)) {
-          loadedMovements = parsed.map((m: any) => ({
-            ...m,
-            date: new Date(m.date),
-          }));
-           console.log("Loaded cash movements:", loadedMovements);
+          loadedMovements = parsed.filter(
+            (m: any): m is Partial<CashMovement> => // Type guard
+              m &&
+              typeof m === 'object' &&
+              typeof m.id !== 'undefined' &&
+              typeof m.date !== 'undefined' &&
+              typeof m.category !== 'undefined' &&
+              typeof m.description !== 'undefined' &&
+              typeof m.amount !== 'undefined'
+          ).map((mValidated: Partial<CashMovement>) => ({ // Now mValidated is known to be an object with these properties
+            id: Number(mValidated.id),
+            date: new Date(mValidated.date!), // Non-null assertion as it's checked
+            category: String(mValidated.category),
+            description: String(mValidated.description),
+            amount: Number(mValidated.amount),
+            paymentMethod: mValidated.paymentMethod,
+            deliveryFee: mValidated.deliveryFee ? Number(mValidated.deliveryFee) : undefined,
+          })).filter(m => !isNaN(m.id) && m.date instanceof Date && !isNaN(m.date.getTime()) && typeof m.category === 'string' && typeof m.description === 'string' && typeof m.amount === 'number' && !isNaN(m.amount));
+          console.log("Loaded cash movements:", loadedMovements);
         } else {
           console.warn("Invalid cash movements data found, using initial data.");
           loadedMovements = initialMovements;
@@ -146,7 +160,7 @@ export default function CashRegisterPage() {
        dailyTotalIncome,
        dailyExpenses,
        dailyNetTotal,
-       dailyGrossTotal // Added for the new total
+       dailyGrossTotal
     } = useMemo(() => {
         const today = startOfDay(new Date());
         let cash = 0;
@@ -166,15 +180,14 @@ export default function CashRegisterPage() {
                         case 'Tarjeta Débito': debit += movement.amount; break;
                         case 'Tarjeta Crédito': credit += movement.amount; break;
                         case 'Transferencia': transfer += movement.amount; break;
-                        default: cash += movement.amount; // Default to cash if payment method is not specified or unknown
+                        default: cash += movement.amount;
                     }
                     if (movement.deliveryFee && movement.deliveryFee > 0) {
                          deliveryFees += movement.deliveryFee;
                     }
-                    // Regex to find tip in description, handles CLP$ and $ prefixes, and thousands separators.
                     const tipMatch = movement.description.match(/Propina: (?:CLP)?\$?(\d{1,3}(?:\.\d{3})*)/);
                     if (tipMatch && tipMatch[1]) {
-                        const tipString = tipMatch[1].replace(/\./g, ''); // Remove dots for parsing
+                        const tipString = tipMatch[1].replace(/\./g, '');
                         const parsedTip = parseInt(tipString, 10);
                         if (!isNaN(parsedTip)) {
                             tips += parsedTip;
@@ -182,7 +195,7 @@ export default function CashRegisterPage() {
                     }
 
                 } else if (movement.amount > 0 && movement.category === 'Otros Ingresos') {
-                    cash += movement.amount; // Assuming other income is cash for simplicity
+                    cash += movement.amount;
                 }
                  else if (movement.amount < 0) {
                     expenses += Math.abs(movement.amount);
@@ -191,7 +204,7 @@ export default function CashRegisterPage() {
         });
 
         const totalIncome = cash + debit + credit + transfer;
-        const grossTotal = totalIncome + deliveryFees + tips; // Calculate gross total
+        const grossTotal = totalIncome + deliveryFees + tips;
 
         return {
             dailyCashIncome: cash,
@@ -200,10 +213,10 @@ export default function CashRegisterPage() {
             dailyTransferIncome: transfer,
             dailyDeliveryFees: deliveryFees,
             dailyTipsTotal: tips,
-            dailyTotalIncome: totalIncome, // This is total income from sales (excluding delivery/tips for this specific var)
+            dailyTotalIncome: totalIncome,
             dailyExpenses: expenses,
-            dailyNetTotal: totalIncome - expenses, // Net total based on sales income vs expenses
-            dailyGrossTotal: grossTotal // New total including delivery fees and tips
+            dailyNetTotal: totalIncome - expenses,
+            dailyGrossTotal: grossTotal
         };
    }, [cashMovements]);
 
@@ -281,13 +294,10 @@ export default function CashRegisterPage() {
          dailyDeliveryFees, dailyTipsTotal, dailyTotalIncome, dailyExpenses, dailyNetTotal
      };
 
-     // Filter cashMovements for today's sales to pass to the receipt
      const salesDetailsForReceipt = cashMovements.filter(movement => {
         const movementDate = movement.date instanceof Date ? movement.date : new Date(movement.date);
-        // Ensure category is 'Ingreso Venta' and the movement is for today
         return movement.category === 'Ingreso Venta' && isToday(movementDate);
      });
-     // Sort sales by date/time for the receipt (oldest first for chronological order)
      salesDetailsForReceipt.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
      const closingReceiptHtml = formatCashClosingReceipt(closingDate, totals, salesDetailsForReceipt);
@@ -620,4 +630,3 @@ export default function CashRegisterPage() {
     </div>
   );
 }
-

@@ -855,14 +855,27 @@ const TableDetailPage = () => {
     const storedPendingOrdersData = sessionStorage.getItem(pendingOrdersKey);
     if (storedPendingOrdersData) {
       try {
-        const parsedData: PendingOrderStorageData | PendingOrderGroup[] = JSON.parse(storedPendingOrdersData);
-        if (Array.isArray(parsedData)) { // Handle old format (array of groups)
-             setPendingOrderGroups(parsedData);
-        } else if (parsedData && Array.isArray(parsedData.groups)) { // Handle new format (object with groups array)
-             setPendingOrderGroups(parsedData.groups);
-        } else {
-            setPendingOrderGroups([]);
+        const parsedData: any = JSON.parse(storedPendingOrdersData); 
+        let groupsToSet: PendingOrderGroup[] = [];
+
+        if (Array.isArray(parsedData)) { 
+          groupsToSet = parsedData.filter(
+            (group: any): group is PendingOrderGroup =>
+              group && typeof group === 'object' &&
+              typeof group.orderNumber === 'number' &&
+              Array.isArray(group.items) &&
+              group.items.every((item: any) => item && typeof item === 'object' && typeof item.id === 'number') 
+          );
+        } else if (parsedData && typeof parsedData === 'object' && Array.isArray(parsedData.groups)) { 
+          groupsToSet = parsedData.groups.filter(
+            (group: any): group is PendingOrderGroup =>
+              group && typeof group === 'object' &&
+              typeof group.orderNumber === 'number' &&
+              Array.isArray(group.items) &&
+              group.items.every((item: any) => item && typeof item === 'object' && typeof item.id === 'number') 
+          );
         }
+        setPendingOrderGroups(groupsToSet);
       } catch (e) {
         console.error("Error parsing pending orders for table", tableIdParam, e);
         setPendingOrderGroups([]);
@@ -1058,7 +1071,7 @@ const TableDetailPage = () => {
         "promo 11_promociones": [{ inventoryItemName: "Pan especial normal", count: 4 }, { inventoryItemName: "Bebida 1.5Lt", count: 1 }],
         "promo 12_promociones": [{ inventoryItemName: "Pan especial grande", count: 4 }, { inventoryItemName: "Bebida 1.5Lt", count: 1 }],
         // Papas Fritas
-        "box cami_papas fritas": [{ inventoryItemName: "Bebida 1.5Lt", count: 1 }], // Assuming "empanadas" are not tracked or part of a generic "supply"
+        "box cami_papas fritas": [{ inventoryItemName: "Bebida 1.5Lt", count: 1 }], 
         // Bebidas
         "bebida 1.5lt_bebidas": [{ inventoryItemName: "Bebida 1.5Lt", count: 1 }],
         "lata_bebidas": [{ inventoryItemName: "Lata", count: 1 }],
@@ -1074,17 +1087,15 @@ const TableDetailPage = () => {
             updateInventory(deduction.inventoryItemName, deduction.count * quantity);
         });
       } else {
-        // Generic deduction based on name if not in specific list
         const genericItemName = name.toLowerCase().includes("bebida 1.5lt") ? "Bebida 1.5Lt"
                               : name.toLowerCase().includes("lata") ? "Lata"
                               : name.toLowerCase().includes("cafe chico") ? "Cafe Chico"
                               : name.toLowerCase().includes("cafe grande") ? "Cafe Grande"
-                              : name; // Fallback to item name if no specific match
+                              : name; 
 
-        if (genericItemName !== name) { // If a generic match was found
+        if (genericItemName !== name) { 
             updateInventory(genericItemName, quantity);
         }
-        // If no specific or generic mapping, no inventory is deducted for this item.
       }
     });
   }, [updateInventory, toast]);
@@ -1097,7 +1108,7 @@ const TableDetailPage = () => {
     } else {
       addToOrder(item);
     }
-    setIsMenuSheetOpen(false); // Close menu sheet after adding item
+    setIsMenuSheetOpen(false); 
   };
 
  const addToOrder = (item: MenuItem, selectedModifications?: string[]) => {
@@ -1195,9 +1206,9 @@ const TableDetailPage = () => {
         ...prevGroups,
         { orderNumber: newOrderNum, items: orderItemsWithNumber, deliveryInfo: deliveryInfo }
     ]);
-    setCurrentOrder([]); // Clear current order
+    setCurrentOrder([]); 
     if (isDelivery) {
-        setDeliveryInfo(null); // Clear delivery info for the next delivery order on this "table"
+        setDeliveryInfo(null); 
         sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`);
     }
     toast({ title: "Comanda Impresa", description: `Pedido #${newOrderNum} enviado a cocina y movido a pendientes.` });
@@ -1250,7 +1261,7 @@ const TableDetailPage = () => {
       date: new Date(),
       category: 'Ingreso Venta',
       description: description,
-      amount: saleAmount, // Amount without tip, tip is informational
+      amount: saleAmount, 
       paymentMethod: method,
       deliveryFee: payingDeliveryInfo?.deliveryFee || 0,
     };
@@ -1287,21 +1298,17 @@ const TableDetailPage = () => {
 
   const handleDeliveryInfoCancel = () => {
     if (!deliveryInfo || (!deliveryInfo.name && !deliveryInfo.address && !deliveryInfo.phone)) {
-        // If no info was ever entered, or all fields are empty, go back
         router.push('/tables');
     } else {
-        // If some info exists (e.g., from a previous session), just close the dialog
         setIsDeliveryDialogOpen(false);
     }
   };
 
   const handleEditDeliveryInfo = (group?: PendingOrderGroup) => {
       if (group && group.deliveryInfo) {
-          setDeliveryInfo(group.deliveryInfo); // Load group's delivery info for editing
+          setDeliveryInfo(group.deliveryInfo); 
       } else if (!group && deliveryInfo) {
-          // If editing current order's delivery info, deliveryInfo state is already set
       } else if (!group && !deliveryInfo && isDelivery) {
-           // If it's a new delivery order and no info yet, initialize with empty or last used
            const storedLastInfo = localStorage.getItem('lastDeliveryInfo');
            if (storedLastInfo) {
                try {
@@ -1440,7 +1447,7 @@ const TableDetailPage = () => {
 
       <main className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-4 overflow-hidden p-1 md:p-2">
         {/* Current Order Section */}
-        <Card className="flex flex-col h-full max-h-[calc(100vh-180px)] md:max-h-[calc(100vh-200px)]"> {/* Adjusted max-height */}
+        <Card className="flex flex-col h-full max-h-[calc(100vh-180px)] md:max-h-[calc(100vh-200px)]"> 
           <CardHeader>
             <CardTitle>Pedido Actual</CardTitle>
           </CardHeader>
@@ -1453,7 +1460,7 @@ const TableDetailPage = () => {
                     <div>
                       <p className="font-bold text-sm md:text-base">
                         {item.name}
-                        {item.category && <span className="text-xs text-muted-foreground ml-1">({item.category})</span>}
+                        {item.category && <span className="text-xs text-muted-foreground ml-1 font-bold">({item.category})</span>}
                       </p>
                       {item.selectedModifications && item.selectedModifications.length > 0 && (
                         <p className="text-xs text-muted-foreground font-bold">
@@ -1461,7 +1468,7 @@ const TableDetailPage = () => {
                         </p>
                       )}
                        {item.ingredients && item.ingredients.length > 0 && (
-                           <p className="text-xs text-muted-foreground mt-1">
+                           <p className="text-xs text-muted-foreground mt-1 font-bold">
                                Ingredientes: {item.ingredients.join(', ')}
                            </p>
                        )}
@@ -1470,7 +1477,7 @@ const TableDetailPage = () => {
                       <Button variant="ghost" size="icon" className="h-6 w-6 md:h-7 md:w-7" onClick={() => handleDecreaseQuantity(item.orderItemId)}>
                         <MinusCircle className="h-4 w-4" />
                       </Button>
-                      <span className="font-mono text-sm md:text-base w-6 text-center">{item.quantity}</span>
+                      <span className="font-mono text-sm md:text-base w-6 text-center font-bold">{item.quantity}</span>
                       <Button variant="ghost" size="icon" className="h-6 w-6 md:h-7 md:w-7" onClick={() => handleIncreaseQuantity(item.orderItemId)}>
                         <PlusCircle className="h-4 w-4" />
                       </Button>
@@ -1497,7 +1504,7 @@ const TableDetailPage = () => {
         </Card>
 
         {/* Pending Orders Section */}
-        <Card className="flex flex-col h-full max-h-[calc(100vh-180px)] md:max-h-[calc(100vh-200px)]"> {/* Adjusted max-height */}
+        <Card className="flex flex-col h-full max-h-[calc(100vh-180px)] md:max-h-[calc(100vh-200px)]"> 
           <CardHeader>
             <CardTitle>Pedidos Pendientes de Pago</CardTitle>
           </CardHeader>
@@ -1512,7 +1519,7 @@ const TableDetailPage = () => {
                         <div className="flex justify-between items-center mb-1">
                             <span className="font-bold text-sm md:text-base">
                                 Pedido #{String(group.orderNumber).padStart(3, '0')}
-                                {group.deliveryInfo?.name && <span className="text-xs text-muted-foreground"> ({group.deliveryInfo.name})</span>}
+                                {group.deliveryInfo?.name && <span className="text-xs text-muted-foreground font-bold"> ({group.deliveryInfo.name})</span>}
                             </span>
                             <Button variant="ghost" size="icon" className="text-destructive h-6 w-6 md:h-7 md:w-7" onClick={() => handleRemovePendingOrderGroup(group.orderNumber)}>
                                 <Trash2 className="h-4 w-4" />
@@ -1528,13 +1535,13 @@ const TableDetailPage = () => {
                                         <span className="text-muted-foreground font-bold"> ({item.selectedModifications.join(', ')})</span>
                                     )}
                                 </div>
-                                <span className="font-mono ml-2 whitespace-nowrap">{formatCurrency(item.finalPrice * item.quantity)}</span>
+                                <span className="font-mono ml-2 whitespace-nowrap font-bold">{formatCurrency(item.finalPrice * item.quantity)}</span>
                             </div>
                         ))}
                         {group.deliveryInfo?.deliveryFee && group.deliveryInfo.deliveryFee > 0 && (
                             <div className="flex justify-between items-start py-0.5 border-t mt-1 pt-1">
                                 <span className="font-bold">Costo Envío:</span>
-                                <span className="font-mono ml-2 whitespace-nowrap">{formatCurrency(group.deliveryInfo.deliveryFee)}</span>
+                                <span className="font-mono ml-2 whitespace-nowrap font-bold">{formatCurrency(group.deliveryInfo.deliveryFee)}</span>
                             </div>
                         )}
                         </div>
@@ -1573,7 +1580,7 @@ const TableDetailPage = () => {
                 isOpen={isPaymentDialogOpen}
                 onOpenChange={(isOpen) => {
                     setIsPaymentDialogOpen(isOpen);
-                    if (!isOpen) setOrderToPay(null); // Clear orderToPay when dialog closes
+                    if (!isOpen) setOrderToPay(null); 
                 }}
                 totalAmount={orderToPay.items.reduce((sum, item) => sum + item.finalPrice * item.quantity, 0) + (orderToPay.deliveryInfo?.deliveryFee || 0)}
                 onConfirm={handlePaymentConfirm}
@@ -1596,5 +1603,3 @@ const TableDetailPage = () => {
 };
 
 export default TableDetailPage;
-
-    
