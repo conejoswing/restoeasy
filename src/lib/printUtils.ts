@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import type { OrderItem, PaymentMethod } from '@/app/tables/[tableId]/page';
@@ -26,7 +25,7 @@ const formatDateTime = (date: Date): string => {
 
 export const formatKitchenOrderReceipt = (
     orderItems: OrderItem[],
-    orderIdentifier: string,
+    orderIdentifier: string, // This will be tableDisplayName ("Mesa 1", "Mesón", "Delivery")
     orderNumber: number,
     deliveryInfo?: DeliveryInfo | null
 ): string => {
@@ -34,7 +33,7 @@ export const formatKitchenOrderReceipt = (
 
     let itemsHtml = '';
     orderItems.forEach(item => {
-        const categoryText = `<br><small style="margin-left: 10px; font-style: italic; font-weight: bold; font-size: 14pt; color: #000;">(${item.category})</small>`; // Made category bold and black
+        const categoryText = `<br><small style="margin-left: 10px; font-style: italic; font-weight: bold; font-size: 14pt; color: #000;">(${item.category})</small>`; 
         const modificationsText = item.selectedModifications && item.selectedModifications.length > 0
             ? `<br><small style="margin-left: 10px; font-weight: bold; font-size: 14pt;">(${item.selectedModifications.join(', ')})</small>`
             : '';
@@ -122,7 +121,7 @@ export const formatKitchenOrderReceipt = (
       </style>
     </head>
     <body>
-      <h1>COMANDA: ${orderIdentifier.toUpperCase()}</h1>
+      <h1>COMANDA - ${orderIdentifier.toUpperCase()}</h1>
       <div class="order-number">SU NÚMERO: ${String(orderNumber).padStart(3, '0')}</div>
       <div class="header-info">
         ${time}
@@ -149,20 +148,19 @@ export const formatCustomerReceipt = (
     orderItems: OrderItem[],
     totalAmount: number,
     paymentMethod: string,
-    tableId: string | number,
+    tableIdentifier: string, // This will be tableDisplayName
     orderNumber: number,
     deliveryInfo?: DeliveryInfo | null,
     tipAmount?: number
 ): string => {
-    const isDelivery = tableId === 'delivery';
+    const isDelivery = tableIdentifier.toLowerCase().startsWith('delivery');
     const title = "BOLETA";
     const shopName = "El Bajón de la Cami";
     const time = formatDateTime(new Date());
 
-    const orderIdentifier = isDelivery && deliveryInfo?.name
+    const receiptOrderIdentifier = isDelivery && deliveryInfo?.name
         ? `Delivery: ${deliveryInfo.name} - Orden #${String(orderNumber).padStart(3, '0')}`
-        : isDelivery ? `Delivery - Orden #${String(orderNumber).padStart(3, '0')}`
-        : `Mesa ${tableId} - Orden #${String(orderNumber).padStart(3, '0')}`;
+        : `${tableIdentifier} - Orden #${String(orderNumber).padStart(3, '0')}`;
 
 
     let subtotal = 0;
@@ -239,7 +237,7 @@ export const formatCustomerReceipt = (
       <h2>${shopName}</h2>
       <div class="header-info">
         ${time}<br>
-        ${orderIdentifier}
+        ${receiptOrderIdentifier}
       </div>
       <hr>
       <table>
@@ -291,7 +289,7 @@ export const formatCashClosingReceipt = (
         dailyTotalIncome: number;
         dailyExpenses: number;
         dailyNetTotal: number;
-        dailyGrossTotal: number;
+        dailyGrossTotal?: number; // Made optional as it might not always be calculated
     },
     salesDetails: CashMovement[]
 ): string => {
@@ -361,6 +359,15 @@ export const formatCashClosingReceipt = (
           </table>
         </div>
     `;
+    
+    const grossTotalHtml = dailyGrossTotal !== undefined ? `
+          <tr class="total-row">
+             <td class="label">TOTAL GENERAL:</td>
+             <td class="amount">${formatCurrency(dailyGrossTotal)}</td>
+          </tr>
+          <tr><td colspan="2"><hr></td></tr>
+    ` : '';
+
 
     return `
     <html>
@@ -407,11 +414,7 @@ export const formatCashClosingReceipt = (
           <tr><td class="label">Total Costo Envío:</td><td class="amount">${formatCurrency(dailyDeliveryFees)}</td></tr>
           <tr><td class="label">Total Propinas:</td><td class="amount">${formatCurrency(dailyTipsTotal)}</td></tr>
           <tr><td colspan="2"><hr></td></tr>
-          <tr class="total-row">
-             <td class="label">TOTAL GENERAL:</td>
-             <td class="amount">${formatCurrency(dailyGrossTotal)}</td>
-          </tr>
-          <tr><td colspan="2"><hr></td></tr>
+          ${grossTotalHtml}
           <tr><td class="label">Total Egresos:</td><td class="amount">${formatCurrency(dailyExpenses)}</td></tr>
           <tr><td colspan="2"><hr></td></tr>
           <tr class="total-row">

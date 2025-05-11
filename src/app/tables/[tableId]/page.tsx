@@ -27,14 +27,14 @@ import {
   SheetFooter,
 } from '@/components/ui/sheet';
 import {
-  Dialog as ShadDialog, // Renamed to avoid conflict
-  DialogClose as ShadDialogClose, // Renamed to avoid conflict
-  DialogContent as ShadDialogContent, // Renamed to avoid conflict
-  DialogDescription as ShadDialogDescription, // Renamed to avoid conflict
-  DialogFooter as ShadDialogFooter, // Renamed to avoid conflict
-  DialogHeader as ShadDialogHeader, // Renamed to avoid conflict
-  DialogTitle as ShadDialogTitle, // Renamed to avoid conflict
-  DialogTrigger as ShadDialogTrigger, // Renamed to avoid conflict
+  Dialog as ShadDialog, 
+  DialogClose as ShadDialogClose, 
+  DialogContent as ShadDialogContent, 
+  DialogDescription as ShadDialogDescription, 
+  DialogFooter as ShadDialogFooter, 
+  DialogHeader as ShadDialogHeader, 
+  DialogTitle as ShadDialogTitle, 
+  DialogTrigger as ShadDialogTrigger, 
 } from '@/components/ui/dialog';
 import {
   Table,
@@ -52,11 +52,11 @@ import { isEqual } from 'lodash';
 import { cn } from '@/lib/utils';
 import type { CashMovement } from '@/app/expenses/page';
 import type { DeliveryInfo } from '@/components/app/delivery-dialog';
-import DeliveryDialog from '@/components/app/delivery-dialog'; // Corrected import
+import DeliveryDialog from '@/components/app/delivery-dialog'; 
 import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
-import type { MenuItem } from '@/types/menu'; // Import MenuItem
-import { loadMenuData, orderedCategories as predefinedOrderedCategories } from '@/lib/menuUtils'; // Import loadMenuData and orderedCategories
+import type { MenuItem } from '@/types/menu'; 
+import { loadMenuData, orderedCategories as predefinedOrderedCategories } from '@/lib/menuUtils'; 
 
 import { Label } from '@/components/ui/label';
 import {
@@ -76,7 +76,7 @@ export interface OrderItem extends Omit<MenuItem, 'price' | 'modificationPrices'
   finalPrice: number;
   // ingredients is inherited
   orderNumber?: number;
-  category: string; // Ensure category is part of OrderItem
+  category: string; 
 }
 
 
@@ -113,7 +113,7 @@ export default function TableDetailPage() {
   const { toast } = useToast();
 
   const [isInitialized, setIsInitialized] = useState(false);
-  const [menu, setMenu] = useState<MenuItem[]>([]); // Initialize empty, load in useEffect
+  const [menu, setMenu] = useState<MenuItem[]>([]); 
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentOrder, setCurrentOrder] = useState<OrderItem[]>([]);
@@ -130,6 +130,14 @@ export default function TableDetailPage() {
 
 
   const isDelivery = useMemo(() => tableIdParam === 'delivery', [tableIdParam]);
+  const isMeson = useMemo(() => tableIdParam === 'mesón', [tableIdParam]);
+
+  const tableDisplayName = useMemo(() => {
+    if (isDelivery) return 'Delivery';
+    if (isMeson) return 'Mesón';
+    if (!isNaN(Number(tableIdParam))) return `Mesa ${tableIdParam}`;
+    return tableIdParam.charAt(0).toUpperCase() + tableIdParam.slice(1);
+  }, [tableIdParam, isDelivery, isMeson]);
 
 
   // --- Initialization Effect ---
@@ -309,7 +317,7 @@ export default function TableDetailPage() {
     const orderNumber = getNextOrderNumber();
     const orderWithNumber = currentOrder.map(item => ({ ...item, orderNumber }));
 
-    const kitchenReceipt = formatKitchenOrderReceipt(orderWithNumber, tableIdParam, orderNumber, deliveryInfo);
+    const kitchenReceipt = formatKitchenOrderReceipt(orderWithNumber, tableDisplayName, orderNumber, deliveryInfo);
     printHtml(kitchenReceipt);
 
     setPendingOrderGroups(prevGroups => [
@@ -354,27 +362,34 @@ export default function TableDetailPage() {
       let quantityToDeduct = orderItem.quantity;
       let inventoryItemName: string | null = null;
 
+       //Completos Vienesas
       if (orderItem.category === 'Completos Vienesas') {
         if (['completo normal', 'dinamico normal', 'hot dog normal', 'italiano normal', 'palta normal', 'tomate normal'].includes(itemNameLower)) {
-          inventoryItemName = 'Vienesas';
-          quantityToDeduct *= 1;
+          inventoryItemName = 'Pan especial normal';
+          const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
+          if (vienaIndex !== -1 && updatedInventory[vienaIndex].stock >= orderItem.quantity * 1) {
+                updatedInventory[vienaIndex].stock -= orderItem.quantity * 1;
+                inventoryUpdateOccurred = true;
+          } else if (vienaIndex !== -1) { console.warn(`Stock insuficiente de Vienesas para ${orderItem.name}`);}
+
         } else if (['completo grande', 'dinamico grande', 'hot dog grande', 'italiano grande', 'palta grande', 'tomate grande'].includes(itemNameLower)) {
-          inventoryItemName = 'Vienesas';
-          quantityToDeduct *= 2;
+          inventoryItemName = 'Pan especial grande';
+          const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
+          if (vienaIndex !== -1 && updatedInventory[vienaIndex].stock >= orderItem.quantity * 2) {
+                updatedInventory[vienaIndex].stock -= orderItem.quantity * 2;
+                inventoryUpdateOccurred = true;
+          } else if (vienaIndex !== -1) { console.warn(`Stock insuficiente de Vienesas para ${orderItem.name}`);}
         }
       }
-      if (orderItem.category === 'Completos Vienesas' && ['completo normal', 'dinamico normal', 'hot dog normal', 'italiano normal', 'palta normal', 'tomate normal'].includes(itemNameLower)) {
-        inventoryItemName = 'Pan especial normal';
+      //Completos As
+      if (orderItem.category === 'Completos As') {
+         if (['completo normal', 'dinamico normal', 'chacarero normal', 'italiano normal', 'palta normal', 'tomate normal', 'napolitano normal', 'queso champiñon normal', 'queso normal', 'solo carne normal'].includes(itemNameLower)) {
+            inventoryItemName = 'Pan especial normal';
+         } else if (['completo grande', 'dinamico grande', 'chacarero grande', 'italiano grande', 'palta grande', 'tomate grande', 'napolitano grande', 'queso champiñon grande', 'queso grande', 'solo carne grande'].includes(itemNameLower)) {
+            inventoryItemName = 'Pan especial grande';
+         }
       }
-      if (orderItem.category === 'Completos As' && ['completo normal', 'dinamico normal', 'chacarero normal', 'italiano normal', 'palta normal', 'tomate normal', 'napolitano normal', 'queso champiñon normal', 'queso normal', 'solo carne normal'].includes(itemNameLower)) {
-        inventoryItemName = 'Pan especial normal';
-      }
-      if (orderItem.category === 'Completos Vienesas' && ['completo grande', 'dinamico grande', 'hot dog grande', 'italiano grande', 'palta grande', 'tomate grande'].includes(itemNameLower)) {
-        inventoryItemName = 'Pan especial grande';
-      }
-      if (orderItem.category === 'Completos As' && ['completo grande', 'dinamico grande', 'chacarero grande', 'italiano grande', 'palta grande', 'tomate grande', 'napolitano grande', 'queso champiñon grande', 'queso grande', 'solo carne grande'].includes(itemNameLower)) {
-        inventoryItemName = 'Pan especial grande';
-      }
+      //Promo Fajitas
       if (orderItem.category === 'Promo Fajitas') {
         if (['4 ingredientes', '6 ingredientes', 'americana', 'brasileño', 'chacarero', 'golosasa', 'italiana', 'primavera'].includes(itemNameLower)) {
             inventoryItemName = 'Fajita'; 
@@ -387,6 +402,7 @@ export default function TableDetailPage() {
              }
         }
       }
+      //Churrascos, Promo Churrasco, Promo Mechada
       if (orderItem.category === 'Churrascos' || orderItem.category === 'Promo Churrasco' || orderItem.category === 'Promo Mechada') {
         if (['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'queso', 'queso champiñon', 'tomate', 'palta'].includes(itemNameLower)) {
           inventoryItemName = 'Pan de marraqueta';
@@ -401,6 +417,7 @@ export default function TableDetailPage() {
           }
         }
       }
+      //Promo Hamburguesas
       if (orderItem.category === 'Promo Hamburguesas') {
         if(['big cami', 'italiana', 'simple', 'tapa arteria'].includes(itemNameLower)) {
           inventoryItemName = 'Pan de hamburguesa normal';
@@ -419,14 +436,14 @@ export default function TableDetailPage() {
             }
         }
       }
-
+      //Bebidas
        if (orderItem.category === 'Bebidas') {
            if (itemNameLower === 'bebida 1.5lt') inventoryItemName = 'Bebida 1.5Lt';
            if (itemNameLower === 'lata') inventoryItemName = 'Lata';
            if (itemNameLower === 'cafe chico') inventoryItemName = 'Cafe Chico';
            if (itemNameLower === 'cafe grande') inventoryItemName = 'Cafe Grande';
        }
-
+      //Promociones
       if (orderItem.category === 'Promociones') {
           const promoNum = parseInt(itemNameLower.replace('promo ', ''), 10);
           if (promoNum === 1 || promoNum === 2) { inventoryItemName = 'Pan de hamburguesa grande'; }
@@ -473,6 +490,7 @@ export default function TableDetailPage() {
                } else if (vienaIndex !== -1) { console.warn(`Stock insuficiente de Vienesas`); }
            }
       }
+      //Papas Fritas
        if (orderItem.category === 'Papas Fritas' && itemNameLower === 'box cami') {
             const bebidaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'bebida 1.5lt');
             if (bebidaIndex !== -1 && updatedInventory[bebidaIndex].stock >= orderItem.quantity) {
@@ -502,12 +520,12 @@ export default function TableDetailPage() {
       toast({ title: "Inventario Actualizado", description: "El stock de los productos ha sido actualizado." });
     }
 
-    const customerReceipt = formatCustomerReceipt(orderToPay.items, finalAmountWithTip, paymentMethod, tableIdParam, orderToPay.orderNumber, orderToPay.deliveryInfo, tipAmount);
+    const customerReceipt = formatCustomerReceipt(orderToPay.items, finalAmountWithTip, paymentMethod, tableDisplayName, orderToPay.orderNumber, orderToPay.deliveryInfo, tipAmount);
     printHtml(customerReceipt);
 
     const cashMovementDescription = isDelivery
       ? `Venta Delivery #${String(orderToPay.orderNumber).padStart(3,'0')} a ${orderToPay.deliveryInfo?.name || 'Cliente'}`
-      : `Mesa ${tableIdParam} - Orden #${String(orderToPay.orderNumber).padStart(3,'0')}`;
+      : `${tableDisplayName} - Orden #${String(orderToPay.orderNumber).padStart(3,'0')}`;
 
     const saleAmount = orderToPay.items.reduce((sum, item) => sum + item.finalPrice * item.quantity, 0);
     const deliveryFeeForMovement = isDelivery && orderToPay.deliveryInfo ? orderToPay.deliveryInfo.deliveryFee : 0;
@@ -539,16 +557,22 @@ export default function TableDetailPage() {
     cashMovements.push(newCashMovement);
     sessionStorage.setItem(CASH_MOVEMENTS_STORAGE_KEY, JSON.stringify(cashMovements));
 
-    setPendingOrderGroups(prevGroups => prevGroups.filter(group => group.orderNumber !== orderToPay.orderNumber));
+    setPendingOrderGroups(prevGroups => {
+      const updatedGroups = prevGroups.filter(group => group.orderNumber !== orderToPay.orderNumber);
+      if (updatedGroups.length === 0 && currentOrder.length === 0) {
+          if (!isDelivery || !deliveryInfo || (!deliveryInfo.name && !deliveryInfo.address && !deliveryInfo.phone && deliveryInfo.deliveryFee === 0)) {
+               sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
+               console.log(`Table ${tableIdParam} marked as available after payment.`);
+          } else {
+              sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied'); // Keep occupied if delivery info exists
+              console.log(`Delivery ${tableIdParam} kept as occupied due to existing delivery info.`);
+          }
+      }
+      return updatedGroups;
+    });
     setIsPaymentDialogOpen(false);
     setOrderToPay(null); 
 
-    if (pendingOrderGroups.filter(group => group.orderNumber !== orderToPay.orderNumber).length === 0 && currentOrder.length === 0) {
-        if (!isDelivery || !deliveryInfo || (!deliveryInfo.name && !deliveryInfo.address && !deliveryInfo.phone && deliveryInfo.deliveryFee === 0)) {
-             sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
-             console.log(`Table ${tableIdParam} marked as available after payment.`);
-        }
-    }
 
     toast({ title: "Pago Realizado", description: `Pago de ${formatCurrency(finalAmountWithTip)} con ${paymentMethod} registrado.` });
   };
@@ -596,11 +620,14 @@ export default function TableDetailPage() {
     setDeliveryInfo(info);
     setIsDeliveryDialogOpen(false);
     sessionStorage.setItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`, JSON.stringify(info));
+    sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied'); // Mark as occupied once delivery info is set
     toast({ title: "Datos de Envío Guardados", description: `Enviando a ${info.name}.` });
   };
 
   const handleDeliveryInfoCancel = () => {
+    // Only redirect if no delivery info was ever set AND there are no pending/current orders
     if (!deliveryInfo && pendingOrderGroups.length === 0 && currentOrder.length === 0) {
+        sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
         router.push('/tables');
         toast({ title: "Envío Cancelado", description: "Se canceló el ingreso de datos de envío.", variant: "destructive" });
     } else {
@@ -612,7 +639,6 @@ export default function TableDetailPage() {
     return <div className="flex items-center justify-center min-h-screen">Cargando datos de la mesa...</div>;
   }
 
-  const tableDisplayName = isDelivery ? `Delivery` : `Mesa ${tableIdParam}`;
 
   return (
     <div className="container mx-auto p-4">
@@ -698,7 +724,7 @@ export default function TableDetailPage() {
                 </CardDescription>
             )}
           </CardHeader>
-          <ScrollArea className="flex-grow max-h-[calc(100vh-420px)] min-h-[200px]"> {/* Adjusted max-h */}
+          <ScrollArea className="flex-grow max-h-[calc(100vh-420px)] min-h-[200px]"> 
             <CardContent className="p-4">
                 {currentOrder.length === 0 ? (
                 <p className="text-muted-foreground">No hay productos en el pedido actual.</p>
@@ -848,3 +874,4 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
