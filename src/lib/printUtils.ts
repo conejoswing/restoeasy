@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import type { OrderItem, PaymentMethod } from '@/app/tables/[tableId]/page';
@@ -33,7 +34,7 @@ export const formatKitchenOrderReceipt = (
 
     let itemsHtml = '';
     orderItems.forEach(item => {
-        const categoryText = `<br><small style="margin-left: 10px; font-style: italic; font-weight: normal; font-size: 11pt; color: #555;">(${item.category})</small>`;
+        const categoryText = `<br><small style="margin-left: 10px; font-style: italic; font-weight: bold; font-size: 14pt; color: #000;">(${item.category})</small>`; // Made category bold and black
         const modificationsText = item.selectedModifications && item.selectedModifications.length > 0
             ? `<br><small style="margin-left: 10px; font-weight: bold; font-size: 14pt;">(${item.selectedModifications.join(', ')})</small>`
             : '';
@@ -97,6 +98,7 @@ export const formatKitchenOrderReceipt = (
             text-align: center;
             margin-bottom: 15px;
             font-size: 9pt; /* Kept smaller as it's secondary info */
+            font-weight: bold;
         }
         .order-number {
             font-size: 12pt; /* Kept slightly smaller than main title */
@@ -157,9 +159,11 @@ export const formatCustomerReceipt = (
     const shopName = "El Bajón de la Cami";
     const time = formatDateTime(new Date());
 
-    const orderIdentifier = isDelivery
-        ? `Delivery: ${deliveryInfo?.name || 'Cliente'} - Orden #${String(orderNumber).padStart(3, '0')}`
+    const orderIdentifier = isDelivery && deliveryInfo?.name
+        ? `Delivery: ${deliveryInfo.name} - Orden #${String(orderNumber).padStart(3, '0')}`
+        : isDelivery ? `Delivery - Orden #${String(orderNumber).padStart(3, '0')}`
         : `Mesa ${tableId} - Orden #${String(orderNumber).padStart(3, '0')}`;
+
 
     let subtotal = 0;
     let itemsHtml = '';
@@ -287,12 +291,13 @@ export const formatCashClosingReceipt = (
         dailyTotalIncome: number;
         dailyExpenses: number;
         dailyNetTotal: number;
+        dailyGrossTotal: number;
     },
     salesDetails: CashMovement[]
 ): string => {
     const {
         dailyCashIncome, dailyDebitCardIncome, dailyCreditCardIncome, dailyTransferIncome,
-        dailyDeliveryFees, dailyTipsTotal, dailyTotalIncome, dailyExpenses, dailyNetTotal
+        dailyDeliveryFees, dailyTipsTotal, dailyTotalIncome, dailyExpenses, dailyNetTotal, dailyGrossTotal
     } = dailyTotals;
 
     let salesHtml = '';
@@ -310,6 +315,29 @@ export const formatCashClosingReceipt = (
                 <td style="text-align: right; font-weight: bold;">${formatCurrency(sale.amount)}</td>
               </tr>
             `;
+             if(sale.deliveryFee && sale.deliveryFee > 0){
+                salesHtml += `
+                  <tr>
+                    <td style="font-weight: bold; max-width: 35mm; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left: 10px; font-size: 8pt;"><em>(Costo Envío)</em></td>
+                    <td style="text-align: center; font-weight: bold; font-size: 8pt;">-</td>
+                    <td style="text-align: right; font-weight: bold;">${formatCurrency(sale.deliveryFee)}</td>
+                  </tr>
+                `;
+            }
+            const tipMatch = sale.description.match(/Propina: (?:CLP)?\$?([\d.]+)/);
+            if (tipMatch && tipMatch[1]) {
+                const tipString = tipMatch[1].replace(/\./g, ''); // Remove dots for parsing
+                const parsedTip = parseInt(tipString, 10);
+                if (!isNaN(parsedTip) && parsedTip > 0) {
+                     salesHtml += `
+                      <tr>
+                        <td style="font-weight: bold; max-width: 35mm; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left: 10px; font-size: 8pt;"><em>(Propina)</em></td>
+                        <td style="text-align: center; font-weight: bold; font-size: 8pt;">-</td>
+                        <td style="text-align: right; font-weight: bold;">${formatCurrency(parsedTip)}</td>
+                      </tr>
+                    `;
+                }
+            }
         });
     } else {
         salesHtml = '<tr><td colspan="3" style="text-align: center; font-style: italic; font-weight: bold;">No hay ventas registradas.</td></tr>';
@@ -370,17 +398,24 @@ export const formatCashClosingReceipt = (
           <tr><td class="label">Ingresos T. Débito:</td><td class="amount">${formatCurrency(dailyDebitCardIncome)}</td></tr>
           <tr><td class="label">Ingresos T. Crédito:</td><td class="amount">${formatCurrency(dailyCreditCardIncome)}</td></tr>
           <tr><td class="label">Ingresos Transfer.:</td><td class="amount">${formatCurrency(dailyTransferIncome)}</td></tr>
+          <tr><td colspan="2"><hr></td></tr>
+          <tr class="total-row">
+             <td class="label">TOTAL INGRESOS BRUTO:</td>
+             <td class="amount">${formatCurrency(dailyTotalIncome)}</td>
+          </tr>
+          <tr><td colspan="2"><hr></td></tr>
           <tr><td class="label">Total Costo Envío:</td><td class="amount">${formatCurrency(dailyDeliveryFees)}</td></tr>
           <tr><td class="label">Total Propinas:</td><td class="amount">${formatCurrency(dailyTipsTotal)}</td></tr>
+          <tr><td colspan="2"><hr></td></tr>
           <tr class="total-row">
-             <td class="label">TOTAL INGRESOS:</td>
-             <td class="amount">${formatCurrency(dailyTotalIncome)}</td>
+             <td class="label">TOTAL GENERAL:</td>
+             <td class="amount">${formatCurrency(dailyGrossTotal)}</td>
           </tr>
           <tr><td colspan="2"><hr></td></tr>
           <tr><td class="label">Total Egresos:</td><td class="amount">${formatCurrency(dailyExpenses)}</td></tr>
           <tr><td colspan="2"><hr></td></tr>
           <tr class="total-row">
-            <td class="label">TOTAL NETO:</td>
+            <td class="label">TOTAL NETO CAJA:</td>
             <td class="amount">${formatCurrency(dailyNetTotal)}</td>
           </tr>
         </tbody>
@@ -448,3 +483,4 @@ export const printHtml = (htmlContent: string): void => {
     }
 };
 
+    
