@@ -26,9 +26,9 @@ import {
   SheetFooter,
 } from '@/components/ui/sheet';
 import {
-  Dialog,
-  DialogClose,
-  DialogContent as ShadDialogContent, // Renamed to avoid conflict
+  Dialog as ShadDialog, // Alias for the root Dialog component
+  DialogClose as ShadDialogClose,
+  DialogContent as ShadDialogContent, 
   DialogDescription as ShadDialogDescription,
   DialogFooter as ShadDialogFooter,
   DialogHeader as ShadDialogHeader,
@@ -51,7 +51,7 @@ import { isEqual } from 'lodash';
 import { cn } from '@/lib/utils';
 import type { CashMovement } from '@/app/expenses/page';
 import type { DeliveryInfo } from '@/components/app/delivery-dialog';
-import DeliveryDialog from '@/components/app/delivery-dialog'; // Corrected import
+import DeliveryDialog from '@/components/app/delivery-dialog'; 
 import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
 import { Label } from '@/components/ui/label';
@@ -749,7 +749,6 @@ export function TableDetailPage() {
   const [menu, setMenu] = useState<MenuItem[]>([]);
   const [currentOrder, setCurrentOrder] = useState<OrderItem[]>([]);
   const [pendingOrderGroups, setPendingOrderGroups] = useState<PendingOrderGroup[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModificationDialogOpen, setIsModificationDialogOpen] = useState(false);
   const [itemToModify, setItemToModify] = useState<MenuItem | null>(null);
@@ -928,12 +927,12 @@ export function TableDetailPage() {
                   inventory = updateStock(inventory, 'Lata', quantity);
                   itemFoundAndDeducted = true;
               } else if (lowerItemName === 'big cami') {
-                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity); // Assuming Big Cami uses 1 normal bun
+                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity); 
                   inventory = updateStock(inventory, 'Lata', quantity);
                   itemFoundAndDeducted = true;
               }
                else if (['doble', 'doble italiana', 'super big cami', 'super tapa arteria'].includes(lowerItemName)) {
-                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity * 2); // Assuming double means two burgers for inventory calc
+                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity * 2); 
                   inventory = updateStock(inventory, 'Lata', quantity);
                   itemFoundAndDeducted = true;
               }
@@ -949,7 +948,6 @@ export function TableDetailPage() {
                 itemFoundAndDeducted = true;
             } else if (lowerItemName === 'promo 4') {
                 inventory = updateStock(inventory, 'Pan de marraqueta', quantity * 2);
-                // Assuming no drink for Promo 4 based on ingredients list
                 itemFoundAndDeducted = true;
             } else if (lowerItemName === 'promo 5') {
                 inventory = updateStock(inventory, 'Pan especial normal', quantity * 2);
@@ -958,7 +956,11 @@ export function TableDetailPage() {
                 itemFoundAndDeducted = true;
             } else if (lowerItemName === 'promo 6') {
                 inventory = updateStock(inventory, 'Pan especial grande', quantity * 2);
-                inventory = updateStock(inventory, 'Vienesas', quantity * 4); // 2 vienesas per completo grande * 2 completos
+                inventory = updateStock(inventory, 'Vienesas', quantity * 4); 
+                inventory = updateStock(inventory, 'Lata', quantity * 2);
+                itemFoundAndDeducted = true;
+            } else if (lowerItemName === 'promo 7') {
+                inventory = updateStock(inventory, 'Pan especial normal', quantity * 2);
                 inventory = updateStock(inventory, 'Lata', quantity * 2);
                 itemFoundAndDeducted = true;
             }
@@ -1195,22 +1197,9 @@ export function TableDetailPage() {
   }, [currentOrder]);
 
 
-  const filteredMenu = useMemo(() => {
-    let result = menu;
-    if (selectedCategory) {
-      result = result.filter(item => item.category === selectedCategory);
-    }
-    if (searchTerm) {
-      result = result.filter(item =>
-        item.name.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-    return result;
-  }, [menu, selectedCategory, searchTerm]);
-
   const groupedMenu = useMemo(() => {
     const groups: { [key: string]: MenuItem[] } = {};
-    filteredMenu.forEach(item => {
+    menu.forEach(item => { // Use full menu here, filtering is done in Sheet
       if (!groups[item.category]) {
         groups[item.category] = [];
       }
@@ -1222,7 +1211,7 @@ export function TableDetailPage() {
       }
       return acc;
     }, {} as { [key: string]: MenuItem[] });
-  }, [filteredMenu]);
+  }, [menu]);
 
    const handleConfirmDeliveryInfo = (info: DeliveryInfo) => {
      setDeliveryInfo(info);
@@ -1278,7 +1267,7 @@ export function TableDetailPage() {
                       <PackageSearch className="mr-2 h-5 w-5"/> Ver Menú
                   </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-full max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl h-full p-0 flex flex-col">
+              <SheetContent side="left" className="w-full sm:max-w-full md:max-w-4xl lg:max-w-5xl xl:max-w-6xl h-full p-0 flex flex-col"> {/* Increased max-width */}
                   <SheetHeader className="p-4 border-b">
                       <SheetTitle className="text-2xl">Menú</SheetTitle>
                   </SheetHeader>
@@ -1292,14 +1281,23 @@ export function TableDetailPage() {
                   </div>
                   <ScrollArea className="flex-grow px-4">
                     <Accordion type="multiple" defaultValue={orderedCategories} className="w-full">
-                      {Object.entries(groupedMenu).map(([category, items]) => (
+                      {Object.entries(groupedMenu)
+                        .filter(([category, items]) => { // Filter categories based on searchTerm
+                            if (!searchTerm) return true; // Show all if no search term
+                            // Show category if category name matches or any item in it matches
+                            return category.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                   items.some(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
+                        })
+                        .map(([category, items]) => (
                         <AccordionItem value={category} key={category} className="border-b-0 mb-2 last:mb-0">
                           <AccordionTrigger className="text-xl font-semibold hover:bg-muted/50 px-4 py-3 rounded-md hover:no-underline bg-card border data-[state=open]:rounded-b-none">
                             {category}
                           </AccordionTrigger>
                           <AccordionContent className="pt-0 bg-card border border-t-0 rounded-b-md">
                             <div className="grid grid-cols-1 divide-y">
-                              {items.map((item) => (
+                              {items
+                                .filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()) || category.toLowerCase().includes(searchTerm.toLowerCase()) ) // Filter items within category
+                                .map((item) => (
                                 <div
                                   key={item.id}
                                   className="flex justify-between items-center p-3 hover:bg-muted/30 cursor-pointer"
