@@ -251,7 +251,7 @@ const mockMenu: MenuItem[] = [
        modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate', 'Chucrut', 'Americana']
     },
-    { id: 36, name: 'Completo Grande', price: 7000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Chucrut', 'Americana'] },
+    { id: 36, name: 'Completo Grande', price: 7000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Chucrut', 'Americana'] },
     { id: 37, name: 'Palta Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta'] },
     { id: 38, name: 'Palta Grande', price: 6300, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta'] },
     { id: 39, name: 'Tomate Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate'] },
@@ -645,7 +645,7 @@ const mockMenu: MenuItem[] = [
       category: 'Bebidas',
     },
      // --- Colaciones ---
-].filter(item => !(item.category === 'Promo Fajitas' && [1, 2, 8].includes(item.id)));
+];
 
 
 const orderedCategories = [
@@ -1035,7 +1035,7 @@ export function TableDetailPage() {
         }
         else if (lowerCategory === 'papas fritas') {
             if (lowerItemName === 'box cami') {
-                inventory = updateStock(inventory, 'Empanadas de Queso', quantity * 8); // Assuming 8 units of a product named 'Empanadas de Queso'
+                // inventory = updateStock(inventory, 'Empanadas de Queso', quantity * 8); // Assuming 8 units of a product named 'Empanadas de Queso'
                 inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity);
                 itemFoundAndDeducted = true;
             }
