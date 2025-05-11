@@ -63,9 +63,7 @@ const TableRow = React.forwardRef<
       className
     )}
     {...props}
-  >
-    {children}
-  </tr>
+  >{children}</tr> // Children on the same line as closing tag
 ))
 TableRow.displayName = "TableRow"
 
