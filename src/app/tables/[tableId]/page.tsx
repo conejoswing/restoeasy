@@ -754,488 +754,73 @@ const getPersistedMenu = (): MenuItem[] => {
 };
 
 
-// Main component for the table detail page
-export function TableDetailPage() {
-  const params = useParams();
-  const tableIdParam = params.tableId as string;
-  const router = useRouter();
+const ProductsManagementPage = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [menu, setMenu] = useState<MenuItem[]>([]);
+  const [isMenuInitialized, setIsMenuInitialized] = useState(false);
+  const [isEditPriceDialogOpen, setIsEditPriceDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<MenuItem | null>(null);
+  const [newPrice, setNewPrice] = useState('');
   const { toast } = useToast();
 
-  const isDelivery = tableIdParam === 'delivery';
-  const decodedTableIdParam = useMemo(() => {
-    try {
-      return decodeURIComponent(tableIdParam);
-    } catch (e) {
-      console.error("Error decoding tableIdParam:", e);
-      return tableIdParam; // Fallback to original if decoding fails
-    }
-  }, [tableIdParam]);
-
-
-  const [menu, setMenu] = useState<MenuItem[]>([]);
-  const [currentOrder, setCurrentOrder] = useState<OrderItem[]>([]);
-  const [pendingOrderGroups, setPendingOrderGroups] = useState<PendingOrderGroup[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [isModificationDialogOpen, setIsModificationDialogOpen] = useState(false);
-  const [itemToModify, setItemToModify] = useState<MenuItem | null>(null);
-  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
-  const [isMenuSheetOpen, setIsMenuSheetOpen] = useState(false);
-  const [isInitialized, setIsInitialized] = useState(false);
-
-  const [deliveryInfo, setDeliveryInfo] = useState<DeliveryInfo | null>(null);
-  const [isDeliveryDialogOpen, setIsDeliveryDialogOpen] = useState(false);
-  const [orderToPay, setOrderToPay] = useState<PendingOrderGroup | null>(null);
-
-  // --- Effect for Initial Load and Delivery Dialog ---
   useEffect(() => {
-    if (isInitialized) return;
-
-    console.log(`Initializing page for table: ${tableIdParam}`);
     setMenu(getPersistedMenu());
+    setIsMenuInitialized(true);
+  }, []);
 
-    // Load current order for the table
-    const storedCurrentOrder = sessionStorage.getItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${tableIdParam}-currentOrder`);
-    if (storedCurrentOrder) {
-      try {
-        const parsedCurrentOrder = JSON.parse(storedCurrentOrder);
-        if (Array.isArray(parsedCurrentOrder)) {
-          setCurrentOrder(parsedCurrentOrder);
-          console.log(`Loaded current order for table ${tableIdParam}:`, parsedCurrentOrder);
-        }
-      } catch (e) {
-        console.error("Error parsing current order from sessionStorage:", e);
-      }
+
+  const filteredProducts = menu.filter(product =>
+    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.category.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const openEditPriceDialog = (product: MenuItem) => {
+    setEditingProduct(product);
+    setNewPrice(product.price.toString());
+    setIsEditPriceDialogOpen(true);
+  };
+
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewPrice(e.target.value);
+  };
+
+  const handleUpdatePrice = () => {
+    if (!editingProduct || newPrice === '') {
+      toast({ title: "Error", description: "Debe ingresar un precio.", variant: "destructive"});
+      return;
     }
-
-    // Load pending order groups
-    const storedPendingOrders = sessionStorage.getItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${tableIdParam}-pendingOrders`);
-    if (storedPendingOrders) {
-        try {
-            const parsedData: PendingOrderStorageData | PendingOrderGroup[] = JSON.parse(storedPendingOrders);
-            // Handle both old array format and new object format for backward compatibility
-            if (Array.isArray(parsedData)) { // Old format
-                setPendingOrderGroups(parsedData);
-                console.log(`Loaded PENDING orders (old format) for table ${tableIdParam}:`, parsedData);
-            } else if (parsedData && Array.isArray(parsedData.groups)) { // New format
-                setPendingOrderGroups(parsedData.groups);
-                console.log(`Loaded PENDING orders (new format) for table ${tableIdParam}:`, parsedData.groups);
-            }
-        } catch (e) {
-            console.error("Error parsing pending orders from sessionStorage:", e);
-        }
-    }
-
-
-    // Load delivery info if it's the delivery table
-    if (isDelivery) {
-      const storedDeliveryInfo = localStorage.getItem(DELIVERY_INFO_STORAGE_KEY_PREFIX + tableIdParam);
-      if (storedDeliveryInfo) {
-        try {
-          const parsedInfo = JSON.parse(storedDeliveryInfo) as DeliveryInfo;
-          setDeliveryInfo(parsedInfo);
-          console.log("Loaded delivery info:", parsedInfo);
-        } catch (e) {
-          console.error("Error parsing delivery info:", e);
-        }
-      }
-      // Open delivery dialog if no info is present for a new delivery order
-      if (!storedDeliveryInfo && pendingOrderGroups.length === 0 && currentOrder.length === 0) {
-        console.log("Delivery table: No delivery info, opening dialog.");
-        setIsDeliveryDialogOpen(true);
-      }
-    }
-    setIsInitialized(true);
-    console.log(`Initialization complete for ${tableIdParam}.`);
-
-  }, [tableIdParam, isInitialized, isDelivery]);
-
-
-  // --- Effect to save state changes to sessionStorage ---
-  useEffect(() => {
-    if (!isInitialized) return; // Don't save during initial load
-
-    console.log(`State changed for table ${tableIdParam}, saving to sessionStorage.`);
-    sessionStorage.setItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${tableIdParam}-currentOrder`, JSON.stringify(currentOrder));
-
-    const dataToStore: PendingOrderStorageData = { groups: pendingOrderGroups };
-    sessionStorage.setItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${tableIdParam}-pendingOrders`, JSON.stringify(dataToStore));
-
-
-    if (isDelivery && deliveryInfo) {
-      localStorage.setItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`, JSON.stringify(deliveryInfo));
-    }
-    // Explicit status updates are handled in handlePrintKitchenOrder and handleFinalizeAndPay
-
-  }, [currentOrder, pendingOrderGroups, deliveryInfo, tableIdParam, isInitialized, isDelivery]);
-
-
-  const handleGoBack = () => {
-    router.push('/tables');
-  };
-
-  // Deduct inventory based on item name and quantity
-  const deductInventory = (itemName: string, quantity: number, menuItemCategory?: string) => {
-    console.log(`Attempting to deduct ${quantity} of ${itemName} (Category: ${menuItemCategory}) from inventory.`);
-    const storedInventory = localStorage.getItem(INVENTORY_STORAGE_KEY);
-    if (storedInventory) {
-      let inventory: InventoryItem[] = JSON.parse(storedInventory);
-      let itemFoundAndDeducted = false;
-
-      const lowerItemName = itemName.toLowerCase();
-      const lowerCategory = menuItemCategory?.toLowerCase();
-
-      if (lowerCategory === 'completos vienesas') {
-        if (lowerItemName.includes('normal')) {
-          inventory = updateStock(inventory, 'Pan especial normal', quantity);
-          inventory = updateStock(inventory, 'Vienesas', quantity);
-        } else if (lowerItemName.includes('grande')) {
-          inventory = updateStock(inventory, 'Pan especial grande', quantity);
-          inventory = updateStock(inventory, 'Vienesas', quantity * 2);
-        }
-        itemFoundAndDeducted = true;
-      }
-      else if (lowerCategory === 'completos as') {
-         if (lowerItemName.includes('normal')) {
-           inventory = updateStock(inventory, 'Pan especial normal', quantity);
-         } else if (lowerItemName.includes('grande')) {
-           inventory = updateStock(inventory, 'Pan especial grande', quantity);
-         }
-         itemFoundAndDeducted = true;
-      }
-       else if (lowerCategory === 'promo fajitas') {
-            const promoFajitaItems = ['4 ingredientes', '6 ingredientes', 'americana', 'brasileño', 'chacarero', 'golosasa', 'italiana', 'primavera'];
-            if (promoFajitaItems.includes(lowerItemName)) {
-                inventory = updateStock(inventory, 'Fajita', quantity);
-                inventory = updateStock(inventory, 'Lata', quantity);
-            }
-            itemFoundAndDeducted = true;
-       }
-       else if (lowerCategory === 'churrascos') {
-            const churrascoItems = [
-                'churrasco campestre', 'churrasco che milico', 'churrasco completo',
-                'churrasco dinamico', 'churrasco italiano', 'churrasco napolitano',
-                'churrasco palta', 'churrasco queso', 'churrasco queso champiñon', 'churrasco tomate'
-            ];
-            if (churrascoItems.includes(lowerItemName)) {
-                inventory = updateStock(inventory, 'Pan de marraqueta', quantity);
-            }
-            itemFoundAndDeducted = true;
-       }
-        else if (lowerCategory === 'promo churrasco') {
-            const promoChurrascoItems = [
-                'brasileño', 'campestre', 'chacarero', 'che milico',
-                'completo', 'dinamico', 'italiano', 'queso',
-                'queso champiñon', 'tomate', 'palta'
-            ];
-            if (promoChurrascoItems.includes(lowerItemName)) {
-                inventory = updateStock(inventory, 'Pan de marraqueta', quantity);
-                inventory = updateStock(inventory, 'Lata', quantity);
-            }
-            itemFoundAndDeducted = true;
-        }
-        else if (lowerCategory === 'promo mechada') {
-            const promoMechadaItems = [
-                'brasileño', 'campestre', 'chacarero', 'che milico',
-                'completo', 'dinamico', 'italiano', 'palta',
-                'queso', 'queso champiñon', 'tomate'
-            ];
-            if (promoMechadaItems.includes(lowerItemName)) {
-                 inventory = updateStock(inventory, 'Pan de marraqueta', quantity);
-                 inventory = updateStock(inventory, 'Lata', quantity);
-            }
-            itemFoundAndDeducted = true;
-        }
-         else if (lowerCategory === 'promo hamburguesas') {
-              if (['italiana', 'simple', 'tapa arteria', 'big cami'].includes(lowerItemName)) {
-                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity);
-                  inventory = updateStock(inventory, 'Lata', quantity);
-              }
-               else if (['doble', 'doble italiana', 'super big cami', 'super tapa arteria'].includes(lowerItemName)) {
-                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity * 2); // Assuming double means 2 patties/buns
-                  inventory = updateStock(inventory, 'Lata', quantity);
-              }
-              itemFoundAndDeducted = true;
-         }
-        else if (lowerCategory === 'promociones') {
-            if (lowerItemName === 'promo 1' || lowerItemName === 'promo 2') {
-                inventory = updateStock(inventory, 'Pan de hamburguesa grande', quantity);
-                inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity);
-            } else if (lowerItemName === 'promo 3') {
-                inventory = updateStock(inventory, 'Pan de marraqueta', quantity * 4);
-                inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity);
-            } else if (lowerItemName === 'promo 4') {
-                inventory = updateStock(inventory, 'Pan de marraqueta', quantity * 2);
-            } else if (lowerItemName === 'promo 5') {
-                inventory = updateStock(inventory, 'Pan especial normal', quantity * 2);
-                inventory = updateStock(inventory, 'Vienesas', quantity * 2);
-                inventory = updateStock(inventory, 'Lata', quantity * 2);
-            } else if (lowerItemName === 'promo 6') {
-                inventory = updateStock(inventory, 'Pan especial grande', quantity * 2);
-                inventory = updateStock(inventory, 'Vienesas', quantity * 4); // 2 vienesas per "completo grande"
-                inventory = updateStock(inventory, 'Lata', quantity * 2);
-            } else if (lowerItemName === 'promo 7') {
-                inventory = updateStock(inventory, 'Pan especial normal', quantity * 2);
-                inventory = updateStock(inventory, 'Lata', quantity * 2);
-            } else if (lowerItemName === 'promo 8') {
-                inventory = updateStock(inventory, 'Pan especial grande', quantity * 2);
-                inventory = updateStock(inventory, 'Lata', quantity * 2);
-            } else if (lowerItemName === 'promo 9') {
-                 inventory = updateStock(inventory, 'Pan especial normal', quantity * 4);
-                 inventory = updateStock(inventory, 'Vienesas', quantity * 4);
-                 inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity * 1);
-            } else if (lowerItemName === 'promo 10') {
-                 inventory = updateStock(inventory, 'Pan especial grande', quantity * 4);
-                 inventory = updateStock(inventory, 'Vienesas', quantity * 8); // 2 vienesas per "completo grande"
-                 inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity * 1);
-            } else if (lowerItemName === 'promo 11') {
-                 inventory = updateStock(inventory, 'Pan especial normal', quantity * 4);
-                 inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity * 1);
-            } else if (lowerItemName === 'promo 12') {
-                inventory = updateStock(inventory, 'Pan especial grande', quantity * 4);
-                inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity * 1);
-           }
-           itemFoundAndDeducted = true;
-        }
-        // Bebidas
-        else if (lowerCategory === 'bebidas') {
-            if (lowerItemName === 'bebida 1.5lt') {
-                inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity);
-            } else if (lowerItemName === 'lata') {
-                inventory = updateStock(inventory, 'Lata', quantity);
-            } else if (lowerItemName === 'cafe chico') {
-                inventory = updateStock(inventory, 'Cafe Chico', quantity);
-            } else if (lowerItemName === 'cafe grande') {
-                inventory = updateStock(inventory, 'Cafe Grande', quantity);
-            }
-            itemFoundAndDeducted = true;
-        }
-        else if (lowerCategory === 'papas fritas') {
-            if (lowerItemName === 'box cami') {
-                // inventory = updateStock(inventory, 'Empanadas de Queso', quantity * 8); // Assuming 8 units of a product named 'Empanadas de Queso'
-                inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity);
-            }
-            itemFoundAndDeducted = true;
-        }
-
-
-      if (!itemFoundAndDeducted) {
-        const inventoryItem = inventory.find(invItem => invItem.name.toLowerCase() === itemName.toLowerCase());
-        if (inventoryItem) {
-          inventory = inventory.map(invItem =>
-            invItem.id === inventoryItem.id
-              ? { ...invItem, stock: Math.max(0, invItem.stock - quantity) }
-              : invItem
-          );
-          itemFoundAndDeducted = true;
-        }
-      }
-
-      if (itemFoundAndDeducted) {
-        localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify(inventory));
-        console.log(`Inventory updated after deducting ${itemName}.`);
-      } else {
-        console.warn(`Inventory item "${itemName}" not found for deduction or specific logic not implemented.`);
-      }
-    }
-  };
-
-  // Helper function to update stock for a specific inventory item
-  const updateStock = (inventory: InventoryItem[], itemName: string, quantityToDeduct: number): InventoryItem[] => {
-    const itemIndex = inventory.findIndex(invItem => invItem.name.toLowerCase() === itemName.toLowerCase());
-    if (itemIndex > -1) {
-      inventory[itemIndex].stock = Math.max(0, inventory[itemIndex].stock - quantityToDeduct);
-      console.log(`Deducted ${quantityToDeduct} of ${itemName}. New stock: ${inventory[itemIndex].stock}`);
-    } else {
-      console.warn(`Inventory item "${itemName}" not found for stock update.`);
-    }
-    return inventory;
-  };
-
-
-  const addItemToOrder = (item: MenuItem, modifications?: string[]) => {
-    const orderItemId = `${item.id}-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
-
-    let finalPrice = item.price;
-    if (modifications && item.modificationPrices) {
-      modifications.forEach(mod => {
-        finalPrice += item.modificationPrices![mod] ?? 0;
-      });
-    }
-
-    const newItem: OrderItem = {
-      ...item,
-      orderItemId: orderItemId,
-      quantity: 1,
-      selectedModifications: modifications,
-      basePrice: item.price,
-      finalPrice: finalPrice,
-      ingredients: item.ingredients,
-      category: item.category,
-    };
-    setCurrentOrder(prevOrder => [...prevOrder, newItem]);
-    setIsMenuSheetOpen(false);
-    toast({ title: `${item.name} añadido`, description: "Producto agregado al pedido actual."});
-  };
-
-  const increaseQuantity = (orderItemId: string) => {
-    setCurrentOrder(prevOrder =>
-      prevOrder.map(item =>
-        item.orderItemId === orderItemId ? { ...item, quantity: item.quantity + 1 } : item
-      )
-    );
-  };
-
-  const decreaseQuantity = (orderItemId: string) => {
-    setCurrentOrder(prevOrder =>
-      prevOrder
-        .map(item =>
-          item.orderItemId === orderItemId ? { ...item, quantity: Math.max(1, item.quantity - 1) } : item
-        )
-    );
-  };
-
-  const removeItem = (orderItemId: string) => {
-    setCurrentOrder(prevOrder => prevOrder.filter(item => item.orderItemId !== orderItemId));
-  };
-
-
-  const getNextOrderNumber = (): number => {
-      const currentOrderNumber = parseInt(sessionStorage.getItem(ORDER_NUMBER_STORAGE_KEY) || '0', 10);
-      const nextOrderNumber = currentOrderNumber >= 999 ? 1 : currentOrderNumber + 1;
-      sessionStorage.setItem(ORDER_NUMBER_STORAGE_KEY, nextOrderNumber.toString());
-      return nextOrderNumber;
-  };
-
-
-  const handlePrintKitchenOrder = () => {
-    if (currentOrder.length === 0) {
-      toast({ title: "Pedido Vacío", description: "No hay artículos en el pedido actual para enviar a cocina.", variant: "destructive" });
+    const priceValue = parseInt(newPrice, 10);
+    if (isNaN(priceValue) || priceValue < 0) {
+      toast({ title: "Error", description: "El precio debe ser un número válido y no negativo.", variant: "destructive"});
       return;
     }
 
-    const newOrderNumber = getNextOrderNumber();
-
-    const itemsWithOrderNumber = currentOrder.map(item => ({
-        ...item,
-        orderNumber: newOrderNumber
-    }));
-
-
-    const newPendingGroup: PendingOrderGroup = {
-        orderNumber: newOrderNumber,
-        items: itemsWithOrderNumber,
-        deliveryInfo: isDelivery ? deliveryInfo : null
-    };
-
-    setPendingOrderGroups(prevGroups => [...prevGroups, newPendingGroup]);
-
-
-    const kitchenReceiptHtml = formatKitchenOrderReceipt(
-        itemsWithOrderNumber,
-        isDelivery ? `Delivery #${newOrderNumber}` : `Mesa ${decodedTableIdParam} / Orden #${newOrderNumber}`,
-        newOrderNumber,
-        isDelivery ? deliveryInfo : null
+    const updatedMenu = menu.map(item =>
+      item.id === editingProduct.id ? { ...item, price: priceValue } : item
     );
-    printHtml(kitchenReceiptHtml);
+    const sortedMenu = sortMenu(updatedMenu);
 
-    setCurrentOrder([]);
-    toast({ title: "Comanda Impresa", description: `Pedido #${newOrderNumber} enviado a cocina y añadido a pendientes.` });
+    setMenu(sortedMenu);
 
-    sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
-    console.log(`Table ${tableIdParam} status updated to: occupied after printing kitchen order.`);
-  };
-
-
-  const handleOpenPaymentDialog = (group: PendingOrderGroup) => {
-    setOrderToPay(group);
-    setIsPaymentDialogOpen(true);
-  };
-
-
-  const handleFinalizeAndPay = (
-      paymentMethod: PaymentMethod,
-      tipAmount: number,
-      finalAmountWithTip: number
-    ) => {
-        if (!orderToPay) {
-            toast({ title: "Error", description: "No se ha seleccionado un pedido para pagar.", variant: "destructive" });
-            setIsPaymentDialogOpen(false);
-            return;
-        }
-
-        const orderToFinalize = orderToPay;
-
-
-    let orderSubtotal = orderToFinalize.items.reduce((sum, item) => sum + (item.finalPrice * item.quantity), 0);
-
-    let deliveryFeeForThisOrder = 0;
-    if (orderToFinalize.deliveryInfo && orderToFinalize.deliveryInfo.deliveryFee > 0) {
-        deliveryFeeForThisOrder = orderToFinalize.deliveryInfo.deliveryFee;
+    if (typeof window !== 'undefined') {
+      try {
+        localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(sortedMenu));
+      } catch (e) {
+        console.error("Error saving menu to localStorage:", e);
+        toast({title: "Error", description: "No se pudo guardar el cambio de precio de forma persistente.", variant: "destructive"});
+      }
     }
 
-    const saleMovement: CashMovement = {
-      id: Date.now(),
-      date: new Date(),
-      category: 'Ingreso Venta',
-      description: isDelivery
-        ? `Venta Delivery #${orderToFinalize.orderNumber} a ${orderToFinalize.deliveryInfo?.name || 'Cliente'}` + (tipAmount > 0 ? ` (Propina: ${printUtilsFormatCurrency(tipAmount)})` : '')
-        : `Venta Mesa ${decodedTableIdParam} / Orden #${orderToFinalize.orderNumber}` + (tipAmount > 0 ? ` (Propina: ${printUtilsFormatCurrency(tipAmount)})` : ''),
-      amount: orderSubtotal + deliveryFeeForThisOrder,
-      paymentMethod: paymentMethod,
-      deliveryFee: deliveryFeeForThisOrder > 0 ? deliveryFeeForThisOrder : undefined,
-    };
-
-    const storedCashMovements = sessionStorage.getItem(CASH_MOVEMENTS_STORAGE_KEY);
-    let cashMovements: CashMovement[] = storedCashMovements ? JSON.parse(storedCashMovements) : [];
-    cashMovements.push(saleMovement);
-    sessionStorage.setItem(CASH_MOVEMENTS_STORAGE_KEY, JSON.stringify(cashMovements));
-
-    orderToFinalize.items.forEach(item => {
-      deductInventory(item.name, item.quantity, item.category);
-    });
-
-    const customerReceiptHtml = formatCustomerReceipt(
-        orderToFinalize.items,
-        finalAmountWithTip,
-        paymentMethod,
-        decodedTableIdParam,
-        orderToFinalize.orderNumber,
-        orderToFinalize.deliveryInfo,
-        tipAmount
-    );
-    printHtml(customerReceiptHtml);
-
-    const updatedPendingOrderGroups = pendingOrderGroups.filter(group => group.orderNumber !== orderToFinalize.orderNumber);
-    setPendingOrderGroups(updatedPendingOrderGroups);
-
-
-    toast({ title: "Pago Realizado", description: `Pago de ${printUtilsFormatCurrency(finalAmountWithTip)} para Orden #${orderToFinalize.orderNumber} registrado. Boleta impresa.` });
-    setIsPaymentDialogOpen(false);
-    setOrderToPay(null);
-
-    if (updatedPendingOrderGroups.length === 0 && currentOrder.length === 0) {
-        sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
-        console.log(`Table ${tableIdParam} status updated to: available after final payment.`);
-        if (isDelivery) {
-            setDeliveryInfo(null);
-            localStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`);
-            console.log("Last delivery order paid. Cleared delivery info and set table to available.");
-        }
-    } else {
-        sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
-        console.log(`Table ${tableIdParam} remains occupied. Pending groups: ${updatedPendingOrderGroups.length}, Current order items: ${currentOrder.length}`);
-    }
+    const toastDescription = `El precio de ${editingProduct.name} se actualizó a ${printUtilsFormatCurrency(priceValue)}.`;
+    toast({ title: "Precio Actualizado", description: toastDescription});
+    setIsEditPriceDialogOpen(false);
+    setEditingProduct(null);
+    setNewPrice('');
   };
-
-
-  const currentOrderTotal = useMemo(() => {
-    return currentOrder.reduce((sum, item) => sum + (item.finalPrice * item.quantity), 0);
-  }, [currentOrder]);
-
 
   const groupedMenu = useMemo(() => {
     const groups: { [key: string]: MenuItem[] } = {};
-    menu.forEach(item => {
+    filteredProducts.forEach(item => {
       if (!groups[item.category]) {
         groups[item.category] = [];
       }
@@ -1247,310 +832,116 @@ export function TableDetailPage() {
       }
       return acc;
     }, {} as { [key: string]: MenuItem[] });
-  }, [menu]);
+  }, [filteredProducts]);
 
-   const handleConfirmDeliveryInfo = (info: DeliveryInfo) => {
-     setDeliveryInfo(info);
-     setIsDeliveryDialogOpen(false);
-     toast({ title: "Datos de Envío Guardados", description: `Envío para ${info.name} configurado.` });
-   };
-
-   const handleCancelDeliveryInfo = () => {
-       if (currentOrder.length === 0 && pendingOrderGroups.length === 0 && !deliveryInfo) {
-           toast({ title: "Envío Cancelado", description: "Se requieren datos de envío para continuar.", variant: "destructive" });
-           router.push('/tables');
-       } else {
-           setIsDeliveryDialogOpen(false);
-       }
-   };
-
-   const handleRemovePendingOrderGroup = (orderNumberToRemove: number) => {
-       setPendingOrderGroups(prevGroups =>
-           prevGroups.filter(group => group.orderNumber !== orderNumberToRemove)
-       );
-       toast({ title: "Pedido Pendiente Eliminado", description: `El pedido #${orderNumberToRemove} ha sido eliminado de los pendientes.`, variant: "destructive"});
-   };
-
-
-
-  if (!isInitialized) {
-    return <div className="flex items-center justify-center min-h-screen">Cargando Mesa...</div>;
+  if (!isMenuInitialized) {
+    return <div className="flex items-center justify-center min-h-screen">Cargando productos...</div>;
   }
 
 
   return (
-    <div className="flex flex-col h-screen p-4 gap-4">
-      <header className="flex justify-between items-center pb-4 border-b">
-        <Button variant="outline" onClick={handleGoBack} className={cn(buttonVariants({ variant: "outline" }), "hover:bg-secondary/90")}>
-          <ArrowLeft className="mr-2 h-5 w-5" />
-          Volver a Mesas
-        </Button>
-        <h1 className="text-3xl font-bold">
-            {isDelivery ? `Pedido Delivery ${deliveryInfo ? `- ${deliveryInfo.name}` : ''}` : `Mesa ${decodedTableIdParam}`}
-        </h1>
-        {isDelivery && (
-            <Button variant="outline" onClick={() => setIsDeliveryDialogOpen(true)}>
-                <Edit className="mr-2 h-4 w-4" /> Editar Datos Envío
-            </Button>
-        )}
-        <div /> {/* Spacer */}
-      </header>
-
-      <div className="flex justify-center mb-2">
-          <Sheet open={isMenuSheetOpen} onOpenChange={setIsMenuSheetOpen}>
-              <SheetTrigger asChild>
-                   <Button size="lg" className="px-8 py-6 text-lg">
-                      <PackageSearch className="mr-2 h-5 w-5"/> Ver Menú
-                  </Button>
-              </SheetTrigger>
-              <SheetContent side="left" className="w-full sm:max-w-full md:max-w-full lg:max-w-full xl:max-w-full h-full p-0 flex flex-col">
-                  <SheetHeader className="p-4 border-b">
-                      <SheetTitle className="text-2xl">Menú</SheetTitle>
-                  </SheetHeader>
-                  <div className="p-4">
-                     <Input
-                        type="text"
-                        placeholder="Buscar producto..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="mb-4 w-full" />
-                  </div>
-                  <ScrollArea className="flex-grow px-4">
-                    <Accordion type="multiple" defaultValue={orderedCategories} className="w-full">
-                      {Object.entries(groupedMenu)
-                        .filter(([category, items]) => {
-                            if (!searchTerm) return true;
-                            return category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                   items.some(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
-                        })
-                        .map(([category, items]) => (
-                        <AccordionItem value={category} key={category} className="border-b-0 mb-2 last:mb-0">
-                          <AccordionTrigger className="text-xl font-semibold hover:bg-muted/50 px-4 py-3 rounded-md hover:no-underline bg-card border data-[state=open]:rounded-b-none">
-                            {category}
-                          </AccordionTrigger>
-                          <AccordionContent className="pt-0 bg-card border border-t-0 rounded-b-md">
-                            <div className="grid grid-cols-1 divide-y">
-                              {items
-                                .filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()) || category.toLowerCase().includes(searchTerm.toLowerCase()) )
-                                .map((item) => (
-                                <div
-                                  key={item.id}
-                                  className="flex justify-between items-center p-3 hover:bg-muted/30 cursor-pointer"
-                                  onClick={() => {
-                                    if (item.modifications && item.modifications.length > 0) {
-                                      setItemToModify(item);
-                                      setIsModificationDialogOpen(true);
-                                    } else {
-                                      addItemToOrder(item);
-                                    }
-                                  }}
-                                >
-                                  <div>
-                                    <p className="font-semibold">{item.name}</p>
-                                    {item.ingredients && item.ingredients.length > 0 && (
-                                        <p className="text-xs text-muted-foreground italic">
-                                            ({item.ingredients.join(', ')})
-                                        </p>
-                                    )}
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                      <span className="font-mono text-sm">{printUtilsFormatCurrency(item.price)}</span>
-                                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                      ))}
-                    </Accordion>
-                  </ScrollArea>
-                  <SheetFooter className="p-4 border-t">
-                    <SheetClose asChild>
-                        <Button>Confirmar</Button>
-                    </SheetClose>
-                </SheetFooter>
-              </SheetContent>
-          </Sheet>
+    <div className="container mx-auto p-4">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Lista de Productos</h1>
+        <Input
+           type="text"
+           placeholder="Buscar producto o categoría..."
+           value={searchTerm}
+           onChange={(e) => setSearchTerm(e.target.value)}
+           className="max-w-sm"
+         />
       </div>
 
-
-      <div className="flex-grow grid grid-cols-1 md:grid-cols-2 gap-6 overflow-hidden">
-        <Card className="flex flex-col overflow-hidden h-full shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-2xl">Pedido Actual</CardTitle>
-            <CardDescription>Artículos para la comanda actual.</CardDescription>
-          </CardHeader>
-          <ScrollArea className="flex-grow">
-            <CardContent className="pt-0 pr-2">
-              {currentOrder.length === 0 ? (
-                <p className="text-muted-foreground">No hay artículos en el pedido actual.</p>
-              ) : (
-                <ul className="space-y-3">
-                  {currentOrder.map((item) => (
-                    <li key={item.orderItemId} className="p-3 border rounded-md shadow-sm bg-background">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-bold text-base">
-                            {item.name} <span className="text-xs text-muted-foreground font-normal font-bold">({item.category})</span>
-                          </p>
-                          {item.selectedModifications && item.selectedModifications.length > 0 && (
-                            <p className="text-xs text-muted-foreground italic font-bold">
-                              ({item.selectedModifications.join(', ')})
-                            </p>
-                          )}
-                           {item.ingredients && item.ingredients.length > 0 && (
-                            <p className="text-xs text-muted-foreground italic font-bold">
-                                Ingredientes: {item.ingredients.join(', ')}
-                            </p>
-                          )}
-                        </div>
-                        <Button variant="ghost" size="icon" onClick={() => removeItem(item.orderItemId)} className="h-7 w-7 text-destructive hover:text-destructive/90">
-                          <XCircle className="h-4 w-4" />
+       <Card>
+         <CardContent className="p-0">
+            <Table>
+            <TableHeader>
+                <TableRow>
+                  <TableHead>Producto</TableHead>
+                  <TableHead>Categoría</TableHead>
+                  <TableHead>Ingredientes</TableHead>
+                  <TableHead className="text-right">Precio Base</TableHead>
+                  <TableHead className="text-center w-28">Acciones</TableHead>
+                </TableRow>
+            </TableHeader>
+            <TableBody>
+                {filteredProducts.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                      No se encontraron productos.
+                    </TableCell>
+                  </TableRow>
+                )}
+                {Object.entries(groupedMenu).map(([category, items]) => (
+                  <React.Fragment key={category}>
+                    {items.map((item) => (
+                    <TableRow key={item.id}>
+                        <TableCell className="font-medium">{item.name}</TableCell>
+                        <TableCell><Badge variant="secondary">{item.category}</Badge></TableCell>
+                        <TableCell className="text-xs text-muted-foreground max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
+                            {item.ingredients && item.ingredients.length > 0
+                            ? item.ingredients.join(', ')
+                            : '-'}
+                        </TableCell>
+                        <TableCell className="text-right font-mono">{printUtilsFormatCurrency(item.price)}</TableCell>
+                        <TableCell className="text-center">
+                        <Button variant="outline" size="icon" onClick={() => openEditPriceDialog(item)} className="h-8 w-8">
+                            <Edit className="h-4 w-4" />
+                            <span className="sr-only">Editar Precio</span>
                         </Button>
-                      </div>
-                      <div className="flex items-center justify-start gap-3 mt-2">
-                        <Button variant="outline" size="icon" onClick={() => decreaseQuantity(item.orderItemId)} className="h-7 w-7">
-                          <MinusCircle className="h-4 w-4" />
-                        </Button>
-                        <span className="font-bold text-sm w-5 text-center">{item.quantity}</span>
-                        <Button variant="outline" size="icon" onClick={() => increaseQuantity(item.orderItemId)} className="h-7 w-7">
-                          <PlusCircle className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </CardContent>
-          </ScrollArea>
-          <Separator />
-          <CardFooter className="p-4 flex flex-col items-stretch gap-3">
-            <div className="flex justify-between items-center text-lg font-semibold">
-              <span className="font-bold">Total Actual:</span>
-              <span className="font-bold">{printUtilsFormatCurrency(currentOrderTotal)}</span>
-            </div>
-            <Button onClick={handlePrintKitchenOrder} className="w-full" disabled={currentOrder.length === 0}>
-              <Printer className="mr-2 h-4 w-4" /> Imprimir Comanda
-            </Button>
-          </CardFooter>
-        </Card>
-
-        <Card className="flex flex-col overflow-hidden h-full shadow-lg">
-          <CardHeader>
-            <CardTitle className="text-2xl">Pedidos Pendientes de Pago</CardTitle>
-            <CardDescription>Comandas enviadas a cocina, listas para cobrar.</CardDescription>
-          </CardHeader>
-          <ScrollArea className="flex-grow">
-            <CardContent className="pt-0 pr-2">
-              {pendingOrderGroups.length === 0 ? (
-                <p className="text-muted-foreground">No hay pedidos pendientes de pago.</p>
-              ) : (
-                <Accordion type="multiple" className="w-full space-y-3">
-                  {pendingOrderGroups.map((group) => {
-                    const groupSubtotal = group.items.reduce((sum, item) => sum + (item.finalPrice * item.quantity), 0);
-                    const groupDeliveryFee = group.deliveryInfo?.deliveryFee ?? 0;
-                    const groupTotalWithDelivery = groupSubtotal + groupDeliveryFee;
-
-                    return (
-                      <AccordionItem value={`order-${group.orderNumber}`} key={group.orderNumber} className="border rounded-md shadow-sm bg-background">
-                        <AccordionTrigger className="p-3 text-base font-semibold hover:no-underline hover:bg-muted/30 rounded-t-md data-[state=open]:rounded-b-none">
-                          <div className="flex justify-between w-full items-center">
-                            <span className="font-bold">Orden #{String(group.orderNumber).padStart(3, '0')} - Total: {printUtilsFormatCurrency(groupTotalWithDelivery)}</span>
-                             {group.deliveryInfo && <Badge variant="outline" className="font-bold">Envío: {group.deliveryInfo.name}</Badge>}
-                          </div>
-                        </AccordionTrigger>
-                        <AccordionContent className="p-3 border-t">
-                          <ul className="space-y-2 mb-3">
-                            {group.items.map((item) => (
-                              <li key={item.orderItemId} className="text-sm">
-                                <div className="flex justify-between items-start">
-                                  <div>
-                                    <p className="font-bold">
-                                      {item.quantity}x {item.name}
-                                    </p>
-                                    {item.selectedModifications && item.selectedModifications.length > 0 && (
-                                      <p className="text-xs text-muted-foreground italic font-bold">
-                                        ({item.selectedModifications.join(', ')})
-                                      </p>
-                                    )}
-                                  </div>
-                                  <span className="font-mono font-bold">{printUtilsFormatCurrency(item.finalPrice * item.quantity)}</span>
-                                </div>
-                              </li>
-                            ))}
-                            {group.deliveryInfo && group.deliveryInfo.deliveryFee > 0 && (
-                                <li className="text-sm mt-2 pt-2 border-t border-dashed">
-                                    <div className="flex justify-between items-center">
-                                        <p className="font-bold">Costo Envío:</p>
-                                        <span className="font-mono font-bold">{printUtilsFormatCurrency(group.deliveryInfo.deliveryFee)}</span>
-                                    </div>
-                                </li>
-                            )}
-                          </ul>
-                          <div className="flex gap-2 mt-2">
-                            <Button onClick={() => handleOpenPaymentDialog(group)} className="flex-grow">
-                              <CreditCard className="mr-2 h-4 w-4" /> Cobrar Pedido
-                            </Button>
-                            <Button variant="ghost" size="icon" onClick={() => handleRemovePendingOrderGroup(group.orderNumber)} className="text-destructive hover:text-destructive/90">
-                                <Trash2 className="h-4 w-4" />
-                                <span className="sr-only">Eliminar Pedido Pendiente</span>
-                            </Button>
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
-                    );
-                  })}
-                </Accordion>
-              )}
-            </CardContent>
-          </ScrollArea>
-        </Card>
-      </div>
+                        </TableCell>
+                    </TableRow>
+                    ))}
+                  </React.Fragment>
+                ))}
+            </TableBody>
+            </Table>
+         </CardContent>
+       </Card>
 
 
-      {itemToModify && (
-        <ModificationDialog
-          isOpen={isModificationDialogOpen}
-          onOpenChange={setIsModificationDialogOpen}
-          item={itemToModify}
-          onConfirm={(selectedMods) => {
-            if (itemToModify) {
-              addItemToOrder(itemToModify, selectedMods);
-            }
-            setIsModificationDialogOpen(false);
-            setItemToModify(null);
-          }}
-          onCancel={() => {
-            setIsModificationDialogOpen(false);
-            setItemToModify(null);
-          }}
-        />
-      )}
-
-        {orderToPay && (
-            <PaymentDialog
-                isOpen={isPaymentDialogOpen}
-                onOpenChange={setIsPaymentDialogOpen}
-                totalAmount={orderToPay.items.reduce((sum, item) => sum + (item.finalPrice * item.quantity), 0) + (orderToPay.deliveryInfo?.deliveryFee ?? 0)}
-                onConfirm={(method, tip, finalTotal) => {
-                    handleFinalizeAndPay(method, tip, finalTotal);
-                }}
-            />
-        )}
-
-
-       {isDelivery && (
-           <DeliveryDialog
-               isOpen={isDeliveryDialogOpen}
-               onOpenChange={setIsDeliveryDialogOpen}
-               initialData={deliveryInfo}
-               onConfirm={handleConfirmDeliveryInfo}
-               onCancel={handleCancelDeliveryInfo}
-           />
-       )}
+       <ShadDialog open={isEditPriceDialogOpen} onOpenChange={setIsEditPriceDialogOpen}>
+         <ShadDialogContent className="sm:max-w-[425px]">
+           <DialogHeader>
+             <DialogTitle>Editar Precio de {editingProduct?.name}</DialogTitle>
+             <DialogDescription>
+                 Actualice el precio base para este producto.
+             </DialogDescription>
+           </DialogHeader>
+           <div className="grid gap-4 py-4">
+             <div className="grid grid-cols-4 items-center gap-4">
+                 <Label htmlFor="price" className="text-right">
+                     Nuevo Precio (CLP)
+                 </Label>
+                 <Input
+                     id="price"
+                     type="number"
+                     value={newPrice}
+                     onChange={handlePriceChange}
+                     className="col-span-3"
+                     required
+                     min="0"
+                     step="1"
+                 />
+             </div>
+           </div>
+           <DialogFooter>
+             <DialogClose asChild>
+                 <Button type="button" variant="secondary" onClick={() => setIsEditPriceDialogOpen(false)}>Cancelar</Button>
+             </DialogClose>
+             <Button type="submit" onClick={handleUpdatePrice}>Guardar Cambios</Button>
+           </DialogFooter>
+         </ShadDialogContent>
+       </ShadDialog>
     </div>
-  );
+);
+};
+
+
+const ProductsPageContent = () => {
+    return <ProductsManagementPage />;
 }
 
-export default TableDetailPage;
+export default function ProductsPage() {
+    return <ProductsPageContent />;
+}
