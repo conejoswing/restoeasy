@@ -63,7 +63,9 @@ const TableRow = React.forwardRef<
       className
     )}
     {...props}
-  >{children}</tr> // Removed whitespace around children
+  >
+    {children}
+  </tr>
 ))
 TableRow.displayName = "TableRow"
 
