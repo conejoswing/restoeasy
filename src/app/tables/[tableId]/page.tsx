@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import * as React from 'react';
@@ -53,10 +51,9 @@ import { isEqual } from 'lodash';
 import { cn } from '@/lib/utils';
 import type { CashMovement } from '@/app/expenses/page';
 import type { DeliveryInfo } from '@/components/app/delivery-dialog';
-import DeliveryDialog from '@/components/app/delivery-dialog';
+import DeliveryDialog from '@/components/app/delivery-dialog'; // Corrected import
 import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
-
 import { Label } from '@/components/ui/label';
 import {
   Accordion,
@@ -955,8 +952,8 @@ export function TableDetailPage() {
                 // Assuming no drink for Promo 4 based on ingredients list
                 itemFoundAndDeducted = true;
             } else if (lowerItemName === 'promo 5') {
-                inventory = updateStock(inventory, 'Pan especial grande', quantity * 2);
-                inventory = updateStock(inventory, 'Vienesas', quantity * 4);
+                inventory = updateStock(inventory, 'Pan especial normal', quantity * 2);
+                inventory = updateStock(inventory, 'Vienesas', quantity * 2);
                 inventory = updateStock(inventory, 'Lata', quantity * 2);
                 itemFoundAndDeducted = true;
             }
@@ -1519,9 +1516,3 @@ export function TableDetailPage() {
 }
 
 export default TableDetailPage;
-
-
-
-
-
-
