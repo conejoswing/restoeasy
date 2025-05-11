@@ -909,11 +909,16 @@ export function TableDetailPage() {
             }
         }
         else if (lowerCategory === 'promo mechada') {
-            // For "Promo Mechada", deduct "Pan de marraqueta" (assuming 1 per item, adjust if needed for "2x" items if they mean 2 sandwiches)
-            // And deduct "Lata"
-            inventory = updateStock(inventory, 'Pan de marraqueta', quantity);
-            inventory = updateStock(inventory, 'Lata', quantity);
-            itemFoundAndDeducted = true;
+            const promoMechadaItems = [
+                'brasileño', 'campestre', 'chacarero', 'che milico',
+                'completo', 'dinamico', 'italiano', 'palta',
+                'queso', 'queso champiñon', 'tomate'
+            ];
+            if (promoMechadaItems.includes(lowerItemName)) {
+                inventory = updateStock(inventory, 'Pan de marraqueta', quantity);
+                inventory = updateStock(inventory, 'Lata', quantity);
+                itemFoundAndDeducted = true;
+            }
         }
          else if (lowerCategory === 'promo hamburguesas') {
               if (lowerItemName === 'big cami' || lowerItemName === 'italiana' || lowerItemName === 'simple' || lowerItemName === 'tapa arteria') {
@@ -921,7 +926,8 @@ export function TableDetailPage() {
                   inventory = updateStock(inventory, 'Lata', quantity);
                   itemFoundAndDeducted = true;
               } else if (lowerItemName === 'doble' || lowerItemName === 'doble italiana' || lowerItemName === 'super big cami' || lowerItemName === 'super tapa arteria') {
-                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity * 2); // 2 buns for these
+                  // Assuming 'Pan de hamburguesa normal' is used for double patty burgers as well. If 'Pan de hamburguesa grande' should be used, change here.
+                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity); // Use 1 bun per double burger item
                   inventory = updateStock(inventory, 'Lata', quantity);
                   itemFoundAndDeducted = true;
               }
@@ -1484,4 +1490,5 @@ export function TableDetailPage() {
 }
 
 export default TableDetailPage;
+
 
