@@ -43,10 +43,10 @@ import { isEqual } from 'lodash';
 import { cn } from '@/lib/utils';
 import type { CashMovement } from '@/app/expenses/page';
 import type { DeliveryInfo } from '@/components/app/delivery-dialog';
-import DeliveryDialog from '@/components/app/delivery-dialog'; // Corrected import
+import DeliveryDialog from '@/components/app/delivery-dialog';
 import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
-import { Dialog as ShadDialog, DialogClose as ShadDialogClose, DialogContent as ShadDialogContent, DialogDescription as ShadDialogDescription, DialogFooter as ShadDialogFooter, DialogHeader as ShadDialogHeader, DialogTitle as ShadDialogTitle, DialogTrigger as ShadDialogTrigger } from '@/components/ui/dialog'; // Renamed to avoid conflict
+import { Dialog as ShadDialog, DialogClose as ShadDialogClose, DialogContent as ShadDialogContent, DialogDescription as ShadDialogDescription, DialogFooter as ShadDialogFooter, DialogHeader as ShadDialogHeader, DialogTitle as ShadDialogTitle, DialogTrigger as ShadDialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import {
   Accordion,
@@ -74,7 +74,7 @@ export interface OrderItem extends Omit<MenuItem, 'price' | 'modificationPrices'
   finalPrice: number;
   ingredients?: string[];
   orderNumber?: number;
-  category: string; // Ensure category is part of OrderItem
+  category: string;
 }
 
 export type PaymentMethod = 'Efectivo' | 'Tarjeta Débito' | 'Tarjeta Crédito' | 'Transferencia';
@@ -898,6 +898,10 @@ export function TableDetailPage() {
                   inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity);
                   inventory = updateStock(inventory, 'Lata', quantity);
                   itemFoundAndDeducted = true;
+              } else if (lowerItemName === 'doble') {
+                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity * 2); // 2 buns for "Doble"
+                  inventory = updateStock(inventory, 'Lata', quantity); // 1 can for "Doble"
+                  itemFoundAndDeducted = true;
               }
               // Add more specific Promo Hamburguesas deductions if needed
          }
@@ -971,7 +975,7 @@ export function TableDetailPage() {
       basePrice: item.price,
       finalPrice: finalPrice,
       ingredients: item.ingredients,
-      category: item.category, // Ensure category is passed
+      category: item.category,
     };
     setCurrentOrder(prevOrder => [...prevOrder, newItem]);
     setIsMenuSheetOpen(false);
@@ -1027,7 +1031,7 @@ export function TableDetailPage() {
 
     const kitchenReceiptHtml = formatKitchenOrderReceipt(
         itemsWithOrderNumber,
-        isDelivery ? `Delivery #${newOrderNumber}` : `Mesa ${tableIdParam} / Orden #${newOrderNumber}`,
+        isDelivery ? `Delivery #${newOrderNumber}` : `Mesa ${decodedTableIdParam} / Orden #${newOrderNumber}`,
         newOrderNumber,
         isDelivery ? deliveryInfo : null
     );
@@ -1076,7 +1080,7 @@ export function TableDetailPage() {
       category: 'Ingreso Venta',
       description: isDelivery
         ? `Venta Delivery #${orderToFinalize.orderNumber} a ${orderToFinalize.deliveryInfo?.name || 'Cliente'}` + (tipAmount > 0 ? ` (Propina: ${printUtilsFormatCurrency(tipAmount)})` : '')
-        : `Venta Mesa ${tableIdParam} / Orden #${orderToFinalize.orderNumber}` + (tipAmount > 0 ? ` (Propina: ${printUtilsFormatCurrency(tipAmount)})` : ''),
+        : `Venta Mesa ${decodedTableIdParam} / Orden #${orderToFinalize.orderNumber}` + (tipAmount > 0 ? ` (Propina: ${printUtilsFormatCurrency(tipAmount)})` : ''),
       amount: orderSubtotal, // This is the subtotal + delivery fee (if any), before tip for this specific movement
       paymentMethod: paymentMethod,
       deliveryFee: deliveryFeeForThisOrder > 0 ? deliveryFeeForThisOrder : undefined,
@@ -1095,7 +1099,7 @@ export function TableDetailPage() {
         orderToFinalize.items,
         finalAmountWithTip, // This is the grand total including tip
         paymentMethod,
-        tableIdParam,
+        decodedTableIdParam,
         orderToFinalize.orderNumber,
         orderToFinalize.deliveryInfo,
         tipAmount
@@ -1216,7 +1220,7 @@ export function TableDetailPage() {
                       <PackageSearch className="mr-2 h-5 w-5"/> Ver Menú
                   </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-full max-w-full sm:max-w-2xl h-full p-0 flex flex-col"> {/* Full width on small, max-w-2xl on larger */}
+              <SheetContent side="left" className="w-full max-w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl h-full p-0 flex flex-col">
                   <SheetHeader className="p-4 border-b">
                       <SheetTitle className="text-2xl">Menú</SheetTitle>
                   </SheetHeader>
@@ -1461,3 +1465,4 @@ export function TableDetailPage() {
 export default TableDetailPage;
 
   
+
