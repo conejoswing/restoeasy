@@ -78,49 +78,49 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
   // Filter out specific modifications based on category and item name
     const availableModifications = item.modifications?.filter(mod => {
         const standardMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'];
-        const dinamicoVienesaRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta'];
-
-        const dinamicoAsRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta'];
-
-        const chacareroAsSpecificIngredientMods = ['sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño'];
+        const dinamicoVienesaRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta']; // For Completos Vienesas Dinamico
+        const dinamicoAsRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta']; // For Completos As Dinamico
+        const chacareroAsSpecificIngredientMods = ['sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño']; // For Completos As Chacarero
+        const napolitanoAsRestrictedOptions = ['sin queso', 'sin tomate', 'sin oregano', 'sin aceituna']; // For Completos As Napolitano
+        const quesoChampiñonAsMods = ['Sin Queso', 'Sin Champiñon', 'Sin Tocino']; // For Completos As Queso Champiñon
+        const promoChacareroMods = ['con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verde', 'con aji jalapeño', 'sin aji jalapeño']; // For Promo Churrasco Chacarero
+        const promoMechadaDinamicoOptions = ['con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta', 'Papa Personal']; // For Promo Mechada Dinamico
         
-        const napolitanoAsRestrictedOptions = ['sin queso', 'sin tomate', 'sin oregano', 'sin aceituna'];
+        // Note: 'Pollo', 'Lomito', 'Vacuno', 'Lechuga' and other fajita toppings are assumed to be part of item.modifications for Promo Fajitas in mockMenu.
+        // The filter here primarily ensures that only those defined in item.modifications are shown, and applies further specific exclusions if necessary.
 
-
-        const quesoChampiñonAsMods = ['Sin Queso', 'Sin Champiñon', 'Sin Tocino'];
-        const promoChacareroMods = ['con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verde', 'con aji jalapeño', 'sin aji jalapeño'];
-        const promoMechadaDinamicoOptions = ['con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta', 'Papa Personal'];
-        const fajitaChoiceMods = ['tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'];
         const chorrillanaMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Quitar Huevos', 'Agregado Huevos', 'Agregado Tocino', 'Agregado Cheddar'];
 
-
-        // Specific rule for "4 Ingredientes" and "6 Ingredientes" in Promo Fajitas
-        if (item.category === 'Promo Fajitas' && (item.name === '4 Ingredientes' || item.name === '6 Ingredientes')) {
-            return [...standardMods, ...fajitaChoiceMods].includes(mod);
+        // Handle Promo Fajitas: If a mod is in item.modifications for a Promo Fajitas item, it's generally allowed by this filter's structure.
+        // The mockMenu update is key to ensuring 'Pollo', 'Lomito', etc. are present in item.modifications for the target items.
+        if (item.category === 'Promo Fajitas') {
+            // Assuming item.modifications from mockMenu is the source of truth for what's permissible.
+            // No further specific filtering needed here if mockMenu is correctly updated.
+            return true; 
         }
 
-        // For 'Vienesas' and specific item names 'Dinamico Grande' or 'Dinamico Normal'
-        if (item.category === 'Vienesas' && (item.name === 'Dinamico Grande' || item.name === 'Dinamico Normal')) {
+        // For 'Completos Vienesas' and specific item names 'Dinamico Grande' or 'Dinamico Normal'
+        if (item.category === 'Completos Vienesas' && (item.name === 'Dinamico Grande' || item.name === 'Dinamico Normal')) {
             const allowedMods = [...standardMods, ...dinamicoVienesaRestrictedOptions];
             return allowedMods.includes(mod);
         }
-        // For 'As' and item name 'Dinamico Normal' or 'Dinamico Grande'
-        else if (item.category === 'As' && (item.name === 'Dinamico Grande' || item.name === 'Dinamico Normal')) {
+        // For 'Completos As' and item name 'Dinamico Normal' or 'Dinamico Grande'
+        else if (item.category === 'Completos As' && (item.name === 'Dinamico Grande' || item.name === 'Dinamico Normal')) {
             const allowedMods = [...standardMods, ...dinamicoAsRestrictedOptions];
             return allowedMods.includes(mod);
         }
-        // For 'As' and item name 'Chacarero Normal' or 'Chacarero Grande'
-        else if (item.category === 'As' && (item.name === 'Chacarero Normal' || item.name === 'Chacarero Grande')) {
+        // For 'Completos As' and item name 'Chacarero Normal' or 'Chacarero Grande'
+        else if (item.category === 'Completos As' && (item.name === 'Chacarero Normal' || item.name === 'Chacarero Grande')) {
             const allowedChacareroMods = [...standardMods, ...chacareroAsSpecificIngredientMods];
             return allowedChacareroMods.includes(mod);
         }
-        // For 'As' and specific item names 'Napolitano Normal' or 'Napolitano Grande'
-        else if (item.category === 'As' && (item.name === 'Napolitano Normal' || item.name === 'Napolitano Grande')) {
+        // For 'Completos As' and specific item names 'Napolitano Normal' or 'Napolitano Grande'
+        else if (item.category === 'Completos As' && (item.name === 'Napolitano Normal' || item.name === 'Napolitano Grande')) {
             const allowedMods = [...standardMods, ...napolitanoAsRestrictedOptions];
             return allowedMods.includes(mod);
         }
-        // For 'As' and specific item names 'Queso Champiñon Normal' or 'Queso Champiñon Grande'
-        else if (item.category === 'As' && (item.name.includes('Queso Champiñon'))) {
+        // For 'Completos As' and specific item names 'Queso Champiñon Normal' or 'Queso Champiñon Grande'
+        else if (item.category === 'Completos As' && (item.name.includes('Queso Champiñon'))) {
             const allowedQuesoChampiñonMods = [...standardMods, ...quesoChampiñonAsMods];
             return allowedQuesoChampiñonMods.includes(mod);
         }
@@ -134,17 +134,16 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
              const allowedPromoMechadaDinamicoMods = [...standardMods, ...promoMechadaDinamicoOptions];
             return allowedPromoMechadaDinamicoMods.includes(mod);
         }
-        // Standard filter for other Vienesas (excluding dynamic ones)
-        else if (item.category === 'Vienesas') {
+        // Standard filter for other Completos Vienesas (excluding dynamic ones)
+        else if (item.category === 'Completos Vienesas') {
            return standardMods.includes(mod);
         }
-         // Standard mods for most other categories that allow them
-        else if (['As', 'Promo Fajitas', 'Promo Churrasco', 'Promo Mechada', 'Promociones'].includes(item.category)) {
+         // Standard mods for other categories like Completos As (not specifically handled above), Promo Churrasco (not Chacarero), etc.
+        else if (['Completos As', 'Promo Churrasco', 'Promo Mechada', 'Promociones'].includes(item.category)) {
             return standardMods.includes(mod);
         }
-         // Specific empty mods for Hamburguesas and Churrascos (as per previous requests to remove specific ingredients from mods)
+         // Promo Hamburguesas and Churrascos also default to standardMods if not more specific
         else if (['Promo Hamburguesas', 'Churrascos'].includes(item.category)) {
-            // For these categories, only standard mayo/cheese mods apply based on current logic
             return standardMods.includes(mod);
         }
 
@@ -160,9 +159,10 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
         if (['Bebidas', 'Colaciones'].includes(item.category)) {
             return false;
         }
-
-
-        return true; // Include by default if not explicitly excluded
+        
+        // If we reach here, it means the mod is in item.modifications and no specific category rule above excluded it.
+        // This ensures that if a mod was added to item.modifications in mockMenu, it's allowed unless a rule here says no.
+        return true; 
   }) ?? [];
 
 
@@ -225,4 +225,3 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
 };
 
 export default ModificationDialog;
-
