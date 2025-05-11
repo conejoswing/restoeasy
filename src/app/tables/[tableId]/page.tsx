@@ -27,13 +27,13 @@ import {
   SheetFooter,
 } from '@/components/ui/sheet';
 import {
-  Dialog as ShadDialog, // Aliased Dialog
-  DialogClose as ShadDialogClose, // Aliased DialogClose
+  Dialog as ShadDialog,
+  DialogClose as ShadDialogClose,
   DialogContent as ShadDialogContent,
-  DialogDescription as ShadDialogDescription, // Aliased DialogDescription
-  DialogFooter as ShadDialogFooter, // Aliased DialogFooter
-  DialogHeader as ShadDialogHeader, // Aliased DialogHeader
-  DialogTitle as ShadDialogTitle, // Aliased DialogTitle
+  DialogDescription as ShadDialogDescription,
+  DialogFooter as ShadDialogFooter,
+  DialogHeader as ShadDialogHeader,
+  DialogTitle as ShadDialogTitle,
   DialogTrigger as ShadDialogTrigger,
 } from '@/components/ui/dialog';
 import {
@@ -92,6 +92,7 @@ interface PendingOrderGroup {
   orderNumber: number;
   items: OrderItem[];
   deliveryInfo?: DeliveryInfo | null;
+  timestamp: number; // Added for sorting
 }
 
 interface PendingOrderStorageData {
@@ -120,7 +121,7 @@ const mockMenu: MenuItem[] = [
       name: 'Italiano Normal',
       price: 4000,
       category: 'Completos Vienesas',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
       modificationPrices: { 'Agregado Queso': 1000 },
       ingredients: ['Palta', 'Tomate']
     },
@@ -129,7 +130,7 @@ const mockMenu: MenuItem[] = [
       name: 'Italiano Grande',
       price: 4500,
       category: 'Completos Vienesas',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
       modificationPrices: { 'Agregado Queso': 1000 },
       ingredients: ['Palta', 'Tomate']
     },
@@ -156,7 +157,7 @@ const mockMenu: MenuItem[] = [
         name: 'Completo Normal',
         price: 4300,
         category: 'Completos Vienesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate', 'Chucrut', 'Americana']
     },
@@ -165,7 +166,7 @@ const mockMenu: MenuItem[] = [
         name: 'Completo Grande',
         price: 4800,
         category: 'Completos Vienesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate', 'Chucrut', 'Americana']
     },
@@ -229,7 +230,7 @@ const mockMenu: MenuItem[] = [
       name: 'Italiano Normal',
       price: 5500,
       category: 'Completos As',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
       modificationPrices: { 'Agregado Queso': 1000 },
        ingredients: ['Palta', 'Tomate']
     },
@@ -238,7 +239,7 @@ const mockMenu: MenuItem[] = [
       name: 'Italiano Grande',
       price: 6000,
       category: 'Completos As',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
       modificationPrices: { 'Agregado Queso': 1000 },
       ingredients: ['Palta', 'Tomate']
     },
@@ -251,7 +252,7 @@ const mockMenu: MenuItem[] = [
        modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate', 'Chucrut', 'Americana']
     },
-    { id: 36, name: 'Completo Grande', price: 7000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Chucrut', 'Americana'] },
+    { id: 36, name: 'Completo Grande', price: 7000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Chucrut', 'Americana'] },
     { id: 37, name: 'Palta Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta'] },
     { id: 38, name: 'Palta Grande', price: 6300, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta'] },
     { id: 39, name: 'Tomate Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate'] },
@@ -698,6 +699,7 @@ const getPersistedMenu = (): MenuItem[] => {
   let baseMenu: MenuItem[] = mockMenu.map(item => ({
     ...item,
     modifications: item.modifications || [],
+    ingredients: item.ingredients || [],
   }));
 
   if (typeof window === 'undefined') {
@@ -754,194 +756,793 @@ const getPersistedMenu = (): MenuItem[] => {
 };
 
 
-const ProductsManagementPage = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [menu, setMenu] = useState<MenuItem[]>([]);
-  const [isMenuInitialized, setIsMenuInitialized] = useState(false);
-  const [isEditPriceDialogOpen, setIsEditPriceDialogOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<MenuItem | null>(null);
-  const [newPrice, setNewPrice] = useState('');
+
+// Helper to format currency
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
+};
+
+
+export default function TableDetailPage() {
+  const params = useParams();
+  const router = useRouter();
+  const tableIdParam = params.tableId as string; // Get tableId from route params
   const { toast } = useToast();
 
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [menu, setMenu] = useState<MenuItem[]>(getPersistedMenu());
+  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [currentOrder, setCurrentOrder] = useState<OrderItem[]>([]);
+  const [pendingOrderGroups, setPendingOrderGroups] = useState<PendingOrderGroup[]>([]);
+  const [isModificationDialogOpen, setIsModificationDialogOpen] = useState(false);
+  const [itemToModify, setItemToModify] = useState<MenuItem | null>(null);
+  const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
+  const [totalForPayment, setTotalForPayment] = useState(0);
+  const [isDeliveryDialogOpen, setIsDeliveryDialogOpen] = useState(false);
+  const [deliveryInfo, setDeliveryInfo] = useState<DeliveryInfo | null>(null);
+  const [lastOrderNumber, setLastOrderNumber] = useState(0);
+  const [orderToPay, setOrderToPay] = useState<PendingOrderGroup | null>(null);
+  const [isMenuSheetOpen, setIsMenuSheetOpen] = useState(false);
+
+
+  const isDelivery = useMemo(() => tableIdParam === 'delivery', [tableIdParam]);
+
+
+  // --- Initialization Effect ---
   useEffect(() => {
+    if (!tableIdParam || isInitialized) return;
+
+    console.log(`Initializing TableDetailPage for tableId: ${tableIdParam}`);
+
+    // Load menu (already done in useState initial value)
     setMenu(getPersistedMenu());
-    setIsMenuInitialized(true);
-  }, []);
 
-
-  const filteredProducts = menu.filter(product =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const openEditPriceDialog = (product: MenuItem) => {
-    setEditingProduct(product);
-    setNewPrice(product.price.toString());
-    setIsEditPriceDialogOpen(true);
-  };
-
-  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNewPrice(e.target.value);
-  };
-
-  const handleUpdatePrice = () => {
-    if (!editingProduct || newPrice === '') {
-      toast({ title: "Error", description: "Debe ingresar un precio.", variant: "destructive"});
-      return;
-    }
-    const priceValue = parseInt(newPrice, 10);
-    if (isNaN(priceValue) || priceValue < 0) {
-      toast({ title: "Error", description: "El precio debe ser un número válido y no negativo.", variant: "destructive"});
-      return;
-    }
-
-    const updatedMenu = menu.map(item =>
-      item.id === editingProduct.id ? { ...item, price: priceValue } : item
-    );
-    const sortedMenu = sortMenu(updatedMenu);
-
-    setMenu(sortedMenu);
-
-    if (typeof window !== 'undefined') {
+    // Load inventory
+    const storedInventory = localStorage.getItem(INVENTORY_STORAGE_KEY);
+    if (storedInventory) {
       try {
-        localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(sortedMenu));
+        setInventory(JSON.parse(storedInventory));
       } catch (e) {
-        console.error("Error saving menu to localStorage:", e);
-        toast({title: "Error", description: "No se pudo guardar el cambio de precio de forma persistente.", variant: "destructive"});
+        console.error("Failed to parse inventory from localStorage:", e);
+        setInventory([]);
+      }
+    } else {
+        setInventory([]);
+    }
+
+
+    // Load current order
+    const storedCurrentOrder = sessionStorage.getItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${tableIdParam}-currentOrder`);
+    if (storedCurrentOrder) {
+      try {
+        const parsedOrder = JSON.parse(storedCurrentOrder);
+        if (Array.isArray(parsedOrder)) {
+          setCurrentOrder(parsedOrder.map((item: any) => ({ // Basic validation/mapping
+            ...item,
+            basePrice: Number(item.basePrice) || 0,
+            finalPrice: Number(item.finalPrice) || 0,
+            quantity: Number(item.quantity) || 1,
+          })));
+        }
+      } catch (e) { console.error("Error loading current order:", e); }
+    }
+
+    // Load pending orders
+    const storedPendingOrdersData = sessionStorage.getItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${tableIdParam}-pendingOrders`);
+    if (storedPendingOrdersData) {
+        try {
+            const parsedData = JSON.parse(storedPendingOrdersData);
+             if (parsedData && Array.isArray(parsedData.groups)) {
+                 setPendingOrderGroups(parsedData.groups.sort((a: PendingOrderGroup, b: PendingOrderGroup) => a.timestamp - b.timestamp));
+             } else if (Array.isArray(parsedData)) { // Handle old format (array of groups directly)
+                 setPendingOrderGroups(parsedData.sort((a: PendingOrderGroup, b: PendingOrderGroup) => a.timestamp - b.timestamp));
+             }
+        } catch (e) { console.error("Error loading pending orders:", e); }
+    }
+
+    // Load delivery info if applicable
+    if (isDelivery) {
+      const storedDeliveryInfo = sessionStorage.getItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`);
+      if (storedDeliveryInfo) {
+        try {
+          setDeliveryInfo(JSON.parse(storedDeliveryInfo));
+        } catch (e) { console.error("Error loading delivery info:", e); }
+      }
+      // Open delivery dialog if no info exists for a delivery table
+      if (!storedDeliveryInfo) {
+        setIsDeliveryDialogOpen(true);
       }
     }
 
-    const toastDescription = `El precio de ${editingProduct.name} se actualizó a ${printUtilsFormatCurrency(priceValue)}.`;
-    toast({ title: "Precio Actualizado", description: toastDescription});
-    setIsEditPriceDialogOpen(false);
-    setEditingProduct(null);
-    setNewPrice('');
+     // Load last order number
+     const storedOrderNumber = localStorage.getItem(ORDER_NUMBER_STORAGE_KEY);
+     setLastOrderNumber(storedOrderNumber ? parseInt(storedOrderNumber, 10) : 0);
+
+
+    setIsInitialized(true);
+    console.log(`Initialization complete for ${tableIdParam}.`);
+
+  }, [tableIdParam, isInitialized, isDelivery]);
+
+
+  // --- Effect to save state changes to sessionStorage and update table status ---
+  useEffect(() => {
+    if (!isInitialized || !tableIdParam) return;
+
+    console.log(`Saving state for table ${tableIdParam}:`, { currentOrder, pendingOrderGroups, deliveryInfo });
+    sessionStorage.setItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${tableIdParam}-currentOrder`, JSON.stringify(currentOrder));
+    sessionStorage.setItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${tableIdParam}-pendingOrders`, JSON.stringify({ groups: pendingOrderGroups }));
+
+    if (isDelivery && deliveryInfo) {
+      sessionStorage.setItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`, JSON.stringify(deliveryInfo));
+    }
+
+    // Update table status based on whether there are pending orders or current items
+    const hasPending = pendingOrderGroups.length > 0;
+    const hasCurrent = currentOrder.length > 0;
+    const hasDeliveryInfo = isDelivery && deliveryInfo && (deliveryInfo.name || deliveryInfo.address || deliveryInfo.phone || deliveryInfo.deliveryFee > 0);
+
+    if (hasPending || hasCurrent || hasDeliveryInfo) {
+      sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
+    } else {
+      sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
+    }
+
+  }, [currentOrder, pendingOrderGroups, deliveryInfo, tableIdParam, isInitialized, isDelivery]);
+
+
+  // --- Item Handling ---
+  const handleAddItemToOrder = (item: MenuItem, selectedModifications?: string[]) => {
+      const orderItemId = `${item.id}-${selectedModifications ? selectedModifications.join('-') : 'no-mods'}-${Date.now()}`;
+
+      let modificationCost = 0;
+      if (selectedModifications && item.modificationPrices) {
+          modificationCost = selectedModifications.reduce((acc, modName) => {
+              return acc + (item.modificationPrices?.[modName] || 0);
+          }, 0);
+      }
+      const finalPrice = item.price + modificationCost;
+
+      const existingItemIndex = currentOrder.findIndex(
+          (orderItem) =>
+              orderItem.id === item.id &&
+              isEqual(orderItem.selectedModifications?.sort(), selectedModifications?.sort()) // Compare sorted arrays
+      );
+
+      if (existingItemIndex > -1) {
+          const updatedOrder = [...currentOrder];
+          updatedOrder[existingItemIndex].quantity += 1;
+          setCurrentOrder(updatedOrder);
+      } else {
+          setCurrentOrder((prevOrder) => [
+              ...prevOrder,
+              {
+                  ...item,
+                  orderItemId: orderItemId,
+                  quantity: 1,
+                  selectedModifications: selectedModifications,
+                  basePrice: item.price,
+                  finalPrice: finalPrice,
+                  ingredients: item.ingredients,
+                  category: item.category,
+              },
+          ]);
+      }
+      toast({ title: "Producto Añadido", description: `${item.name} se añadió al pedido actual.` });
   };
 
+  const handleRemoveItemFromOrder = (orderItemId: string) => {
+    setCurrentOrder((prevOrder) => prevOrder.filter((item) => item.orderItemId !== orderItemId));
+    toast({ title: "Producto Eliminado", description: "El producto se eliminó del pedido actual.", variant: "destructive" });
+  };
+
+  const handleIncreaseQuantity = (orderItemId: string) => {
+    setCurrentOrder((prevOrder) =>
+      prevOrder.map((item) =>
+        item.orderItemId === orderItemId ? { ...item, quantity: item.quantity + 1 } : item
+      )
+    );
+  };
+
+  const handleDecreaseQuantity = (orderItemId: string) => {
+    setCurrentOrder((prevOrder) =>
+      prevOrder
+        .map((item) =>
+          item.orderItemId === orderItemId ? { ...item, quantity: Math.max(1, item.quantity - 1) } : item
+        )
+    );
+  };
+
+  // --- Order Management ---
+  const getNextOrderNumber = useCallback(() => {
+    const nextNumber = (lastOrderNumber % 999) + 1;
+    setLastOrderNumber(nextNumber);
+    localStorage.setItem(ORDER_NUMBER_STORAGE_KEY, nextNumber.toString());
+    return nextNumber;
+  }, [lastOrderNumber]);
+
+
+  const handlePrintKitchenOrder = () => {
+    if (currentOrder.length === 0) {
+      toast({ title: "Pedido Vacío", description: "Añada productos antes de imprimir la comanda.", variant: "destructive" });
+      return;
+    }
+    const orderNumber = getNextOrderNumber();
+    const orderWithNumber = currentOrder.map(item => ({ ...item, orderNumber }));
+
+    const kitchenReceipt = formatKitchenOrderReceipt(orderWithNumber, tableIdParam, orderNumber, deliveryInfo);
+    printHtml(kitchenReceipt);
+
+    // Move current order to pending orders as a new group
+    setPendingOrderGroups(prevGroups => [
+        ...prevGroups,
+        { orderNumber, items: orderWithNumber, deliveryInfo: isDelivery ? deliveryInfo : null, timestamp: Date.now() }
+    ].sort((a,b) => a.timestamp - b.timestamp));
+
+    setCurrentOrder([]); // Clear current order
+    sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied'); // Ensure table stays occupied
+    toast({ title: "Comanda Impresa", description: `Pedido #${String(orderNumber).padStart(3,'0')} enviado a cocina y movido a pendientes.` });
+  };
+
+
+  const handleFinalizeAndPaySelectedOrder = (groupToPay: PendingOrderGroup) => {
+    if (!groupToPay || groupToPay.items.length === 0) {
+        toast({ title: "Error", description: "No hay pedido pendiente seleccionado para pagar o está vacío.", variant: "destructive" });
+        return;
+    }
+    setOrderToPay(groupToPay); // Set the specific order group for payment
+
+    // Calculate total for this specific order group, including delivery fee if applicable
+    let orderTotal = groupToPay.items.reduce((sum, item) => sum + item.finalPrice * item.quantity, 0);
+    if (isDelivery && groupToPay.deliveryInfo && groupToPay.deliveryInfo.deliveryFee > 0) {
+      orderTotal += groupToPay.deliveryInfo.deliveryFee;
+    }
+
+    setTotalForPayment(orderTotal);
+    setIsPaymentDialogOpen(true);
+  };
+
+  const handlePaymentConfirm = (paymentMethod: PaymentMethod, tipAmount: number, finalAmountWithTip: number) => {
+    if (!orderToPay) {
+      toast({ title: "Error", description: "No hay un pedido seleccionado para procesar el pago.", variant: "destructive" });
+      setIsPaymentDialogOpen(false);
+      return;
+    }
+
+    // Deduct from inventory
+    const updatedInventory = [...inventory];
+    let inventoryUpdateOccurred = false;
+
+    orderToPay.items.forEach(orderItem => {
+      const itemNameLower = orderItem.name.toLowerCase();
+      let quantityToDeduct = orderItem.quantity;
+      let inventoryItemName: string | null = null;
+
+      // --- VIENESAS ---
+      if (orderItem.category === 'Completos Vienesas') {
+        if (['completo normal', 'dinamico normal', 'hot dog normal', 'italiano normal', 'palta normal', 'tomate normal'].includes(itemNameLower)) {
+          inventoryItemName = 'Vienesas';
+          quantityToDeduct *= 1;
+        } else if (['completo grande', 'dinamico grande', 'hot dog grande', 'italiano grande', 'palta grande', 'tomate grande'].includes(itemNameLower)) {
+          inventoryItemName = 'Vienesas';
+          quantityToDeduct *= 2;
+        }
+      }
+      // --- PAN ESPECIAL NORMAL ---
+      if (orderItem.category === 'Completos Vienesas' && ['completo normal', 'dinamico normal', 'hot dog normal', 'italiano normal', 'palta normal', 'tomate normal'].includes(itemNameLower)) {
+        inventoryItemName = 'Pan especial normal';
+      }
+      if (orderItem.category === 'Completos As' && ['completo normal', 'dinamico normal', 'chacarero normal', 'italiano normal', 'palta normal', 'tomate normal', 'napolitano normal', 'queso champiñon normal', 'queso normal', 'solo carne normal'].includes(itemNameLower)) {
+        inventoryItemName = 'Pan especial normal';
+      }
+      // --- PAN ESPECIAL GRANDE ---
+      if (orderItem.category === 'Completos Vienesas' && ['completo grande', 'dinamico grande', 'hot dog grande', 'italiano grande', 'palta grande', 'tomate grande'].includes(itemNameLower)) {
+        inventoryItemName = 'Pan especial grande';
+      }
+      if (orderItem.category === 'Completos As' && ['completo grande', 'dinamico grande', 'chacarero grande', 'italiano grande', 'palta grande', 'tomate grande', 'napolitano grande', 'queso champiñon grande', 'queso grande', 'solo carne grande'].includes(itemNameLower)) {
+        inventoryItemName = 'Pan especial grande';
+      }
+       // --- FAJITAS ---
+      if (orderItem.category === 'Promo Fajitas') {
+        if (['4 ingredientes', '6 ingredientes', 'americana', 'brasileño', 'chacarero', 'golosasa', 'italiana', 'primavera'].includes(itemNameLower)) {
+            inventoryItemName = 'Fajita'; // Deduct 1 Fajita
+             const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
+             if (bebidaLataIndex !== -1 && updatedInventory[bebidaLataIndex].stock >= orderItem.quantity) {
+                 updatedInventory[bebidaLataIndex].stock -= orderItem.quantity;
+                 inventoryUpdateOccurred = true;
+             } else if (bebidaLataIndex !== -1) {
+                 console.warn(`Stock insuficiente de Lata para ${orderItem.name}`);
+             }
+        }
+      }
+      // --- PAN DE MARRAQUETA ---
+      if (orderItem.category === 'Churrascos' || orderItem.category === 'Promo Churrasco' || orderItem.category === 'Promo Mechada') {
+        if (['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'queso', 'queso champiñon', 'tomate', 'palta'].includes(itemNameLower)) {
+          inventoryItemName = 'Pan de marraqueta';
+          if (orderItem.category === 'Promo Churrasco' || orderItem.category === 'Promo Mechada') {
+             const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
+             if (bebidaLataIndex !== -1 && updatedInventory[bebidaLataIndex].stock >= orderItem.quantity) {
+                 updatedInventory[bebidaLataIndex].stock -= orderItem.quantity;
+                 inventoryUpdateOccurred = true;
+             } else if (bebidaLataIndex !== -1) {
+                 console.warn(`Stock insuficiente de Lata para ${orderItem.name}`);
+             }
+          }
+        }
+      }
+      // --- PAN DE HAMBURGUESA NORMAL / GRANDE ---
+      if (orderItem.category === 'Promo Hamburguesas') {
+        if(['big cami', 'doble italiana', 'italiana', 'simple', 'tapa arteria'].includes(itemNameLower)) {
+          inventoryItemName = 'Pan de hamburguesa normal';
+           quantityToDeduct = orderItem.quantity; // Default 1 burger bun
+        } else if (['doble', 'super big cami', 'super tapa arteria'].includes(itemNameLower)) {
+           inventoryItemName = 'Pan de hamburguesa grande'; // or normal based on your definition for "doble"
+           quantityToDeduct = orderItem.quantity;
+        }
+         if (inventoryItemName) { // If it's a burger, deduct a "Lata"
+            const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
+            if (bebidaLataIndex !== -1 && updatedInventory[bebidaLataIndex].stock >= orderItem.quantity) {
+                updatedInventory[bebidaLataIndex].stock -= orderItem.quantity;
+                inventoryUpdateOccurred = true;
+            } else if (bebidaLataIndex !== -1) {
+                console.warn(`Stock insuficiente de Lata para ${orderItem.name}`);
+            }
+        }
+      }
+
+      // --- BEBIDAS ---
+       if (orderItem.category === 'Bebidas') {
+           if (itemNameLower === 'bebida 1.5lt') inventoryItemName = 'Bebida 1.5Lt';
+           if (itemNameLower === 'lata') inventoryItemName = 'Lata';
+           if (itemNameLower === 'cafe chico') inventoryItemName = 'Cafe Chico';
+           if (itemNameLower === 'cafe grande') inventoryItemName = 'Cafe Grande';
+       }
+
+      // --- PROMOCIONES ---
+      if (orderItem.category === 'Promociones') {
+          const promoNum = parseInt(itemNameLower.replace('promo ', ''), 10);
+          if (promoNum === 1 || promoNum === 2) { inventoryItemName = 'Pan de hamburguesa grande'; /* + Bebida 1.5Lt */ }
+          if (promoNum === 3) { inventoryItemName = 'Pan de marraqueta'; quantityToDeduct *= 4; /* + Bebida 1.5Lt */ }
+          if (promoNum === 4) { inventoryItemName = 'Pan de marraqueta'; quantityToDeduct *= 2; }
+          if (promoNum === 5) { inventoryItemName = 'Pan especial normal'; quantityToDeduct *= 2; /* + 2 Vienesas, 2 Latas */ }
+          if (promoNum === 6) { inventoryItemName = 'Pan especial grande'; quantityToDeduct *= 2; /* + 4 Vienesas, 2 Latas */ }
+          if (promoNum === 7) { inventoryItemName = 'Pan especial normal'; quantityToDeduct *= 2; /* + 2 Latas */ }
+          if (promoNum === 8) { inventoryItemName = 'Pan especial grande'; quantityToDeduct *= 2; /* + 2 Latas */ }
+          if (promoNum === 9) { inventoryItemName = 'Pan especial normal'; quantityToDeduct *= 4; /* + 4 Vienesas, 1 Bebida 1.5Lt */ }
+          if (promoNum === 10) { inventoryItemName = 'Pan especial grande'; quantityToDeduct *= 4; /* + 8 Vienesas, 1 Bebida 1.5Lt */ }
+          if (promoNum === 11) { inventoryItemName = 'Pan especial normal'; quantityToDeduct *= 4; /* + 1 Bebida 1.5Lt */ }
+          if (promoNum === 12) { inventoryItemName = 'Pan especial grande'; quantityToDeduct *= 4; /* + 1 Bebida 1.5Lt */ }
+
+          // Deduct associated drinks/vienesas for promotions
+          if ([1,2,3,9,10,11,12].includes(promoNum)) { // Bebida 1.5Lt
+              const bebidaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'bebida 1.5lt');
+              if (bebidaIndex !== -1 && updatedInventory[bebidaIndex].stock >= orderItem.quantity) {
+                  updatedInventory[bebidaIndex].stock -= orderItem.quantity;
+                  inventoryUpdateOccurred = true;
+              } else if (bebidaIndex !== -1) { console.warn(`Stock insuficiente de Bebida 1.5Lt`); }
+          }
+          if ([5,6,7,8].includes(promoNum)) { // Bebida Lata
+              const lataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
+              const latasToDeduct = orderItem.quantity * 2; // 2 latas per promo
+              if (lataIndex !== -1 && updatedInventory[lataIndex].stock >= latasToDeduct) {
+                  updatedInventory[lataIndex].stock -= latasToDeduct;
+                  inventoryUpdateOccurred = true;
+              } else if (lataIndex !== -1) { console.warn(`Stock insuficiente de Lata`); }
+          }
+           if ([5,9].includes(promoNum)) { // Vienesas for Promo 5 (2 per) and 9 (4 per)
+              const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
+              const vienesasNeeded = promoNum === 5 ? orderItem.quantity * 2 : orderItem.quantity * 4;
+              if (vienaIndex !== -1 && updatedInventory[vienaIndex].stock >= vienesasNeeded) {
+                  updatedInventory[vienaIndex].stock -= vienesasNeeded;
+                  inventoryUpdateOccurred = true;
+              } else if (vienaIndex !== -1) { console.warn(`Stock insuficiente de Vienesas`);}
+          }
+           if (promoNum === 6 || promoNum === 10) { // Vienesas for Promo 6 (4 per) and 10 (8 per)
+               const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
+               const vienesasNeeded = promoNum === 6 ? orderItem.quantity * 4 : orderItem.quantity * 8;
+               if (vienaIndex !== -1 && updatedInventory[vienaIndex].stock >= vienesasNeeded) {
+                   updatedInventory[vienaIndex].stock -= vienesasNeeded;
+                   inventoryUpdateOccurred = true;
+               } else if (vienaIndex !== -1) { console.warn(`Stock insuficiente de Vienesas`); }
+           }
+      }
+       // --- PAPAS FRITAS (BOX CAMI) ---
+       if (orderItem.category === 'Papas Fritas' && itemNameLower === 'box cami') {
+            // Deduct 1 Bebida 1.5Lt
+            const bebidaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'bebida 1.5lt');
+            if (bebidaIndex !== -1 && updatedInventory[bebidaIndex].stock >= orderItem.quantity) {
+                updatedInventory[bebidaIndex].stock -= orderItem.quantity;
+                inventoryUpdateOccurred = true;
+            } else if (bebidaIndex !== -1) {
+                console.warn(`Stock insuficiente de Bebida 1.5Lt para Box Cami`);
+            }
+            // Note: Empanadas are not in current inventory list, skip deduction or add "Empanadas" to inventory
+       }
+
+
+      if (inventoryItemName) {
+        const itemIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === inventoryItemName.toLowerCase());
+        if (itemIndex !== -1) {
+          if (updatedInventory[itemIndex].stock >= quantityToDeduct) {
+            updatedInventory[itemIndex].stock -= quantityToDeduct;
+            inventoryUpdateOccurred = true;
+          } else {
+            toast({ title: "Stock Insuficiente", description: `No hay suficiente ${inventoryItemName} en inventario.`, variant: "destructive" });
+          }
+        }
+      }
+    });
+
+    if (inventoryUpdateOccurred) {
+      setInventory(updatedInventory);
+      localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify(updatedInventory));
+      toast({ title: "Inventario Actualizado", description: "El stock de los productos ha sido actualizado." });
+    }
+
+
+    const customerReceipt = formatCustomerReceipt(orderToPay.items, finalAmountWithTip, paymentMethod, tableIdParam, orderToPay.orderNumber, orderToPay.deliveryInfo, tipAmount);
+    printHtml(customerReceipt);
+
+    // Record sale in cash register
+    const cashMovementDescription = isDelivery
+      ? `Venta Delivery #${String(orderToPay.orderNumber).padStart(3,'0')} a ${orderToPay.deliveryInfo?.name || 'Cliente'}`
+      : `Venta Mesa ${tableIdParam} - Orden #${String(orderToPay.orderNumber).padStart(3,'0')}`;
+
+    const saleAmount = orderToPay.items.reduce((sum, item) => sum + item.finalPrice * item.quantity, 0);
+    const deliveryFeeForMovement = isDelivery && orderToPay.deliveryInfo ? orderToPay.deliveryInfo.deliveryFee : 0;
+
+    const descriptionWithTip = tipAmount > 0
+        ? `${cashMovementDescription} (Propina: ${formatCurrency(tipAmount)})`
+        : cashMovementDescription;
+
+
+    const newCashMovement: CashMovement = {
+      id: Date.now(), // Unique ID
+      date: new Date(),
+      category: 'Ingreso Venta',
+      description: descriptionWithTip,
+      amount: saleAmount, // Amount without delivery fee or tip initially (tip is in description)
+      paymentMethod: paymentMethod,
+      deliveryFee: deliveryFeeForMovement
+    };
+
+    const storedCashMovements = sessionStorage.getItem(CASH_MOVEMENTS_STORAGE_KEY);
+    let cashMovements: CashMovement[] = [];
+    if (storedCashMovements) {
+        try {
+            cashMovements = JSON.parse(storedCashMovements);
+            if (!Array.isArray(cashMovements)) cashMovements = [];
+        } catch {
+            cashMovements = [];
+        }
+    }
+    cashMovements.push(newCashMovement);
+    sessionStorage.setItem(CASH_MOVEMENTS_STORAGE_KEY, JSON.stringify(cashMovements));
+
+
+    // Remove the paid group from pending orders
+    setPendingOrderGroups(prevGroups => prevGroups.filter(group => group.orderNumber !== orderToPay.orderNumber));
+    setIsPaymentDialogOpen(false);
+    setOrderToPay(null); // Reset the order to pay
+
+    // If no more pending or current orders, and not a delivery with info, mark table as available
+    if (pendingOrderGroups.filter(group => group.orderNumber !== orderToPay.orderNumber).length === 0 && currentOrder.length === 0) {
+        if (!isDelivery || !deliveryInfo || (!deliveryInfo.name && !deliveryInfo.address && !deliveryInfo.phone && deliveryInfo.deliveryFee === 0)) {
+             sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
+             console.log(`Table ${tableIdParam} marked as available after payment.`);
+        }
+    }
+
+    toast({ title: "Pago Realizado", description: `Pago de ${formatCurrency(finalAmountWithTip)} con ${paymentMethod} registrado.` });
+  };
+
+  const handleOpenModificationDialog = (item: MenuItem) => {
+    setItemToModify(item);
+    setIsModificationDialogOpen(true);
+  };
+
+  const handleConfirmModification = (modifications?: string[]) => {
+    if (itemToModify) {
+      handleAddItemToOrder(itemToModify, modifications);
+    }
+    setIsModificationDialogOpen(false);
+    setItemToModify(null);
+  };
+
+
+  const currentOrderTotal = useMemo(() => {
+    return currentOrder.reduce((sum, item) => sum + item.finalPrice * item.quantity, 0);
+  }, [currentOrder]);
+
+
   const groupedMenu = useMemo(() => {
+    const filteredMenu = menu.filter(item =>
+      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.category.toLowerCase().includes(searchTerm.toLowerCase())
+    );
     const groups: { [key: string]: MenuItem[] } = {};
-    filteredProducts.forEach(item => {
+    filteredMenu.forEach(item => {
       if (!groups[item.category]) {
         groups[item.category] = [];
       }
       groups[item.category].push(item);
     });
-    return orderedCategories.reduce((acc, categoryName) => {
-      if (groups[categoryName]) {
-        acc[categoryName] = groups[categoryName];
-      }
-      return acc;
-    }, {} as { [key: string]: MenuItem[] });
-  }, [filteredProducts]);
 
-  if (!isMenuInitialized) {
-    return <div className="flex items-center justify-center min-h-screen">Cargando productos...</div>;
+    return orderedCategories.reduce((acc, categoryName) => {
+        if (groups[categoryName]) {
+            acc[categoryName] = groups[categoryName];
+        }
+        return acc;
+    }, {} as { [key: string]: MenuItem[] });
+
+  }, [menu, searchTerm]);
+
+  const handleDeliveryInfoConfirm = (info: DeliveryInfo) => {
+    setDeliveryInfo(info);
+    setIsDeliveryDialogOpen(false);
+    sessionStorage.setItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`, JSON.stringify(info));
+    toast({ title: "Datos de Envío Guardados", description: `Enviando a ${info.name}.` });
+  };
+
+  const handleDeliveryInfoCancel = () => {
+    // If cancel is hit and there's no existing delivery info, and no pending/current orders, redirect.
+    if (!deliveryInfo && pendingOrderGroups.length === 0 && currentOrder.length === 0) {
+        router.push('/tables');
+        toast({ title: "Envío Cancelado", description: "Se canceló el ingreso de datos de envío.", variant: "destructive" });
+    } else {
+        setIsDeliveryDialogOpen(false); // Just close if there's data or orders
+    }
+  };
+
+  if (!isInitialized) {
+    return <div className="flex items-center justify-center min-h-screen">Cargando datos de la mesa...</div>;
   }
+
+  const tableDisplayName = isDelivery ? `Delivery` : `Mesa ${tableIdParam}`;
 
 
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Lista de Productos</h1>
-        <Input
-           type="text"
-           placeholder="Buscar producto o categoría..."
-           value={searchTerm}
-           onChange={(e) => setSearchTerm(e.target.value)}
-           className="max-w-sm"
-         />
+        <Button variant="outline" onClick={() => router.push('/tables')} className="bg-secondary hover:bg-secondary/80">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Volver a Mesas
+        </Button>
+        <h1 className="text-3xl font-bold">{tableDisplayName}</h1>
+        <div></div> {/* Spacer */}
       </div>
 
-       <Card>
-         <CardContent className="p-0">
-            <Table>
-            <TableHeader>
-                <TableRow>
-                  <TableHead>Producto</TableHead>
-                  <TableHead>Categoría</TableHead>
-                  <TableHead>Ingredientes</TableHead>
-                  <TableHead className="text-right">Precio Base</TableHead>
-                  <TableHead className="text-center w-28">Acciones</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
-                {filteredProducts.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
-                      No se encontraron productos.
-                    </TableCell>
-                  </TableRow>
+        {/* "Ver Menú" Button */}
+        <div className="flex justify-center mb-6">
+            <Sheet open={isMenuSheetOpen} onOpenChange={setIsMenuSheetOpen}>
+                <SheetTrigger asChild>
+                     <Button size="lg" className="px-8 py-6 text-lg">
+                        <PackageSearch className="mr-2 h-5 w-5"/> Ver Menú
+                    </Button>
+                </SheetTrigger>
+                <SheetContent side="left" className="w-full md:w-3/4 lg:w-1/2 p-0">
+                  <SheetHeader className="p-4 border-b">
+                    <SheetTitle className="text-2xl">Menú de Productos</SheetTitle>
+                  </SheetHeader>
+                  <Input
+                    type="text"
+                    placeholder="Buscar producto o categoría..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="m-4 w-[calc(100%-2rem)]"
+                  />
+                  <ScrollArea className="h-[calc(100vh-140px)]"> {/* Adjust height as needed */}
+                    <Accordion type="multiple" defaultValue={orderedCategories} className="w-full p-4">
+                      {Object.entries(groupedMenu).map(([category, items]) => (
+                        <AccordionItem value={category} key={category} className="border-b-0 mb-2">
+                          <AccordionTrigger className="text-xl font-semibold hover:bg-muted/50 px-4 py-3 rounded-md hover:no-underline">
+                            {category}
+                          </AccordionTrigger>
+                          <AccordionContent className="pt-2 pb-0 px-0">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 p-2">
+                              {items.map((item) => (
+                                <Card
+                                  key={item.id}
+                                  className="cursor-pointer hover:shadow-lg transition-shadow flex flex-col"
+                                  onClick={() => (item.modifications && item.modifications.length > 0) ? handleOpenModificationDialog(item) : handleAddItemToOrder(item)}
+                                >
+                                  <CardHeader className="pb-2 pt-3 px-3">
+                                    <CardTitle className="text-base leading-tight font-semibold">{item.name}</CardTitle>
+                                  </CardHeader>
+                                  <CardContent className="text-xs text-muted-foreground px-3 pb-2 flex-grow">
+                                      {item.ingredients && item.ingredients.length > 0 && (
+                                        <p className="italic overflow-hidden text-ellipsis whitespace-nowrap">
+                                            ({item.ingredients.join(', ')})
+                                        </p>
+                                      )}
+                                  </CardContent>
+                                  <CardFooter className="px-3 pb-3 pt-1 mt-auto">
+                                    <span className="text-sm font-bold text-primary">{formatCurrency(item.price)}</span>
+                                  </CardFooter>
+                                </Card>
+                              ))}
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  </ScrollArea>
+                  <SheetFooter className="p-4 border-t">
+                    <SheetClose asChild>
+                        <Button>Confirmar</Button>
+                    </SheetClose>
+                  </SheetFooter>
+                </SheetContent>
+            </Sheet>
+        </div>
+
+
+      {/* Main content grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Pedido Actual Card */}
+        <Card className="flex flex-col">
+          <CardHeader>
+            <CardTitle>Pedido Actual</CardTitle>
+            {isDelivery && deliveryInfo && (
+                <CardDescription className="text-sm">
+                    Para: {deliveryInfo.name} ({deliveryInfo.address}) - Envío: {formatCurrency(deliveryInfo.deliveryFee)}
+                </CardDescription>
+            )}
+          </CardHeader>
+          <ScrollArea className="flex-grow max-h-[calc(100vh-380px)] min-h-[200px]">
+            <CardContent className="p-4">
+                {currentOrder.length === 0 ? (
+                <p className="text-muted-foreground">No hay productos en el pedido actual.</p>
+                ) : (
+                currentOrder.map((item) => (
+                    <div key={item.orderItemId} className="mb-3 pb-3 border-b last:border-b-0">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <p className="font-bold text-base leading-tight">{item.name}</p>
+                                <p className="text-xs text-muted-foreground font-bold">{item.category}</p>
+                                {item.selectedModifications && item.selectedModifications.length > 0 && (
+                                <p className="text-xs text-primary font-bold">({item.selectedModifications.join(', ')})</p>
+                                )}
+                            </div>
+                            <p className="font-bold text-base">{formatCurrency(item.finalPrice * item.quantity)}</p>
+                        </div>
+                        <div className="flex items-center justify-end gap-2 mt-1">
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-destructive"
+                                onClick={() => handleDecreaseQuantity(item.orderItemId)}
+                                disabled={item.quantity <= 1}
+                            >
+                                <MinusCircle className="h-4 w-4" />
+                            </Button>
+                            <span className="font-bold w-5 text-center">{item.quantity}</span>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-primary"
+                                onClick={() => handleIncreaseQuantity(item.orderItemId)}
+                            >
+                                <PlusCircle className="h-4 w-4" />
+                            </Button>
+                            <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7 text-destructive hover:text-destructive/90"
+                                onClick={() => handleRemoveItemFromOrder(item.orderItemId)}
+                            >
+                                <XCircle className="h-4 w-4" />
+                            </Button>
+                        </div>
+                    </div>
+                ))
                 )}
-                {Object.entries(groupedMenu).map(([category, items]) => (
-                  <React.Fragment key={category}>
-                    {items.map((item) => (
-                    <TableRow key={item.id}>
-                        <TableCell className="font-medium">{item.name}</TableCell>
-                        <TableCell><Badge variant="secondary">{item.category}</Badge></TableCell>
-                        <TableCell className="text-xs text-muted-foreground max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
-                            {item.ingredients && item.ingredients.length > 0
-                            ? item.ingredients.join(', ')
-                            : '-'}
-                        </TableCell>
-                        <TableCell className="text-right font-mono">{printUtilsFormatCurrency(item.price)}</TableCell>
-                        <TableCell className="text-center">
-                        <Button variant="outline" size="icon" onClick={() => openEditPriceDialog(item)} className="h-8 w-8">
-                            <Edit className="h-4 w-4" />
-                            <span className="sr-only">Editar Precio</span>
-                        </Button>
-                        </TableCell>
-                    </TableRow>
-                    ))}
-                  </React.Fragment>
-                ))}
-            </TableBody>
-            </Table>
-         </CardContent>
-       </Card>
+            </CardContent>
+          </ScrollArea>
+          <CardFooter className="p-4 border-t flex-col items-stretch gap-3 mt-auto">
+            <div className="flex justify-between items-center text-lg font-semibold">
+              <span className="font-bold">Total Actual:</span>
+              <span className="font-bold">{formatCurrency(currentOrderTotal)}</span>
+            </div>
+            <Button onClick={handlePrintKitchenOrder} className="w-full" disabled={currentOrder.length === 0}>
+              <Printer className="mr-2 h-4 w-4" /> Imprimir Comanda
+            </Button>
+          </CardFooter>
+        </Card>
 
 
-       <ShadDialog open={isEditPriceDialogOpen} onOpenChange={setIsEditPriceDialogOpen}>
-         <ShadDialogContent className="sm:max-w-[425px]">
-           <ShadDialogHeader>
-             <ShadDialogTitle>Editar Precio de {editingProduct?.name}</ShadDialogTitle>
-             <ShadDialogDescription>
-                 Actualice el precio base para este producto.
-             </ShadDialogDescription>
-           </ShadDialogHeader>
-           <div className="grid gap-4 py-4">
-             <div className="grid grid-cols-4 items-center gap-4">
-                 <Label htmlFor="price" className="text-right">
-                     Nuevo Precio (CLP)
-                 </Label>
-                 <Input
-                     id="price"
-                     type="number"
-                     value={newPrice}
-                     onChange={handlePriceChange}
-                     className="col-span-3"
-                     required
-                     min="0"
-                     step="1"
-                 />
-             </div>
-           </div>
-           <ShadDialogFooter>
-             <ShadDialogClose asChild>
-                 <Button type="button" variant="secondary" onClick={() => setIsEditPriceDialogOpen(false)}>Cancelar</Button>
-             </ShadDialogClose>
-             <Button type="submit" onClick={handleUpdatePrice}>Guardar Cambios</Button>
-           </ShadDialogFooter>
-         </ShadDialogContent>
-       </ShadDialog>
+        {/* Pedidos Pendientes de Pago Card */}
+        <Card className="flex flex-col">
+          <CardHeader>
+            <CardTitle>Pedidos Pendientes de Pago</CardTitle>
+          </CardHeader>
+          <ScrollArea className="flex-grow max-h-[calc(100vh-300px)] min-h-[200px]">
+             <CardContent className="p-4">
+                {pendingOrderGroups.length === 0 ? (
+                  <p className="text-muted-foreground">No hay pedidos pendientes de pago.</p>
+                ) : (
+                  pendingOrderGroups.map((group) => {
+                    const groupTotal = group.items.reduce((sum, item) => sum + item.finalPrice * item.quantity, 0) +
+                                       (isDelivery && group.deliveryInfo ? group.deliveryInfo.deliveryFee : 0);
+                    return (
+                      <Card key={group.orderNumber} className="mb-4 shadow-md">
+                        <CardHeader className="pb-2 pt-3 px-3 bg-muted/30 rounded-t-lg">
+                           <div className="flex justify-between items-center">
+                                <CardTitle className="text-base font-semibold">
+                                    Orden #{String(group.orderNumber).padStart(3, '0')}
+                                    {isDelivery && group.deliveryInfo && (
+                                        <span className="text-xs font-normal text-muted-foreground ml-2">
+                                            ({group.deliveryInfo.name})
+                                        </span>
+                                    )}
+                                </CardTitle>
+                                <Badge variant="outline" className="text-sm">{formatCurrency(groupTotal)}</Badge>
+                           </div>
+                        </CardHeader>
+                        <CardContent className="p-3 text-xs">
+                          {group.items.map(item => (
+                            <div key={item.orderItemId} className="mb-1 flex justify-between">
+                              <span className="font-bold">
+                                {item.quantity}x {item.name}
+                                {item.selectedModifications && item.selectedModifications.length > 0 && (
+                                  <span className="text-primary font-bold"> ({item.selectedModifications.join(', ')})</span>
+                                )}
+                              </span>
+                              <span className="font-bold">{formatCurrency(item.finalPrice * item.quantity)}</span>
+                            </div>
+                          ))}
+                           {isDelivery && group.deliveryInfo && group.deliveryInfo.deliveryFee > 0 && (
+                               <div className="mt-1 pt-1 border-t border-dashed flex justify-between">
+                                   <span className="font-bold">Costo Envío:</span>
+                                   <span className="font-bold">{formatCurrency(group.deliveryInfo.deliveryFee)}</span>
+                               </div>
+                           )}
+                        </CardContent>
+                        <CardFooter className="p-3 border-t">
+                            <Button onClick={() => handleFinalizeAndPaySelectedOrder(group)} className="w-full" size="sm">
+                                <CreditCard className="mr-2 h-4 w-4" /> Cobrar Pedido #{String(group.orderNumber).padStart(3, '0')}
+                            </Button>
+                        </CardFooter>
+                      </Card>
+                    );
+                  })
+                )}
+            </CardContent>
+          </ScrollArea>
+        </Card>
+      </div>
+
+
+      {/* Modification Dialog */}
+      <ModificationDialog
+        isOpen={isModificationDialogOpen}
+        onOpenChange={setIsModificationDialogOpen}
+        item={itemToModify}
+        onConfirm={handleConfirmModification}
+        onCancel={() => setIsModificationDialogOpen(false)}
+      />
+
+      {/* Payment Dialog */}
+      {orderToPay && (
+          <PaymentDialog
+            isOpen={isPaymentDialogOpen}
+            onOpenChange={setIsPaymentDialogOpen}
+            totalAmount={totalForPayment} // This is subtotal before tip
+            onConfirm={handlePaymentConfirm}
+          />
+      )}
+
+       {/* Delivery Info Dialog (only for delivery table) */}
+       {isDelivery && (
+           <DeliveryDialog
+               isOpen={isDeliveryDialogOpen}
+               onOpenChange={setIsDeliveryDialogOpen}
+               initialData={deliveryInfo} // Pass existing data for editing
+               onConfirm={handleDeliveryInfoConfirm}
+               onCancel={handleDeliveryInfoCancel}
+           />
+       )}
     </div>
-);
-};
-
-
-const ProductsPageContent = () => {
-    return <ProductsManagementPage />;
-}
-
-export default function ProductsPage() {
-    return <ProductsPageContent />;
+  );
 }
