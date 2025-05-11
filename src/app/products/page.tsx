@@ -10,23 +10,22 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Card, CardContent } from '@/components/ui/card'; 
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import {
-  DialogClose,
-  DialogContent as ShadDialogContent, 
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+  Dialog as ShadDialog, // Aliased Dialog
+  DialogClose as ShadDialogClose, // Aliased DialogClose
+  DialogContent as ShadDialogContent,
+  DialogDescription as ShadDialogDescription, // Aliased DialogDescription
+  DialogFooter as ShadDialogFooter, // Aliased DialogFooter
+  DialogHeader as ShadDialogHeader, // Aliased DialogHeader
+  DialogTitle as ShadDialogTitle, // Aliased DialogTitle
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { useState, useEffect, useMemo } from 'react';
 import { Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Dialog as ShadDialog } from '@/components/ui/dialog'; 
 import { formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
 
 
@@ -631,17 +630,17 @@ const sortMenu = (menu: MenuItem[]): MenuItem[] => {
 };
 
 const getPersistedMenu = (): MenuItem[] => {
-  let baseMenu: MenuItem[] = mockMenu.map(item => ({ 
+  let baseMenu: MenuItem[] = mockMenu.map(item => ({
     ...item,
     modifications: item.modifications || [],
   }));
 
   if (typeof window === 'undefined') {
-    return sortMenu(baseMenu); 
+    return sortMenu(baseMenu);
   }
 
   const storedMenuJson = localStorage.getItem(MENU_STORAGE_KEY);
-  let finalMenuToSave = [...baseMenu]; 
+  let finalMenuToSave = [...baseMenu];
 
   if (storedMenuJson) {
     try {
@@ -862,9 +861,9 @@ const ProductsManagementPage = () => {
              </div>
            </div>
            <ShadDialogFooter>
-             <DialogClose asChild>
+             <ShadDialogClose asChild>
                  <Button type="button" variant="secondary" onClick={() => setIsEditPriceDialogOpen(false)}>Cancelar</Button>
-             </DialogClose>
+             </ShadDialogClose>
              <Button type="submit" onClick={handleUpdatePrice}>Guardar Cambios</Button>
            </ShadDialogFooter>
          </ShadDialogContent>
@@ -881,5 +880,3 @@ const ProductsPageContent = () => {
 export default function ProductsPage() {
     return <ProductsPageContent />;
 }
-
-    
