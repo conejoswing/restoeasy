@@ -53,9 +53,10 @@ import { isEqual } from 'lodash';
 import { cn } from '@/lib/utils';
 import type { CashMovement } from '@/app/expenses/page';
 import type { DeliveryInfo } from '@/components/app/delivery-dialog';
-import DeliveryDialog from '@/components/app/delivery-dialog';
+import DeliveryDialog from '@/components/app/delivery-dialog'; // Corrected import
 import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
+// import { Dialog as ShadDialog, DialogClose as ShadDialogClose, DialogContent as ShadDialogContent, DialogDescription as ShadDialogDescription, DialogFooter as ShadDialogFooter, DialogHeader as ShadDialogHeader, DialogTitle as ShadDialogTitle, DialogTrigger as ShadDialogTrigger } from '@/components/ui/dialog'; // Renamed to avoid conflict
 import { Label } from '@/components/ui/label';
 import {
   Accordion,
@@ -972,11 +973,15 @@ export function TableDetailPage() {
             } else if (lowerItemName === 'promo 9') {
                  inventory = updateStock(inventory, 'Pan especial normal', quantity * 4);
                  inventory = updateStock(inventory, 'Vienesas', quantity * 4);
-                 inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity * 1); // Changed from 2 to 1
+                 inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity * 1);
                  itemFoundAndDeducted = true;
             } else if (lowerItemName === 'promo 10') {
                  inventory = updateStock(inventory, 'Pan especial grande', quantity * 4);
                  inventory = updateStock(inventory, 'Vienesas', quantity * 8);
+                 inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity * 1);
+                 itemFoundAndDeducted = true;
+            } else if (lowerItemName === 'promo 11') {
+                 inventory = updateStock(inventory, 'Pan especial normal', quantity * 4);
                  inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity * 1);
                  itemFoundAndDeducted = true;
             }
@@ -1534,6 +1539,7 @@ export function TableDetailPage() {
 }
 
 export default TableDetailPage;
+
 
 
 
