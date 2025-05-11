@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -167,7 +166,7 @@ const mockMenu: MenuItem[] = [
       category: 'Completos As',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
       modificationPrices: { 'Agregado Queso': 1000 },
-       ingredients: ['Palta', 'Tomate', 'Carne As']
+       ingredients: ['Palta', 'Tomate']
     },
     {
       id: 11,
@@ -176,7 +175,7 @@ const mockMenu: MenuItem[] = [
       category: 'Completos As',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
       modificationPrices: { 'Agregado Queso': 1000 },
-      ingredients: ['Palta', 'Tomate', 'Carne As']
+      ingredients: ['Palta', 'Tomate']
     },
     {
       id: 12,
@@ -185,15 +184,15 @@ const mockMenu: MenuItem[] = [
       category: 'Completos As',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
        modificationPrices: { 'Agregado Queso': 1000 },
-        ingredients: ['Tomate', 'Chucrut', 'Americana', 'Carne As']
+        ingredients: ['Tomate', 'Chucrut', 'Americana']
     },
-    { id: 36, name: 'Completo Grande', price: 7000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Chucrut', 'Americana', 'Carne As'] },
-    { id: 37, name: 'Palta Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Carne As'] },
-    { id: 38, name: 'Palta Grande', price: 6300, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Carne As'] },
-    { id: 39, name: 'Tomate Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Carne As'] },
-    { id: 40, name: 'Tomate Grande', price: 6300, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Carne As'] },
-    { id: 41, name: 'Queso Normal', price: 6000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Carne As'] },
-    { id: 42, name: 'Queso Grande', price: 6500, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Carne As'] },
+    { id: 36, name: 'Completo Grande', price: 7000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Chucrut', 'Americana'] },
+    { id: 37, name: 'Palta Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta'] },
+    { id: 38, name: 'Palta Grande', price: 6300, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta'] },
+    { id: 39, name: 'Tomate Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate'] },
+    { id: 40, name: 'Tomate Grande', price: 6300, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate'] },
+    { id: 41, name: 'Queso Normal', price: 6000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso'] },
+    { id: 42, name: 'Queso Grande', price: 6500, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso'] },
     { id: 43, name: 'Solo Carne Normal', price: 5000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne As'] },
     { id: 44, name: 'Solo Carne Grande', price: 5500, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Carne As'] },
     {
@@ -631,54 +630,62 @@ const sortMenu = (menu: MenuItem[]): MenuItem[] => {
 };
 
 const getPersistedMenu = (): MenuItem[] => {
+  let baseMenu: MenuItem[] = mockMenu.map(item => ({ // Deep copy mockMenu as a base
+    ...item,
+    modifications: item.modifications || [],
+  }));
+
   if (typeof window === 'undefined') {
-    return sortMenu(mockMenu); // SSR fallback
+    return sortMenu(baseMenu); // SSR fallback with mockMenu
   }
+
   const storedMenuJson = localStorage.getItem(MENU_STORAGE_KEY);
+  let finalMenuToSave = [...baseMenu]; // Start with full mockMenu
+
   if (storedMenuJson) {
     try {
-      const parsedMenu = JSON.parse(storedMenuJson);
-      if (Array.isArray(parsedMenu) && parsedMenu.length > 0) {
-        // Ensure all items have modifications array, and add new fajita mods if needed
-        const menuWithEnsuredModifications = parsedMenu.map(item => {
-          const newItem = { ...item, modifications: item.modifications || [] };
-          if (item.category === 'Promo Fajitas' &&
-              ['Italiana', 'Brasileño', 'Chacarero', 'Americana', 'Primavera', 'Golosasa', '4 Ingredientes', '6 Ingredientes'].includes(item.name)) {
-
-            const existingMods = new Set(newItem.modifications);
-            promoFajitasBaseModifications.forEach(mod => existingMods.add(mod));
-            newItem.modifications = Array.from(existingMods);
+      const parsedLocalStorageMenu: MenuItem[] = JSON.parse(storedMenuJson);
+      if (Array.isArray(parsedLocalStorageMenu)) {
+        const mergedMenu = baseMenu.map(mockItem => {
+          const storedItem = parsedLocalStorageMenu.find(lsItem => lsItem.id === mockItem.id);
+          if (storedItem) {
+            return {
+              ...mockItem,
+              price: storedItem.price,
+              modifications: storedItem.modifications && storedItem.modifications.length > 0 ? storedItem.modifications : (mockItem.modifications || []),
+              ingredients: storedItem.ingredients && storedItem.ingredients.length > 0 ? storedItem.ingredients : (mockItem.ingredients || []),
+            };
           }
-          return newItem;
+          return mockItem;
         });
-        return sortMenu(menuWithEnsuredModifications);
+        finalMenuToSave = mergedMenu;
       }
     } catch (e) {
-      console.error("Failed to parse menu from localStorage:", e);
+      console.error("Failed to parse menu from localStorage. Using mock menu.", e);
     }
   }
-  // Apply modifications to initial mockMenu before saving
-  const initialMenuWithMods = mockMenu.map(item => {
-    const newItem = { ...item, modifications: item.modifications || [] };
+
+  finalMenuToSave = finalMenuToSave.map(item => {
+    const newItem = { ...item };
     if (item.category === 'Promo Fajitas' &&
         ['Italiana', 'Brasileño', 'Chacarero', 'Americana', 'Primavera', 'Golosasa', '4 Ingredientes', '6 Ingredientes'].includes(item.name)) {
-
-      const existingMods = new Set(newItem.modifications);
+      const existingMods = new Set(newItem.modifications || []);
       promoFajitasBaseModifications.forEach(mod => existingMods.add(mod));
       newItem.modifications = Array.from(existingMods);
     }
     return newItem;
   });
 
-  const initialSortedMenu = sortMenu(initialMenuWithMods);
+  const sortedFinalMenu = sortMenu(finalMenuToSave);
+
   if (typeof window !== 'undefined') {
     try {
-      localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(initialSortedMenu));
+      localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(sortedFinalMenu));
     } catch (e) {
-      console.error("Failed to save initial menu to localStorage:", e);
+      console.error("Failed to save final menu to localStorage:", e);
     }
   }
-  return initialSortedMenu;
+  return sortedFinalMenu;
 };
 
 

@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -231,7 +230,7 @@ const mockMenu: MenuItem[] = [
       category: 'Completos As',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
       modificationPrices: { 'Agregado Queso': 1000 },
-       ingredients: ['Palta', 'Tomate']
+       ingredients: ['Palta', 'Tomate'] // Carne As implied by category
     },
     {
       id: 11,
@@ -240,7 +239,7 @@ const mockMenu: MenuItem[] = [
       category: 'Completos As',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
       modificationPrices: { 'Agregado Queso': 1000 },
-      ingredients: ['Palta', 'Tomate']
+      ingredients: ['Palta', 'Tomate'] // Carne As implied
     },
     {
       id: 12,
@@ -249,7 +248,7 @@ const mockMenu: MenuItem[] = [
       category: 'Completos As',
       modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
        modificationPrices: { 'Agregado Queso': 1000 },
-        ingredients: ['Tomate', 'Chucrut', 'Americana']
+        ingredients: ['Tomate', 'Chucrut', 'Americana'] // Carne As implied
     },
     { id: 36, name: 'Completo Grande', price: 7000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Chucrut', 'Americana'] },
     { id: 37, name: 'Palta Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta'] },
@@ -694,71 +693,63 @@ const sortMenu = (menu: MenuItem[]): MenuItem[] => {
   });
 };
 
-
 const getPersistedMenu = (): MenuItem[] => {
+  let baseMenu: MenuItem[] = mockMenu.map(item => ({ // Deep copy mockMenu as a base
+    ...item,
+    modifications: item.modifications || [],
+  }));
+
   if (typeof window === 'undefined') {
-    return sortMenu(mockMenu); // SSR fallback
+    return sortMenu(baseMenu); // SSR fallback with mockMenu
   }
+
   const storedMenuJson = localStorage.getItem(MENU_STORAGE_KEY);
+  let finalMenuToSave = [...baseMenu]; // Start with full mockMenu
+
   if (storedMenuJson) {
     try {
-      const parsedMenu = JSON.parse(storedMenuJson);
-      if (Array.isArray(parsedMenu) && parsedMenu.length > 0) {
-         // Ensure all items have modifications array, and add new fajita mods if needed
-        const menuWithEnsuredModifications = parsedMenu.map(item => {
-          const newItem = { ...item, modifications: item.modifications || [] };
-          if (item.category === 'Promo Fajitas' &&
-              ['Italiana', 'Brasileño', 'Chacarero', 'Americana', 'Primavera', 'Golosasa', '4 Ingredientes', '6 Ingredientes'].includes(item.name)) {
-
-            const existingMods = new Set(newItem.modifications);
-            promoFajitasBaseModifications.forEach(mod => existingMods.add(mod));
-            newItem.modifications = Array.from(existingMods);
+      const parsedLocalStorageMenu: MenuItem[] = JSON.parse(storedMenuJson);
+      if (Array.isArray(parsedLocalStorageMenu)) {
+        const mergedMenu = baseMenu.map(mockItem => {
+          const storedItem = parsedLocalStorageMenu.find(lsItem => lsItem.id === mockItem.id);
+          if (storedItem) {
+            return {
+              ...mockItem,
+              price: storedItem.price,
+              modifications: storedItem.modifications && storedItem.modifications.length > 0 ? storedItem.modifications : (mockItem.modifications || []),
+              ingredients: storedItem.ingredients && storedItem.ingredients.length > 0 ? storedItem.ingredients : (mockItem.ingredients || []),
+            };
           }
-          return newItem;
+          return mockItem;
         });
-        return sortMenu(menuWithEnsuredModifications);
+        finalMenuToSave = mergedMenu;
       }
     } catch (e) {
-      console.error("Failed to parse menu from localStorage:", e);
+      console.error("Failed to parse menu from localStorage. Using mock menu.", e);
     }
   }
-  // Apply modifications to initial mockMenu before saving
-  const initialMenuWithMods = mockMenu.map(item => {
-    const newItem = { ...item, modifications: item.modifications || [] };
+
+  finalMenuToSave = finalMenuToSave.map(item => {
+    const newItem = { ...item };
     if (item.category === 'Promo Fajitas' &&
         ['Italiana', 'Brasileño', 'Chacarero', 'Americana', 'Primavera', 'Golosasa', '4 Ingredientes', '6 Ingredientes'].includes(item.name)) {
-
-      const existingMods = new Set(newItem.modifications);
+      const existingMods = new Set(newItem.modifications || []);
       promoFajitasBaseModifications.forEach(mod => existingMods.add(mod));
       newItem.modifications = Array.from(existingMods);
     }
     return newItem;
   });
 
-  const initialSortedMenu = sortMenu(initialMenuWithMods);
+  const sortedFinalMenu = sortMenu(finalMenuToSave);
+
   if (typeof window !== 'undefined') {
     try {
-      localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(initialSortedMenu));
+      localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(sortedFinalMenu));
     } catch (e) {
-      console.error("Failed to save initial menu to localStorage:", e);
+      console.error("Failed to save final menu to localStorage:", e);
     }
   }
-  return initialSortedMenu;
-};
-
-
-// Helper function to get the next order number
-const getNextOrderNumber = (): number => {
-  if (typeof window === 'undefined') return 1; // SSR fallback
-
-  const lastOrderNumberStr = sessionStorage.getItem(ORDER_NUMBER_STORAGE_KEY);
-  let lastOrderNumber = lastOrderNumberStr ? parseInt(lastOrderNumberStr, 10) : 0;
-  if (isNaN(lastOrderNumber) || lastOrderNumber >= 999) {
-    lastOrderNumber = 0; // Reset if invalid or max reached
-  }
-  const nextOrderNumber = lastOrderNumber + 1;
-  sessionStorage.setItem(ORDER_NUMBER_STORAGE_KEY, nextOrderNumber.toString());
-  return nextOrderNumber;
+  return sortedFinalMenu;
 };
 
 
@@ -895,30 +886,28 @@ export function TableDetailPage() {
       if (lowerCategory === 'completos vienesas') {
         if (lowerItemName.includes('normal')) {
           inventory = updateStock(inventory, 'Pan especial normal', quantity);
-          inventory = updateStock(inventory, 'Vienesas', quantity); // 1 vienesa for normal
-          itemFoundAndDeducted = true;
+          inventory = updateStock(inventory, 'Vienesas', quantity);
         } else if (lowerItemName.includes('grande')) {
           inventory = updateStock(inventory, 'Pan especial grande', quantity);
-          inventory = updateStock(inventory, 'Vienesas', quantity * 2); // 2 vienesas for grande
-          itemFoundAndDeducted = true;
+          inventory = updateStock(inventory, 'Vienesas', quantity * 2);
         }
+        itemFoundAndDeducted = true;
       }
       else if (lowerCategory === 'completos as') {
          if (lowerItemName.includes('normal')) {
            inventory = updateStock(inventory, 'Pan especial normal', quantity);
-           itemFoundAndDeducted = true;
          } else if (lowerItemName.includes('grande')) {
            inventory = updateStock(inventory, 'Pan especial grande', quantity);
-           itemFoundAndDeducted = true;
          }
+         itemFoundAndDeducted = true;
       }
        else if (lowerCategory === 'promo fajitas') {
             const promoFajitaItems = ['4 ingredientes', '6 ingredientes', 'americana', 'brasileño', 'chacarero', 'golosasa', 'italiana', 'primavera'];
             if (promoFajitaItems.includes(lowerItemName)) {
                 inventory = updateStock(inventory, 'Fajita', quantity);
                 inventory = updateStock(inventory, 'Lata', quantity);
-                itemFoundAndDeducted = true;
             }
+            itemFoundAndDeducted = true;
        }
        else if (lowerCategory === 'churrascos') {
             const churrascoItems = [
@@ -928,8 +917,8 @@ export function TableDetailPage() {
             ];
             if (churrascoItems.includes(lowerItemName)) {
                 inventory = updateStock(inventory, 'Pan de marraqueta', quantity);
-                itemFoundAndDeducted = true;
             }
+            itemFoundAndDeducted = true;
        }
         else if (lowerCategory === 'promo churrasco') {
             const promoChurrascoItems = [
@@ -940,8 +929,8 @@ export function TableDetailPage() {
             if (promoChurrascoItems.includes(lowerItemName)) {
                 inventory = updateStock(inventory, 'Pan de marraqueta', quantity);
                 inventory = updateStock(inventory, 'Lata', quantity);
-                itemFoundAndDeducted = true;
             }
+            itemFoundAndDeducted = true;
         }
         else if (lowerCategory === 'promo mechada') {
             const promoMechadaItems = [
@@ -952,94 +941,79 @@ export function TableDetailPage() {
             if (promoMechadaItems.includes(lowerItemName)) {
                  inventory = updateStock(inventory, 'Pan de marraqueta', quantity);
                  inventory = updateStock(inventory, 'Lata', quantity);
-                 itemFoundAndDeducted = true;
             }
+            itemFoundAndDeducted = true;
         }
          else if (lowerCategory === 'promo hamburguesas') {
               if (['italiana', 'simple', 'tapa arteria', 'big cami'].includes(lowerItemName)) {
                   inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity);
                   inventory = updateStock(inventory, 'Lata', quantity);
-                  itemFoundAndDeducted = true;
               }
                else if (['doble', 'doble italiana', 'super big cami', 'super tapa arteria'].includes(lowerItemName)) {
-                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity * 2);
+                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity * 2); // Assuming double means 2 patties/buns
                   inventory = updateStock(inventory, 'Lata', quantity);
-                  itemFoundAndDeducted = true;
               }
+              itemFoundAndDeducted = true;
          }
         else if (lowerCategory === 'promociones') {
             if (lowerItemName === 'promo 1' || lowerItemName === 'promo 2') {
                 inventory = updateStock(inventory, 'Pan de hamburguesa grande', quantity);
                 inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity);
-                itemFoundAndDeducted = true;
             } else if (lowerItemName === 'promo 3') {
                 inventory = updateStock(inventory, 'Pan de marraqueta', quantity * 4);
                 inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity);
-                itemFoundAndDeducted = true;
             } else if (lowerItemName === 'promo 4') {
                 inventory = updateStock(inventory, 'Pan de marraqueta', quantity * 2);
-                itemFoundAndDeducted = true;
             } else if (lowerItemName === 'promo 5') {
                 inventory = updateStock(inventory, 'Pan especial normal', quantity * 2);
                 inventory = updateStock(inventory, 'Vienesas', quantity * 2);
                 inventory = updateStock(inventory, 'Lata', quantity * 2);
-                itemFoundAndDeducted = true;
             } else if (lowerItemName === 'promo 6') {
                 inventory = updateStock(inventory, 'Pan especial grande', quantity * 2);
-                inventory = updateStock(inventory, 'Vienesas', quantity * 4);
+                inventory = updateStock(inventory, 'Vienesas', quantity * 4); // 2 vienesas per "completo grande"
                 inventory = updateStock(inventory, 'Lata', quantity * 2);
-                itemFoundAndDeducted = true;
             } else if (lowerItemName === 'promo 7') {
                 inventory = updateStock(inventory, 'Pan especial normal', quantity * 2);
                 inventory = updateStock(inventory, 'Lata', quantity * 2);
-                itemFoundAndDeducted = true;
             } else if (lowerItemName === 'promo 8') {
                 inventory = updateStock(inventory, 'Pan especial grande', quantity * 2);
                 inventory = updateStock(inventory, 'Lata', quantity * 2);
-                itemFoundAndDeducted = true;
             } else if (lowerItemName === 'promo 9') {
                  inventory = updateStock(inventory, 'Pan especial normal', quantity * 4);
                  inventory = updateStock(inventory, 'Vienesas', quantity * 4);
                  inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity * 1);
-                 itemFoundAndDeducted = true;
             } else if (lowerItemName === 'promo 10') {
                  inventory = updateStock(inventory, 'Pan especial grande', quantity * 4);
-                 inventory = updateStock(inventory, 'Vienesas', quantity * 8);
+                 inventory = updateStock(inventory, 'Vienesas', quantity * 8); // 2 vienesas per "completo grande"
                  inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity * 1);
-                 itemFoundAndDeducted = true;
             } else if (lowerItemName === 'promo 11') {
                  inventory = updateStock(inventory, 'Pan especial normal', quantity * 4);
                  inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity * 1);
-                 itemFoundAndDeducted = true;
             } else if (lowerItemName === 'promo 12') {
                 inventory = updateStock(inventory, 'Pan especial grande', quantity * 4);
                 inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity * 1);
-                itemFoundAndDeducted = true;
            }
+           itemFoundAndDeducted = true;
         }
         // Bebidas
         else if (lowerCategory === 'bebidas') {
             if (lowerItemName === 'bebida 1.5lt') {
                 inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity);
-                itemFoundAndDeducted = true;
             } else if (lowerItemName === 'lata') {
                 inventory = updateStock(inventory, 'Lata', quantity);
-                itemFoundAndDeducted = true;
             } else if (lowerItemName === 'cafe chico') {
                 inventory = updateStock(inventory, 'Cafe Chico', quantity);
-                itemFoundAndDeducted = true;
             } else if (lowerItemName === 'cafe grande') {
                 inventory = updateStock(inventory, 'Cafe Grande', quantity);
-                itemFoundAndDeducted = true;
             }
+            itemFoundAndDeducted = true;
         }
         else if (lowerCategory === 'papas fritas') {
             if (lowerItemName === 'box cami') {
                 // inventory = updateStock(inventory, 'Empanadas de Queso', quantity * 8); // Assuming 8 units of a product named 'Empanadas de Queso'
                 inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity);
-                itemFoundAndDeducted = true;
             }
-            // Add other specific "Papas Fritas" items here if needed
+            itemFoundAndDeducted = true;
         }
 
 
@@ -1160,7 +1134,6 @@ export function TableDetailPage() {
     setCurrentOrder([]);
     toast({ title: "Comanda Impresa", description: `Pedido #${newOrderNumber} enviado a cocina y añadido a pendientes.` });
 
-    // Update table status to occupied
     sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
     console.log(`Table ${tableIdParam} status updated to: occupied after printing kitchen order.`);
   };
@@ -1191,7 +1164,6 @@ export function TableDetailPage() {
     let deliveryFeeForThisOrder = 0;
     if (orderToFinalize.deliveryInfo && orderToFinalize.deliveryInfo.deliveryFee > 0) {
         deliveryFeeForThisOrder = orderToFinalize.deliveryInfo.deliveryFee;
-        // orderSubtotal += deliveryFeeForThisOrder; // Subtotal for cash movement already includes this in PaymentDialog
     }
 
     const saleMovement: CashMovement = {
@@ -1201,7 +1173,7 @@ export function TableDetailPage() {
       description: isDelivery
         ? `Venta Delivery #${orderToFinalize.orderNumber} a ${orderToFinalize.deliveryInfo?.name || 'Cliente'}` + (tipAmount > 0 ? ` (Propina: ${printUtilsFormatCurrency(tipAmount)})` : '')
         : `Venta Mesa ${decodedTableIdParam} / Orden #${orderToFinalize.orderNumber}` + (tipAmount > 0 ? ` (Propina: ${printUtilsFormatCurrency(tipAmount)})` : ''),
-      amount: orderSubtotal + deliveryFeeForThisOrder, // This is the subtotal + delivery fee (if any), before tip for this specific movement
+      amount: orderSubtotal + deliveryFeeForThisOrder,
       paymentMethod: paymentMethod,
       deliveryFee: deliveryFeeForThisOrder > 0 ? deliveryFeeForThisOrder : undefined,
     };
@@ -1217,7 +1189,7 @@ export function TableDetailPage() {
 
     const customerReceiptHtml = formatCustomerReceipt(
         orderToFinalize.items,
-        finalAmountWithTip, // This is the grand total including tip
+        finalAmountWithTip,
         paymentMethod,
         decodedTableIdParam,
         orderToFinalize.orderNumber,
@@ -1234,8 +1206,6 @@ export function TableDetailPage() {
     setIsPaymentDialogOpen(false);
     setOrderToPay(null);
 
-
-    // Check if the table should become available
     if (updatedPendingOrderGroups.length === 0 && currentOrder.length === 0) {
         sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
         console.log(`Table ${tableIdParam} status updated to: available after final payment.`);
@@ -1245,7 +1215,6 @@ export function TableDetailPage() {
             console.log("Last delivery order paid. Cleared delivery info and set table to available.");
         }
     } else {
-        // If there are still pending orders or items in current order, keep it occupied
         sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
         console.log(`Table ${tableIdParam} remains occupied. Pending groups: ${updatedPendingOrderGroups.length}, Current order items: ${currentOrder.length}`);
     }
@@ -1259,7 +1228,7 @@ export function TableDetailPage() {
 
   const groupedMenu = useMemo(() => {
     const groups: { [key: string]: MenuItem[] } = {};
-    menu.forEach(item => { // Use full menu here, filtering is done in Sheet
+    menu.forEach(item => {
       if (!groups[item.category]) {
         groups[item.category] = [];
       }
@@ -1327,7 +1296,7 @@ export function TableDetailPage() {
                       <PackageSearch className="mr-2 h-5 w-5"/> Ver Menú
                   </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-full sm:w-[calc(100vw-2rem)] md:w-[calc(100vw-4rem)] lg:w-[800px] xl:w-[1000px] h-full p-0 flex flex-col">
+              <SheetContent side="left" className="w-full sm:w-full md:w-full lg:w-full xl:w-full h-full p-0 flex flex-col">
                   <SheetHeader className="p-4 border-b">
                       <SheetTitle className="text-2xl">Menú</SheetTitle>
                   </SheetHeader>
@@ -1578,4 +1547,3 @@ export function TableDetailPage() {
 }
 
 export default TableDetailPage;
-
