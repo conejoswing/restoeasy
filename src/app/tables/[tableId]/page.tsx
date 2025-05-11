@@ -29,8 +29,8 @@ import {
 } from '@/components/ui/sheet';
 import {
   Dialog,
-  DialogClose, // Ensure DialogClose is imported
-  DialogContent as ShadDialogContent, // Alias ShadCN DialogContent
+  DialogClose, 
+  DialogContent as ShadDialogContent, 
   DialogDescription as ShadDialogDescription,
   DialogFooter as ShadDialogFooter,
   DialogHeader as ShadDialogHeader,
@@ -53,7 +53,7 @@ import { isEqual } from 'lodash';
 import { cn } from '@/lib/utils';
 import type { CashMovement } from '@/app/expenses/page';
 import type { DeliveryInfo } from '@/components/app/delivery-dialog';
-import DeliveryDialog from '@/components/app/delivery-dialog'; // Corrected import
+import DeliveryDialog from '@/components/app/delivery-dialog'; 
 import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
 
@@ -929,8 +929,11 @@ export function TableDetailPage() {
                   inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity * 2);
                   inventory = updateStock(inventory, 'Lata', quantity);
                   itemFoundAndDeducted = true;
+              } else if (lowerItemName === 'super tapa arteria') {
+                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity * 2); // 2 buns for "Super Tapa Arteria"
+                  inventory = updateStock(inventory, 'Lata', quantity);
+                  itemFoundAndDeducted = true;
               }
-              // Add more specific Promo Hamburguesas deductions if needed
          }
         // Bebidas
         else if (lowerCategory === 'bebidas') {
@@ -1492,6 +1495,8 @@ export function TableDetailPage() {
 export default TableDetailPage;
 
   
+
+
 
 
 
