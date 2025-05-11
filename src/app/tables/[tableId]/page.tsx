@@ -53,7 +53,7 @@ import { isEqual } from 'lodash';
 import { cn } from '@/lib/utils';
 import type { CashMovement } from '@/app/expenses/page';
 import type { DeliveryInfo } from '@/components/app/delivery-dialog';
-import DeliveryDialog from '@/components/app/delivery-dialog';
+import DeliveryDialog from '@/components/app/delivery-dialog'; // Corrected import
 import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
 
@@ -885,7 +885,8 @@ export function TableDetailPage() {
          }
       }
        else if (lowerCategory === 'promo fajitas') {
-            if (['4 ingredientes', '6 ingredientes', 'americana', 'brasileño', 'chacarero', 'golosasa', 'italiana', 'primavera'].includes(lowerItemName)) {
+            const promoFajitaItems = ['4 ingredientes', '6 ingredientes', 'americana', 'brasileño', 'chacarero', 'golosasa', 'italiana', 'primavera'];
+            if (promoFajitaItems.includes(lowerItemName)) {
                 inventory = updateStock(inventory, 'Fajita', quantity);
                 inventory = updateStock(inventory, 'Lata', quantity); // Deduct 1 can per promo fajita item
                 itemFoundAndDeducted = true;
@@ -896,44 +897,31 @@ export function TableDetailPage() {
             itemFoundAndDeducted = true;
        }
         else if (lowerCategory === 'promo churrasco') {
-            inventory = updateStock(inventory, 'Pan de marraqueta', quantity);
-            itemFoundAndDeducted = true;
+            const promoChurrascoItems = [
+                'brasileño', 'campestre', 'chacarero', 'che milico',
+                'completo', 'dinamico', 'italiano', 'queso',
+                'queso champiñon', 'tomate', 'palta'
+            ];
+            if (promoChurrascoItems.includes(lowerItemName)) {
+                inventory = updateStock(inventory, 'Pan de marraqueta', quantity);
+                inventory = updateStock(inventory, 'Lata', quantity);
+                itemFoundAndDeducted = true;
+            }
         }
         else if (lowerCategory === 'promo mechada') {
+            // For "Promo Mechada", deduct "Pan de marraqueta" (assuming 1 per item, adjust if needed for "2x" items if they mean 2 sandwiches)
+            // And deduct "Lata"
             inventory = updateStock(inventory, 'Pan de marraqueta', quantity);
+            inventory = updateStock(inventory, 'Lata', quantity);
             itemFoundAndDeducted = true;
         }
          else if (lowerCategory === 'promo hamburguesas') {
-              if (lowerItemName === 'big cami') {
+              if (lowerItemName === 'big cami' || lowerItemName === 'italiana' || lowerItemName === 'simple' || lowerItemName === 'tapa arteria') {
                   inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity);
                   inventory = updateStock(inventory, 'Lata', quantity);
                   itemFoundAndDeducted = true;
-              } else if (lowerItemName === 'doble') {
-                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity * 2); // 2 buns for "Doble"
-                  inventory = updateStock(inventory, 'Lata', quantity);
-                  itemFoundAndDeducted = true;
-              } else if (lowerItemName === 'doble italiana') {
-                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity * 2);
-                  inventory = updateStock(inventory, 'Lata', quantity);
-                  itemFoundAndDeducted = true;
-              } else if (lowerItemName === 'italiana') {
-                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity);
-                  inventory = updateStock(inventory, 'Lata', quantity);
-                  itemFoundAndDeducted = true;
-              } else if (lowerItemName === 'simple') {
-                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity);
-                  inventory = updateStock(inventory, 'Lata', quantity);
-                  itemFoundAndDeducted = true;
-              } else if (lowerItemName === 'super big cami') {
-                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity * 2);
-                  inventory = updateStock(inventory, 'Lata', quantity);
-                  itemFoundAndDeducted = true;
-              } else if (lowerItemName === 'super tapa arteria') {
-                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity * 2);
-                  inventory = updateStock(inventory, 'Lata', quantity);
-                  itemFoundAndDeducted = true;
-              } else if (lowerItemName === 'tapa arteria') {
-                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity);
+              } else if (lowerItemName === 'doble' || lowerItemName === 'doble italiana' || lowerItemName === 'super big cami' || lowerItemName === 'super tapa arteria') {
+                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity * 2); // 2 buns for these
                   inventory = updateStock(inventory, 'Lata', quantity);
                   itemFoundAndDeducted = true;
               }
@@ -1496,3 +1484,4 @@ export function TableDetailPage() {
 }
 
 export default TableDetailPage;
+
