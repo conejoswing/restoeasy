@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -53,9 +52,10 @@ import { isEqual } from 'lodash';
 import { cn } from '@/lib/utils';
 import type { CashMovement } from '@/app/expenses/page';
 import type { DeliveryInfo } from '@/components/app/delivery-dialog';
-import DeliveryDialog from '@/components/app/delivery-dialog';
+import DeliveryDialog from '@/components/app/delivery-dialog'; // Corrected import
 import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
+// import { Dialog as ShadDialog, DialogClose as ShadDialogClose, DialogContent as ShadDialogContent, DialogDescription as ShadDialogDescription, DialogFooter as ShadDialogFooter, DialogHeader as ShadDialogHeader, DialogTitle as ShadDialogTitle, DialogTrigger as ShadDialogTrigger } from '@/components/ui/dialog'; // Renamed to avoid conflict
 import { Label } from '@/components/ui/label';
 import {
   Accordion,
@@ -906,7 +906,7 @@ export function TableDetailPage() {
                 'queso champiñon', 'tomate', 'palta'
             ];
             if (promoChurrascoItems.includes(lowerItemName)) {
-                inventory = updateStock(inventory, 'Pan de marraqueta', quantity); // Each promo churrasco uses 1 pan
+                inventory = updateStock(inventory, 'Pan de marraqueta', quantity);
                 inventory = updateStock(inventory, 'Lata', quantity);
                 itemFoundAndDeducted = true;
             }
@@ -918,7 +918,7 @@ export function TableDetailPage() {
                 'queso', 'queso champiñon', 'tomate'
             ];
             if (promoMechadaItems.includes(lowerItemName)) {
-                 inventory = updateStock(inventory, 'Pan de marraqueta', quantity); // Each promo mechada uses 1 pan
+                 inventory = updateStock(inventory, 'Pan de marraqueta', quantity);
                  inventory = updateStock(inventory, 'Lata', quantity);
                  itemFoundAndDeducted = true;
             }
@@ -930,7 +930,7 @@ export function TableDetailPage() {
                   itemFoundAndDeducted = true;
               }
                else if (['doble', 'doble italiana', 'super big cami', 'super tapa arteria'].includes(lowerItemName)) {
-                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity * 2); // Double burgers use 2 buns (or equivalent of 2 normal buns)
+                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity * 2);
                   inventory = updateStock(inventory, 'Lata', quantity);
                   itemFoundAndDeducted = true;
               }
@@ -954,7 +954,7 @@ export function TableDetailPage() {
                 itemFoundAndDeducted = true;
             } else if (lowerItemName === 'promo 6') {
                 inventory = updateStock(inventory, 'Pan especial grande', quantity * 2);
-                inventory = updateStock(inventory, 'Vienesas', quantity * 4); // 2 vienesas per grande
+                inventory = updateStock(inventory, 'Vienesas', quantity * 4);
                 inventory = updateStock(inventory, 'Lata', quantity * 2);
                 itemFoundAndDeducted = true;
             } else if (lowerItemName === 'promo 7') {
@@ -972,7 +972,7 @@ export function TableDetailPage() {
                  itemFoundAndDeducted = true;
             } else if (lowerItemName === 'promo 10') {
                  inventory = updateStock(inventory, 'Pan especial grande', quantity * 4);
-                 inventory = updateStock(inventory, 'Vienesas', quantity * 8); // 2 vienesas per grande
+                 inventory = updateStock(inventory, 'Vienesas', quantity * 8);
                  inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity * 1);
                  itemFoundAndDeducted = true;
             } else if (lowerItemName === 'promo 11') {
@@ -1000,6 +1000,14 @@ export function TableDetailPage() {
                 inventory = updateStock(inventory, 'Cafe Grande', quantity);
                 itemFoundAndDeducted = true;
             }
+        }
+        else if (lowerCategory === 'papas fritas') {
+            if (lowerItemName === 'box cami') {
+                inventory = updateStock(inventory, 'Empanadas de Queso', quantity * 8);
+                inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity);
+                itemFoundAndDeducted = true;
+            }
+            // Add other specific "Papas Fritas" items here if needed
         }
 
 
@@ -1265,7 +1273,7 @@ export function TableDetailPage() {
   return (
     <div className="flex flex-col h-screen p-4 gap-4">
       <header className="flex justify-between items-center pb-4 border-b">
-        <Button variant="outline" onClick={handleGoBack} className="hover:bg-secondary/90">
+        <Button variant="outline" onClick={handleGoBack} className={cn(buttonVariants({ variant: "outline" }), "hover:bg-secondary/90")}>
           <ArrowLeft className="mr-2 h-5 w-5" />
           Volver a Mesas
         </Button>
@@ -1287,7 +1295,7 @@ export function TableDetailPage() {
                       <PackageSearch className="mr-2 h-5 w-5"/> Ver Menú
                   </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-full sm:max-w-full md:max-w-full lg:max-w-full xl:max-w-full h-full p-0 flex flex-col"> {/* Increased max-width */}
+              <SheetContent side="left" className="w-full sm:w-[calc(100vw-2rem)] md:w-[calc(100vw-4rem)] lg:w-[800px] xl:w-[1000px] h-full p-0 flex flex-col">
                   <SheetHeader className="p-4 border-b">
                       <SheetTitle className="text-2xl">Menú</SheetTitle>
                   </SheetHeader>
@@ -1538,8 +1546,3 @@ export function TableDetailPage() {
 }
 
 export default TableDetailPage;
-
-
-
-
-
