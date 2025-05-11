@@ -28,9 +28,9 @@ import {
   SheetFooter,
 } from '@/components/ui/sheet';
 import {
-  Dialog as ShadDialog, 
+  Dialog as ShadDialog,
   DialogClose as ShadDialogClose,
-  DialogContent as ShadDialogContent, 
+  DialogContent as ShadDialogContent,
   DialogDescription as ShadDialogDescription,
   DialogFooter as ShadDialogFooter,
   DialogHeader as ShadDialogHeader,
@@ -53,7 +53,7 @@ import { isEqual } from 'lodash';
 import { cn } from '@/lib/utils';
 import type { CashMovement } from '@/app/expenses/page';
 import type { DeliveryInfo } from '@/components/app/delivery-dialog';
-import DeliveryDialog from '@/components/app/delivery-dialog'; 
+import DeliveryDialog from '@/components/app/delivery-dialog';
 import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
 import { Label } from '@/components/ui/label';
@@ -929,12 +929,12 @@ export function TableDetailPage() {
                   inventory = updateStock(inventory, 'Lata', quantity);
                   itemFoundAndDeducted = true;
               } else if (lowerItemName === 'big cami') {
-                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity); 
+                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity);
                   inventory = updateStock(inventory, 'Lata', quantity);
                   itemFoundAndDeducted = true;
               }
                else if (['doble', 'doble italiana', 'super big cami', 'super tapa arteria'].includes(lowerItemName)) {
-                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity * 2); 
+                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity * 2);
                   inventory = updateStock(inventory, 'Lata', quantity);
                   itemFoundAndDeducted = true;
               }
@@ -958,7 +958,7 @@ export function TableDetailPage() {
                 itemFoundAndDeducted = true;
             } else if (lowerItemName === 'promo 6') {
                 inventory = updateStock(inventory, 'Pan especial grande', quantity * 2);
-                inventory = updateStock(inventory, 'Vienesas', quantity * 4); 
+                inventory = updateStock(inventory, 'Vienesas', quantity * 4);
                 inventory = updateStock(inventory, 'Lata', quantity * 2);
                 itemFoundAndDeducted = true;
             } else if (lowerItemName === 'promo 7') {
@@ -972,7 +972,7 @@ export function TableDetailPage() {
             } else if (lowerItemName === 'promo 9') {
                  inventory = updateStock(inventory, 'Pan especial normal', quantity * 4);
                  inventory = updateStock(inventory, 'Vienesas', quantity * 4);
-                 inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity * 1);
+                 inventory = updateStock(inventory, 'Bebida 1.5Lt', quantity * 1); // Changed from 2 to 1
                  itemFoundAndDeducted = true;
             } else if (lowerItemName === 'promo 10') {
                  inventory = updateStock(inventory, 'Pan especial grande', quantity * 4);
@@ -1283,7 +1283,7 @@ export function TableDetailPage() {
                       <PackageSearch className="mr-2 h-5 w-5"/> Ver Menú
                   </Button>
               </SheetTrigger>
-              <SheetContent side="left" className="w-full sm:max-w-full md:max-w-4xl lg:max-w-5xl xl:max-w-6xl h-full p-0 flex flex-col"> {/* Increased max-width */}
+              <SheetContent side="left" className="w-full sm:max-w-full md:max-w-full lg:max-w-full xl:max-w-full h-full p-0 flex flex-col"> {/* Increased max-width */}
                   <SheetHeader className="p-4 border-b">
                       <SheetTitle className="text-2xl">Menú</SheetTitle>
                   </SheetHeader>
@@ -1298,8 +1298,8 @@ export function TableDetailPage() {
                   <ScrollArea className="flex-grow px-4">
                     <Accordion type="multiple" defaultValue={orderedCategories} className="w-full">
                       {Object.entries(groupedMenu)
-                        .filter(([category, items]) => { 
-                            if (!searchTerm) return true; 
+                        .filter(([category, items]) => {
+                            if (!searchTerm) return true;
                             return category.toLowerCase().includes(searchTerm.toLowerCase()) ||
                                    items.some(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()));
                         })
@@ -1311,7 +1311,7 @@ export function TableDetailPage() {
                           <AccordionContent className="pt-0 bg-card border border-t-0 rounded-b-md">
                             <div className="grid grid-cols-1 divide-y">
                               {items
-                                .filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()) || category.toLowerCase().includes(searchTerm.toLowerCase()) ) 
+                                .filter(item => item.name.toLowerCase().includes(searchTerm.toLowerCase()) || category.toLowerCase().includes(searchTerm.toLowerCase()) )
                                 .map((item) => (
                                 <div
                                   key={item.id}
@@ -1372,7 +1372,7 @@ export function TableDetailPage() {
                       <div className="flex justify-between items-start">
                         <div>
                           <p className="font-bold text-base">
-                            {item.name} <span className="text-xs text-muted-foreground font-normal">({item.category})</span>
+                            {item.name} <span className="text-xs text-muted-foreground font-normal font-bold">({item.category})</span>
                           </p>
                           {item.selectedModifications && item.selectedModifications.length > 0 && (
                             <p className="text-xs text-muted-foreground italic font-bold">
@@ -1534,5 +1534,6 @@ export function TableDetailPage() {
 }
 
 export default TableDetailPage;
+
 
 
