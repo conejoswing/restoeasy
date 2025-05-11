@@ -29,8 +29,8 @@ import {
 } from '@/components/ui/sheet';
 import {
   Dialog,
-  DialogClose, 
-  DialogContent as ShadDialogContent, 
+  DialogClose,
+  DialogContent as ShadDialogContent,
   DialogDescription as ShadDialogDescription,
   DialogFooter as ShadDialogFooter,
   DialogHeader as ShadDialogHeader,
@@ -53,7 +53,7 @@ import { isEqual } from 'lodash';
 import { cn } from '@/lib/utils';
 import type { CashMovement } from '@/app/expenses/page';
 import type { DeliveryInfo } from '@/components/app/delivery-dialog';
-import DeliveryDialog from '@/components/app/delivery-dialog'; 
+import DeliveryDialog from '@/components/app/delivery-dialog';
 import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
 
@@ -363,7 +363,7 @@ const mockMenu: MenuItem[] = [
         category: 'Promo Hamburguesas',
         modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
-         ingredients: ['Huevo Frito', 'Cebolla Frita', 'Bacon']
+         ingredients: ['Huevo Frito', 'Cebolla Frita', 'Bacon', 'Bebida Lata', 'Papa Personal']
     },
     {
         id: 70,
@@ -896,12 +896,11 @@ export function TableDetailPage() {
             itemFoundAndDeducted = true;
        }
         else if (lowerCategory === 'promo churrasco') {
-             // For "2x" promos, deduct 2 buns, but this logic might need adjustment if item names don't imply "2x"
-            inventory = updateStock(inventory, 'Pan de marraqueta', quantity * (lowerItemName.startsWith("2x") ? 2 : 1));
+            inventory = updateStock(inventory, 'Pan de marraqueta', quantity);
             itemFoundAndDeducted = true;
         }
         else if (lowerCategory === 'promo mechada') {
-            inventory = updateStock(inventory, 'Pan de marraqueta', quantity * (lowerItemName.startsWith("2x") ? 2 : 1));
+            inventory = updateStock(inventory, 'Pan de marraqueta', quantity);
             itemFoundAndDeducted = true;
         }
          else if (lowerCategory === 'promo hamburguesas') {
@@ -930,7 +929,11 @@ export function TableDetailPage() {
                   inventory = updateStock(inventory, 'Lata', quantity);
                   itemFoundAndDeducted = true;
               } else if (lowerItemName === 'super tapa arteria') {
-                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity * 2); // 2 buns for "Super Tapa Arteria"
+                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity * 2);
+                  inventory = updateStock(inventory, 'Lata', quantity);
+                  itemFoundAndDeducted = true;
+              } else if (lowerItemName === 'tapa arteria') {
+                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity);
                   inventory = updateStock(inventory, 'Lata', quantity);
                   itemFoundAndDeducted = true;
               }
@@ -1493,12 +1496,3 @@ export function TableDetailPage() {
 }
 
 export default TableDetailPage;
-
-  
-
-
-
-
-
-
-
