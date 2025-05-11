@@ -10,13 +10,13 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Card, CardContent } from '@/components/ui/card'; // Removed CardHeader, CardTitle as they are not directly used here for grouping.
+import { Card, CardContent } from '@/components/ui/card'; 
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
   DialogClose,
-  DialogContent as ShadDialogContent, // Direct import
+  DialogContent as ShadDialogContent, 
   DialogDescription,
   DialogFooter,
   DialogHeader,
@@ -26,7 +26,7 @@ import { Label } from '@/components/ui/label';
 import { useState, useEffect, useMemo } from 'react';
 import { Edit } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { Dialog as ShadDialog } from '@/components/ui/dialog'; // Alias for the root Dialog component
+import { Dialog as ShadDialog } from '@/components/ui/dialog'; 
 import { formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
 
 
@@ -44,9 +44,9 @@ const MENU_STORAGE_KEY = 'restaurantMenuData';
 
 const promoFajitasBaseModifications = [
     'Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso',
+    'Pollo', 'Lomito', 'Vacuno', 'Lechuga',
     'tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde',
-    'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo',
-    'Pollo', 'Lomito', 'Vacuno', 'Lechuga'
+    'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'
 ];
 
 const mockMenu: MenuItem[] = [
@@ -74,7 +74,7 @@ const mockMenu: MenuItem[] = [
       name: 'Hot Dog Normal',
       price: 4200,
       category: 'Completos Vienesas',
-      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+      modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
       modificationPrices: { 'Agregado Queso': 1000 },
       ingredients: ['Salsas']
     },
@@ -83,7 +83,7 @@ const mockMenu: MenuItem[] = [
         name: 'Hot Dog Grande',
         price: 4700,
         category: 'Completos Vienesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Salsas']
     },
@@ -110,7 +110,7 @@ const mockMenu: MenuItem[] = [
         name: 'Palta Normal',
         price: 4100,
         category: 'Completos Vienesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Palta']
     },
@@ -119,7 +119,7 @@ const mockMenu: MenuItem[] = [
         name: 'Palta Grande',
         price: 4600,
         category: 'Completos Vienesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Palta']
     },
@@ -128,7 +128,7 @@ const mockMenu: MenuItem[] = [
         name: 'Tomate Normal',
         price: 4100,
         category: 'Completos Vienesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate']
     },
@@ -137,7 +137,7 @@ const mockMenu: MenuItem[] = [
         name: 'Tomate Grande',
         price: 4600,
         category: 'Completos Vienesas',
-        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'],
+        modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'],
         modificationPrices: { 'Agregado Queso': 1000 },
         ingredients: ['Tomate']
     },
@@ -188,10 +188,10 @@ const mockMenu: MenuItem[] = [
         ingredients: ['Tomate', 'Chucrut', 'Americana']
     },
     { id: 36, name: 'Completo Grande', price: 7000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Chucrut', 'Americana'] },
-    { id: 37, name: 'Palta Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta'] },
-    { id: 38, name: 'Palta Grande', price: 6300, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta'] },
-    { id: 39, name: 'Tomate Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate'] },
-    { id: 40, name: 'Tomate Grande', price: 6300, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate'] },
+    { id: 37, name: 'Palta Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta'] },
+    { id: 38, name: 'Palta Grande', price: 6300, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta'] },
+    { id: 39, name: 'Tomate Normal', price: 5800, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate'] },
+    { id: 40, name: 'Tomate Grande', price: 6300, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate'] },
     { id: 41, name: 'Queso Normal', price: 6000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso'] },
     { id: 42, name: 'Queso Grande', price: 6500, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso'] },
     { id: 43, name: 'Solo Carne Normal', price: 5000, category: 'Completos As', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: [] },
@@ -514,7 +514,7 @@ const mockMenu: MenuItem[] = [
      { id: 84, name: 'Palta', price: 8800, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Bebida Lata', 'Papa Personal'] },
      { id: 85, name: 'Tomate', price: 8800, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Bebida Lata', 'Papa Personal'] },
      { id: 86, name: 'Brasileño', price: 9200, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Queso Amarillo', 'Papas Hilo', 'Aceituna', 'Bebida Lata', 'Papa Personal'] },
-     { id: 87, name: 'Dinamico', price: 9300, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta', 'Papa Personal'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana', 'Bebida Lata', 'Papa Personal'] },
+     { id: 87, name: 'Dinamico', price: 9300, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana', 'Bebida Lata', 'Papa Personal'] },
      { id: 88, name: 'Campestre', price: 9500, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Lechuga', 'Bebida Lata', 'Papa Personal'] },
      { id: 89, name: 'Queso Champiñon', price: 9800, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Champiñon', 'Tocino', 'Bebida Lata', 'Papa Personal'] },
      { id: 90, name: 'Che milico', price: 10000, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Cebolla Caramelizada', 'Huevo', 'Bebida Lata', 'Papa Personal'] },
@@ -631,17 +631,17 @@ const sortMenu = (menu: MenuItem[]): MenuItem[] => {
 };
 
 const getPersistedMenu = (): MenuItem[] => {
-  let baseMenu: MenuItem[] = mockMenu.map(item => ({ // Deep copy mockMenu as a base
+  let baseMenu: MenuItem[] = mockMenu.map(item => ({ 
     ...item,
     modifications: item.modifications || [],
   }));
 
   if (typeof window === 'undefined') {
-    return sortMenu(baseMenu); // SSR fallback with mockMenu
+    return sortMenu(baseMenu); 
   }
 
   const storedMenuJson = localStorage.getItem(MENU_STORAGE_KEY);
-  let finalMenuToSave = [...baseMenu]; // Start with full mockMenu
+  let finalMenuToSave = [...baseMenu]; 
 
   if (storedMenuJson) {
     try {
@@ -838,12 +838,12 @@ const ProductsManagementPage = () => {
 
        <ShadDialog open={isEditPriceDialogOpen} onOpenChange={setIsEditPriceDialogOpen}>
          <ShadDialogContent className="sm:max-w-[425px]">
-           <DialogHeader>
-             <DialogTitle>Editar Precio de {editingProduct?.name}</DialogTitle>
-             <DialogDescription>
+           <ShadDialogHeader>
+             <ShadDialogTitle>Editar Precio de {editingProduct?.name}</ShadDialogTitle>
+             <ShadDialogDescription>
                  Actualice el precio base para este producto.
-             </DialogDescription>
-           </DialogHeader>
+             </ShadDialogDescription>
+           </ShadDialogHeader>
            <div className="grid gap-4 py-4">
              <div className="grid grid-cols-4 items-center gap-4">
                  <Label htmlFor="price" className="text-right">
@@ -861,12 +861,12 @@ const ProductsManagementPage = () => {
                  />
              </div>
            </div>
-           <DialogFooter>
+           <ShadDialogFooter>
              <DialogClose asChild>
                  <Button type="button" variant="secondary" onClick={() => setIsEditPriceDialogOpen(false)}>Cancelar</Button>
              </DialogClose>
              <Button type="submit" onClick={handleUpdatePrice}>Guardar Cambios</Button>
-           </DialogFooter>
+           </ShadDialogFooter>
          </ShadDialogContent>
        </ShadDialog>
     </div>
@@ -881,3 +881,5 @@ const ProductsPageContent = () => {
 export default function ProductsPage() {
     return <ProductsPageContent />;
 }
+
+    
