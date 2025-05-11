@@ -28,6 +28,16 @@ import {
   SheetFooter,
 } from '@/components/ui/sheet';
 import {
+  Dialog,
+  DialogClose, // Ensure DialogClose is imported
+  DialogContent as ShadDialogContent, // Alias ShadCN DialogContent
+  DialogDescription as ShadDialogDescription,
+  DialogFooter as ShadDialogFooter,
+  DialogHeader as ShadDialogHeader,
+  DialogTitle as ShadDialogTitle,
+  DialogTrigger as ShadDialogTrigger,
+} from '@/components/ui/dialog';
+import {
   Table,
   TableBody,
   TableCell,
@@ -43,10 +53,10 @@ import { isEqual } from 'lodash';
 import { cn } from '@/lib/utils';
 import type { CashMovement } from '@/app/expenses/page';
 import type { DeliveryInfo } from '@/components/app/delivery-dialog';
-import DeliveryDialog from '@/components/app/delivery-dialog';
+import DeliveryDialog from '@/components/app/delivery-dialog'; // Corrected import
 import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
-import { Dialog as ShadDialog, DialogClose as ShadDialogClose, DialogContent as ShadDialogContent, DialogDescription as ShadDialogDescription, DialogFooter as ShadDialogFooter, DialogHeader as ShadDialogHeader, DialogTitle as ShadDialogTitle, DialogTrigger as ShadDialogTrigger } from '@/components/ui/dialog';
+
 import { Label } from '@/components/ui/label';
 import {
   Accordion,
@@ -877,7 +887,7 @@ export function TableDetailPage() {
        else if (lowerCategory === 'promo fajitas') {
             if (['4 ingredientes', '6 ingredientes', 'americana', 'brasileño', 'chacarero', 'golosasa', 'italiana', 'primavera'].includes(lowerItemName)) {
                 inventory = updateStock(inventory, 'Fajita', quantity);
-                inventory = updateStock(inventory, 'Lata', quantity);
+                inventory = updateStock(inventory, 'Lata', quantity); // Deduct 1 can per promo fajita item
                 itemFoundAndDeducted = true;
             }
        }
@@ -886,11 +896,12 @@ export function TableDetailPage() {
             itemFoundAndDeducted = true;
        }
         else if (lowerCategory === 'promo churrasco') {
-            inventory = updateStock(inventory, 'Pan de marraqueta', quantity * 2); // Each "2x" promo uses 2 breads
+             // For "2x" promos, deduct 2 buns, but this logic might need adjustment if item names don't imply "2x"
+            inventory = updateStock(inventory, 'Pan de marraqueta', quantity * (lowerItemName.startsWith("2x") ? 2 : 1));
             itemFoundAndDeducted = true;
         }
         else if (lowerCategory === 'promo mechada') {
-            inventory = updateStock(inventory, 'Pan de marraqueta', quantity * 2); // Each "2x" promo uses 2 breads
+            inventory = updateStock(inventory, 'Pan de marraqueta', quantity * (lowerItemName.startsWith("2x") ? 2 : 1));
             itemFoundAndDeducted = true;
         }
          else if (lowerCategory === 'promo hamburguesas') {
@@ -900,13 +911,17 @@ export function TableDetailPage() {
                   itemFoundAndDeducted = true;
               } else if (lowerItemName === 'doble') {
                   inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity * 2); // 2 buns for "Doble"
-                  inventory = updateStock(inventory, 'Lata', quantity); // 1 can for "Doble"
+                  inventory = updateStock(inventory, 'Lata', quantity);
                   itemFoundAndDeducted = true;
               } else if (lowerItemName === 'doble italiana') {
                   inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity * 2);
                   inventory = updateStock(inventory, 'Lata', quantity);
                   itemFoundAndDeducted = true;
               } else if (lowerItemName === 'italiana') {
+                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity);
+                  inventory = updateStock(inventory, 'Lata', quantity);
+                  itemFoundAndDeducted = true;
+              } else if (lowerItemName === 'simple') {
                   inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity);
                   inventory = updateStock(inventory, 'Lata', quantity);
                   itemFoundAndDeducted = true;
@@ -1473,6 +1488,7 @@ export function TableDetailPage() {
 export default TableDetailPage;
 
   
+
 
 
 
