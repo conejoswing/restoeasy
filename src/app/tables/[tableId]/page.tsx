@@ -902,6 +902,10 @@ export function TableDetailPage() {
                   inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity * 2); // 2 buns for "Doble"
                   inventory = updateStock(inventory, 'Lata', quantity); // 1 can for "Doble"
                   itemFoundAndDeducted = true;
+              } else if (lowerItemName === 'doble italiana') {
+                  inventory = updateStock(inventory, 'Pan de hamburguesa normal', quantity * 2);
+                  inventory = updateStock(inventory, 'Lata', quantity);
+                  itemFoundAndDeducted = true;
               }
               // Add more specific Promo Hamburguesas deductions if needed
          }
@@ -1465,4 +1469,5 @@ export function TableDetailPage() {
 export default TableDetailPage;
 
   
+
 
