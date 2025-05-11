@@ -956,6 +956,11 @@ export function TableDetailPage() {
                 inventory = updateStock(inventory, 'Vienesas', quantity * 2);
                 inventory = updateStock(inventory, 'Lata', quantity * 2);
                 itemFoundAndDeducted = true;
+            } else if (lowerItemName === 'promo 6') {
+                inventory = updateStock(inventory, 'Pan especial grande', quantity * 2);
+                inventory = updateStock(inventory, 'Vienesas', quantity * 4); // 2 vienesas per completo grande * 2 completos
+                inventory = updateStock(inventory, 'Lata', quantity * 2);
+                itemFoundAndDeducted = true;
             }
         }
         // Bebidas
