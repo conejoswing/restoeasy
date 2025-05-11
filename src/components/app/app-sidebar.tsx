@@ -41,18 +41,37 @@ export default function AppSidebar() {
       {/* Use flex-col and mt-auto on the logout item to push it down */}
       <SidebarContent className="flex flex-col justify-between flex-grow">
         <SidebarMenu className="flex flex-col flex-grow"> {/* Add flex-grow here */}
-          {/* Tables is always visible */}
-          <SidebarMenuItem>
-            <Link href="/tables">
-              <SidebarMenuButton
-                isActive={isActive('/tables')}
-                tooltip="Mesas" // Added tooltip
-              >
-                <UtensilsCrossed />
-                <span className="group-data-[collapsible=icon]:hidden">Mesas</span>
-              </SidebarMenuButton>
-            </Link>
-          </SidebarMenuItem>
+          {/* Tables is always visible if authenticated */}
+          {isAuthenticated && (
+            <SidebarMenuItem>
+                <Link href="/tables">
+                <SidebarMenuButton
+                    isActive={isActive('/tables')}
+                    tooltip="Mesas" // Added tooltip
+                >
+                    <UtensilsCrossed />
+                    <span className="group-data-[collapsible=icon]:hidden">Mesas</span>
+                </SidebarMenuButton>
+                </Link>
+            </SidebarMenuItem>
+          )}
+
+          {/* Worker Specific Menu Items */}
+          {isAuthenticated && userRole === 'worker' && (
+             <>
+               <SidebarMenuItem>
+                 <Link href="/expenses">
+                   <SidebarMenuButton
+                     isActive={isActive('/expenses')}
+                     tooltip="Caja"
+                   >
+                     <Receipt />
+                     <span className="group-data-[collapsible=icon]:hidden">Caja</span>
+                   </SidebarMenuButton>
+                 </Link>
+               </SidebarMenuItem>
+             </>
+          )}
 
           {/* Admin Only Menu Items - Render based on auth and role */}
           {isAuthenticated && userRole === 'admin' && (
@@ -125,4 +144,3 @@ export default function AppSidebar() {
     </>
   );
 }
-

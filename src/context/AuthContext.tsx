@@ -358,7 +358,7 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
     console.log(`AuthGuard: Pathname: ${pathname}, IsAuthenticated: ${isAuthenticated}, UserRole: ${userRole}`);
 
     const isLoginPage = pathname === '/login';
-    const adminOnlyPages = ['/inventory', '/expenses', '/products', '/users'];
+    const workerDisallowedAdminPaths = ['/inventory', '/products', '/users']; // Pages worker CANNOT access
 
     if (!isAuthenticated && !isLoginPage) {
         console.log("AuthGuard: User not authenticated, redirecting to /login");
@@ -368,14 +368,14 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
         router.push('/tables');
     }
     else if (isAuthenticated && userRole === 'worker') {
-      const isTryingAdminPage = adminOnlyPages.some(adminPath => pathname.startsWith(adminPath));
-      if (isTryingAdminPage) {
-        console.log(`AuthGuard: Worker trying to access restricted admin page ${pathname}, redirecting to /tables`);
+      const isTryingDisallowedPage = workerDisallowedAdminPaths.some(disallowedPath => pathname.startsWith(disallowedPath));
+      if (isTryingDisallowedPage) {
+        console.log(`AuthGuard: Worker trying to access restricted page ${pathname}, redirecting to /tables`);
         toast({ title: "Acceso Denegado", description: "No tiene permisos para acceder a esta página.", variant: "destructive" });
         router.push('/tables');
       }
     } else if (isAuthenticated && userRole === 'admin') {
-         // Admin can access everything.
+         // Admin can access everything. No explicit redirection needed here.
     }
 
   }, [pathname, router, isLoading, isAuthenticated, userRole, toast]);
@@ -394,4 +394,3 @@ const AuthGuard = ({ children }: AuthGuardProps) => {
   return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
 
 };
-
