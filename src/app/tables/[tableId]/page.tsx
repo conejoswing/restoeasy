@@ -15,7 +15,7 @@ import {
 import {ScrollArea }from '@/components/ui/scroll-area';
 import {Separator }from '@/components/ui/separator';
 // import { Input } from '@/components/ui/input'; // No longer directly used here, moved to ProductsManagementPage
-import { Badge } from '@/components/ui/badge'; // No longer directly used here
+// import { Badge } from '@/components/ui/badge'; // No longer directly used here
 import {
   Sheet,
   SheetContent,
@@ -34,6 +34,7 @@ import {
   DialogTitle as ShadDialogTitle, 
   DialogTrigger as ShadDialogTrigger, 
 } from '@/components/ui/dialog'; 
+import { Badge } from '@/components/ui/badge';
 
 import { Utensils, PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard, ChevronRight, Banknote, Landmark, Home, Phone, User, DollarSign, PackageSearch, Edit, Trash2, ListChecks, Tags, Pencil } from 'lucide-react';
 import {useToast }from '@/hooks/use-toast';
@@ -129,7 +130,7 @@ export default function TableDetailPage() {
 
   const tableDisplayName = useMemo(() => {
     if (isDelivery) return 'Delivery';
-    if (isMeson) return 'Mesón';
+    if (isMeson) return 'Mesón'; // Corrected: 'Mesón' to 'Mesón' (though it was already correct, ensuring consistency)
     if (!isNaN(Number(tableIdParam))) return `Mesa ${tableIdParam}`;
     return decodeURIComponent(tableIdParam).charAt(0).toUpperCase() + decodeURIComponent(tableIdParam).slice(1);
   }, [tableIdParam, isDelivery, isMeson]);
@@ -241,7 +242,7 @@ export default function TableDetailPage() {
          // Only remove if there are no pending orders for delivery that might still need this info
          const hasPendingDeliveryWithInfo = pendingOrderGroups.some(group => group.deliveryInfo);
          if(!hasPendingDeliveryWithInfo) {
-            sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`);
+            sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`); 
          }
       }
     }
@@ -373,7 +374,7 @@ export default function TableDetailPage() {
     if (isDelivery) {
       // Clear deliveryInfo from state to allow new delivery info for next order
       setDeliveryInfo(null);
-      // But don't remove from sessionStorage yet if there are other pending groups for this delivery tableID
+      // But don't remove from sessionStorage yet if there are other pending groups for this delivery tableId
       // Let the useEffect for saving state handle sessionStorage removal if no pending groups have delivery info.
       setIsDeliveryDialogOpen(true); // Re-open for next delivery
     }
@@ -417,18 +418,26 @@ export default function TableDetailPage() {
         if (['completo normal', 'dinamico normal', 'hot dog normal', 'italiano normal', 'palta normal', 'tomate normal'].includes(itemNameLower)) {
           inventoryItemName = 'Pan especial normal';
           const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
-          if (vienaIndex !== -1 && updatedInventory[vienaIndex].stock >= orderItem.quantity * 1) {
-                updatedInventory[vienaIndex].stock -= orderItem.quantity * 1;
+          if (vienaIndex !== -1) {
+                const vienesasToDeduct = orderItem.quantity * 1;
+                updatedInventory[vienaIndex].stock -= vienesasToDeduct;
                 inventoryUpdateOccurred = true;
-          } else if (vienaIndex !== -1) { console.warn(`Stock insuficiente de Vienesas para ${orderItem.name}`);}
+                if (updatedInventory[vienaIndex].stock < 0 && vienesasToDeduct > 0) {
+                     toast({ title: "Advertencia de Stock", description: `El stock de "Vienesas" es ahora ${updatedInventory[vienaIndex].stock}.`, variant: "default"});
+                }
+          }
 
         } else if (['completo grande', 'dinamico grande', 'hot dog grande', 'italiano grande', 'palta grande', 'tomate grande'].includes(itemNameLower)) {
           inventoryItemName = 'Pan especial grande';
           const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
-          if (vienaIndex !== -1 && updatedInventory[vienaIndex].stock >= orderItem.quantity * 2) { // 2 vienesas for grande
-                updatedInventory[vienaIndex].stock -= orderItem.quantity * 2;
+           if (vienaIndex !== -1) {
+                const vienesasToDeduct = orderItem.quantity * 2; // 2 vienesas for grande
+                updatedInventory[vienaIndex].stock -= vienesasToDeduct;
                 inventoryUpdateOccurred = true;
-          } else if (vienaIndex !== -1) { console.warn(`Stock insuficiente de Vienesas para ${orderItem.name}`);}
+                 if (updatedInventory[vienaIndex].stock < 0 && vienesasToDeduct > 0) {
+                     toast({ title: "Advertencia de Stock", description: `El stock de "Vienesas" es ahora ${updatedInventory[vienaIndex].stock}.`, variant: "default"});
+                }
+          }
         }
       }
       //Completos As
@@ -444,11 +453,13 @@ export default function TableDetailPage() {
         if (['4 ingredientes', '6 ingredientes', 'americana', 'brasileño', 'chacarero', 'golosasa', 'italiana', 'primavera'].includes(itemNameLower)) {
             inventoryItemName = 'Fajita';
              const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
-             if (bebidaLataIndex !== -1 && updatedInventory[bebidaLataIndex].stock >= orderItem.quantity) {
-                 updatedInventory[bebidaLataIndex].stock -= orderItem.quantity;
+             if (bebidaLataIndex !== -1) {
+                 const latasToDeduct = orderItem.quantity;
+                 updatedInventory[bebidaLataIndex].stock -= latasToDeduct;
                  inventoryUpdateOccurred = true;
-             } else if (bebidaLataIndex !== -1) {
-                 console.warn(`Stock insuficiente de Lata para ${orderItem.name}`);
+                 if (updatedInventory[bebidaLataIndex].stock < 0 && latasToDeduct > 0) {
+                    toast({ title: "Advertencia de Stock", description: `El stock de "Lata" es ahora ${updatedInventory[bebidaLataIndex].stock}.`, variant: "default"});
+                 }
              }
         }
       }
@@ -463,11 +474,13 @@ export default function TableDetailPage() {
         if (['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'queso', 'queso champiñon', 'tomate', 'palta'].includes(itemNameLower)) {
           inventoryItemName = 'Pan de marraqueta';
              const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
-             if (bebidaLataIndex !== -1 && updatedInventory[bebidaLataIndex].stock >= orderItem.quantity) {
-                 updatedInventory[bebidaLataIndex].stock -= orderItem.quantity;
+             if (bebidaLataIndex !== -1) {
+                 const latasToDeduct = orderItem.quantity;
+                 updatedInventory[bebidaLataIndex].stock -= latasToDeduct;
                  inventoryUpdateOccurred = true;
-             } else if (bebidaLataIndex !== -1) {
-                 console.warn(`Stock insuficiente de Lata para ${orderItem.name}`);
+                  if (updatedInventory[bebidaLataIndex].stock < 0 && latasToDeduct > 0) {
+                    toast({ title: "Advertencia de Stock", description: `El stock de "Lata" es ahora ${updatedInventory[bebidaLataIndex].stock}.`, variant: "default"});
+                 }
              }
         }
       }
@@ -476,11 +489,13 @@ export default function TableDetailPage() {
           if (['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'queso', 'queso champiñon', 'tomate', 'palta'].includes(itemNameLower)) {
              inventoryItemName = 'Pan de marraqueta';
                 const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
-                if (bebidaLataIndex !== -1 && updatedInventory[bebidaLataIndex].stock >= orderItem.quantity) {
-                    updatedInventory[bebidaLataIndex].stock -= orderItem.quantity;
+                if (bebidaLataIndex !== -1) {
+                    const latasToDeduct = orderItem.quantity;
+                    updatedInventory[bebidaLataIndex].stock -= latasToDeduct;
                     inventoryUpdateOccurred = true;
-                } else if (bebidaLataIndex !== -1) {
-                    console.warn(`Stock insuficiente de Lata para ${orderItem.name}`);
+                    if (updatedInventory[bebidaLataIndex].stock < 0 && latasToDeduct > 0) {
+                        toast({ title: "Advertencia de Stock", description: `El stock de "Lata" es ahora ${updatedInventory[bebidaLataIndex].stock}.`, variant: "default"});
+                    }
                 }
           }
       }
@@ -493,13 +508,15 @@ export default function TableDetailPage() {
            inventoryItemName = 'Pan de hamburguesa grande';
            quantityToDeduct = orderItem.quantity * 1; // Each "doble" or "super" item still uses one bun of its type
         }
-         if (inventoryItemName) {
+         if (inventoryItemName) { // This inventoryItemName is for the bun
             const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
-            if (bebidaLataIndex !== -1 && updatedInventory[bebidaLataIndex].stock >= orderItem.quantity) {
-                updatedInventory[bebidaLataIndex].stock -= orderItem.quantity;
+            if (bebidaLataIndex !== -1) {
+                const latasToDeduct = orderItem.quantity;
+                updatedInventory[bebidaLataIndex].stock -= latasToDeduct;
                 inventoryUpdateOccurred = true;
-            } else if (bebidaLataIndex !== -1) {
-                console.warn(`Stock insuficiente de Lata para ${orderItem.name}`);
+                if (updatedInventory[bebidaLataIndex].stock < 0 && latasToDeduct > 0) {
+                    toast({ title: "Advertencia de Stock", description: `El stock de "Lata" es ahora ${updatedInventory[bebidaLataIndex].stock}.`, variant: "default"});
+                }
             }
         }
       }
@@ -527,65 +544,79 @@ export default function TableDetailPage() {
 
           if ([1,2,3,9,10,11,12].includes(promoNum)) {
               const bebidaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'bebida 1.5lt');
-              if (bebidaIndex !== -1 && updatedInventory[bebidaIndex].stock >= orderItem.quantity) {
-                  updatedInventory[bebidaIndex].stock -= orderItem.quantity;
+              if (bebidaIndex !== -1) {
+                  const bebidasToDeduct = orderItem.quantity;
+                  updatedInventory[bebidaIndex].stock -= bebidasToDeduct;
                   inventoryUpdateOccurred = true;
-              } else if (bebidaIndex !== -1) { console.warn(`Stock insuficiente de Bebida 1.5Lt`); }
+                  if (updatedInventory[bebidaIndex].stock < 0 && bebidasToDeduct > 0) {
+                      toast({ title: "Advertencia de Stock", description: `El stock de "Bebida 1.5Lt" es ahora ${updatedInventory[bebidaIndex].stock}.`, variant: "default"});
+                  }
+              }
           }
           if ([5,6,7,8].includes(promoNum)) {
               const lataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
-              const latasToDeduct = orderItem.quantity * 2;
-              if (lataIndex !== -1 && updatedInventory[lataIndex].stock >= latasToDeduct) {
+              if (lataIndex !== -1) {
+                  const latasToDeduct = orderItem.quantity * 2;
                   updatedInventory[lataIndex].stock -= latasToDeduct;
                   inventoryUpdateOccurred = true;
-              } else if (lataIndex !== -1) { console.warn(`Stock insuficiente de Lata`); }
+                  if (updatedInventory[lataIndex].stock < 0 && latasToDeduct > 0) {
+                       toast({ title: "Advertencia de Stock", description: `El stock de "Lata" es ahora ${updatedInventory[lataIndex].stock}.`, variant: "default"});
+                  }
+              }
           }
            if (promoNum === 5 || promoNum === 9) {
               const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
-              const vienesasNeeded = promoNum === 5 ? orderItem.quantity * 2 : orderItem.quantity * 4;
-              if (vienaIndex !== -1 && updatedInventory[vienaIndex].stock >= vienesasNeeded) {
+               if (vienaIndex !== -1) {
+                  const vienesasNeeded = promoNum === 5 ? orderItem.quantity * 2 : orderItem.quantity * 4;
                   updatedInventory[vienaIndex].stock -= vienesasNeeded;
                   inventoryUpdateOccurred = true;
-              } else if (vienaIndex !== -1) { console.warn(`Stock insuficiente de Vienesas`);}
+                   if (updatedInventory[vienaIndex].stock < 0 && vienesasNeeded > 0) {
+                       toast({ title: "Advertencia de Stock", description: `El stock de "Vienesas" es ahora ${updatedInventory[vienaIndex].stock}.`, variant: "default"});
+                   }
+               }
           }
            if (promoNum === 6 || promoNum === 10) {
                const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
-               const vienesasNeeded = promoNum === 6 ? orderItem.quantity * 4 : orderItem.quantity * 8;
-               if (vienaIndex !== -1 && updatedInventory[vienaIndex].stock >= vienesasNeeded) {
+               if (vienaIndex !== -1) {
+                   const vienesasNeeded = promoNum === 6 ? orderItem.quantity * 4 : orderItem.quantity * 8;
                    updatedInventory[vienaIndex].stock -= vienesasNeeded;
                    inventoryUpdateOccurred = true;
-               } else if (vienaIndex !== -1) { console.warn(`Stock insuficiente de Vienesas`); }
+                    if (updatedInventory[vienaIndex].stock < 0 && vienesasNeeded > 0) {
+                       toast({ title: "Advertencia de Stock", description: `El stock de "Vienesas" es ahora ${updatedInventory[vienaIndex].stock}.`, variant: "default"});
+                   }
+               }
            }
       }
       //Papas Fritas
        if (orderItem.category === 'Papas Fritas') {
             if (itemNameLower === 'box cami') {
-                // Assuming empanada is a single inventory item for simplicity
                 const empanadaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'empanada');
                 if (empanadaIndex !== -1) {
                      const empanadasToDeduct = 8 * orderItem.quantity;
-                     if (updatedInventory[empanadaIndex].stock >= empanadasToDeduct) {
-                        updatedInventory[empanadaIndex].stock -= empanadasToDeduct;
-                        inventoryUpdateOccurred = true;
-                     } else {
-                        console.warn(`Stock insuficiente de Empanadas para Box Cami`);
+                     updatedInventory[empanadaIndex].stock -= empanadasToDeduct;
+                     inventoryUpdateOccurred = true;
+                     if (updatedInventory[empanadaIndex].stock < 0 && empanadasToDeduct > 0) {
+                        toast({ title: "Advertencia de Stock", description: `El stock de "Empanada" es ahora ${updatedInventory[empanadaIndex].stock}.`, variant: "default"});
                      }
                 }
                 const bebidaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'bebida 1.5lt');
-                if (bebidaIndex !== -1 && updatedInventory[bebidaIndex].stock >= orderItem.quantity) {
-                    updatedInventory[bebidaIndex].stock -= orderItem.quantity;
+                if (bebidaIndex !== -1) {
+                    const bebidasToDeduct = orderItem.quantity;
+                    updatedInventory[bebidaIndex].stock -= bebidasToDeduct;
                     inventoryUpdateOccurred = true;
-                } else if (bebidaIndex !== -1) {
-                    console.warn(`Stock insuficiente de Bebida 1.5Lt para Box Cami`);
+                     if (updatedInventory[bebidaIndex].stock < 0 && bebidasToDeduct > 0) {
+                        toast({ title: "Advertencia de Stock", description: `El stock de "Bebida 1.5Lt" es ahora ${updatedInventory[bebidaIndex].stock}.`, variant: "default"});
+                     }
                 }
             } else if (itemNameLower === 'salchipapas') {
                 const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
-                const vienesasNeeded = orderItem.quantity * 3; // Assuming 3 vienesas per salchipapa
-                if (vienaIndex !== -1 && updatedInventory[vienaIndex].stock >= vienesasNeeded) {
+                if (vienaIndex !== -1) {
+                    const vienesasNeeded = orderItem.quantity * 3; 
                     updatedInventory[vienaIndex].stock -= vienesasNeeded;
                     inventoryUpdateOccurred = true;
-                } else if (vienaIndex !== -1) {
-                    console.warn(`Stock insuficiente de Vienesas para Salchipapas`);
+                     if (updatedInventory[vienaIndex].stock < 0 && vienesasNeeded > 0) {
+                        toast({ title: "Advertencia de Stock", description: `El stock de "Vienesas" es ahora ${updatedInventory[vienaIndex].stock}.`, variant: "default"});
+                     }
                 }
             }
        }
@@ -594,11 +625,14 @@ export default function TableDetailPage() {
       if (inventoryItemName) {
         const itemIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === inventoryItemName.toLowerCase());
         if (itemIndex !== -1) {
-          if (updatedInventory[itemIndex].stock >= quantityToDeduct) {
-            updatedInventory[itemIndex].stock -= quantityToDeduct;
-            inventoryUpdateOccurred = true;
-          } else {
-            toast({ title: "Stock Insuficiente", description: `No hay suficiente ${inventoryItemName} en inventario.`, variant: "destructive" });
+          updatedInventory[itemIndex].stock -= quantityToDeduct;
+          inventoryUpdateOccurred = true;
+          if (updatedInventory[itemIndex].stock < 0 && quantityToDeduct > 0) {
+               toast({
+                   title: "Advertencia de Stock",
+                   description: `El stock de "${inventoryItemName}" es ahora ${updatedInventory[itemIndex].stock}.`,
+                   variant: "default",
+               });
           }
         }
       }
