@@ -81,14 +81,8 @@ export const formatKitchenOrderReceipt = (
           color: #000;
           background-color: #fff;
         }
-        h1 { /* COMANDA - MESA X */
+        h1 { /* COMANDA - MESA X - ORDEN #XXX */
             font-size: 14pt;
-            text-align: center;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-        .order-number { /* SU NÚMERO: XXX */
-            font-size: 12pt;
             text-align: center;
             margin-bottom: 5px;
             font-weight: bold;
@@ -129,8 +123,7 @@ export const formatKitchenOrderReceipt = (
       </style>
     </head>
     <body>
-      <h1>COMANDA - ${orderIdentifier.toUpperCase()}</h1>
-      <div class="order-number">SU NÚMERO: ${String(orderNumber).padStart(3, '0')}</div>
+      <h1>COMANDA - ${orderIdentifier.toUpperCase()} - ORDEN #${String(orderNumber).padStart(3, '0')}</h1>
       <div class="header-info">${time}</div>
       <hr>
       <div class="products-title">Productos:</div>
@@ -158,9 +151,20 @@ export const formatCustomerReceipt = (
     const shopName = "El Bajón de la Cami";
     const time = formatDateTime(new Date());
 
-    const receiptOrderIdentifier = isDelivery && deliveryInfo?.name
-        ? `Delivery: ${deliveryInfo.name} - Orden #${String(orderNumber).padStart(3, '0')}`
-        : `${tableIdentifier} - Orden #${String(orderNumber).padStart(3, '0')}`;
+    let receiptOrderIdentifier = `${tableIdentifier} - Orden #${String(orderNumber).padStart(3, '0')}`;
+    let deliveryDetailsHtml = '';
+
+    if (isDelivery && deliveryInfo) {
+        receiptOrderIdentifier = `Delivery - Orden #${String(orderNumber).padStart(3, '0')}`;
+        deliveryDetailsHtml = `
+            <div class="delivery-details" style="margin-bottom: 10px; font-size: 9pt; font-weight:bold;">
+                <strong>Cliente:</strong> ${deliveryInfo.name}<br>
+                <strong>Dirección:</strong> ${deliveryInfo.address}<br>
+                <strong>Teléfono:</strong> ${deliveryInfo.phone}
+            </div>
+            <hr>
+        `;
+    }
 
 
     let subtotal = 0;
@@ -239,7 +243,7 @@ export const formatCustomerReceipt = (
         ${time}<br>
         ${receiptOrderIdentifier}
       </div>
-      <hr>
+      ${deliveryDetailsHtml}
       <table>
         <thead>
           <tr>
@@ -289,7 +293,7 @@ export const formatCashClosingReceipt = (
         dailyTotalIncome: number;
         dailyExpenses: number;
         dailyNetTotal: number;
-        dailyGrossTotal?: number; // Made optional as it might not always be calculated
+        dailyGrossTotal?: number; 
     },
     salesDetails: CashMovement[]
 ): string => {
@@ -487,6 +491,7 @@ export const printHtml = (htmlContent: string): void => {
 };
 
     
+
 
 
 
