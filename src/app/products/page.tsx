@@ -10,9 +10,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Card, CardContent } from '@/components/ui/card'; // CardHeader, CardTitle removed as not used
+import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-// Textarea removed as not used
 import { Badge } from '@/components/ui/badge';
 import {
   Dialog as ShadDialog,
@@ -30,14 +29,14 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'; // Added Select components
+} from '@/components/ui/select';
 import { useState, useEffect, useMemo } from 'react';
-import { Edit, PlusCircle, Trash2, ListPlus, Tags } from 'lucide-react'; // Added Tags icon
+import { Edit, PlusCircle, Trash2, ListPlus, Tags } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
 import { Button } from '@/components/ui/button';
-import type { MenuItem } from '@/types/menu'; // Import MenuItem
-import { loadMenuData, MENU_STORAGE_KEY, sortMenu, orderedCategories } from '@/lib/menuUtils'; // Import utilities & orderedCategories
+import type { MenuItem } from '@/types/menu';
+import { loadMenuData, MENU_STORAGE_KEY, sortMenu, orderedCategories } from '@/lib/menuUtils';
 
 
 const ProductsManagementPage = () => {
@@ -61,13 +60,11 @@ const ProductsManagementPage = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Load menu data on component mount
     const loadedMenu = loadMenuData();
     setMenu(loadedMenu);
     setIsMenuInitialized(true);
   }, []);
 
-  // Save menu to localStorage whenever it changes
   useEffect(() => {
     if (isMenuInitialized && menu.length > 0) {
       try {
@@ -138,6 +135,7 @@ const ProductsManagementPage = () => {
         setCurrentIngredients(prev => [...prev, newIngredient.trim()]);
         setNewIngredient('');
     } else {
+        // Optionally, allow adding an empty field to be filled in later
         setCurrentIngredients(prev => [...prev, '']);
     }
   };
@@ -149,13 +147,14 @@ const ProductsManagementPage = () => {
   const handleUpdateIngredients = () => {
     if (!editingIngredientsProduct) return;
 
+    // Filter out empty strings and trim whitespace
     const updatedIngredients = currentIngredients.map(ing => ing.trim()).filter(ing => ing !== '');
 
     setMenu(prevMenu => {
         const updatedMenu = prevMenu.map(item =>
         item.id === editingIngredientsProduct.id ? { ...item, ingredients: updatedIngredients } : item
       );
-      return sortMenu(updatedMenu);
+      return sortMenu(updatedMenu); // Ensure menu is re-sorted
     });
     
     toast({ title: "Ingredientes Actualizados", description: `Los ingredientes de ${editingIngredientsProduct.name} han sido actualizados.`});
@@ -167,7 +166,7 @@ const ProductsManagementPage = () => {
 
   const openEditCategoryDialog = (product: MenuItem) => {
     setEditingCategoryProduct(product);
-    setNewCategory(product.category);
+    setNewCategory(product.category); // Set initial category
     setIsEditCategoryDialogOpen(true);
   };
 
@@ -195,6 +194,7 @@ const ProductsManagementPage = () => {
   };
 
 
+  // Group menu items by category, then sort categories by predefined order
   const groupedMenu = useMemo(() => {
     const groups: { [key: string]: MenuItem[] } = {};
     filteredProducts.forEach(item => {
@@ -204,6 +204,7 @@ const ProductsManagementPage = () => {
       groups[item.category].push(item);
     });
     
+    // Order the groups based on orderedCategories
     return orderedCategories.reduce((acc, categoryName) => {
       if (groups[categoryName]) {
         acc[categoryName] = groups[categoryName];
@@ -232,7 +233,7 @@ const ProductsManagementPage = () => {
       </div>
 
        <Card>
-         <CardContent className="p-0">
+         <CardContent className="p-0"> {/* Remove padding from CardContent to make Table flush */}
             <Table>
             <TableHeader>
                 <TableRow>
@@ -253,6 +254,10 @@ const ProductsManagementPage = () => {
                 )}
                 {Object.entries(groupedMenu).map(([category, items]) => (
                   <React.Fragment key={category}>
+                    {/* Optional: Add a category header row if desired */}
+                    {/* <TableRow className="bg-muted/50">
+                      <TableCell colSpan={5} className="font-semibold text-lg py-2 px-4">{category}</TableCell>
+                    </TableRow> */}
                     {items.map((item) => (
                     <TableRow key={item.id}>
                         <TableCell className="font-medium">{item.name}</TableCell>
@@ -289,6 +294,7 @@ const ProductsManagementPage = () => {
        </Card>
 
 
+       {/* Edit Price Dialog */}
        <ShadDialog open={isEditPriceDialogOpen} onOpenChange={setIsEditPriceDialogOpen}>
          <ShadDialogContent className="sm:max-w-[425px]">
            <ShadDialogHeader>
@@ -310,7 +316,7 @@ const ProductsManagementPage = () => {
                      className="col-span-3"
                      required
                      min="0"
-                     step="1"
+                     step="1" // Allow integer prices
                  />
              </div>
            </div>
@@ -325,14 +331,14 @@ const ProductsManagementPage = () => {
 
       {/* Edit Ingredients Dialog */}
       <ShadDialog open={isEditIngredientsDialogOpen} onOpenChange={setIsEditIngredientsDialogOpen}>
-        <ShadDialogContent className="sm:max-w-md">
+        <ShadDialogContent className="sm:max-w-md"> {/* Wider for ingredients list */}
             <ShadDialogHeader>
             <ShadDialogTitle>Editar Ingredientes de {editingIngredientsProduct?.name}</ShadDialogTitle>
             <ShadDialogDescription>
                 Añada, modifique o elimine ingredientes para este producto.
             </ShadDialogDescription>
             </ShadDialogHeader>
-            <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
+            <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto"> {/* Scrollable area for many ingredients */}
                 {currentIngredients.map((ingredient, index) => (
                     <div key={index} className="flex items-center gap-2">
                     <Input
@@ -347,6 +353,7 @@ const ProductsManagementPage = () => {
                     </Button>
                     </div>
                 ))}
+                 {/* Input for adding new ingredient */}
                  <div className="flex items-center gap-2 mt-2">
                      <Input
                          value={newIngredient}
@@ -411,9 +418,11 @@ const ProductsManagementPage = () => {
 
 
 const ProductsPageContent = () => {
+    // This component could fetch initial data if needed, or handle context providers
     return <ProductsManagementPage />;
 }
 
 export default function ProductsPage() {
     return <ProductsPageContent />;
 }
+
