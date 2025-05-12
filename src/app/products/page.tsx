@@ -31,7 +31,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useState, useEffect, useMemo } from 'react';
-import { Edit, PlusCircle, Trash2, ListPlus, Tags } from 'lucide-react';
+import { Edit, PlusCircle, Trash2, ListPlus, Tags, Pencil } from 'lucide-react'; // Added Pencil
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
 import { Button } from '@/components/ui/button';
@@ -43,6 +43,7 @@ const ProductsManagementPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [menu, setMenu] = useState<MenuItem[]>([]);
   const [isMenuInitialized, setIsMenuInitialized] = useState(false);
+
   const [isEditPriceDialogOpen, setIsEditPriceDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<MenuItem | null>(null);
   const [newPrice, setNewPrice] = useState('');
@@ -55,6 +56,10 @@ const ProductsManagementPage = () => {
   const [isEditCategoryDialogOpen, setIsEditCategoryDialogOpen] = useState(false);
   const [editingCategoryProduct, setEditingCategoryProduct] = useState<MenuItem | null>(null);
   const [newCategory, setNewCategory] = useState('');
+
+  const [isEditProductNameDialogOpen, setIsEditProductNameDialogOpen] = useState(false);
+  const [editingProductNameProduct, setEditingProductNameProduct] = useState<MenuItem | null>(null);
+  const [newProductName, setNewProductName] = useState('');
 
 
   const { toast } = useToast();
@@ -148,11 +153,11 @@ const ProductsManagementPage = () => {
     if (!editingIngredientsProduct) return;
 
     // Filter out empty strings and trim whitespace
-    const updatedIngredients = currentIngredients.map(ing => ing.trim()).filter(ing => ing !== '');
+    const updatedIngredientsList = currentIngredients.map(ing => ing.trim()).filter(ing => ing !== '');
 
     setMenu(prevMenu => {
         const updatedMenu = prevMenu.map(item =>
-        item.id === editingIngredientsProduct.id ? { ...item, ingredients: updatedIngredients } : item
+        item.id === editingIngredientsProduct.id ? { ...item, ingredients: updatedIngredientsList } : item
       );
       return sortMenu(updatedMenu); // Ensure menu is re-sorted
     });
@@ -191,6 +196,31 @@ const ProductsManagementPage = () => {
     setIsEditCategoryDialogOpen(false);
     setEditingCategoryProduct(null);
     setNewCategory('');
+  };
+
+  const openEditProductNameDialog = (product: MenuItem) => {
+    setEditingProductNameProduct(product);
+    setNewProductName(product.name);
+    setIsEditProductNameDialogOpen(true);
+  };
+
+  const handleUpdateProductName = () => {
+    if (!editingProductNameProduct || newProductName.trim() === '') {
+      toast({ title: "Error", description: "El nombre del producto no puede estar vacío.", variant: "destructive"});
+      return;
+    }
+
+    setMenu(prevMenu => {
+      const updatedMenu = prevMenu.map(item =>
+        item.id === editingProductNameProduct.id ? { ...item, name: newProductName.trim() } : item
+      );
+      return sortMenu(updatedMenu);
+    });
+
+    toast({ title: "Nombre Actualizado", description: `El nombre del producto se actualizó a "${newProductName.trim()}".`});
+    setIsEditProductNameDialogOpen(false);
+    setEditingProductNameProduct(null);
+    setNewProductName('');
   };
 
 
@@ -241,7 +271,7 @@ const ProductsManagementPage = () => {
                   <TableHead>Categoría</TableHead>
                   <TableHead>Ingredientes</TableHead>
                   <TableHead className="text-right">Precio Base</TableHead>
-                  <TableHead className="text-center w-48">Acciones</TableHead> {/* Adjusted width for 3 icons */}
+                  <TableHead className="text-center w-56">Acciones</TableHead> {/* Adjusted width for 4 icons */}
                 </TableRow>
             </TableHeader>
             <TableBody>
@@ -270,6 +300,10 @@ const ProductsManagementPage = () => {
                         <TableCell className="text-right font-mono">{printUtilsFormatCurrency(item.price)}</TableCell>
                         <TableCell className="text-center">
                             <div className="flex justify-center gap-2">
+                                <Button variant="outline" size="icon" onClick={() => openEditProductNameDialog(item)} className="h-8 w-8" title="Editar Nombre Producto">
+                                    <Pencil className="h-4 w-4" />
+                                    <span className="sr-only">Editar Nombre Producto</span>
+                                </Button>
                                 <Button variant="outline" size="icon" onClick={() => openEditPriceDialog(item)} className="h-8 w-8" title="Editar Precio">
                                     <Edit className="h-4 w-4" />
                                     <span className="sr-only">Editar Precio</span>
@@ -292,6 +326,39 @@ const ProductsManagementPage = () => {
             </Table>
          </CardContent>
        </Card>
+
+
+       {/* Edit Product Name Dialog */}
+       <ShadDialog open={isEditProductNameDialogOpen} onOpenChange={setIsEditProductNameDialogOpen}>
+         <ShadDialogContent className="sm:max-w-[425px]">
+           <ShadDialogHeader>
+             <ShadDialogTitle>Editar Nombre de {editingProductNameProduct?.name}</ShadDialogTitle>
+             <ShadDialogDescription>
+                 Actualice el nombre para este producto.
+             </ShadDialogDescription>
+           </ShadDialogHeader>
+           <div className="grid gap-4 py-4">
+             <div className="grid grid-cols-4 items-center gap-4">
+                 <Label htmlFor="productName" className="text-right">
+                     Nuevo Nombre
+                 </Label>
+                 <Input
+                     id="productName"
+                     value={newProductName}
+                     onChange={(e) => setNewProductName(e.target.value)}
+                     className="col-span-3"
+                     required
+                 />
+             </div>
+           </div>
+           <ShadDialogFooter>
+             <ShadDialogClose asChild>
+                 <Button type="button" variant="secondary" onClick={() => setIsEditProductNameDialogOpen(false)}>Cancelar</Button>
+             </ShadDialogClose>
+             <Button type="submit" onClick={handleUpdateProductName}>Guardar Cambios</Button>
+           </ShadDialogFooter>
+         </ShadDialogContent>
+       </ShadDialog>
 
 
        {/* Edit Price Dialog */}
