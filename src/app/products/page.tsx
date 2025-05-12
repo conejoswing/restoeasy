@@ -31,6 +31,10 @@ import { Button } from '@/components/ui/button';
 import type { MenuItem } from '@/types/menu';
 import { loadMenuData, MENU_STORAGE_KEY, sortMenu, orderedCategories } from '@/lib/menuUtils';
 
+interface ModificationWithNameAndPrice {
+  name: string;
+  price: string; // Keep as string for input, parse on save
+}
 
 const ProductsManagementPage = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -56,8 +60,8 @@ const ProductsManagementPage = () => {
 
   const [isEditBaseModificationsDialogOpen, setIsEditBaseModificationsDialogOpen] = useState(false);
   const [editingBaseModificationsProduct, setEditingBaseModificationsProduct] = useState<MenuItem | null>(null);
-  const [currentBaseModifications, setCurrentBaseModifications] = useState<string[]>([]);
-  const [newBaseModification, setNewBaseModification] = useState('');
+  const [currentBaseModifications, setCurrentBaseModifications] = useState<ModificationWithNameAndPrice[]>([]);
+  const [newBaseModification, setNewBaseModification] = useState<ModificationWithNameAndPrice>({ name: '', price: '' });
 
 
   const { toast } = useToast();
@@ -218,38 +222,63 @@ const ProductsManagementPage = () => {
 
   const openEditBaseModificationsDialog = (product: MenuItem) => {
     setEditingBaseModificationsProduct(product);
-    setCurrentBaseModifications(product.modifications ? [...product.modifications] : []);
-    setNewBaseModification('');
+    const existingModifications = product.modifications || [];
+    const existingPrices = product.modificationPrices || {};
+    setCurrentBaseModifications(
+      existingModifications.map(modName => ({
+        name: modName,
+        price: (existingPrices[modName] || 0).toString(),
+      }))
+    );
+    setNewBaseModification({ name: '', price: '' });
     setIsEditBaseModificationsDialogOpen(true);
   };
-
-  const handleBaseModificationTextChange = (index: number, value: string) => {
+  
+  const handleBaseModificationNameChange = (index: number, value: string) => {
     const updatedModifications = [...currentBaseModifications];
-    updatedModifications[index] = value;
+    updatedModifications[index].name = value;
     setCurrentBaseModifications(updatedModifications);
   };
 
+  const handleBaseModificationPriceChange = (index: number, value: string) => {
+    const updatedModifications = [...currentBaseModifications];
+    updatedModifications[index].price = value;
+    setCurrentBaseModifications(updatedModifications);
+  };
+  
   const handleAddNewBaseModificationField = () => {
-    if (newBaseModification.trim() !== '') {
-      setCurrentBaseModifications(prev => [...prev, newBaseModification.trim()]);
-      setNewBaseModification('');
+    if (newBaseModification.name.trim() !== '') {
+      setCurrentBaseModifications(prev => [...prev, { ...newBaseModification }]);
+      setNewBaseModification({ name: '', price: '' });
     } else {
-      setCurrentBaseModifications(prev => [...prev, '']); // Add an empty field for editing
+      setCurrentBaseModifications(prev => [...prev, { name: '', price: '0' }]); // Add an empty field for editing
     }
   };
-
+  
   const handleRemoveBaseModification = (indexToRemove: number) => {
     setCurrentBaseModifications(prev => prev.filter((_, index) => index !== indexToRemove));
   };
-
+  
   const handleUpdateBaseModifications = () => {
     if (!editingBaseModificationsProduct) return;
-
-    const updatedModificationsList = currentBaseModifications.map(mod => mod.trim()).filter(mod => mod !== '');
-
+  
+    const updatedModificationsList: string[] = [];
+    const updatedModificationPrices: { [key: string]: number } = {};
+  
+    currentBaseModifications.forEach(mod => {
+      const name = mod.name.trim();
+      if (name) {
+        updatedModificationsList.push(name);
+        const price = parseFloat(mod.price);
+        updatedModificationPrices[name] = isNaN(price) || price < 0 ? 0 : price;
+      }
+    });
+  
     setMenu(prevMenu => {
       const updatedMenu = prevMenu.map(item =>
-        item.id === editingBaseModificationsProduct.id ? { ...item, modifications: updatedModificationsList } : item
+        item.id === editingBaseModificationsProduct.id 
+          ? { ...item, modifications: updatedModificationsList, modificationPrices: updatedModificationPrices } 
+          : item
       );
       return sortMenu(updatedMenu);
     });
@@ -258,7 +287,7 @@ const ProductsManagementPage = () => {
     setIsEditBaseModificationsDialogOpen(false);
     setEditingBaseModificationsProduct(null);
     setCurrentBaseModifications([]);
-    setNewBaseModification('');
+    setNewBaseModification({ name: '', price: '' });
   };
 
 
@@ -344,7 +373,10 @@ const ProductsManagementPage = () => {
                         </TableCell>
                         <TableCell className="text-xs text-muted-foreground max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
                             {item.modifications && item.modifications.length > 0
-                            ? item.modifications.join(', ')
+                            ? item.modifications.map(modName => {
+                                const price = item.modificationPrices?.[modName];
+                                return price && price > 0 ? `${modName} (${printUtilsFormatCurrency(price)})` : modName;
+                              }).join(', ')
                             : '-'}
                         </TableCell>
                         <TableCell className="text-right font-mono">{printUtilsFormatCurrency(item.price)}</TableCell>
@@ -531,35 +563,54 @@ const ProductsManagementPage = () => {
 
       {/* Edit Base Modifications Dialog */}
       <ShadDialog open={isEditBaseModificationsDialogOpen} onOpenChange={setIsEditBaseModificationsDialogOpen}>
-        <ShadDialogContent className="sm:max-w-md">
+        <ShadDialogContent className="sm:max-w-lg"> {/* Wider dialog */}
             <ShadDialogHeader>
             <ShadDialogTitle>Editar Modificaciones Base de {editingBaseModificationsProduct?.name}</ShadDialogTitle>
             <ShadDialogDescription>
-                Añada, modifique o elimine las modificaciones base disponibles para este producto.
+                Añada, modifique o elimine las modificaciones base y sus precios para este producto.
             </ShadDialogDescription>
             </ShadDialogHeader>
-            <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
+            <div className="grid gap-3 py-4 max-h-[60vh] overflow-y-auto">
                 {currentBaseModifications.map((mod, index) => (
                     <div key={index} className="flex items-center gap-2">
-                    <Input
-                        value={mod}
-                        onChange={(e) => handleBaseModificationTextChange(index, e.target.value)}
-                        placeholder={`Modificación ${index + 1}`}
-                        className="flex-grow"
-                    />
-                    <Button variant="ghost" size="icon" onClick={() => handleRemoveBaseModification(index)} className="text-destructive hover:text-destructive/90">
-                        <Trash2 className="h-4 w-4" />
-                        <span className="sr-only">Eliminar modificación</span>
-                    </Button>
+                        <Input
+                            value={mod.name}
+                            onChange={(e) => handleBaseModificationNameChange(index, e.target.value)}
+                            placeholder={`Nombre Modificación ${index + 1}`}
+                            className="flex-grow"
+                        />
+                        <Input
+                            type="number"
+                            value={mod.price}
+                            onChange={(e) => handleBaseModificationPriceChange(index, e.target.value)}
+                            placeholder="Precio (CLP)"
+                            className="w-28" 
+                            min="0"
+                            step="1"
+                        />
+                        <Button variant="ghost" size="icon" onClick={() => handleRemoveBaseModification(index)} className="text-destructive hover:text-destructive/90">
+                            <Trash2 className="h-4 w-4" />
+                            <span className="sr-only">Eliminar modificación</span>
+                        </Button>
                     </div>
                 ))}
                  <div className="flex items-center gap-2 mt-2">
                      <Input
-                         value={newBaseModification}
-                         onChange={(e) => setNewBaseModification(e.target.value)}
+                         value={newBaseModification.name}
+                         onChange={(e) => setNewBaseModification(prev => ({ ...prev, name: e.target.value }))}
                          placeholder="Nueva modificación"
                          className="flex-grow"
-                         onKeyPress={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddNewBaseModificationField();}}}
+                         onKeyPress={(e) => { if (e.key === 'Enter' && newBaseModification.name.trim()) { e.preventDefault(); handleAddNewBaseModificationField();}}}
+                     />
+                      <Input
+                         type="number"
+                         value={newBaseModification.price}
+                         onChange={(e) => setNewBaseModification(prev => ({ ...prev, price: e.target.value }))}
+                         placeholder="Precio (CLP)"
+                         className="w-28"
+                         min="0"
+                         step="1"
+                         onKeyPress={(e) => { if (e.key === 'Enter' && newBaseModification.name.trim()) { e.preventDefault(); handleAddNewBaseModificationField();}}}
                      />
                     <Button onClick={handleAddNewBaseModificationField} size="icon" variant="outline">
                         <PlusCircle className="h-4 w-4" />
