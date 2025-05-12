@@ -59,6 +59,7 @@ const predefinedItemNames: string[] = [
   'Cafe Grande',
   'Vienesas',
   'Fajita',
+  'Empanada', // Added Empanada for Box Cami
 ];
 
 const initialInventory: InventoryItem[] = predefinedItemNames.map((name, index) => ({
@@ -164,8 +165,8 @@ export default function InventoryPage() {
      }
 
      const stockValue = parseInt(newProductData.stock, 10);
-     if (isNaN(stockValue) || stockValue < 0) {
-       toast({ title: "Error", description: "La cantidad debe ser un número válido y no negativo.", variant: "destructive" });
+     if (isNaN(stockValue)) { // Allow negative initial stock if needed, though typically starts at 0 or positive
+       toast({ title: "Error", description: "La cantidad debe ser un número válido.", variant: "destructive" });
        return;
      }
 
@@ -204,7 +205,7 @@ export default function InventoryPage() {
         setInventory(prevInventory =>
             prevInventory.map(item =>
                 item.id === id
-                    ? { ...item, stock: Math.max(0, item.stock + amount) }
+                    ? { ...item, stock: item.stock + amount } // Removed Math.max(0, ...)
                     : item
             ).sort((a, b) => a.name.localeCompare(b.name))
         );
@@ -253,7 +254,6 @@ export default function InventoryPage() {
                             onChange={(e) => handleInputChange(e, 'stock')}
                             className="col-span-3"
                             required
-                            min="0"
                             step="1"
                             placeholder="0"
                         />
@@ -285,11 +285,11 @@ export default function InventoryPage() {
                     <TableCell className="font-medium">{item.name}</TableCell>
                     <TableCell className="text-center w-48">
                        <div className="flex items-center justify-center gap-2">
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleAdjustStock(item.id, -1)} disabled={item.stock <= 0}>
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleAdjustStock(item.id, -1)} >
                                 <MinusCircle className="h-4 w-4" />
                                 <span className="sr-only">Disminuir</span>
                             </Button>
-                            <span className="font-medium w-10 text-center">{item.stock}</span>
+                            <span className={cn("font-medium w-10 text-center", item.stock < 0 ? "text-destructive" : "")}>{item.stock}</span>
                             <Button variant="ghost" size="icon" className="h-7 w-7 text-primary" onClick={() => handleAdjustStock(item.id, 1)}>
                                 <PlusCircle className="h-4 w-4" />
                                 <span className="sr-only">Aumentar</span>
