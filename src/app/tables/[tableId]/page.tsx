@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -201,7 +202,7 @@ export default function TableDetailPage() {
           setDeliveryInfo(JSON.parse(storedDeliveryInfo));
         } catch (e) { console.error("Error loading delivery info:", e); }
       }
-      if (!storedDeliveryInfo) {
+      if (!storedDeliveryInfo && !currentOrder.length && !pendingOrderGroups.length) { // Only open if no existing order/info
         setIsDeliveryDialogOpen(true);
       }
     }
@@ -212,7 +213,7 @@ export default function TableDetailPage() {
     setIsInitialized(true);
     console.log(`Initialization complete for ${tableIdParam}.`);
 
-  }, [tableIdParam, isInitialized, isDelivery]);
+  }, [tableIdParam, isInitialized, isDelivery, currentOrder.length, pendingOrderGroups.length]);
 
 
   // --- Effect to save state changes to sessionStorage and update table status ---
@@ -229,12 +230,16 @@ export default function TableDetailPage() {
 
     const hasPending = pendingOrderGroups.length > 0;
     const hasCurrent = currentOrder.length > 0;
-    const hasDeliveryInfo = isDelivery && deliveryInfo && (deliveryInfo.name || deliveryInfo.address || deliveryInfo.phone || deliveryInfo.deliveryFee > 0);
-
-    if (hasPending || hasCurrent || hasDeliveryInfo) {
-      sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
+    let hasDeliveryInfoForStatus = false;
+    if (isDelivery && deliveryInfo) {
+        // Consider occupied if any field in deliveryInfo is truthy (or deliveryFee > 0)
+        hasDeliveryInfoForStatus = !!(deliveryInfo.name || deliveryInfo.address || deliveryInfo.phone || deliveryInfo.deliveryFee > 0);
+    }
+    
+    if (hasPending || hasCurrent || (isDelivery && hasDeliveryInfoForStatus)) {
+        sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
     } else {
-      sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
+        sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
     }
 
   }, [currentOrder, pendingOrderGroups, deliveryInfo, tableIdParam, isInitialized, isDelivery]);
@@ -651,20 +656,11 @@ export default function TableDetailPage() {
       groups[item.category].push(item);
       uniqueCategoriesInFilteredMenu.add(item.category);
     });
+    
+    const finalCategoryOrder = Array.from(uniqueCategoriesInFilteredMenu).sort((a, b) => a.localeCompare(b));
 
-    // Start with categories from predefinedOrderedCategories that actually exist in the filtered menu
-    const finalCategoryOrder = predefinedOrderedCategories.filter(catName => uniqueCategoriesInFilteredMenu.has(catName));
-
-    // Add any other categories from the filtered menu that are not in predefinedOrderedCategories, sorted alphabetically
-    const otherCategories = Array.from(uniqueCategoriesInFilteredMenu)
-      .filter(catName => !predefinedOrderedCategories.includes(catName))
-      .sort((a, b) => a.localeCompare(b));
-
-    finalCategoryOrder.push(...otherCategories);
-
-    // Use this finalCategoryOrder to build the accumulator
     return finalCategoryOrder.reduce((acc, categoryName) => {
-        if (groups[categoryName]) { // Ensure the group exists (it should, by construction)
+        if (groups[categoryName]) { 
             acc[categoryName] = groups[categoryName];
         }
         return acc;
@@ -720,18 +716,12 @@ export default function TableDetailPage() {
                         <PackageSearch className="mr-2 h-5 w-5"/> Ver Menú
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-full sm:w-1/2 md:w-1/3 p-0">
+                <SheetContent side="left" className="w-full sm:max-w-md md:max-w-lg lg:max-w-xl p-0">
                   <SheetHeader className="p-4 border-b">
                     <SheetTitle className="text-2xl">Categorías del Menú</SheetTitle>
                   </SheetHeader>
-                  <Input
-                    type="text"
-                    placeholder="Buscar categoría..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="m-4 w-[calc(100%-2rem)]"
-                  />
-                  <ScrollArea className="h-[calc(100vh-140px)]"> 
+                  
+                  <ScrollArea className="h-[calc(100vh-80px)]"> 
                     <div className="p-4 space-y-2">
                       {Object.keys(groupedMenu).length === 0 && (
                         <p className="text-muted-foreground text-center">No se encontraron categorías.</p>
@@ -962,3 +952,4 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
