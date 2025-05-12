@@ -1,5 +1,3 @@
-
-
 'use client';
 
 import * as React from 'react';
@@ -137,7 +135,7 @@ export default function TableDetailPage() {
     if (isDelivery) return 'Delivery';
     if (isMeson) return 'Mesón'; // Use "Mesón" for display
     if (!isNaN(Number(tableIdParam))) return `Mesa ${tableIdParam}`;
-    return tableIdParam.charAt(0).toUpperCase() + tableIdParam.slice(1);
+    return decodeURIComponent(tableIdParam).charAt(0).toUpperCase() + decodeURIComponent(tableIdParam).slice(1);
   }, [tableIdParam, isDelivery, isMeson]);
 
 
@@ -403,11 +401,16 @@ export default function TableDetailPage() {
              }
         }
       }
-      //Churrascos, Promo Churrasco, Promo Mechada
-      if (orderItem.category === 'Churrascos' || orderItem.category === 'Promo Churrasco' || orderItem.category === 'Promo Mechada') {
+      //Churrascos
+      if (orderItem.category === 'Churrascos') {
+        if (['churrasco campestre', 'churrasco che milico', 'churrasco completo', 'churrasco dinamico', 'churrasco italiano', 'churrasco napolitano', 'churrasco palta', 'churrasco queso', 'churrasco queso champiñon', 'churrasco tomate'].includes(itemNameLower)) {
+             inventoryItemName = 'Pan de marraqueta';
+        }
+      }
+      //Promo Churrasco
+      if (orderItem.category === 'Promo Churrasco') {
         if (['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'queso', 'queso champiñon', 'tomate', 'palta'].includes(itemNameLower)) {
           inventoryItemName = 'Pan de marraqueta';
-          if (orderItem.category === 'Promo Churrasco' || orderItem.category === 'Promo Mechada') {
              const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
              if (bebidaLataIndex !== -1 && updatedInventory[bebidaLataIndex].stock >= orderItem.quantity) {
                  updatedInventory[bebidaLataIndex].stock -= orderItem.quantity;
@@ -415,8 +418,20 @@ export default function TableDetailPage() {
              } else if (bebidaLataIndex !== -1) {
                  console.warn(`Stock insuficiente de Lata para ${orderItem.name}`);
              }
-          }
         }
+      }
+      //Promo Mechada
+      if (orderItem.category === 'Promo Mechada') {
+          if (['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'queso', 'queso champiñon', 'tomate', 'palta'].includes(itemNameLower)) {
+             inventoryItemName = 'Pan de marraqueta';
+                const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
+                if (bebidaLataIndex !== -1 && updatedInventory[bebidaLataIndex].stock >= orderItem.quantity) {
+                    updatedInventory[bebidaLataIndex].stock -= orderItem.quantity;
+                    inventoryUpdateOccurred = true;
+                } else if (bebidaLataIndex !== -1) {
+                    console.warn(`Stock insuficiente de Lata para ${orderItem.name}`);
+                }
+          }
       }
       //Promo Hamburguesas
       if (orderItem.category === 'Promo Hamburguesas') {
@@ -425,7 +440,7 @@ export default function TableDetailPage() {
            quantityToDeduct = orderItem.quantity; 
         } else if (['doble', 'doble italiana', 'super big cami', 'super tapa arteria'].includes(itemNameLower)) {
            inventoryItemName = 'Pan de hamburguesa grande'; 
-           quantityToDeduct = orderItem.quantity * (itemNameLower.includes('doble') || itemNameLower.includes('super') ? 2 : 1);
+           quantityToDeduct = orderItem.quantity; 
         }
          if (inventoryItemName) { 
             const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
@@ -447,7 +462,7 @@ export default function TableDetailPage() {
       //Promociones
       if (orderItem.category === 'Promociones') {
           const promoNum = parseInt(itemNameLower.replace('promo ', ''), 10);
-          if (promoNum === 1 || promoNum === 2) { inventoryItemName = 'Pan de hamburguesa grande'; }
+          if (promoNum === 1 || promoNum === 2) { inventoryItemName = 'Pan de hamburguesa grande'; quantityToDeduct *=1; }
           if (promoNum === 3) { inventoryItemName = 'Pan de marraqueta'; quantityToDeduct *= 4; }
           if (promoNum === 4) { inventoryItemName = 'Pan de marraqueta'; quantityToDeduct *= 2; }
           if (promoNum === 5) { inventoryItemName = 'Pan especial normal'; quantityToDeduct *= 2; }
@@ -484,7 +499,7 @@ export default function TableDetailPage() {
           }
            if (promoNum === 6 || promoNum === 10) { 
                const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
-               const vienesasNeeded = promoNum === 6 ? orderItem.quantity * 4 : orderItem.quantity * 8;
+               const vienesasNeeded = promoNum === 6 ? orderItem.quantity * 4 : orderItem.quantity * 8; // Promo 6: 2 completos grandes = 4 vienesas. Promo 10: 4 completos grandes = 8 vienesas
                if (vienaIndex !== -1 && updatedInventory[vienaIndex].stock >= vienesasNeeded) {
                    updatedInventory[vienaIndex].stock -= vienesasNeeded;
                    inventoryUpdateOccurred = true;
@@ -494,6 +509,21 @@ export default function TableDetailPage() {
       //Papas Fritas
        if (orderItem.category === 'Papas Fritas') {
             if (itemNameLower === 'box cami') {
+                // 8 empanadas (assuming 1 per "Empanadas" item in inventory, so 8 * quantity)
+                // For now, let's assume "Empanadas" refers to a single type for simplicity in deduction
+                // If you have different empanada types, this logic needs to be more specific
+                const empanadaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase().includes('empanada')); // More generic match
+                if (empanadaIndex !== -1) {
+                     const empanadasToDeduct = 8 * orderItem.quantity;
+                     if (updatedInventory[empanadaIndex].stock >= empanadasToDeduct) {
+                        updatedInventory[empanadaIndex].stock -= empanadasToDeduct;
+                        inventoryUpdateOccurred = true;
+                     } else {
+                        console.warn(`Stock insuficiente de Empanadas para Box Cami`);
+                     }
+                }
+
+
                 const bebidaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'bebida 1.5lt');
                 if (bebidaIndex !== -1 && updatedInventory[bebidaIndex].stock >= orderItem.quantity) {
                     updatedInventory[bebidaIndex].stock -= orderItem.quantity;
@@ -503,7 +533,7 @@ export default function TableDetailPage() {
                 }
             } else if (itemNameLower === 'salchipapas') {
                 const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
-                const vienesasNeeded = orderItem.quantity * 3;
+                const vienesasNeeded = orderItem.quantity * 3; // 3 vienesas per salchipapa
                 if (vienaIndex !== -1 && updatedInventory[vienaIndex].stock >= vienesasNeeded) {
                     updatedInventory[vienaIndex].stock -= vienesasNeeded;
                     inventoryUpdateOccurred = true;
@@ -671,7 +701,7 @@ export default function TableDetailPage() {
                         <PackageSearch className="mr-2 h-5 w-5"/> Ver Menú
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-full md:w-3/4 lg:w-full p-0">
+                <SheetContent side="left" className="w-full md:w-1/2 lg:w-1/2 p-0">
                   <SheetHeader className="p-4 border-b">
                     <SheetTitle className="text-2xl">Menú de Productos</SheetTitle>
                   </SheetHeader>
@@ -887,4 +917,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-
