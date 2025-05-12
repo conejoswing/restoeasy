@@ -14,13 +14,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
-  Dialog as ShadDialog,
-  DialogClose as ShadDialogClose,
-  DialogContent as ShadDialogContent,
-  DialogDescription as ShadDialogDescription,
-  DialogFooter as ShadDialogFooter,
-  DialogHeader as ShadDialogHeader,
-  DialogTitle as ShadDialogTitle,
+  Dialog as ShadDialog, // Renamed to avoid conflict
+  DialogClose as ShadDialogClose, // Renamed
+  DialogContent as ShadDialogContent, // Renamed
+  DialogDescription as ShadDialogDescription, // Renamed
+  DialogFooter as ShadDialogFooter, // Renamed
+  DialogHeader as ShadDialogHeader, // Renamed
+  DialogTitle as ShadDialogTitle, // Renamed
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { useState, useEffect, useMemo } from 'react';

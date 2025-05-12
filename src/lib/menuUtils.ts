@@ -474,8 +474,8 @@ export const mockMenu: MenuItem[] = [
      { id: 83, name: 'Queso', price: 8500, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Bebida Lata', 'Papa Personal'] },
      { id: 84, name: 'Palta', price: 8800, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Bebida Lata', 'Papa Personal'] },
      { id: 85, name: 'Tomate', price: 8800, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Bebida Lata', 'Papa Personal'] },
-     { id: 86, name: 'Brasileño', price: 9200, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Queso Amarillo', 'Papas Hilo', 'Aceituna', 'Bebida Lata', 'Papa Personal'] },
-     { id: 87, name: 'Dinamico', price: 9300, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana', 'Bebida Lata', 'Papa Personal'] },
+     { id: 86, name: 'Brasileño', price: 9200, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Palta', 'Bebida Lata', 'Papa Personal'] },
+     { id: 87, name: 'Dinamico', price: 9300, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'sin americana', 'sin chucrut', 'sin palta', 'Papa Personal'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Palta', 'Chucrut', 'Americana', 'Bebida Lata', 'Papa Personal'] },
      { id: 88, name: 'Campestre', price: 9500, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Lechuga', 'Bebida Lata', 'Papa Personal'] },
      { id: 89, name: 'Queso Champiñon', price: 9800, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Queso', 'Champiñon', 'Tocino', 'Bebida Lata', 'Papa Personal'] },
      { id: 90, name: 'Che milico', price: 10000, category: 'Promo Mechada', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Cebolla Caramelizada', 'Huevo', 'Bebida Lata', 'Papa Personal'] },
@@ -569,26 +569,39 @@ export const sortMenu = (menu: MenuItem[]): MenuItem[] => {
     const categoryAIndex = orderedCategories.indexOf(a.category);
     const categoryBIndex = orderedCategories.indexOf(b.category);
 
-    if (categoryAIndex !== categoryBIndex) {
-        if (categoryAIndex === -1 && categoryBIndex === -1) return a.name.localeCompare(b.name); // Both unknown, sort by name
-        if (categoryAIndex === -1) return 1; // A is unknown, put it at the end
-        if (categoryBIndex === -1) return -1; // B is unknown, put it at the end
-        return categoryAIndex - categoryBIndex; // Sort by known category order
+    // Primary sort: by predefined category order
+    if (categoryAIndex !== -1 && categoryBIndex !== -1) { // Both categories are in orderedCategories
+      if (categoryAIndex !== categoryBIndex) {
+        return categoryAIndex - categoryBIndex;
+      }
+      // If categories are the same and known, continue to next sort criteria
+    } else if (categoryAIndex !== -1) { // Only A is known
+      return -1; // Known categories come before unknown
+    } else if (categoryBIndex !== -1) { // Only B is known
+      return 1;  // Unknown categories come after known
+    }
+    // If both are unknown, or both are the same known category (passed above checks)
+
+    // Secondary sort: if both categories are unknown and different, sort by category name
+    if (categoryAIndex === -1 && categoryBIndex === -1 && a.category !== b.category) {
+      return a.category.localeCompare(b.category);
     }
 
-     // Specific sorting for "Promociones" by number
-     if (a.category === 'Promociones') {
+    // Tertiary sort: specific sorting for "Promociones" by number if categories are the same
+    // This check assumes that if categoryAIndex === categoryBIndex, and one is "Promociones", the other is too.
+    if (a.category === 'Promociones' && b.category === 'Promociones') {
         const numA = extractPromoNumber(a.name);
         const numB = extractPromoNumber(b.name);
         if (numA !== numB) {
             return numA - numB;
         }
-      }
-
-    // Default sort by name if categories are the same or not "Promociones"
+    }
+    
+    // Quaternary sort (or fallback if categories are identical): sort by product name
     return a.name.localeCompare(b.name);
   });
 };
+
 
 export const loadMenuData = (): MenuItem[] => {
   let baseMenu: MenuItem[] = mockMenu.map(item => ({
@@ -659,3 +672,4 @@ export const loadMenuData = (): MenuItem[] => {
 
   return sortMenu(finalMenuToLoad);
 };
+
