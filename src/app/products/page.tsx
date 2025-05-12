@@ -23,15 +23,18 @@ import {
   DialogTitle as ShadDialogTitle,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+// Select components are no longer needed for category editing but might be used elsewhere.
+// For this specific change, Select related imports for category edit are removed.
+// Keep them if other parts of the file use them.
+// import {
+//   Select,
+//   SelectContent,
+//   SelectItem,
+//   SelectTrigger,
+//   SelectValue,
+// } from '@/components/ui/select';
 import { useState, useEffect, useMemo } from 'react';
-import { Edit, PlusCircle, Trash2, ListPlus, Tags, Pencil } from 'lucide-react'; // Added Pencil
+import { Edit, PlusCircle, Trash2, ListPlus, Tags, Pencil } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
 import { Button } from '@/components/ui/button';
@@ -55,7 +58,7 @@ const ProductsManagementPage = () => {
 
   const [isEditCategoryDialogOpen, setIsEditCategoryDialogOpen] = useState(false);
   const [editingCategoryProduct, setEditingCategoryProduct] = useState<MenuItem | null>(null);
-  const [newCategory, setNewCategory] = useState('');
+  const [newCategory, setNewCategory] = useState(''); // Will store the typed category name
 
   const [isEditProductNameDialogOpen, setIsEditProductNameDialogOpen] = useState(false);
   const [editingProductNameProduct, setEditingProductNameProduct] = useState<MenuItem | null>(null);
@@ -140,7 +143,6 @@ const ProductsManagementPage = () => {
         setCurrentIngredients(prev => [...prev, newIngredient.trim()]);
         setNewIngredient('');
     } else {
-        // Optionally, allow adding an empty field to be filled in later
         setCurrentIngredients(prev => [...prev, '']);
     }
   };
@@ -152,14 +154,13 @@ const ProductsManagementPage = () => {
   const handleUpdateIngredients = () => {
     if (!editingIngredientsProduct) return;
 
-    // Filter out empty strings and trim whitespace
     const updatedIngredientsList = currentIngredients.map(ing => ing.trim()).filter(ing => ing !== '');
 
     setMenu(prevMenu => {
         const updatedMenu = prevMenu.map(item =>
         item.id === editingIngredientsProduct.id ? { ...item, ingredients: updatedIngredientsList } : item
       );
-      return sortMenu(updatedMenu); // Ensure menu is re-sorted
+      return sortMenu(updatedMenu);
     });
     
     toast({ title: "Ingredientes Actualizados", description: `Los ingredientes de ${editingIngredientsProduct.name} han sido actualizados.`});
@@ -171,28 +172,27 @@ const ProductsManagementPage = () => {
 
   const openEditCategoryDialog = (product: MenuItem) => {
     setEditingCategoryProduct(product);
-    setNewCategory(product.category); // Set initial category
+    setNewCategory(product.category); // Set initial category to current product's category for editing
     setIsEditCategoryDialogOpen(true);
   };
 
-  const handleCategorySelectChange = (value: string) => {
-    setNewCategory(value);
-  };
+  // No longer handleCategorySelectChange, newCategory is updated directly by Input's onChange
 
   const handleUpdateCategory = () => {
-    if (!editingCategoryProduct || !newCategory) {
-      toast({ title: "Error", description: "Debe seleccionar una categoría.", variant: "destructive"});
+    const trimmedNewCategory = newCategory.trim();
+    if (!editingCategoryProduct || !trimmedNewCategory) {
+      toast({ title: "Error", description: "El nombre de la categoría no puede estar vacío.", variant: "destructive"});
       return;
     }
 
     setMenu(prevMenu => {
       const updatedMenu = prevMenu.map(item =>
-        item.id === editingCategoryProduct.id ? { ...item, category: newCategory } : item
+        item.id === editingCategoryProduct.id ? { ...item, category: trimmedNewCategory } : item
       );
-      return sortMenu(updatedMenu); // Ensure menu is re-sorted after category change
+      return sortMenu(updatedMenu);
     });
 
-    toast({ title: "Categoría Actualizada", description: `La categoría de ${editingCategoryProduct.name} se actualizó a ${newCategory}.`});
+    toast({ title: "Categoría Actualizada", description: `La categoría de ${editingCategoryProduct.name} se actualizó a ${trimmedNewCategory}.`});
     setIsEditCategoryDialogOpen(false);
     setEditingCategoryProduct(null);
     setNewCategory('');
@@ -224,22 +224,32 @@ const ProductsManagementPage = () => {
   };
 
 
-  // Group menu items by category, then sort categories by predefined order
   const groupedMenu = useMemo(() => {
+    const allProductCategories = Array.from(new Set(filteredProducts.map(item => item.category)));
+    
+    const sortedCategoryNames = allProductCategories.sort((a, b) => {
+        const indexA = orderedCategories.indexOf(a);
+        const indexB = orderedCategories.indexOf(b);
+
+        if (indexA !== -1 && indexB !== -1) return indexA - indexB; 
+        if (indexA !== -1) return -1; 
+        if (indexB !== -1) return 1;  
+        return a.localeCompare(b); 
+    });
+
     const groups: { [key: string]: MenuItem[] } = {};
     filteredProducts.forEach(item => {
-      if (!groups[item.category]) {
-        groups[item.category] = [];
-      }
-      groups[item.category].push(item);
+        if (!groups[item.category]) {
+            groups[item.category] = [];
+        }
+        groups[item.category].push(item);
     });
     
-    // Order the groups based on orderedCategories
-    return orderedCategories.reduce((acc, categoryName) => {
-      if (groups[categoryName]) {
-        acc[categoryName] = groups[categoryName];
-      }
-      return acc;
+    return sortedCategoryNames.reduce((acc, categoryName) => {
+        if (groups[categoryName]) {
+            acc[categoryName] = groups[categoryName];
+        }
+        return acc;
     }, {} as { [key: string]: MenuItem[] });
   }, [filteredProducts]);
 
@@ -263,7 +273,7 @@ const ProductsManagementPage = () => {
       </div>
 
        <Card>
-         <CardContent className="p-0"> {/* Remove padding from CardContent to make Table flush */}
+         <CardContent className="p-0">
             <Table>
             <TableHeader>
                 <TableRow>
@@ -271,7 +281,7 @@ const ProductsManagementPage = () => {
                   <TableHead>Categoría</TableHead>
                   <TableHead>Ingredientes</TableHead>
                   <TableHead className="text-right">Precio Base</TableHead>
-                  <TableHead className="text-center w-56">Acciones</TableHead> {/* Adjusted width for 4 icons */}
+                  <TableHead className="text-center w-56">Acciones</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
@@ -284,10 +294,6 @@ const ProductsManagementPage = () => {
                 )}
                 {Object.entries(groupedMenu).map(([category, items]) => (
                   <React.Fragment key={category}>
-                    {/* Optional: Add a category header row if desired */}
-                    {/* <TableRow className="bg-muted/50">
-                      <TableCell colSpan={5} className="font-semibold text-lg py-2 px-4">{category}</TableCell>
-                    </TableRow> */}
                     {items.map((item) => (
                     <TableRow key={item.id}>
                         <TableCell className="font-medium">{item.name}</TableCell>
@@ -313,7 +319,7 @@ const ProductsManagementPage = () => {
                                     <span className="sr-only">Editar Ingredientes</span>
                                 </Button>
                                 <Button variant="outline" size="icon" onClick={() => openEditCategoryDialog(item)} className="h-8 w-8" title="Editar Categoría">
-                                    <Tags className="h-4 w-4" /> {/* Edit Category Icon */}
+                                    <Tags className="h-4 w-4" />
                                     <span className="sr-only">Editar Categoría</span>
                                 </Button>
                             </div>
@@ -383,7 +389,7 @@ const ProductsManagementPage = () => {
                      className="col-span-3"
                      required
                      min="0"
-                     step="1" // Allow integer prices
+                     step="1"
                  />
              </div>
            </div>
@@ -398,14 +404,14 @@ const ProductsManagementPage = () => {
 
       {/* Edit Ingredients Dialog */}
       <ShadDialog open={isEditIngredientsDialogOpen} onOpenChange={setIsEditIngredientsDialogOpen}>
-        <ShadDialogContent className="sm:max-w-md"> {/* Wider for ingredients list */}
+        <ShadDialogContent className="sm:max-w-md">
             <ShadDialogHeader>
             <ShadDialogTitle>Editar Ingredientes de {editingIngredientsProduct?.name}</ShadDialogTitle>
             <ShadDialogDescription>
                 Añada, modifique o elimine ingredientes para este producto.
             </ShadDialogDescription>
             </ShadDialogHeader>
-            <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto"> {/* Scrollable area for many ingredients */}
+            <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
                 {currentIngredients.map((ingredient, index) => (
                     <div key={index} className="flex items-center gap-2">
                     <Input
@@ -420,7 +426,6 @@ const ProductsManagementPage = () => {
                     </Button>
                     </div>
                 ))}
-                 {/* Input for adding new ingredient */}
                  <div className="flex items-center gap-2 mt-2">
                      <Input
                          value={newIngredient}
@@ -450,24 +455,21 @@ const ProductsManagementPage = () => {
           <ShadDialogHeader>
             <ShadDialogTitle>Editar Categoría de {editingCategoryProduct?.name}</ShadDialogTitle>
             <ShadDialogDescription>
-              Seleccione la nueva categoría para este producto.
+              Ingrese el nuevo nombre de categoría para este producto.
             </ShadDialogDescription>
           </ShadDialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="category" className="text-right">
+              <Label htmlFor="newCategoryName" className="text-right">
                 Categoría
               </Label>
-              <Select onValueChange={handleCategorySelectChange} value={newCategory}>
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Selecciona una categoría" />
-                </SelectTrigger>
-                <SelectContent>
-                  {orderedCategories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Input
+                id="newCategoryName"
+                value={newCategory}
+                onChange={(e) => setNewCategory(e.target.value)}
+                className="col-span-3"
+                placeholder="Ej: Especiales de la Casa"
+              />
             </div>
           </div>
           <ShadDialogFooter>
@@ -485,7 +487,6 @@ const ProductsManagementPage = () => {
 
 
 const ProductsPageContent = () => {
-    // This component could fetch initial data if needed, or handle context providers
     return <ProductsManagementPage />;
 }
 
