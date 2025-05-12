@@ -78,10 +78,10 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
   // Filter out specific modifications based on category and item name
     const availableModifications = item.modifications?.filter(mod => {
         const standardMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'];
-        const dinamicoVienesaRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta']; // For Completos Vienesas Dinamico
-        const dinamicoAsRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta']; // For Completos As Dinamico
-        const chacareroAsSpecificIngredientMods = ['sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño']; // For Completos As Chacarero
-        const napolitanoAsRestrictedOptions = ['sin queso', 'sin tomate', 'sin oregano', 'sin aceituna']; // For Completos As Napolitano
+        const dinamicoVienesaRestrictedOptions = ['con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta']; // For Completos Vienesas Dinamico
+        const dinamicoAsRestrictedOptions = ['con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta']; // For Completos As Dinamico
+        const chacareroAsSpecificIngredientMods = ['con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verde', 'con aji jalapeño', 'sin aji jalapeño']; // For Completos As Chacarero
+        const napolitanoAsRestrictedOptions = ['con queso', 'sin queso', 'con tomate', 'sin tomate', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna']; // For Completos As Napolitano
         const quesoChampiñonAsMods = ['Sin Queso', 'Sin Champiñon', 'Sin Tocino']; // For Completos As Queso Champiñon
         const promoChacareroMods = ['con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verde', 'con aji jalapeño', 'sin aji jalapeño']; // For Promo Churrasco Chacarero
         const promoMechadaDinamicoOptions = ['con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta', 'Papa Personal']; // For Promo Mechada Dinamico
@@ -130,7 +130,7 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
             return allowedMods.includes(mod);
         }
         // For 'Completos As' and specific item names 'Queso Champiñon Normal' or 'Queso Champiñon Grande'
-        else if (item.category === 'Completos As' && (item.name.includes('Queso Champiñon'))) {
+        else if (item.category === 'Completos As' && (item.name.includes('Queso Champiñon Normal') || item.name.includes('Queso Champiñon Grande'))) {
             const allowedQuesoChampiñonMods = [...standardMods, ...quesoChampiñonAsMods];
             return allowedQuesoChampiñonMods.includes(mod);
         }

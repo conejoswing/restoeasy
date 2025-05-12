@@ -23,18 +23,8 @@ import {
   DialogTitle as ShadDialogTitle,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-// Select components are no longer needed for category editing but might be used elsewhere.
-// For this specific change, Select related imports for category edit are removed.
-// Keep them if other parts of the file use them.
-// import {
-//   Select,
-//   SelectContent,
-//   SelectItem,
-//   SelectTrigger,
-//   SelectValue,
-// } from '@/components/ui/select';
 import { useState, useEffect, useMemo } from 'react';
-import { Edit, PlusCircle, Trash2, ListPlus, Tags, Pencil } from 'lucide-react';
+import { Edit, PlusCircle, Trash2, ListPlus, Tags, Pencil, ListChecks } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
 import { Button } from '@/components/ui/button';
@@ -58,11 +48,16 @@ const ProductsManagementPage = () => {
 
   const [isEditCategoryDialogOpen, setIsEditCategoryDialogOpen] = useState(false);
   const [editingCategoryProduct, setEditingCategoryProduct] = useState<MenuItem | null>(null);
-  const [newCategory, setNewCategory] = useState(''); // Will store the typed category name
+  const [newCategory, setNewCategory] = useState('');
 
   const [isEditProductNameDialogOpen, setIsEditProductNameDialogOpen] = useState(false);
   const [editingProductNameProduct, setEditingProductNameProduct] = useState<MenuItem | null>(null);
   const [newProductName, setNewProductName] = useState('');
+
+  const [isEditBaseModificationsDialogOpen, setIsEditBaseModificationsDialogOpen] = useState(false);
+  const [editingBaseModificationsProduct, setEditingBaseModificationsProduct] = useState<MenuItem | null>(null);
+  const [currentBaseModifications, setCurrentBaseModifications] = useState<string[]>([]);
+  const [newBaseModification, setNewBaseModification] = useState('');
 
 
   const { toast } = useToast();
@@ -172,11 +167,9 @@ const ProductsManagementPage = () => {
 
   const openEditCategoryDialog = (product: MenuItem) => {
     setEditingCategoryProduct(product);
-    setNewCategory(product.category); // Set initial category to current product's category for editing
+    setNewCategory(product.category);
     setIsEditCategoryDialogOpen(true);
   };
-
-  // No longer handleCategorySelectChange, newCategory is updated directly by Input's onChange
 
   const handleUpdateCategory = () => {
     const trimmedNewCategory = newCategory.trim();
@@ -221,6 +214,51 @@ const ProductsManagementPage = () => {
     setIsEditProductNameDialogOpen(false);
     setEditingProductNameProduct(null);
     setNewProductName('');
+  };
+
+  const openEditBaseModificationsDialog = (product: MenuItem) => {
+    setEditingBaseModificationsProduct(product);
+    setCurrentBaseModifications(product.modifications ? [...product.modifications] : []);
+    setNewBaseModification('');
+    setIsEditBaseModificationsDialogOpen(true);
+  };
+
+  const handleBaseModificationTextChange = (index: number, value: string) => {
+    const updatedModifications = [...currentBaseModifications];
+    updatedModifications[index] = value;
+    setCurrentBaseModifications(updatedModifications);
+  };
+
+  const handleAddNewBaseModificationField = () => {
+    if (newBaseModification.trim() !== '') {
+      setCurrentBaseModifications(prev => [...prev, newBaseModification.trim()]);
+      setNewBaseModification('');
+    } else {
+      setCurrentBaseModifications(prev => [...prev, '']); // Add an empty field for editing
+    }
+  };
+
+  const handleRemoveBaseModification = (indexToRemove: number) => {
+    setCurrentBaseModifications(prev => prev.filter((_, index) => index !== indexToRemove));
+  };
+
+  const handleUpdateBaseModifications = () => {
+    if (!editingBaseModificationsProduct) return;
+
+    const updatedModificationsList = currentBaseModifications.map(mod => mod.trim()).filter(mod => mod !== '');
+
+    setMenu(prevMenu => {
+      const updatedMenu = prevMenu.map(item =>
+        item.id === editingBaseModificationsProduct.id ? { ...item, modifications: updatedModificationsList } : item
+      );
+      return sortMenu(updatedMenu);
+    });
+    
+    toast({ title: "Modificaciones Base Actualizadas", description: `Las modificaciones base de ${editingBaseModificationsProduct.name} han sido actualizadas.`});
+    setIsEditBaseModificationsDialogOpen(false);
+    setEditingBaseModificationsProduct(null);
+    setCurrentBaseModifications([]);
+    setNewBaseModification('');
   };
 
 
@@ -280,6 +318,7 @@ const ProductsManagementPage = () => {
                   <TableHead>Producto</TableHead>
                   <TableHead>Categoría</TableHead>
                   <TableHead>Ingredientes</TableHead>
+                  <TableHead>Modificaciones Base</TableHead>
                   <TableHead className="text-right">Precio Base</TableHead>
                   <TableHead className="text-center w-56">Acciones</TableHead>
                 </TableRow>
@@ -287,7 +326,7 @@ const ProductsManagementPage = () => {
             <TableBody>
                 {filteredProducts.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-24 text-center text-muted-foreground">
+                    <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
                       No se encontraron productos.
                     </TableCell>
                   </TableRow>
@@ -303,9 +342,14 @@ const ProductsManagementPage = () => {
                             ? item.ingredients.join(', ')
                             : '-'}
                         </TableCell>
+                        <TableCell className="text-xs text-muted-foreground max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
+                            {item.modifications && item.modifications.length > 0
+                            ? item.modifications.join(', ')
+                            : '-'}
+                        </TableCell>
                         <TableCell className="text-right font-mono">{printUtilsFormatCurrency(item.price)}</TableCell>
                         <TableCell className="text-center">
-                            <div className="flex justify-center gap-2">
+                            <div className="flex justify-center gap-1"> {/* Reduced gap for more buttons */}
                                 <Button variant="outline" size="icon" onClick={() => openEditProductNameDialog(item)} className="h-8 w-8" title="Editar Nombre Producto">
                                     <Pencil className="h-4 w-4" />
                                     <span className="sr-only">Editar Nombre Producto</span>
@@ -317,6 +361,10 @@ const ProductsManagementPage = () => {
                                 <Button variant="outline" size="icon" onClick={() => openEditIngredientsDialog(item)} className="h-8 w-8" title="Editar Ingredientes">
                                     <ListPlus className="h-4 w-4" />
                                     <span className="sr-only">Editar Ingredientes</span>
+                                </Button>
+                                 <Button variant="outline" size="icon" onClick={() => openEditBaseModificationsDialog(item)} className="h-8 w-8" title="Editar Modificaciones Base">
+                                    <ListChecks className="h-4 w-4" /> {/* New Icon for Base Modifications */}
+                                    <span className="sr-only">Editar Modificaciones Base</span>
                                 </Button>
                                 <Button variant="outline" size="icon" onClick={() => openEditCategoryDialog(item)} className="h-8 w-8" title="Editar Categoría">
                                     <Tags className="h-4 w-4" />
@@ -478,6 +526,53 @@ const ProductsManagementPage = () => {
             </ShadDialogClose>
             <Button type="submit" onClick={handleUpdateCategory}>Guardar Cambios</Button>
           </ShadDialogFooter>
+        </ShadDialogContent>
+      </ShadDialog>
+
+      {/* Edit Base Modifications Dialog */}
+      <ShadDialog open={isEditBaseModificationsDialogOpen} onOpenChange={setIsEditBaseModificationsDialogOpen}>
+        <ShadDialogContent className="sm:max-w-md">
+            <ShadDialogHeader>
+            <ShadDialogTitle>Editar Modificaciones Base de {editingBaseModificationsProduct?.name}</ShadDialogTitle>
+            <ShadDialogDescription>
+                Añada, modifique o elimine las modificaciones base disponibles para este producto.
+            </ShadDialogDescription>
+            </ShadDialogHeader>
+            <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
+                {currentBaseModifications.map((mod, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                    <Input
+                        value={mod}
+                        onChange={(e) => handleBaseModificationTextChange(index, e.target.value)}
+                        placeholder={`Modificación ${index + 1}`}
+                        className="flex-grow"
+                    />
+                    <Button variant="ghost" size="icon" onClick={() => handleRemoveBaseModification(index)} className="text-destructive hover:text-destructive/90">
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Eliminar modificación</span>
+                    </Button>
+                    </div>
+                ))}
+                 <div className="flex items-center gap-2 mt-2">
+                     <Input
+                         value={newBaseModification}
+                         onChange={(e) => setNewBaseModification(e.target.value)}
+                         placeholder="Nueva modificación"
+                         className="flex-grow"
+                         onKeyPress={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddNewBaseModificationField();}}}
+                     />
+                    <Button onClick={handleAddNewBaseModificationField} size="icon" variant="outline">
+                        <PlusCircle className="h-4 w-4" />
+                        <span className="sr-only">Añadir nueva modificación</span>
+                    </Button>
+                 </div>
+            </div>
+            <ShadDialogFooter>
+            <ShadDialogClose asChild>
+                <Button type="button" variant="secondary" onClick={() => setIsEditBaseModificationsDialogOpen(false)}>Cancelar</Button>
+            </ShadDialogClose>
+            <Button type="submit" onClick={handleUpdateBaseModifications}>Guardar Modificaciones</Button>
+            </ShadDialogFooter>
         </ShadDialogContent>
       </ShadDialog>
 
