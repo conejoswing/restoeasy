@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import type { OrderItem, PaymentMethod } from '@/app/tables/[tableId]/page';
@@ -33,7 +34,9 @@ export const formatKitchenOrderReceipt = (
 
     let itemsHtml = '';
     orderItems.forEach(item => {
-        const categoryText = `<br><small style="margin-left: 10px; font-style: italic; font-weight: bold; font-size: 14pt; color: #000;">(${item.category})</small>`; 
+        // Category text above the name, styled like the order number (12pt bold)
+        const categoryHtml = `<div style="font-weight: bold; font-size: 12pt; color: #000; margin-bottom: 2px;">${item.category.toUpperCase()}</div>`;
+        
         const modificationsText = item.selectedModifications && item.selectedModifications.length > 0
             ? `<br><small style="margin-left: 10px; font-weight: bold; font-size: 14pt;">(${item.selectedModifications.join(', ')})</small>`
             : '';
@@ -45,8 +48,8 @@ export const formatKitchenOrderReceipt = (
       <tr>
         <td style="vertical-align: top; padding-right: 10px; font-weight: bold; font-size: 14pt;">${item.quantity}x</td>
         <td>
+          ${categoryHtml}
           <span style="font-weight: bold; font-size: 14pt;">${item.name}</span>
-          ${categoryText}
           ${modificationsText}
           ${ingredientsText}
         </td>
@@ -100,7 +103,7 @@ export const formatKitchenOrderReceipt = (
             font-weight: bold;
         }
         .order-number {
-            font-size: 12pt; /* Kept slightly smaller than main title */
+            font-size: 12pt; /* Order number font size */
             font-weight: bold;
             text-align: center;
             margin-bottom: 5px;
@@ -116,7 +119,6 @@ export const formatKitchenOrderReceipt = (
             margin: 10px 0;
         }
         strong { font-weight: bold; }
-        /* Default small style if not overridden by inline styles */
         small { font-size: 8pt; font-weight: bold; }
       </style>
     </head>
@@ -130,7 +132,7 @@ export const formatKitchenOrderReceipt = (
       <div class="items-section">
         <table>
          <thead>
-            <tr><th colspan="2" style="font-weight: bold; font-size: 14pt;">Productos:</th></tr>
+            <tr><th colspan="2" style="font-weight: bold; font-size: 14pt; padding-bottom: 5px;">Productos:</th></tr>
          </thead>
           <tbody>
             ${itemsHtml}
@@ -487,3 +489,4 @@ export const printHtml = (htmlContent: string): void => {
 };
 
     
+
