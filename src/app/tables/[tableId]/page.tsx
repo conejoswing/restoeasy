@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -133,7 +134,7 @@ export default function TableDetailPage() {
 
   const tableDisplayName = useMemo(() => {
     if (isDelivery) return 'Delivery';
-    if (isMeson) return 'Mesón'; // Use "Mesón" for display
+    if (isMeson) return 'Mesón'; 
     if (!isNaN(Number(tableIdParam))) return `Mesa ${tableIdParam}`;
     return decodeURIComponent(tableIdParam).charAt(0).toUpperCase() + decodeURIComponent(tableIdParam).slice(1);
   }, [tableIdParam, isDelivery, isMeson]);
@@ -437,10 +438,10 @@ export default function TableDetailPage() {
       if (orderItem.category === 'Promo Hamburguesas') {
         if(['big cami', 'italiana', 'simple', 'tapa arteria'].includes(itemNameLower)) {
           inventoryItemName = 'Pan de hamburguesa normal';
-           quantityToDeduct = orderItem.quantity; 
+           quantityToDeduct = orderItem.quantity * 1; // 1 hamburguesa por promo
         } else if (['doble', 'doble italiana', 'super big cami', 'super tapa arteria'].includes(itemNameLower)) {
            inventoryItemName = 'Pan de hamburguesa grande'; 
-           quantityToDeduct = orderItem.quantity; 
+           quantityToDeduct = orderItem.quantity * 2; // 2 hamburguesas por promo doble
         }
          if (inventoryItemName) { 
             const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
@@ -509,10 +510,7 @@ export default function TableDetailPage() {
       //Papas Fritas
        if (orderItem.category === 'Papas Fritas') {
             if (itemNameLower === 'box cami') {
-                // 8 empanadas (assuming 1 per "Empanadas" item in inventory, so 8 * quantity)
-                // For now, let's assume "Empanadas" refers to a single type for simplicity in deduction
-                // If you have different empanada types, this logic needs to be more specific
-                const empanadaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase().includes('empanada')); // More generic match
+                const empanadaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase().includes('empanada')); 
                 if (empanadaIndex !== -1) {
                      const empanadasToDeduct = 8 * orderItem.quantity;
                      if (updatedInventory[empanadaIndex].stock >= empanadasToDeduct) {
@@ -522,8 +520,6 @@ export default function TableDetailPage() {
                         console.warn(`Stock insuficiente de Empanadas para Box Cami`);
                      }
                 }
-
-
                 const bebidaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'bebida 1.5lt');
                 if (bebidaIndex !== -1 && updatedInventory[bebidaIndex].stock >= orderItem.quantity) {
                     updatedInventory[bebidaIndex].stock -= orderItem.quantity;
@@ -560,7 +556,6 @@ export default function TableDetailPage() {
     if (inventoryUpdateOccurred) {
       setInventory(updatedInventory);
       localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify(updatedInventory));
-      toast({ title: "Inventario Actualizado", description: "El stock de los productos ha sido actualizado." });
     }
 
     const customerReceipt = formatCustomerReceipt(orderToPay.items, finalAmountWithTip, paymentMethod, tableDisplayName, orderToPay.orderNumber, orderToPay.deliveryInfo, tipAmount);
@@ -607,7 +602,7 @@ export default function TableDetailPage() {
                sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
                console.log(`Table ${tableIdParam} marked as available after payment.`);
           } else {
-              sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied'); // Keep occupied if delivery info exists
+              sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied'); 
               console.log(`Delivery ${tableIdParam} kept as occupied due to existing delivery info.`);
           }
       }
@@ -663,12 +658,11 @@ export default function TableDetailPage() {
     setDeliveryInfo(info);
     setIsDeliveryDialogOpen(false);
     sessionStorage.setItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`, JSON.stringify(info));
-    sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied'); // Mark as occupied once delivery info is set
+    sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied'); 
     toast({ title: "Datos de Envío Guardados", description: `Enviando a ${info.name}.` });
   };
 
   const handleDeliveryInfoCancel = () => {
-    // Only redirect if no delivery info was ever set AND there are no pending/current orders
     if (!deliveryInfo && pendingOrderGroups.length === 0 && currentOrder.length === 0) {
         sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
         router.push('/tables');
@@ -701,7 +695,7 @@ export default function TableDetailPage() {
                         <PackageSearch className="mr-2 h-5 w-5"/> Ver Menú
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-full md:w-1/2 lg:w-1/2 p-0">
+                <SheetContent side="left" className="w-full md:w-1/2 lg:w-2/3 p-0">
                   <SheetHeader className="p-4 border-b">
                     <SheetTitle className="text-2xl">Menú de Productos</SheetTitle>
                   </SheetHeader>
@@ -917,3 +911,6 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
+
+    
