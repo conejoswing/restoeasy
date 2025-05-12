@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -336,6 +335,12 @@ export default function TableDetailPage() {
     setCurrentOrder([]); 
     sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied'); 
     toast({ title: "Comanda Impresa", description: `Pedido #${String(orderNumber).padStart(3,'0')} enviado a cocina y movido a pendientes.` });
+
+    if (isDelivery) {
+      setDeliveryInfo(null); // Clear current delivery info
+      sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`); // Clear session storage for this delivery
+      setIsDeliveryDialogOpen(true); // Prompt for new delivery details
+    }
   };
 
 
@@ -383,7 +388,7 @@ export default function TableDetailPage() {
         } else if (['completo grande', 'dinamico grande', 'hot dog grande', 'italiano grande', 'palta grande', 'tomate grande'].includes(itemNameLower)) {
           inventoryItemName = 'Pan especial grande';
           const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
-          if (vienaIndex !== -1 && updatedInventory[vienaIndex].stock >= orderItem.quantity * 2) {
+          if (vienaIndex !== -1 && updatedInventory[vienaIndex].stock >= orderItem.quantity * 2) { // 2 vienesas for grande
                 updatedInventory[vienaIndex].stock -= orderItem.quantity * 2;
                 inventoryUpdateOccurred = true;
           } else if (vienaIndex !== -1) { console.warn(`Stock insuficiente de Vienesas para ${orderItem.name}`);}
@@ -449,7 +454,7 @@ export default function TableDetailPage() {
            quantityToDeduct = orderItem.quantity * 1; 
         } else if (['doble', 'doble italiana', 'super big cami', 'super tapa arteria'].includes(itemNameLower)) {
            inventoryItemName = 'Pan de hamburguesa grande'; 
-           quantityToDeduct = orderItem.quantity * 1; // Each "double" promo item still uses one bun of its type, but the name implies two patties perhaps
+           quantityToDeduct = orderItem.quantity * 1; 
         }
          if (inventoryItemName) { 
             const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
@@ -657,7 +662,16 @@ export default function TableDetailPage() {
       uniqueCategoriesInFilteredMenu.add(item.category);
     });
     
-    const finalCategoryOrder = Array.from(uniqueCategoriesInFilteredMenu).sort((a, b) => a.localeCompare(b));
+    const finalCategoryOrder = Array.from(uniqueCategoriesInFilteredMenu).sort((a, b) => {
+        const indexA = predefinedOrderedCategories.indexOf(a);
+        const indexB = predefinedOrderedCategories.indexOf(b);
+
+        if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+        if (indexA !== -1) return -1;
+        if (indexB !== -1) return 1;
+        return a.localeCompare(b);
+    });
+
 
     return finalCategoryOrder.reduce((acc, categoryName) => {
         if (groups[categoryName]) { 
@@ -785,7 +799,7 @@ export default function TableDetailPage() {
                          )}
                     </div>
                 </ScrollArea>
-                <ShadDialogFooter>
+                <ShadDialogFooter className="p-4 border-t">
                     <Button variant="outline" onClick={() => setIsProductListDialogOpen(false)}>Cerrar</Button>
                 </ShadDialogFooter>
             </ShadDialogContent>
@@ -952,4 +966,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-
