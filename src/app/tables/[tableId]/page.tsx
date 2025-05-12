@@ -438,10 +438,10 @@ export default function TableDetailPage() {
       if (orderItem.category === 'Promo Hamburguesas') {
         if(['big cami', 'italiana', 'simple', 'tapa arteria'].includes(itemNameLower)) {
           inventoryItemName = 'Pan de hamburguesa normal';
-           quantityToDeduct = orderItem.quantity * 1; // 1 hamburguesa por promo
+           quantityToDeduct = orderItem.quantity * 1; 
         } else if (['doble', 'doble italiana', 'super big cami', 'super tapa arteria'].includes(itemNameLower)) {
            inventoryItemName = 'Pan de hamburguesa grande'; 
-           quantityToDeduct = orderItem.quantity * 2; // 2 hamburguesas por promo doble
+           quantityToDeduct = orderItem.quantity * 1; // Each "double" promo item still uses one bun of its type, but the name implies two patties perhaps
         }
          if (inventoryItemName) { 
             const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
@@ -500,7 +500,7 @@ export default function TableDetailPage() {
           }
            if (promoNum === 6 || promoNum === 10) { 
                const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
-               const vienesasNeeded = promoNum === 6 ? orderItem.quantity * 4 : orderItem.quantity * 8; // Promo 6: 2 completos grandes = 4 vienesas. Promo 10: 4 completos grandes = 8 vienesas
+               const vienesasNeeded = promoNum === 6 ? orderItem.quantity * 4 : orderItem.quantity * 8; 
                if (vienaIndex !== -1 && updatedInventory[vienaIndex].stock >= vienesasNeeded) {
                    updatedInventory[vienaIndex].stock -= vienesasNeeded;
                    inventoryUpdateOccurred = true;
@@ -529,7 +529,7 @@ export default function TableDetailPage() {
                 }
             } else if (itemNameLower === 'salchipapas') {
                 const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
-                const vienesasNeeded = orderItem.quantity * 3; // 3 vienesas per salchipapa
+                const vienesasNeeded = orderItem.quantity * 3; 
                 if (vienaIndex !== -1 && updatedInventory[vienaIndex].stock >= vienesasNeeded) {
                     updatedInventory[vienaIndex].stock -= vienesasNeeded;
                     inventoryUpdateOccurred = true;
@@ -637,22 +637,38 @@ export default function TableDetailPage() {
       item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       item.category.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
     const groups: { [key: string]: MenuItem[] } = {};
+    const uniqueCategoriesInFilteredMenu = new Set<string>();
+
     filteredMenu.forEach(item => {
       if (!groups[item.category]) {
         groups[item.category] = [];
       }
       groups[item.category].push(item);
+      uniqueCategoriesInFilteredMenu.add(item.category);
     });
 
-    return predefinedOrderedCategories.reduce((acc, categoryName) => {
-        if (groups[categoryName]) {
+    // Start with categories from predefinedOrderedCategories that actually exist in the filtered menu
+    const finalCategoryOrder = predefinedOrderedCategories.filter(catName => uniqueCategoriesInFilteredMenu.has(catName));
+
+    // Add any other categories from the filtered menu that are not in predefinedOrderedCategories, sorted alphabetically
+    const otherCategories = Array.from(uniqueCategoriesInFilteredMenu)
+      .filter(catName => !predefinedOrderedCategories.includes(catName))
+      .sort((a, b) => a.localeCompare(b));
+
+    finalCategoryOrder.push(...otherCategories);
+
+    // Use this finalCategoryOrder to build the accumulator
+    return finalCategoryOrder.reduce((acc, categoryName) => {
+        if (groups[categoryName]) { // Ensure the group exists (it should, by construction)
             acc[categoryName] = groups[categoryName];
         }
         return acc;
     }, {} as { [key: string]: MenuItem[] });
 
   }, [menu, searchTerm]);
+
 
   const handleDeliveryInfoConfirm = (info: DeliveryInfo) => {
     setDeliveryInfo(info);
@@ -695,7 +711,7 @@ export default function TableDetailPage() {
                         <PackageSearch className="mr-2 h-5 w-5"/> Ver Menú
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-full md:w-1/2 lg:w-2/3 p-0">
+                <SheetContent side="left" className="w-full md:w-3/4 lg:w-2/3 xl:w-1/2 p-0"> {/* Wider for better readability */}
                   <SheetHeader className="p-4 border-b">
                     <SheetTitle className="text-2xl">Menú de Productos</SheetTitle>
                   </SheetHeader>
@@ -714,7 +730,7 @@ export default function TableDetailPage() {
                             {category}
                           </AccordionTrigger>
                           <AccordionContent className="pt-2 pb-0 px-0">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 p-2">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-3 p-2"> {/* Adjusted columns */}
                               {items.map((item) => (
                                 <Card
                                   key={item.id}
@@ -911,6 +927,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-
-
-    
