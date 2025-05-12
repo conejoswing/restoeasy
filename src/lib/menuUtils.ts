@@ -216,7 +216,7 @@ export const mockMenu: MenuItem[] = [
     // --- Promo Fajitas ---
     { id: 104, name: 'Italiana', price: 9500, category: 'Promo Fajitas', modifications: [...promoFajitasBaseModifications], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'palta', 'tomate', 'aceituna', 'bebida lata', 'papa personal'] },
     { id: 105, name: 'Brasileño', price: 9200, category: 'Promo Fajitas', modifications: [...promoFajitasBaseModifications], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Queso Amarillo', 'Papas Hilo', 'Aceituna', 'bebida lata', 'papa personal'] },
-    { id: 106, name: 'Chacarero', price: 9800, category: 'Promo Fajitas', modifications: [...promoFajitasBaseModifications], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Poroto Verde', 'Ají Oro', 'Aceituna', 'Bebida Lata', 'Papa Personal'] },
+    { id: 106, name: 'Chacarero', price: 9800, category: 'Promo Fajitas', modifications: [...promoFajitasBaseModifications], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Poroto Verde', 'Ají Oro', 'Aceituna', 'bebida lata', 'papa personal'] },
     { id: 107, name: 'Americana', price: 8900, category: 'Promo Fajitas', modifications: [...promoFajitasBaseModifications], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'Queso Cheddar', 'Salsa Cheddar', 'Tocino', 'Cebolla Caramelizada', 'Aceituna', 'bebida lata', 'papa personal'] },
     { id: 108, name: 'Primavera', price: 9000, category: 'Promo Fajitas', modifications: [...promoFajitasBaseModifications], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'tomate', 'poroto verde', 'choclo', 'aceituna', 'bebida lata', 'papa personal'] },
     { id: 109, name: 'Golosasa', price: 10500, category: 'Promo Fajitas', modifications: [...promoFajitasBaseModifications], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'tocino', 'champiñón', 'queso amarillo', 'choclo', 'cebolla', 'aceituna', 'papas hilo', 'bebida lata', 'papa personal'] },
@@ -593,46 +593,59 @@ export const sortMenu = (menu: MenuItem[]): MenuItem[] => {
 export const loadMenuData = (): MenuItem[] => {
   let baseMenu: MenuItem[] = mockMenu.map(item => ({
     ...item,
-    modifications: item.modifications || [], // Ensure modifications is always an array
-    ingredients: item.ingredients || [],   // Ensure ingredients is always an array
+    modifications: item.modifications || [], 
+    ingredients: item.ingredients || [],   
+    modificationPrices: item.modificationPrices || {},
   }));
 
-  // This check ensures localStorage is only accessed on the client side.
   if (typeof window === 'undefined') {
-    return sortMenu(baseMenu); // Return sorted mock menu if on server
+    return sortMenu(baseMenu); 
   }
 
   const storedMenuJson = localStorage.getItem(MENU_STORAGE_KEY);
-  let finalMenuToLoad = [...baseMenu]; // Start with a copy of the base mock menu
+  let finalMenuToLoad = [...baseMenu]; 
 
   if (storedMenuJson) {
     try {
       const parsedLocalStorageMenu: MenuItem[] = JSON.parse(storedMenuJson);
       if (Array.isArray(parsedLocalStorageMenu)) {
-        // Merge: Use mockMenu as the source of truth for item structure and default modifications/ingredients,
-        // but update prices and ingredients from localStorage if available.
         finalMenuToLoad = baseMenu.map(mockItem => {
           const storedItem = parsedLocalStorageMenu.find(lsItem => lsItem.id === mockItem.id);
           if (storedItem) {
+            // Ensure all fields from storedItem are considered, falling back to mockItem if a field is undefined in storedItem
             return {
-              ...mockItem, // Start with mock item
-              price: storedItem.price, // Override price from storage
-              // Use stored modifications if they exist (even if empty), otherwise fallback to mockItem's
+              id: mockItem.id, // Keep mockItem's ID as it's the primary key
+              name: storedItem.name !== undefined ? storedItem.name : mockItem.name,
+              price: storedItem.price !== undefined ? storedItem.price : mockItem.price,
+              category: storedItem.category !== undefined ? storedItem.category : mockItem.category,
               modifications: storedItem.modifications !== undefined ? storedItem.modifications : (mockItem.modifications || []),
-              // Use stored ingredients if they exist (even if empty), otherwise fallback to mockItem's
+              modificationPrices: storedItem.modificationPrices !== undefined ? storedItem.modificationPrices : (mockItem.modificationPrices || {}),
               ingredients: storedItem.ingredients !== undefined ? storedItem.ingredients : (mockItem.ingredients || []),
             };
           }
-          return mockItem; // If not found in storage, use the mock item as is
+          return mockItem; 
         });
+
+        // Add any new items from mockMenu that are not in localStorage
+        // This handles cases where mockMenu is updated with new products
+        const storedItemIds = new Set(parsedLocalStorageMenu.map(item => item.id));
+        mockMenu.forEach(mockItem => {
+          if (!storedItemIds.has(mockItem.id)) {
+            // Find if this item already exists in finalMenuToLoad (it shouldn't if logic above is correct, but as a safeguard)
+            const existsInFinal = finalMenuToLoad.find(item => item.id === mockItem.id);
+            if(!existsInFinal) {
+                finalMenuToLoad.push({...mockItem}); // Add as a new item
+            }
+          }
+        });
+
+
       }
     } catch (e) {
       console.error("Failed to parse menu from localStorage. Using mock menu.", e);
-      // finalMenuToLoad remains as baseMenu in case of parsing error
     }
   }
 
-  // Ensure specific modifications for Promo Fajitas are always present
   finalMenuToLoad = finalMenuToLoad.map(item => {
     const newItem = { ...item };
     if (item.category === 'Promo Fajitas' &&
@@ -644,6 +657,5 @@ export const loadMenuData = (): MenuItem[] => {
     return newItem;
   });
 
-  return sortMenu(finalMenuToLoad); // Sort the final list before returning
+  return sortMenu(finalMenuToLoad);
 };
-
