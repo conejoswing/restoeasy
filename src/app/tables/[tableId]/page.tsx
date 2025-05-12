@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -35,7 +34,7 @@ import {
   DialogHeader as ShadDialogHeader, 
   DialogTitle as ShadDialogTitle, 
   DialogTrigger as ShadDialogTrigger, 
-} from '@/components/ui/dialog';
+} from '@/components/ui/dialog'; // Renamed for clarity if needed
 import {
   Table,
   TableBody,
@@ -56,7 +55,7 @@ import DeliveryDialog from '@/components/app/delivery-dialog';
 import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
 import type { MenuItem } from '@/types/menu'; 
-import { loadMenuData, orderedCategories as predefinedOrderedCategories } from '@/lib/menuUtils'; 
+import { loadMenuData, orderedCategories as predefinedOrderedCategories, sortMenu } from '@/lib/menuUtils'; 
 
 import { Label } from '@/components/ui/label';
 import {
@@ -127,6 +126,9 @@ export default function TableDetailPage() {
   const [lastOrderNumber, setLastOrderNumber] = useState(0);
   const [orderToPay, setOrderToPay] = useState<PendingOrderGroup | null>(null);
   const [isMenuSheetOpen, setIsMenuSheetOpen] = useState(false);
+
+  const [selectedCategoryForDialog, setSelectedCategoryForDialog] = useState<string | null>(null);
+  const [isProductListDialogOpen, setIsProductListDialogOpen] = useState(false);
 
 
   const isDelivery = useMemo(() => tableIdParam === 'delivery', [tableIdParam]);
@@ -276,6 +278,7 @@ export default function TableDetailPage() {
           ]);
       }
       toast({ title: "Producto Añadido", description: `${item.name} se añadió al pedido actual.` });
+      setIsProductListDialogOpen(false); // Close product list dialog after adding
   };
 
   const handleRemoveItemFromOrder = (orderItemId: string) => {
@@ -688,6 +691,12 @@ export default function TableDetailPage() {
     }
   };
 
+  const handleCategoryClick = (categoryName: string) => {
+    setSelectedCategoryForDialog(categoryName);
+    setIsProductListDialogOpen(true);
+    setIsMenuSheetOpen(false); // Close the main menu sheet
+  };
+
   if (!isInitialized) {
     return <div className="flex items-center justify-center min-h-screen">Cargando datos de la mesa...</div>;
   }
@@ -711,76 +720,102 @@ export default function TableDetailPage() {
                         <PackageSearch className="mr-2 h-5 w-5"/> Ver Menú
                     </Button>
                 </SheetTrigger>
-                <SheetContent side="left" className="w-full md:w-3/4 lg:w-2/3 xl:w-1/2 p-0"> {/* Wider for better readability */}
+                <SheetContent side="left" className="w-full sm:w-1/2 md:w-1/3 p-0">
                   <SheetHeader className="p-4 border-b">
-                    <SheetTitle className="text-2xl">Menú de Productos</SheetTitle>
+                    <SheetTitle className="text-2xl">Categorías del Menú</SheetTitle>
                   </SheetHeader>
                   <Input
                     type="text"
-                    placeholder="Buscar producto o categoría..."
+                    placeholder="Buscar categoría..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="m-4 w-[calc(100%-2rem)]"
                   />
                   <ScrollArea className="h-[calc(100vh-140px)]"> 
-                    <Accordion type="multiple" defaultValue={predefinedOrderedCategories} className="w-full p-4">
-                      {Object.entries(groupedMenu).map(([category, items]) => (
-                        <AccordionItem value={category} key={category} className="border-b-0 mb-2">
-                          <AccordionTrigger className="text-xl font-semibold hover:bg-muted/50 px-4 py-3 rounded-md hover:no-underline">
+                    <div className="p-4 space-y-2">
+                      {Object.keys(groupedMenu).length === 0 && (
+                        <p className="text-muted-foreground text-center">No se encontraron categorías.</p>
+                      )}
+                      {Object.keys(groupedMenu).map((category) => (
+                          <Button
+                            key={category}
+                            variant="outline"
+                            className="w-full justify-start text-lg py-6"
+                            onClick={() => handleCategoryClick(category)}
+                          >
                             {category}
-                          </AccordionTrigger>
-                          <AccordionContent className="pt-2 pb-0 px-0">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-3 gap-3 p-2"> {/* Adjusted columns */}
-                              {items.map((item) => (
-                                <Card
-                                  key={item.id}
-                                  className="cursor-pointer hover:shadow-lg transition-shadow flex flex-col"
-                                  onClick={() => (item.modifications && item.modifications.length > 0) ? handleOpenModificationDialog(item) : handleAddItemToOrder(item)}
-                                >
-                                  <CardHeader className="pb-2 pt-3 px-3">
-                                    <CardTitle className="text-base leading-tight font-semibold">{item.name}</CardTitle>
-                                  </CardHeader>
-                                  <CardContent className="text-xs text-muted-foreground px-3 pb-2 flex-grow">
-                                      {item.ingredients && item.ingredients.length > 0 && (
-                                        <p className="italic overflow-hidden text-ellipsis whitespace-nowrap">
-                                            ({item.ingredients.join(', ')})
-                                        </p>
-                                      )}
-                                  </CardContent>
-                                  <CardFooter className="px-3 pb-3 pt-1 mt-auto">
-                                    <span className="text-sm font-bold text-primary">{formatCurrency(item.price)}</span>
-                                  </CardFooter>
-                                </Card>
-                              ))}
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
+                          </Button>
                       ))}
-                    </Accordion>
+                    </div>
                   </ScrollArea>
-                  <SheetFooter className="p-4 border-t">
-                    <SheetClose asChild>
-                        <Button>Confirmar</Button>
-                    </SheetClose>
-                  </SheetFooter>
                 </SheetContent>
             </Sheet>
         </div>
+
+        {/* Dialog to display products of a selected category */}
+        <ShadDialog open={isProductListDialogOpen} onOpenChange={setIsProductListDialogOpen}>
+            <ShadDialogContent className="sm:max-w-lg md:max-w-xl lg:max-w-3xl xl:max-w-4xl h-[90vh]">
+                <ShadDialogHeader>
+                    <ShadDialogTitle className="text-2xl">
+                        Productos en {selectedCategoryForDialog}
+                    </ShadDialogTitle>
+                </ShadDialogHeader>
+                <ScrollArea className="h-[calc(90vh-150px)] pr-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 py-4">
+                        {selectedCategoryForDialog &&
+                            menu
+                                .filter(item => item.category === selectedCategoryForDialog)
+                                .map(item => (
+                                    <Card
+                                        key={item.id}
+                                        className="cursor-pointer hover:shadow-lg transition-shadow flex flex-col"
+                                        onClick={() =>
+                                            (item.modifications && item.modifications.length > 0)
+                                                ? handleOpenModificationDialog(item)
+                                                : handleAddItemToOrder(item)
+                                        }
+                                    >
+                                        <CardHeader className="pb-2 pt-3 px-3">
+                                            <CardTitle className="text-base leading-tight font-semibold">{item.name}</CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="text-xs text-muted-foreground px-3 pb-2 flex-grow">
+                                            {item.ingredients && item.ingredients.length > 0 && (
+                                                <p className="italic overflow-hidden text-ellipsis whitespace-nowrap">
+                                                    ({item.ingredients.join(', ')})
+                                                </p>
+                                            )}
+                                        </CardContent>
+                                        <CardFooter className="px-3 pb-3 pt-1 mt-auto">
+                                            <span className="text-sm font-bold text-primary">{formatCurrency(item.price)}</span>
+                                        </CardFooter>
+                                    </Card>
+                                ))}
+                         {selectedCategoryForDialog && menu.filter(item => item.category === selectedCategoryForDialog).length === 0 && (
+                            <p className="col-span-full text-center text-muted-foreground">No hay productos en esta categoría.</p>
+                         )}
+                    </div>
+                </ScrollArea>
+                <ShadDialogFooter>
+                    <Button variant="outline" onClick={() => setIsProductListDialogOpen(false)}>Cerrar</Button>
+                </ShadDialogFooter>
+            </ShadDialogContent>
+        </ShadDialog>
+
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card className="flex flex-col">
           <CardHeader>
             <CardTitle>Pedido Actual</CardTitle>
             {isDelivery && deliveryInfo && (
-                <CardDescription className="text-sm">
+                <CardDescription className="text-sm font-bold">
                     Para: {deliveryInfo.name} ({deliveryInfo.address}) - Envío: {formatCurrency(deliveryInfo.deliveryFee)}
                 </CardDescription>
             )}
           </CardHeader>
-          <ScrollArea className="flex-grow max-h-[calc(100vh-420px)] min-h-[200px]"> 
+          <ScrollArea className="flex-grow max-h-[calc(100vh-420px)] min-h-[200px] p-1"> 
             <CardContent className="p-4">
                 {currentOrder.length === 0 ? (
-                <p className="text-muted-foreground">No hay productos en el pedido actual.</p>
+                <p className="text-muted-foreground font-bold">No hay productos en el pedido actual.</p>
                 ) : (
                 currentOrder.map((item) => (
                     <div key={item.orderItemId} className="mb-3 pb-3 border-b last:border-b-0">
@@ -842,10 +877,10 @@ export default function TableDetailPage() {
           <CardHeader>
             <CardTitle>Pedidos Pendientes de Pago</CardTitle>
           </CardHeader>
-          <ScrollArea className="flex-grow max-h-[calc(100vh-300px)] min-h-[200px]">
+          <ScrollArea className="flex-grow max-h-[calc(100vh-300px)] min-h-[200px] p-1">
              <CardContent className="p-4">
                 {pendingOrderGroups.length === 0 ? (
-                  <p className="text-muted-foreground">No hay pedidos pendientes de pago.</p>
+                  <p className="text-muted-foreground font-bold">No hay pedidos pendientes de pago.</p>
                 ) : (
                   pendingOrderGroups.map((group) => {
                     const groupTotal = group.items.reduce((sum, item) => sum + item.finalPrice * item.quantity, 0) +
@@ -857,12 +892,12 @@ export default function TableDetailPage() {
                                 <CardTitle className="text-base font-semibold">
                                     Orden #{String(group.orderNumber).padStart(3, '0')}
                                     {isDelivery && group.deliveryInfo && (
-                                        <span className="text-xs font-normal text-muted-foreground ml-2">
+                                        <span className="text-xs font-normal text-muted-foreground ml-2 font-bold">
                                             ({group.deliveryInfo.name})
                                         </span>
                                     )}
                                 </CardTitle>
-                                <Badge variant="outline" className="text-sm">{formatCurrency(groupTotal)}</Badge>
+                                <Badge variant="outline" className="text-sm font-bold">{formatCurrency(groupTotal)}</Badge>
                            </div>
                         </CardHeader>
                         <CardContent className="p-3 text-xs">
