@@ -10,9 +10,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card'; // CardHeader, CardTitle removed as not used
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
+// Textarea removed as not used
 import { Badge } from '@/components/ui/badge';
 import {
   Dialog as ShadDialog,
@@ -24,13 +24,20 @@ import {
   DialogTitle as ShadDialogTitle,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'; // Added Select components
 import { useState, useEffect, useMemo } from 'react';
-import { Edit, PlusCircle, Trash2, ListPlus } from 'lucide-react';
+import { Edit, PlusCircle, Trash2, ListPlus, Tags } from 'lucide-react'; // Added Tags icon
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
 import { Button } from '@/components/ui/button';
 import type { MenuItem } from '@/types/menu'; // Import MenuItem
-import { loadMenuData, MENU_STORAGE_KEY, sortMenu } from '@/lib/menuUtils'; // Import utilities
+import { loadMenuData, MENU_STORAGE_KEY, sortMenu, orderedCategories } from '@/lib/menuUtils'; // Import utilities & orderedCategories
 
 
 const ProductsManagementPage = () => {
@@ -45,6 +52,10 @@ const ProductsManagementPage = () => {
   const [editingIngredientsProduct, setEditingIngredientsProduct] = useState<MenuItem | null>(null);
   const [currentIngredients, setCurrentIngredients] = useState<string[]>([]);
   const [newIngredient, setNewIngredient] = useState('');
+
+  const [isEditCategoryDialogOpen, setIsEditCategoryDialogOpen] = useState(false);
+  const [editingCategoryProduct, setEditingCategoryProduct] = useState<MenuItem | null>(null);
+  const [newCategory, setNewCategory] = useState('');
 
 
   const { toast } = useToast();
@@ -154,25 +165,46 @@ const ProductsManagementPage = () => {
     setNewIngredient('');
   };
 
+  const openEditCategoryDialog = (product: MenuItem) => {
+    setEditingCategoryProduct(product);
+    setNewCategory(product.category);
+    setIsEditCategoryDialogOpen(true);
+  };
+
+  const handleCategorySelectChange = (value: string) => {
+    setNewCategory(value);
+  };
+
+  const handleUpdateCategory = () => {
+    if (!editingCategoryProduct || !newCategory) {
+      toast({ title: "Error", description: "Debe seleccionar una categoría.", variant: "destructive"});
+      return;
+    }
+
+    setMenu(prevMenu => {
+      const updatedMenu = prevMenu.map(item =>
+        item.id === editingCategoryProduct.id ? { ...item, category: newCategory } : item
+      );
+      return sortMenu(updatedMenu); // Ensure menu is re-sorted after category change
+    });
+
+    toast({ title: "Categoría Actualizada", description: `La categoría de ${editingCategoryProduct.name} se actualizó a ${newCategory}.`});
+    setIsEditCategoryDialogOpen(false);
+    setEditingCategoryProduct(null);
+    setNewCategory('');
+  };
+
+
   const groupedMenu = useMemo(() => {
     const groups: { [key: string]: MenuItem[] } = {};
-    // Use menu directly from state for grouping, as it's already filtered by searchTerm for rendering
-    // If you want to group all products regardless of search, use `menu` instead of `filteredProducts`
     filteredProducts.forEach(item => {
       if (!groups[item.category]) {
         groups[item.category] = [];
       }
       groups[item.category].push(item);
     });
-    // orderedCategories should be imported or defined if it's used for sorting groups
-    // For now, let's use Object.keys which will be in insertion order (effectively by ID then) or use a predefined order
-    const predefinedCategoryOrder = [
-        'Completos Vienesas', 'Completos As', 'Promo Fajitas', 'Promo Hamburguesas', 
-        'Churrascos', 'Papas Fritas', 'Promo Churrasco', 'Promo Mechada', 
-        'Promociones', 'Bebidas', 'Colaciones'
-    ];
     
-    return predefinedCategoryOrder.reduce((acc, categoryName) => {
+    return orderedCategories.reduce((acc, categoryName) => {
       if (groups[categoryName]) {
         acc[categoryName] = groups[categoryName];
       }
@@ -208,7 +240,7 @@ const ProductsManagementPage = () => {
                   <TableHead>Categoría</TableHead>
                   <TableHead>Ingredientes</TableHead>
                   <TableHead className="text-right">Precio Base</TableHead>
-                  <TableHead className="text-center w-40">Acciones</TableHead>
+                  <TableHead className="text-center w-48">Acciones</TableHead> {/* Adjusted width for 3 icons */}
                 </TableRow>
             </TableHeader>
             <TableBody>
@@ -240,6 +272,10 @@ const ProductsManagementPage = () => {
                                 <Button variant="outline" size="icon" onClick={() => openEditIngredientsDialog(item)} className="h-8 w-8" title="Editar Ingredientes">
                                     <ListPlus className="h-4 w-4" />
                                     <span className="sr-only">Editar Ingredientes</span>
+                                </Button>
+                                <Button variant="outline" size="icon" onClick={() => openEditCategoryDialog(item)} className="h-8 w-8" title="Editar Categoría">
+                                    <Tags className="h-4 w-4" /> {/* Edit Category Icon */}
+                                    <span className="sr-only">Editar Categoría</span>
                                 </Button>
                             </div>
                         </TableCell>
@@ -331,6 +367,41 @@ const ProductsManagementPage = () => {
             </ShadDialogClose>
             <Button type="submit" onClick={handleUpdateIngredients}>Guardar Ingredientes</Button>
             </ShadDialogFooter>
+        </ShadDialogContent>
+      </ShadDialog>
+
+      {/* Edit Category Dialog */}
+      <ShadDialog open={isEditCategoryDialogOpen} onOpenChange={setIsEditCategoryDialogOpen}>
+        <ShadDialogContent className="sm:max-w-[425px]">
+          <ShadDialogHeader>
+            <ShadDialogTitle>Editar Categoría de {editingCategoryProduct?.name}</ShadDialogTitle>
+            <ShadDialogDescription>
+              Seleccione la nueva categoría para este producto.
+            </ShadDialogDescription>
+          </ShadDialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="category" className="text-right">
+                Categoría
+              </Label>
+              <Select onValueChange={handleCategorySelectChange} value={newCategory}>
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Selecciona una categoría" />
+                </SelectTrigger>
+                <SelectContent>
+                  {orderedCategories.map((cat) => (
+                    <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <ShadDialogFooter>
+            <ShadDialogClose asChild>
+              <Button type="button" variant="secondary" onClick={() => setIsEditCategoryDialogOpen(false)}>Cancelar</Button>
+            </ShadDialogClose>
+            <Button type="submit" onClick={handleUpdateCategory}>Guardar Cambios</Button>
+          </ShadDialogFooter>
         </ShadDialogContent>
       </ShadDialog>
 
