@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -16,7 +15,7 @@ import {
 import {ScrollArea }from '@/components/ui/scroll-area';
 import {Separator }from '@/components/ui/separator';
 // import { Input } from '@/components/ui/input'; // No longer directly used here, moved to ProductsManagementPage
-// import { Badge } from '@/components/ui/badge'; // No longer directly used here
+import { Badge } from '@/components/ui/badge'; // No longer directly used here
 import {
   Sheet,
   SheetContent,
@@ -264,7 +263,8 @@ export default function TableDetailPage() {
     } else {
         sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
          if(isDelivery) { // Also specifically clear delivery info for this tableId if becoming available
-            sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`);
+            sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`); 
+            setDeliveryInfo(null); 
          }
     }
 
