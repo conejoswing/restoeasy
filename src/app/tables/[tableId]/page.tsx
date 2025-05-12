@@ -26,14 +26,14 @@ import {
   SheetFooter,
 } from '@/components/ui/sheet';
 import {
-  Dialog as ShadDialog, 
-  DialogClose as ShadDialogClose, 
-  DialogContent as ShadDialogContent, 
-  DialogDescription as ShadDialogDescription, 
-  DialogFooter as ShadDialogFooter, 
-  DialogHeader as ShadDialogHeader, 
-  DialogTitle as ShadDialogTitle, 
-  DialogTrigger as ShadDialogTrigger, 
+  Dialog as ShadDialog,
+  DialogClose as ShadDialogClose,
+  DialogContent as ShadDialogContent,
+  DialogDescription as ShadDialogDescription,
+  DialogFooter as ShadDialogFooter,
+  DialogHeader as ShadDialogHeader,
+  DialogTitle as ShadDialogTitle,
+  DialogTrigger as ShadDialogTrigger,
 } from '@/components/ui/dialog'; // Renamed for clarity if needed
 import {
   Table,
@@ -43,7 +43,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Utensils, PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard, ChevronRight, Banknote, Landmark, Home, Phone, User, DollarSign, PackageSearch, Edit, Trash2 } from 'lucide-react';
+import { Utensils, PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard, ChevronRight, Banknote, Landmark, Home, Phone, User, DollarSign, PackageSearch, Edit, Trash2, ListChecks, Tags, Pencil } from 'lucide-react';
 import {useToast }from '@/hooks/use-toast';
 import ModificationDialog from '@/components/app/modification-dialog';
 import PaymentDialog from '@/components/app/payment-dialog';
@@ -51,11 +51,11 @@ import { isEqual } from 'lodash';
 import { cn } from '@/lib/utils';
 import type { CashMovement } from '@/app/expenses/page';
 import type { DeliveryInfo } from '@/components/app/delivery-dialog';
-import DeliveryDialog from '@/components/app/delivery-dialog'; 
+import DeliveryDialog from '@/components/app/delivery-dialog';
 import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
-import type { MenuItem } from '@/types/menu'; 
-import { loadMenuData, orderedCategories as predefinedOrderedCategories, sortMenu } from '@/lib/menuUtils'; 
+import type { MenuItem } from '@/types/menu';
+import { loadMenuData, orderedCategories as predefinedOrderedCategories, sortMenu } from '@/lib/menuUtils';
 
 import { Label } from '@/components/ui/label';
 import {
@@ -75,7 +75,7 @@ export interface OrderItem extends Omit<MenuItem, 'price' | 'modificationPrices'
   finalPrice: number;
   // ingredients is inherited
   orderNumber?: number;
-  category: string; 
+  category: string;
 }
 
 
@@ -112,7 +112,7 @@ export default function TableDetailPage() {
   const { toast } = useToast();
 
   const [isInitialized, setIsInitialized] = useState(false);
-  const [menu, setMenu] = useState<MenuItem[]>([]); 
+  const [menu, setMenu] = useState<MenuItem[]>([]);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [currentOrder, setCurrentOrder] = useState<OrderItem[]>([]);
@@ -136,7 +136,7 @@ export default function TableDetailPage() {
 
   const tableDisplayName = useMemo(() => {
     if (isDelivery) return 'Delivery';
-    if (isMeson) return 'Mesón'; 
+    if (isMeson) return 'Mesón';
     if (!isNaN(Number(tableIdParam))) return `Mesa ${tableIdParam}`;
     return decodeURIComponent(tableIdParam).charAt(0).toUpperCase() + decodeURIComponent(tableIdParam).slice(1);
   }, [tableIdParam, isDelivery, isMeson]);
@@ -170,7 +170,7 @@ export default function TableDetailPage() {
       try {
         const parsedOrder = JSON.parse(storedCurrentOrder);
         if (Array.isArray(parsedOrder)) {
-          setCurrentOrder(parsedOrder.map((item: any) => ({ 
+          setCurrentOrder(parsedOrder.map((item: any) => ({
             ...item,
             basePrice: Number(item.basePrice) || 0,
             finalPrice: Number(item.finalPrice) || 0,
@@ -187,7 +187,7 @@ export default function TableDetailPage() {
             const parsedData = JSON.parse(storedPendingOrdersData);
              if (parsedData && Array.isArray(parsedData.groups)) {
                  setPendingOrderGroups(parsedData.groups.sort((a: PendingOrderGroup, b: PendingOrderGroup) => a.timestamp - b.timestamp));
-             } else if (Array.isArray(parsedData)) { 
+             } else if (Array.isArray(parsedData)) {
                  setPendingOrderGroups(parsedData.sort((a: PendingOrderGroup, b: PendingOrderGroup) => a.timestamp - b.timestamp));
              }
         } catch (e) { console.error("Error loading pending orders:", e); }
@@ -201,7 +201,8 @@ export default function TableDetailPage() {
           setDeliveryInfo(JSON.parse(storedDeliveryInfo));
         } catch (e) { console.error("Error loading delivery info:", e); }
       }
-      if (!storedDeliveryInfo && !currentOrder.length && !pendingOrderGroups.length) { // Only open if no existing order/info
+      // Open delivery dialog if it's a new delivery, no current order, no pending orders, and no stored info for the current attempt
+      if (!storedDeliveryInfo && !currentOrder.length && !pendingOrderGroups.length) {
         setIsDeliveryDialogOpen(true);
       }
     }
@@ -212,7 +213,7 @@ export default function TableDetailPage() {
     setIsInitialized(true);
     console.log(`Initialization complete for ${tableIdParam}.`);
 
-  }, [tableIdParam, isInitialized, isDelivery, currentOrder.length, pendingOrderGroups.length]);
+  }, [tableIdParam, isInitialized, isDelivery]);
 
 
   // --- Effect to save state changes to sessionStorage and update table status ---
@@ -223,8 +224,12 @@ export default function TableDetailPage() {
     sessionStorage.setItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${tableIdParam}-currentOrder`, JSON.stringify(currentOrder));
     sessionStorage.setItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${tableIdParam}-pendingOrders`, JSON.stringify({ groups: pendingOrderGroups }));
 
-    if (isDelivery && deliveryInfo) {
-      sessionStorage.setItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`, JSON.stringify(deliveryInfo));
+    if (isDelivery) {
+      if (deliveryInfo) {
+         sessionStorage.setItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`, JSON.stringify(deliveryInfo));
+      } else {
+         sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`);
+      }
     }
 
     const hasPending = pendingOrderGroups.length > 0;
@@ -234,7 +239,7 @@ export default function TableDetailPage() {
         // Consider occupied if any field in deliveryInfo is truthy (or deliveryFee > 0)
         hasDeliveryInfoForStatus = !!(deliveryInfo.name || deliveryInfo.address || deliveryInfo.phone || deliveryInfo.deliveryFee > 0);
     }
-    
+
     if (hasPending || hasCurrent || (isDelivery && hasDeliveryInfoForStatus)) {
         sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
     } else {
@@ -321,6 +326,11 @@ export default function TableDetailPage() {
       toast({ title: "Pedido Vacío", description: "Añada productos antes de imprimir la comanda.", variant: "destructive" });
       return;
     }
+     if (isDelivery && !deliveryInfo) {
+        toast({ title: "Faltan Datos de Envío", description: "Por favor, ingrese los datos de envío antes de imprimir la comanda.", variant: "destructive" });
+        setIsDeliveryDialogOpen(true);
+        return;
+    }
     const orderNumber = getNextOrderNumber();
     const orderWithNumber = currentOrder.map(item => ({ ...item, orderNumber }));
 
@@ -332,14 +342,14 @@ export default function TableDetailPage() {
         { orderNumber, items: orderWithNumber, deliveryInfo: isDelivery ? deliveryInfo : null, timestamp: Date.now() }
     ].sort((a,b) => a.timestamp - b.timestamp));
 
-    setCurrentOrder([]); 
-    sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied'); 
+    setCurrentOrder([]);
+    sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
     toast({ title: "Comanda Impresa", description: `Pedido #${String(orderNumber).padStart(3,'0')} enviado a cocina y movido a pendientes.` });
 
     if (isDelivery) {
-      setDeliveryInfo(null); // Clear current delivery info
-      sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`); // Clear session storage for this delivery
-      setIsDeliveryDialogOpen(true); // Prompt for new delivery details
+      setDeliveryInfo(null); // Clear current delivery info for the next new order
+      // sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`); // Handled by useEffect
+      setIsDeliveryDialogOpen(true); // Prompt for new delivery details for the next new order
     }
   };
 
@@ -349,7 +359,7 @@ export default function TableDetailPage() {
         toast({ title: "Error", description: "No hay pedido pendiente seleccionado para pagar o está vacío.", variant: "destructive" });
         return;
     }
-    setOrderToPay(groupToPay); 
+    setOrderToPay(groupToPay);
 
     let orderTotal = groupToPay.items.reduce((sum, item) => sum + item.finalPrice * item.quantity, 0);
     if (isDelivery && groupToPay.deliveryInfo && groupToPay.deliveryInfo.deliveryFee > 0) {
@@ -405,7 +415,7 @@ export default function TableDetailPage() {
       //Promo Fajitas
       if (orderItem.category === 'Promo Fajitas') {
         if (['4 ingredientes', '6 ingredientes', 'americana', 'brasileño', 'chacarero', 'golosasa', 'italiana', 'primavera'].includes(itemNameLower)) {
-            inventoryItemName = 'Fajita'; 
+            inventoryItemName = 'Fajita';
              const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
              if (bebidaLataIndex !== -1 && updatedInventory[bebidaLataIndex].stock >= orderItem.quantity) {
                  updatedInventory[bebidaLataIndex].stock -= orderItem.quantity;
@@ -451,12 +461,12 @@ export default function TableDetailPage() {
       if (orderItem.category === 'Promo Hamburguesas') {
         if(['big cami', 'italiana', 'simple', 'tapa arteria'].includes(itemNameLower)) {
           inventoryItemName = 'Pan de hamburguesa normal';
-           quantityToDeduct = orderItem.quantity * 1; 
+           quantityToDeduct = orderItem.quantity * 1;
         } else if (['doble', 'doble italiana', 'super big cami', 'super tapa arteria'].includes(itemNameLower)) {
-           inventoryItemName = 'Pan de hamburguesa grande'; 
-           quantityToDeduct = orderItem.quantity * 1; 
+           inventoryItemName = 'Pan de hamburguesa grande';
+           quantityToDeduct = orderItem.quantity * 1;
         }
-         if (inventoryItemName) { 
+         if (inventoryItemName) {
             const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
             if (bebidaLataIndex !== -1 && updatedInventory[bebidaLataIndex].stock >= orderItem.quantity) {
                 updatedInventory[bebidaLataIndex].stock -= orderItem.quantity;
@@ -488,22 +498,22 @@ export default function TableDetailPage() {
           if (promoNum === 11) { inventoryItemName = 'Pan especial normal'; quantityToDeduct *= 4; }
           if (promoNum === 12) { inventoryItemName = 'Pan especial grande'; quantityToDeduct *= 4; }
 
-          if ([1,2,3,9,10,11,12].includes(promoNum)) { 
+          if ([1,2,3,9,10,11,12].includes(promoNum)) {
               const bebidaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'bebida 1.5lt');
               if (bebidaIndex !== -1 && updatedInventory[bebidaIndex].stock >= orderItem.quantity) {
                   updatedInventory[bebidaIndex].stock -= orderItem.quantity;
                   inventoryUpdateOccurred = true;
               } else if (bebidaIndex !== -1) { console.warn(`Stock insuficiente de Bebida 1.5Lt`); }
           }
-          if ([5,6,7,8].includes(promoNum)) { 
+          if ([5,6,7,8].includes(promoNum)) {
               const lataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
-              const latasToDeduct = orderItem.quantity * 2; 
+              const latasToDeduct = orderItem.quantity * 2;
               if (lataIndex !== -1 && updatedInventory[lataIndex].stock >= latasToDeduct) {
                   updatedInventory[lataIndex].stock -= latasToDeduct;
                   inventoryUpdateOccurred = true;
               } else if (lataIndex !== -1) { console.warn(`Stock insuficiente de Lata`); }
           }
-           if (promoNum === 5 || promoNum === 9) { 
+           if (promoNum === 5 || promoNum === 9) {
               const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
               const vienesasNeeded = promoNum === 5 ? orderItem.quantity * 2 : orderItem.quantity * 4;
               if (vienaIndex !== -1 && updatedInventory[vienaIndex].stock >= vienesasNeeded) {
@@ -511,9 +521,9 @@ export default function TableDetailPage() {
                   inventoryUpdateOccurred = true;
               } else if (vienaIndex !== -1) { console.warn(`Stock insuficiente de Vienesas`);}
           }
-           if (promoNum === 6 || promoNum === 10) { 
+           if (promoNum === 6 || promoNum === 10) {
                const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
-               const vienesasNeeded = promoNum === 6 ? orderItem.quantity * 4 : orderItem.quantity * 8; 
+               const vienesasNeeded = promoNum === 6 ? orderItem.quantity * 4 : orderItem.quantity * 8;
                if (vienaIndex !== -1 && updatedInventory[vienaIndex].stock >= vienesasNeeded) {
                    updatedInventory[vienaIndex].stock -= vienesasNeeded;
                    inventoryUpdateOccurred = true;
@@ -523,7 +533,7 @@ export default function TableDetailPage() {
       //Papas Fritas
        if (orderItem.category === 'Papas Fritas') {
             if (itemNameLower === 'box cami') {
-                const empanadaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase().includes('empanada')); 
+                const empanadaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase().includes('empanada'));
                 if (empanadaIndex !== -1) {
                      const empanadasToDeduct = 8 * orderItem.quantity;
                      if (updatedInventory[empanadaIndex].stock >= empanadasToDeduct) {
@@ -542,7 +552,7 @@ export default function TableDetailPage() {
                 }
             } else if (itemNameLower === 'salchipapas') {
                 const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
-                const vienesasNeeded = orderItem.quantity * 3; 
+                const vienesasNeeded = orderItem.quantity * 3;
                 if (vienaIndex !== -1 && updatedInventory[vienaIndex].stock >= vienesasNeeded) {
                     updatedInventory[vienaIndex].stock -= vienesasNeeded;
                     inventoryUpdateOccurred = true;
@@ -586,11 +596,11 @@ export default function TableDetailPage() {
         : cashMovementDescription;
 
     const newCashMovement: CashMovement = {
-      id: Date.now(), 
+      id: Date.now(),
       date: new Date(),
       category: 'Ingreso Venta',
       description: descriptionWithTip,
-      amount: saleAmount, 
+      amount: saleAmount,
       paymentMethod: paymentMethod,
       deliveryFee: deliveryFeeForMovement
     };
@@ -615,14 +625,14 @@ export default function TableDetailPage() {
                sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
                console.log(`Table ${tableIdParam} marked as available after payment.`);
           } else {
-              sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied'); 
+              sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
               console.log(`Delivery ${tableIdParam} kept as occupied due to existing delivery info.`);
           }
       }
       return updatedGroups;
     });
     setIsPaymentDialogOpen(false);
-    setOrderToPay(null); 
+    setOrderToPay(null);
 
 
     toast({ title: "Pago Realizado", description: `Pago de ${formatCurrency(finalAmountWithTip)} con ${paymentMethod} registrado.` });
@@ -661,7 +671,7 @@ export default function TableDetailPage() {
       groups[item.category].push(item);
       uniqueCategoriesInFilteredMenu.add(item.category);
     });
-    
+
     const finalCategoryOrder = Array.from(uniqueCategoriesInFilteredMenu).sort((a, b) => {
         const indexA = predefinedOrderedCategories.indexOf(a);
         const indexB = predefinedOrderedCategories.indexOf(b);
@@ -674,7 +684,7 @@ export default function TableDetailPage() {
 
 
     return finalCategoryOrder.reduce((acc, categoryName) => {
-        if (groups[categoryName]) { 
+        if (groups[categoryName]) {
             acc[categoryName] = groups[categoryName];
         }
         return acc;
@@ -686,18 +696,20 @@ export default function TableDetailPage() {
   const handleDeliveryInfoConfirm = (info: DeliveryInfo) => {
     setDeliveryInfo(info);
     setIsDeliveryDialogOpen(false);
-    sessionStorage.setItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`, JSON.stringify(info));
-    sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied'); 
+    // sessionStorage.setItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`, JSON.stringify(info)); // Handled by useEffect
+    // sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied'); // Handled by useEffect
     toast({ title: "Datos de Envío Guardados", description: `Enviando a ${info.name}.` });
+    setIsMenuSheetOpen(true); // Open menu sheet after confirming delivery info
   };
 
   const handleDeliveryInfoCancel = () => {
     if (!deliveryInfo && pendingOrderGroups.length === 0 && currentOrder.length === 0) {
+        // Only navigate away if it was the *initial* dialog for a completely empty delivery table
         sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
         router.push('/tables');
         toast({ title: "Envío Cancelado", description: "Se canceló el ingreso de datos de envío.", variant: "destructive" });
     } else {
-        setIsDeliveryDialogOpen(false); 
+        setIsDeliveryDialogOpen(false); // Just close the dialog if there's an active order or info
     }
   };
 
@@ -706,6 +718,23 @@ export default function TableDetailPage() {
     setIsProductListDialogOpen(true);
     setIsMenuSheetOpen(false); // Close the main menu sheet
   };
+
+  // Handler for the "Ver Menú" button
+  const handleOpenMenuOrDeliveryDialog = () => {
+    if (isDelivery && !deliveryInfo && currentOrder.length === 0 && pendingOrderGroups.length === 0) {
+      // If it's a delivery table and no delivery info is set for the current order process
+      // and no existing orders, then prompt for delivery info first.
+      setIsDeliveryDialogOpen(true);
+    } else if (isDelivery && !deliveryInfo && currentOrder.length > 0) {
+       // If delivery, order started, but no delivery info yet (e.g. after navigating back and forth)
+       setIsDeliveryDialogOpen(true);
+    }
+    else {
+      // Otherwise (not delivery, or delivery info already set), open the menu sheet.
+      setIsMenuSheetOpen(true);
+    }
+  };
+
 
   if (!isInitialized) {
     return <div className="flex items-center justify-center min-h-screen">Cargando datos de la mesa...</div>;
@@ -720,41 +749,41 @@ export default function TableDetailPage() {
           Volver a Mesas
         </Button>
         <h1 className="text-3xl font-bold">{tableDisplayName}</h1>
-        <div></div> 
+        <div></div>
       </div>
 
         <div className="flex justify-center mb-6">
-            <Sheet open={isMenuSheetOpen} onOpenChange={setIsMenuSheetOpen}>
-                <SheetTrigger asChild>
-                     <Button size="lg" className="px-8 py-6 text-lg">
-                        <PackageSearch className="mr-2 h-5 w-5"/> Ver Menú
-                    </Button>
-                </SheetTrigger>
-                <SheetContent side="left" className="w-full sm:max-w-md md:max-w-lg lg:max-w-xl p-0">
-                  <SheetHeader className="p-4 border-b">
-                    <SheetTitle className="text-2xl">Categorías del Menú</SheetTitle>
-                  </SheetHeader>
-                  
-                  <ScrollArea className="h-[calc(100vh-80px)]"> 
-                    <div className="p-4 space-y-2">
-                      {Object.keys(groupedMenu).length === 0 && (
-                        <p className="text-muted-foreground text-center">No se encontraron categorías.</p>
-                      )}
-                      {Object.keys(groupedMenu).map((category) => (
-                          <Button
-                            key={category}
-                            variant="outline"
-                            className="w-full justify-start text-lg py-6"
-                            onClick={() => handleCategoryClick(category)}
-                          >
-                            {category}
-                          </Button>
-                      ))}
-                    </div>
-                  </ScrollArea>
-                </SheetContent>
-            </Sheet>
+             <Button size="lg" className="px-8 py-6 text-lg" onClick={handleOpenMenuOrDeliveryDialog}>
+                <PackageSearch className="mr-2 h-5 w-5"/> Ver Menú
+            </Button>
         </div>
+
+        {/* Main Menu Sheet (Categories) */}
+        <Sheet open={isMenuSheetOpen} onOpenChange={setIsMenuSheetOpen}>
+            <SheetContent side="left" className="w-full sm:max-w-md md:max-w-lg lg:max-w-xl p-0">
+              <SheetHeader className="p-4 border-b">
+                <SheetTitle className="text-2xl">Categorías del Menú</SheetTitle>
+              </SheetHeader>
+              <ScrollArea className="h-[calc(100vh-80px)]">
+                <div className="p-4 space-y-2">
+                  {Object.keys(groupedMenu).length === 0 && (
+                    <p className="text-muted-foreground text-center">No se encontraron categorías.</p>
+                  )}
+                  {Object.keys(groupedMenu).map((category) => (
+                      <Button
+                        key={category}
+                        variant="outline"
+                        className="w-full justify-start text-lg py-6"
+                        onClick={() => handleCategoryClick(category)}
+                      >
+                        {category}
+                      </Button>
+                  ))}
+                </div>
+              </ScrollArea>
+            </SheetContent>
+        </Sheet>
+
 
         {/* Dialog to display products of a selected category */}
         <ShadDialog open={isProductListDialogOpen} onOpenChange={setIsProductListDialogOpen}>
@@ -816,7 +845,7 @@ export default function TableDetailPage() {
                 </CardDescription>
             )}
           </CardHeader>
-          <ScrollArea className="flex-grow max-h-[calc(100vh-420px)] min-h-[200px] p-1"> 
+          <ScrollArea className="flex-grow max-h-[calc(100vh-420px)] min-h-[200px] p-1">
             <CardContent className="p-4">
                 {currentOrder.length === 0 ? (
                 <p className="text-muted-foreground font-bold">No hay productos en el pedido actual.</p>
@@ -949,7 +978,7 @@ export default function TableDetailPage() {
           <PaymentDialog
             isOpen={isPaymentDialogOpen}
             onOpenChange={setIsPaymentDialogOpen}
-            totalAmount={totalForPayment} 
+            totalAmount={totalForPayment}
             onConfirm={handlePaymentConfirm}
           />
       )}
@@ -958,7 +987,7 @@ export default function TableDetailPage() {
            <DeliveryDialog
                isOpen={isDeliveryDialogOpen}
                onOpenChange={setIsDeliveryDialogOpen}
-               initialData={deliveryInfo} 
+               initialData={deliveryInfo}
                onConfirm={handleDeliveryInfoConfirm}
                onCancel={handleDeliveryInfoCancel}
            />
