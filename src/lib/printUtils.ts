@@ -34,18 +34,18 @@ export const formatKitchenOrderReceipt = (
 
     let itemsHtml = '';
     orderItems.forEach(item => {
-        const categoryLine = `<p style="font-size: 11pt; margin-bottom: 0; margin-top: 8px;">- ${item.category.toUpperCase()}</p>`;
-        const itemNameLine = `<p style="font-size: 12pt; margin-left: 15px; margin-top: 0; margin-bottom: 0;">${item.quantity}x ${item.name}</p>`;
+        const categoryLine = `<p style="font-size: 11pt; margin-bottom: 0; margin-top: 8px; font-weight: bold;">- ${item.category.toUpperCase()}</p>`;
+        const itemNameLine = `<p style="font-size: 12pt; margin-left: 15px; margin-top: 0; margin-bottom: 0; font-weight: bold;">${item.quantity}x ${item.name}</p>`;
         
         const modificationsLine = item.selectedModifications && item.selectedModifications.length > 0
-            ? `<p style="font-size: 12pt; margin-left: 15px; margin-top: 0; margin-bottom: 0;">(${item.selectedModifications.join(', ')})</p>`
+            ? `<p style="font-size: 10pt; margin-left: 15px; margin-top: 0; margin-bottom: 0; font-weight: bold;">(${item.selectedModifications.join(', ')})</p>`
             : '';
             
         let ingredientsLines = '';
         if (item.ingredients && item.ingredients.length > 0) {
             ingredientsLines = `
-                <p style="font-size: 10pt; margin-left: 15px; margin-top: 2px; margin-bottom: 0;">Ingredientes:</p>
-                <p style="font-size: 10pt; margin-left: 25px; margin-top: 0; margin-bottom: 0;">${item.ingredients.join(', ')}</p>
+                <p style="font-size: 10pt; margin-left: 15px; margin-top: 2px; margin-bottom: 0; font-weight: bold;">Ingredientes:</p>
+                <p style="font-size: 10pt; margin-left: 25px; margin-top: 0; margin-bottom: 0; font-weight: bold;">${item.ingredients.join(', ')}</p>
             `;
         }
 
@@ -61,10 +61,10 @@ export const formatKitchenOrderReceipt = (
     
     const deliveryHtml = deliveryInfo && orderIdentifier.toLowerCase().startsWith('delivery') ? `
         <div class="delivery-info">
-            <strong>Enviar a:</strong><br>
-            ${deliveryInfo.name}<br>
-            ${deliveryInfo.address}<br>
-            ${deliveryInfo.phone}
+            <strong style="font-weight: bold;">Enviar a:</strong><br>
+            <span style="font-weight: bold;">${deliveryInfo.name}</span><br>
+            <span style="font-weight: bold;">${deliveryInfo.address}</span><br>
+            <span style="font-weight: bold;">${deliveryInfo.phone}</span>
         </div>
       ` : '';
 
@@ -80,28 +80,31 @@ export const formatKitchenOrderReceipt = (
           width: 70mm; /* Standard thermal printer width */
           color: #000;
           background-color: #fff;
-          font-weight: bold; /* Global bold */
         }
         h1 { /* COMANDA - MESA X */
             font-size: 14pt;
             text-align: center;
             margin-bottom: 5px;
+            font-weight: bold;
         }
         .order-number { /* SU NÚMERO: XXX */
             font-size: 12pt;
             text-align: center;
             margin-bottom: 5px;
+            font-weight: bold;
         }
         .header-info { /* Date/Time */
             text-align: center;
             margin-bottom: 10px;
             font-size: 9pt;
+            font-weight: bold;
         }
         .products-title { /* Productos: */
             font-size: 11pt; 
             text-align: left;
             margin-top: 10px; /* After hr */
             margin-bottom: 5px;
+            font-weight: bold;
         }
         .items-section {
             margin-top: 5px;
@@ -121,6 +124,7 @@ export const formatKitchenOrderReceipt = (
             border-top: 1px dashed #000; 
             padding-top: 10px; 
             font-size: 10pt;
+            font-weight: bold;
         }
       </style>
     </head>
@@ -483,5 +487,6 @@ export const printHtml = (htmlContent: string): void => {
 };
 
     
+
 
 
