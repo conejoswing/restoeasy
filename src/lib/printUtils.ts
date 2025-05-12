@@ -49,12 +49,18 @@ export const formatKitchenOrderReceipt = (
             `;
         }
 
+        const observationLine = item.observation
+            ? `<p style="font-size: 10pt; margin-left: 15px; margin-top: 2px; margin-bottom: 0; font-weight: bold; color: #0000FF;">Obs: ${item.observation}</p>`
+            : '';
+
+
         itemsHtml += `
             <div style="margin-bottom: 8px;">
                 ${categoryLine}
                 ${itemNameLine}
                 ${modificationsLine}
                 ${ingredientsLines}
+                ${observationLine}
             </div>
         `;
     });
@@ -175,6 +181,10 @@ export const formatCustomerReceipt = (
         const modificationsText = item.selectedModifications && item.selectedModifications.length > 0
             ? `<br><small style="margin-left: 10px; font-weight: bold;">(${item.selectedModifications.join(', ')})</small>`
             : '';
+        
+        const observationText = item.observation
+            ? `<br><small style="margin-left: 10px; font-weight: bold; color: #555;">Obs: ${item.observation}</small>` // Observation for customer receipt, less prominent
+            : '';
 
         itemsHtml += `
       <tr>
@@ -182,6 +192,7 @@ export const formatCustomerReceipt = (
         <td>
             <span style="font-weight: bold;">${item.name}</span>
              ${modificationsText}
+             ${observationText}
         </td>
         <td style="text-align: right; font-weight: bold;">${formatCurrency(itemTotal)}</td>
       </tr>
@@ -489,9 +500,3 @@ export const printHtml = (htmlContent: string): void => {
         }
     }
 };
-
-    
-
-
-
-

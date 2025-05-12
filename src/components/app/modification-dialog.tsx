@@ -13,6 +13,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox'; // Import Checkbox
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Textarea } from '@/components/ui/textarea'; // Import Textarea
 
 interface MenuItem {
   id: number;
@@ -28,7 +29,7 @@ interface ModificationDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   item: MenuItem | null; // Item to modify
-  onConfirm: (modifications: string[] | undefined) => void; // Callback with selected modifications array
+  onConfirm: (modifications: string[] | undefined, observation?: string) => void; // Callback with selected modifications array and observation
   onCancel: () => void; // Callback for cancellation
 }
 
@@ -47,11 +48,13 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
 }) => {
   // State to hold an array of selected modifications
   const [selectedModifications, setSelectedModifications] = React.useState<string[]>([]);
+  const [observation, setObservation] = React.useState<string>(''); // State for observation
 
   // Reset selection when dialog opens or item changes
   React.useEffect(() => {
     if (isOpen) {
       setSelectedModifications([]); // Start with no modifications selected
+      setObservation(''); // Reset observation
     }
   }, [isOpen]);
 
@@ -64,8 +67,8 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
   };
 
   const handleConfirm = () => {
-    // Pass the array of selected modifications, or undefined if empty
-    onConfirm(selectedModifications.length > 0 ? selectedModifications : undefined);
+    // Pass the array of selected modifications, or undefined if empty, and the observation
+    onConfirm(selectedModifications.length > 0 ? selectedModifications : undefined, observation.trim() || undefined);
   };
 
   const handleCancel = () => {
@@ -78,13 +81,13 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
   // Filter out specific modifications based on category and item name
     const availableModifications = item.modifications?.filter(mod => {
         const standardMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'];
-        const dinamicoVienesaRestrictedOptions = ['con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta']; // For Completos Vienesas Dinamico
-        const dinamicoAsRestrictedOptions = ['con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta']; // For Completos As Dinamico
-        const chacareroAsSpecificIngredientMods = ['con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verde', 'con aji jalapeño', 'sin aji jalapeño']; // For Completos As Chacarero
-        const napolitanoAsRestrictedOptions = ['con queso', 'sin queso', 'con tomate', 'sin tomate', 'con oregano', 'sin oregano', 'con aceituna', 'sin aceituna']; // For Completos As Napolitano
+        const dinamicoVienesaRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta']; // For Completos Vienesas Dinamico
+        const dinamicoAsRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta']; // For Completos As Dinamico
+        const chacareroAsSpecificIngredientMods = ['sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño']; // For Completos As Chacarero
+        const napolitanoAsRestrictedOptions = ['sin queso', 'sin tomate', 'sin oregano', 'sin aceituna']; // For Completos As Napolitano
         const quesoChampiñonAsMods = ['Sin Queso', 'Sin Champiñon', 'Sin Tocino']; // For Completos As Queso Champiñon
-        const promoChacareroMods = ['con tomate', 'sin tomate', 'con aji oro', 'sin aji oro', 'con poroto verde', 'sin poroto verde', 'con aji jalapeño', 'sin aji jalapeño']; // For Promo Churrasco Chacarero
-        const promoMechadaDinamicoOptions = ['con americana', 'sin americana', 'con chucrut', 'sin chucrut', 'con palta', 'sin palta', 'Papa Personal']; // For Promo Mechada Dinamico
+        const promoChacareroMods = ['sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño']; // For Promo Churrasco Chacarero
+        const promoMechadaDinamicoOptions = ['sin americana', 'sin chucrut', 'sin palta', 'Papa Personal']; // For Promo Mechada Dinamico
 
         const promoFajitasSelectableProteinAndLettuce = ['Pollo', 'Lomito', 'Vacuno', 'Lechuga'];
         const promoFajitasAdditionalToppings = [
@@ -183,7 +186,7 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-md"> {/* Increased width slightly */}
         <DialogHeader>
           <DialogTitle>Seleccionar Modificaciones para {item.name}</DialogTitle>
           <DialogDescription>
@@ -195,7 +198,7 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
             )}
           </DialogDescription>
         </DialogHeader>
-        <ScrollArea className="max-h-[300px] p-1">
+        <ScrollArea className="max-h-[calc(70vh-200px)] p-1"> {/* Adjusted max-h for textarea */}
           <div className="grid gap-4 py-4 px-3">
             {!availableModifications || availableModifications.length === 0 ? (
                  <p className="text-sm text-muted-foreground">No hay modificaciones disponibles para este producto.</p>
@@ -219,6 +222,18 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
                 );
                 })
             )}
+            <div className="mt-4">
+              <Label htmlFor="observation" className="block text-sm font-medium mb-1">
+                Observaciones Adicionales
+              </Label>
+              <Textarea
+                id="observation"
+                value={observation}
+                onChange={(e) => setObservation(e.target.value)}
+                placeholder="Ej: Sin cebolla, bien cocido..."
+                className="min-h-[80px]"
+              />
+            </div>
           </div>
         </ScrollArea>
         <DialogFooter>
