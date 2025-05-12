@@ -34,40 +34,39 @@ export const formatKitchenOrderReceipt = (
 
     let itemsHtml = '';
     orderItems.forEach(item => {
-        // Category text above the name, styled like the order number (12pt bold)
-        const categoryHtml = `<div style="font-weight: bold; font-size: 12pt; color: #000; margin-bottom: 2px;">${item.category.toUpperCase()}</div>`;
+        const categoryLine = `<p style="font-size: 11pt; margin-bottom: 0; margin-top: 8px;">- ${item.category.toUpperCase()}</p>`;
+        const itemNameLine = `<p style="font-size: 12pt; margin-left: 15px; margin-top: 0; margin-bottom: 0;">${item.quantity}x ${item.name}</p>`;
         
-        const modificationsText = item.selectedModifications && item.selectedModifications.length > 0
-            ? `<br><small style="margin-left: 10px; font-weight: bold; font-size: 14pt;">(${item.selectedModifications.join(', ')})</small>`
+        const modificationsLine = item.selectedModifications && item.selectedModifications.length > 0
+            ? `<p style="font-size: 12pt; margin-left: 15px; margin-top: 0; margin-bottom: 0;">(${item.selectedModifications.join(', ')})</p>`
             : '';
-        const ingredientsText = item.ingredients && item.ingredients.length > 0
-            ? `<br><small style="margin-left: 10px; color: #000; font-style: italic; font-weight: bold; font-size: 14pt;">Ingredientes: ${item.ingredients.join(', ')}</small>`
-            : '';
+            
+        let ingredientsLines = '';
+        if (item.ingredients && item.ingredients.length > 0) {
+            ingredientsLines = `
+                <p style="font-size: 10pt; margin-left: 15px; margin-top: 2px; margin-bottom: 0;">Ingredientes:</p>
+                <p style="font-size: 10pt; margin-left: 25px; margin-top: 0; margin-bottom: 0;">${item.ingredients.join(', ')}</p>
+            `;
+        }
 
         itemsHtml += `
-      <tr>
-        <td style="vertical-align: top; padding-right: 10px; font-weight: bold; font-size: 14pt;">${item.quantity}x</td>
-        <td>
-          ${categoryHtml}
-          <span style="font-weight: bold; font-size: 14pt;">${item.name}</span>
-          ${modificationsText}
-          ${ingredientsText}
-        </td>
-      </tr>
-    `;
+            <div style="margin-bottom: 8px;">
+                ${categoryLine}
+                ${itemNameLine}
+                ${modificationsLine}
+                ${ingredientsLines}
+            </div>
+        `;
     });
-
-    let deliveryHtml = '';
-    if (orderIdentifier.toLowerCase().startsWith('delivery') && deliveryInfo) {
-        deliveryHtml = `
-        <div style="margin-top: 15px; border-top: 1px dashed #000; padding-top: 10px; font-weight: bold;">
+    
+    const deliveryHtml = deliveryInfo && orderIdentifier.toLowerCase().startsWith('delivery') ? `
+        <div class="delivery-info">
             <strong>Enviar a:</strong><br>
             ${deliveryInfo.name}<br>
             ${deliveryInfo.address}<br>
             ${deliveryInfo.phone}
         </div>
-    `;
-    }
+      ` : '';
 
     return `
     <html>
@@ -77,67 +76,62 @@ export const formatKitchenOrderReceipt = (
         @page { margin: 5mm; }
         body {
           font-family: 'Courier New', Courier, monospace;
-          font-size: 10pt; /* Base font size, specific elements will override */
-          width: 70mm;
+          font-size: 10pt; /* Default, can be overridden */
+          width: 70mm; /* Standard thermal printer width */
           color: #000;
           background-color: #fff;
-          font-weight: bold;
+          font-weight: bold; /* Global bold */
         }
-        h1 {
+        h1 { /* COMANDA - MESA X */
             font-size: 14pt;
-            text-align: center;
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-        table {
-          width: 100%;
-          border-collapse: collapse;
-        }
-        td {
-          padding: 2px 0;
-        }
-        .header-info {
-            text-align: center;
-            margin-bottom: 15px;
-            font-size: 9pt; /* Kept smaller as it's secondary info */
-            font-weight: bold;
-        }
-        .order-number {
-            font-size: 12pt; /* Order number font size */
-            font-weight: bold;
             text-align: center;
             margin-bottom: 5px;
         }
+        .order-number { /* SU NÚMERO: XXX */
+            font-size: 12pt;
+            text-align: center;
+            margin-bottom: 5px;
+        }
+        .header-info { /* Date/Time */
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 9pt;
+        }
+        .products-title { /* Productos: */
+            font-size: 11pt; 
+            text-align: left;
+            margin-top: 10px; /* After hr */
+            margin-bottom: 5px;
+        }
         .items-section {
-            margin-top: 10px;
-            padding-top: 10px;
-            border-top: 1px dashed #000;
+            margin-top: 5px;
         }
         hr {
             border: none;
             border-top: 1px dashed #000;
             margin: 10px 0;
         }
-        strong { font-weight: bold; }
-        small { font-size: 8pt; font-weight: bold; }
+        p { 
+            margin: 0;
+            padding: 0;
+            line-height: 1.3; /* Adjusted for better readability and closer to image */
+        }
+        .delivery-info { 
+            margin-top: 15px; 
+            border-top: 1px dashed #000; 
+            padding-top: 10px; 
+            font-size: 10pt;
+        }
       </style>
     </head>
     <body>
       <h1>COMANDA - ${orderIdentifier.toUpperCase()}</h1>
       <div class="order-number">SU NÚMERO: ${String(orderNumber).padStart(3, '0')}</div>
-      <div class="header-info">
-        ${time}
-      </div>
+      <div class="header-info">${time}</div>
       <hr>
+      <div class="products-title">Productos:</div>
       <div class="items-section">
-        <table>
-         <thead>
-            <tr><th colspan="2" style="font-weight: bold; font-size: 14pt; padding-bottom: 5px;">Productos:</th></tr>
-         </thead>
-          <tbody>
-            ${itemsHtml}
-          </tbody>
-        </table>
+        ${itemsHtml}
       </div>
       ${deliveryHtml}
     </body>
@@ -489,4 +483,5 @@ export const printHtml = (htmlContent: string): void => {
 };
 
     
+
 
