@@ -416,9 +416,9 @@ const ProductsManagementPage = () => {
                                     <Edit className="h-4 w-4" />
                                     <span className="sr-only">Editar Precio</span>
                                 </Button>
-                                <Button variant="outline" size="icon" onClick={() => openEditIngredientsDialog(item)} className="h-8 w-8" title="Editar Ingredientes">
+                                <Button variant="outline" size="icon" onClick={() => openEditIngredientsDialog(item)} className="h-8 w-8" title="Editar Promo">
                                     <ListPlus className="h-4 w-4" />
-                                    <span className="sr-only">Editar Ingredientes</span>
+                                    <span className="sr-only">Editar Promo</span>
                                 </Button>
                                  <Button variant="outline" size="icon" onClick={() => openEditBaseModificationsDialog(item)} className="h-8 w-8" title="Editar Modificaciones Base">
                                     <ListChecks className="h-4 w-4" />
@@ -512,7 +512,7 @@ const ProductsManagementPage = () => {
       <ShadDialog open={isEditIngredientsDialogOpen} onOpenChange={setIsEditIngredientsDialogOpen}>
         <ShadDialogContent className="sm:max-w-md">
             <ShadDialogHeader>
-            <ShadDialogTitle>Editar Ingredientes de {editingIngredientsProduct?.name}</ShadDialogTitle>
+            <ShadDialogTitle>Editar Promo de {editingIngredientsProduct?.name}</ShadDialogTitle>
             <ShadDialogDescription>
                 Añada, modifique o elimine ingredientes para este producto.
             </ShadDialogDescription>
