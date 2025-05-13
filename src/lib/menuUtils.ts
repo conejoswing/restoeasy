@@ -685,7 +685,7 @@ export const loadMenuData = (): MenuItem[] => {
     // For 'Primavera' ensure it has all base modifications. 'Italiana' is now handled by its specific list.
     if (item.category === 'Promo Fajitas' && item.name === 'Primavera') { 
       const existingMods = new Set(newItem.modifications || []);
-      italianaFajitaModificationsBase.forEach(mod => { // Use italianaFajitaModificationsBase for primavera too
+      italianaFajitaModificationsBase.forEach(mod => { 
         if (!['tocino', 'lechuga', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'].includes(mod)){
             existingMods.add(mod);
         }
@@ -741,4 +741,5 @@ export const loadMenuData = (): MenuItem[] => {
 
 
       
+
 
