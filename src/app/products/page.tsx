@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -8,7 +9,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table.tsx'; // Explicitly add .tsx
+} from '@/components/ui/table'; // Removed .tsx extension
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -664,3 +665,4 @@ const ProductsPageContent = () => {
 export default function ProductsPage() {
     return <ProductsPageContent />;
 }
+
