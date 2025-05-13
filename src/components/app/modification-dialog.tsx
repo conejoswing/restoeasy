@@ -88,29 +88,8 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
         const quesoChampiñonAsMods = ['Sin Queso', 'Sin Champiñon', 'Sin Tocino']; // For Completos As Queso Champiñon
         const promoChacareroMods = ['sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño']; // For Promo Churrasco Chacarero
         const promoMechadaDinamicoOptions = ['sin americana', 'sin chucrut', 'sin palta', 'Papa Personal']; // For Promo Mechada Dinamico
-
-        const promoFajitasSelectableProteinAndLettuce = ['Pollo', 'Lomito', 'Vacuno', 'Lechuga'];
-        const promoFajitasAdditionalToppings = [
-            'tocino', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde',
-            'queso amarillo', 'aceituna', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'
-        ];
-
-
-        // Note: 'Pollo', 'Lomito', 'Vacuno', 'Lechuga' and other fajita toppings are assumed to be part of item.modifications for Promo Fajitas in mockMenu.
-        // The filter here primarily ensures that only those defined in item.modifications are shown, and applies further specific exclusions if necessary.
-
+        
         const chorrillanaMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Quitar Huevos', 'Agregado Huevos', 'Agregado Tocino', 'Agregado Cheddar'];
-
-        if (item.category === 'Promo Fajitas') {
-            // Allow standard mayo/queso mods, protein choices, and additional toppings
-            const allowedPromoFajitaMods = [
-                ...standardMods,
-                ...promoFajitasSelectableProteinAndLettuce,
-                ...promoFajitasAdditionalToppings
-            ];
-            return allowedPromoFajitaMods.includes(mod);
-        }
-
 
         // For 'Completos Vienesas' and specific item names 'Dinamico Grande' or 'Dinamico Normal'
         if (item.category === 'Completos Vienesas' && (item.name === 'Dinamico Grande' || item.name === 'Dinamico Normal')) {
@@ -152,14 +131,9 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
            return standardMods.includes(mod);
         }
          // Standard mods for other categories like Completos As (not specifically handled above), Promo Churrasco (not Chacarero), etc.
-        else if (['Completos As', 'Promo Churrasco', 'Promo Mechada', 'Promociones'].includes(item.category)) {
+        else if (['Completos As', 'Promo Churrasco', 'Promo Mechada', 'Promociones', 'Promo Hamburguesas', 'Churrascos'].includes(item.category)) {
             return standardMods.includes(mod);
         }
-         // Promo Hamburguesas and Churrascos also default to standardMods if not more specific
-        else if (['Promo Hamburguesas', 'Churrascos'].includes(item.category)) {
-            return standardMods.includes(mod);
-        }
-
         // Specific modifications for Chorrillana 2 and Chorrillana 4
         if (item.category === 'Papas Fritas' && (item.name === 'Chorrillana 2' || item.name === 'Chorrillana 4')) {
             return chorrillanaMods.includes(mod);
@@ -172,9 +146,10 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
         if (['Bebidas', 'Colaciones'].includes(item.category)) {
             return false;
         }
+        // Note: For 'Promo Fajitas', item.modifications is pre-filtered by menuUtils.ts.
+        // So, we don't need a specific Promo Fajitas block here; the default behavior will show what's in item.modifications.
 
         // If we reach here, it means the mod is in item.modifications and no specific category rule above excluded it.
-        // This ensures that if a mod was added to item.modifications in mockMenu, it's allowed unless a rule here says no.
         return true;
   }) ?? [];
 

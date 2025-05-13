@@ -11,6 +11,7 @@ export const promoFajitasBaseModifications = [
 ];
 
 const fourIngredientsTargetMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Pollo', 'Lomito', 'Vacuno', 'Lechuga'];
+const sixIngredientsTargetMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Pollo', 'Lomito', 'Vacuno'];
 
 
 export const mockMenu: MenuItem[] = [
@@ -224,7 +225,7 @@ export const mockMenu: MenuItem[] = [
     { id: 108, name: 'Primavera', price: 9000, category: 'Promo Fajitas', modifications: [...promoFajitasBaseModifications], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'tomate', 'poroto verde', 'choclo', 'aceituna', 'bebida lata', 'papa personal'] },
     { id: 109, name: 'Golosasa', price: 10500, category: 'Promo Fajitas', modifications: [...promoFajitasBaseModifications], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'tocino', 'champiñón', 'queso amarillo', 'choclo', 'cebolla', 'aceituna', 'papas hilo', 'bebida lata', 'papa personal'] },
     { id: 110, name: '4 Ingredientes', price: 11000, category: 'Promo Fajitas', modifications: [...fourIngredientsTargetMods], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['1 bebida lata', '1 papas fritas personal'] },
-    { id: 111, name: '6 Ingredientes', price: 12000, category: 'Promo Fajitas', modifications: [...promoFajitasBaseModifications, 'Pollo', 'Lomito', 'Vacuno', 'Lechuga'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['1 bebida lata', '1 papas fritas personal'] },
+    { id: 111, name: '6 Ingredientes', price: 12000, category: 'Promo Fajitas', modifications: [...sixIngredientsTargetMods], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['1 bebida lata', '1 papas fritas personal'] },
     // --- Promo Hamburguesas ---
     {
         id: 17,
@@ -664,14 +665,20 @@ export const loadMenuData = (): MenuItem[] => {
 
   finalMenuToLoad = finalMenuToLoad.map(item => {
     const newItem = { ...item };
+    // For most Promo Fajitas, ensure they have all base modifications.
     if (item.category === 'Promo Fajitas' &&
-        ['Italiana', 'Brasileño', 'Chacarero', 'Americana', 'Primavera', 'Golosasa', '6 Ingredientes'].includes(item.name)) {
+        ['Italiana', 'Brasileño', 'Chacarero', 'Americana', 'Primavera', 'Golosasa'].includes(item.name)) {
       const existingMods = new Set(newItem.modifications || []);
       promoFajitasBaseModifications.forEach(mod => existingMods.add(mod));
       newItem.modifications = Array.from(existingMods);
     }
+    // Specifically set modifications for '4 Ingredientes'
      if (item.category === 'Promo Fajitas' && item.name === '4 Ingredientes') {
         newItem.modifications = [...fourIngredientsTargetMods];
+    }
+    // Specifically set modifications for '6 Ingredientes'
+     if (item.category === 'Promo Fajitas' && item.name === '6 Ingredientes') {
+        newItem.modifications = [...sixIngredientsTargetMods];
     }
     return newItem;
   });
