@@ -177,7 +177,7 @@ export const formatCustomerReceipt = (
             : '';
 
         // For customer receipt, ingredients are generally part of the promo description.
-        const ingredientsText = item.ingredients && item.ingredients.length > 0
+        const ingredientsText = item.ingredients && item.ingredients.length > 0 && (item.category.toLowerCase().includes('promo') || item.category.toLowerCase().includes('fajitas'))
             ? `<br><small style="margin-left: 10px; font-weight: bold; color: #333;"><em>Incluye: ${item.ingredients.join(', ')}</em></small>`
             : '';
 
@@ -252,7 +252,7 @@ export const formatCustomerReceipt = (
         ${time}<br>
         ${receiptOrderIdentifier}
       </div>
-      ${isDelivery && deliveryInfo ? '' : '<hr>'} {/* Conditional HR based on if deliveryInfo is provided */}
+      
       <table>
         <thead>
           <tr>
@@ -544,4 +544,3 @@ export const printHtml = (htmlContent: string): void => {
         }
     }
 };
-
