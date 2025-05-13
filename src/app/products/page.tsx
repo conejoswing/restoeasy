@@ -72,17 +72,6 @@ const ProductsManagementPage = () => {
     setIsMenuInitialized(true);
   }, []);
 
-  // Removed useEffect for automatic saving. Saving will be handled by a manual button.
-  // useEffect(() => {
-  //   if (isMenuInitialized && menu.length > 0) {
-  //     try {
-  //       localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(menu));
-  //     } catch (e) {
-  //       console.error("Error saving menu to localStorage:", e);
-  //       toast({title: "Error", description: "No se pudo guardar el menú.", variant: "destructive"});
-  //     }
-  //   }
-  // }, [menu, isMenuInitialized, toast]);
 
   const handleSaveChanges = () => {
     if (!isMenuInitialized) {
@@ -92,6 +81,7 @@ const ProductsManagementPage = () => {
     try {
       localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(menu));
       toast({ title: "Cambios Guardados", description: "Los cambios en el menú se han guardado exitosamente." });
+      window.dispatchEvent(new CustomEvent('menuUpdated')); // Dispatch event after saving
     } catch (e) {
       console.error("Error saving menu to localStorage:", e);
       toast({ title: "Error al Guardar", description: "No se pudieron guardar los cambios en el menú.", variant: "destructive" });

@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -23,6 +24,7 @@ import {
   SheetTitle,
   SheetClose,
   SheetFooter,
+  SheetTrigger, // Added SheetTrigger import
 } from '@/components/ui/sheet';
 import {
   Dialog as ShadDialog, 
@@ -225,6 +227,20 @@ export default function TableDetailPage() {
     console.log(`Initialization complete for ${tableIdParam}.`);
 
   }, [tableIdParam, isInitialized, isDelivery, currentOrder.length, pendingOrderGroups.length]); // Added dependencies
+
+  // Effect to listen for menu updates from other components (e.g., ProductsManagementPage)
+  useEffect(() => {
+    const handleMenuUpdate = () => {
+      console.log('TableDetailPage: Detected menu update. Reloading menu data.');
+      setMenu(loadMenuData());
+    };
+
+    window.addEventListener('menuUpdated', handleMenuUpdate);
+
+    return () => {
+      window.removeEventListener('menuUpdated', handleMenuUpdate);
+    };
+  }, []); // Empty dependency array means this runs once on mount and cleans up on unmount
 
 
   // --- Effect to save state changes to sessionStorage and update table status ---
@@ -1061,3 +1077,4 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
