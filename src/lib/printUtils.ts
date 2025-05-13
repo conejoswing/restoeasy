@@ -44,8 +44,9 @@ export const formatKitchenOrderReceipt = (
             
         let ingredientsLines = '';
         if (item.ingredients && item.ingredients.length > 0) {
+            const ingredientsLabel = item.category.toLowerCase().includes('promo') ? "Incluye:" : "Ingredientes:";
             ingredientsLines = `
-                <p style="font-size: 10pt; margin-left: 15px; margin-top: 2px; margin-bottom: 0; font-weight: bold;">Ingredientes:</p>
+                <p style="font-size: 10pt; margin-left: 15px; margin-top: 2px; margin-bottom: 0; font-weight: bold;">${ingredientsLabel}</p>
                 <p style="font-size: 10pt; margin-left: 25px; margin-top: 0; margin-bottom: 0; font-weight: bold;">${item.ingredients.join(', ')}</p>
             `;
         }
@@ -175,12 +176,19 @@ export const formatCustomerReceipt = (
             ? `<br><small style="margin-left: 10px; font-weight: bold; color: #555;">Obs: ${item.observation}</small>`
             : '';
 
+        // For customer receipt, ingredients are generally part of the promo description.
+        const ingredientsText = item.ingredients && item.ingredients.length > 0
+            ? `<br><small style="margin-left: 10px; font-weight: bold; color: #333;"><em>Incluye: ${item.ingredients.join(', ')}</em></small>`
+            : '';
+
+
         itemsHtml += `
       <tr>
         <td style="font-weight: bold;">${item.quantity}x</td>
         <td>
             <span style="font-weight: bold;">${item.name}</span>
              ${modificationsText}
+             ${ingredientsText}
              ${observationText}
         </td>
         <td style="text-align: right; font-weight: bold;">${formatCurrency(itemTotal)}</td>
