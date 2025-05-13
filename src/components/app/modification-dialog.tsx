@@ -14,7 +14,7 @@ import { Checkbox } from '@/components/ui/checkbox'; // Import Checkbox
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea'; // Import Textarea
-import { italianaFajitaModifications, promoFajitasBaseModifications, fourIngredientsTargetMods, sixIngredientsTargetMods, additionalIngredientMods } from '@/lib/menuUtils'; // Added import
+import { italianaFajitaModificationsBase, promoFajitasBaseModifications, fourIngredientsTargetMods, sixIngredientsTargetMods, additionalIngredientMods } from '@/lib/menuUtils'; // Added import
 
 interface MenuItem {
   id: number;
@@ -82,10 +82,10 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
   // Filter out specific modifications based on category and item name
     const availableModifications = item.modifications?.filter(mod => {
         const standardMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'];
-        const dinamicoVienesaRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta'];
-        const dinamicoAsRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta'];
-        const chacareroAsSpecificIngredientMods = ['sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño'];
-        const napolitanoAsRestrictedOptions = ['sin queso', 'sin tomate', 'sin oregano', 'sin aceituna'];
+        const dinamicoVienesaRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta', 'con americana', 'con chucrut', 'con palta'];
+        const dinamicoAsRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta', 'con americana', 'con chucrut', 'con palta'];
+        const chacareroAsSpecificIngredientMods = ['sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño', 'con tomate', 'con aji oro', 'con poroto verde', 'con aji jalapeño'];
+        const napolitanoAsRestrictedOptions = ['sin queso', 'sin tomate', 'sin oregano', 'sin aceituna', 'con queso', 'con tomate', 'con oregano', 'con aceituna'];
         const quesoChampiñonAsMods = ['Sin Queso', 'Sin Champiñon', 'Sin Tocino'];
         const promoChacareroMods = ['sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño'];
         const promoMechadaDinamicoOptions = ['sin americana', 'sin chucrut', 'sin palta', 'Papa Personal'];
@@ -98,19 +98,19 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
 
 
         if (item.category === 'Completos Vienesas' && (item.name === 'Dinamico Grande' || item.name === 'Dinamico Normal')) {
-            const allowedMods = [...standardMods, ...dinamicoVienesaRestrictedOptions.filter(opt => !['con americana', 'con chucrut', 'con palta'].includes(opt))];
+            const allowedMods = [...standardMods, ...dinamicoVienesaRestrictedOptions];
             return allowedMods.includes(mod);
         }
         else if (item.category === 'Completos As' && (item.name === 'Dinamico Grande' || item.name === 'Dinamico Normal')) {
-            const allowedMods = [...standardMods, ...dinamicoAsRestrictedOptions.filter(opt => !['con americana', 'con chucrut', 'con palta'].includes(opt))];
+            const allowedMods = [...standardMods, ...dinamicoAsRestrictedOptions];
             return allowedMods.includes(mod);
         }
         else if (item.category === 'Completos As' && (item.name === 'Chacarero Normal' || item.name === 'Chacarero Grande')) {
-            const allowedChacareroMods = [...standardMods, ...chacareroAsSpecificIngredientMods.filter(opt => !['con tomate', 'con aji oro', 'con poroto verde', 'con aji jalapeño'].includes(opt))];
+            const allowedChacareroMods = [...standardMods, ...chacareroAsSpecificIngredientMods];
             return allowedChacareroMods.includes(mod);
         }
         else if (item.category === 'Completos As' && (item.name === 'Napolitano Normal' || item.name === 'Napolitano Grande')) {
-            const allowedMods = [...standardMods, ...napolitanoAsRestrictedOptions.filter(opt => !['con queso', 'con tomate', 'con oregano', 'con aceituna'].includes(opt))];
+            const allowedMods = [...standardMods, ...napolitanoAsRestrictedOptions];
             return allowedMods.includes(mod);
         }
         else if (item.category === 'Completos As' && (item.name.includes('Queso Champiñon Normal') || item.name.includes('Queso Champiñon Grande'))) {
@@ -118,7 +118,7 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
             return allowedQuesoChampiñonMods.includes(mod);
         }
         else if (item.category === 'Promo Churrasco' && item.name === 'Chacarero') {
-             const allowedPromoChacareroMods = [...standardMods, ...promoChacareroMods.filter(opt => !['con tomate', 'con aji oro', 'con poroto verde', 'con aji jalapeño'].includes(opt))];
+             const allowedPromoChacareroMods = [...standardMods, ...promoChacareroMods];
             return allowedPromoChacareroMods.includes(mod);
         }
         else if (item.category === 'Promo Mechada' && item.name === 'Dinamico') {
@@ -129,15 +129,9 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
            return standardMods.includes(mod);
         }
         else if (['Completos As', 'Promo Churrasco', 'Promo Mechada', 'Promociones'].includes(item.category)) {
-             const modsToRemoveFromChurrasco = ['queso fundido', 'huevo frito', 'cebolla frita', 'palta', 'tomate'];
-             const modsToRemoveFromMechada = ['queso fundido', 'huevo frito', 'cebolla frita', 'papas fritas', 'tomate', 'palta', 'salsa verde', 'champiñones salteados'];
-             if(item.category === 'Churrascos' && modsToRemoveFromChurrasco.includes(mod)) return false;
-             if(item.category === 'Promo Mechada' && modsToRemoveFromMechada.includes(mod)) return false;
-            return standardMods.includes(mod);
+             return standardMods.includes(mod);
         }
          else if (item.category === 'Promo Hamburguesas') {
-            const modsToRemoveFromHamburguesas = ['triple carne', 'triple queso', 'pepinillos', 'lechuga', 'salsa especial', 'doble carne', 'cuadruple carne', 'cuadruple queso', 'doble carne', 'doble queso cheddar', 'cebolla frita', 'huevo frito', 'doble bacon', 'bacon', 'queso cheddar'];
-            if (modsToRemoveFromHamburguesas.includes(mod)) return false;
             return standardMods.includes(mod);
          }
         
@@ -151,14 +145,14 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
         else if (item.category === 'Promo Fajitas' && (item.name === '4 Ingredientes' || item.name === '6 Ingredientes' || item.name === 'Americana' || item.name === 'Brasileño' || item.name === 'Chacarero' || item.name === 'Golosasa' || item.name === 'Italiana')) {
             const fajitaSpecificBaseMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Pollo', 'Lomito', 'Vacuno', 'Lechuga'];
             if (item.name === '4 Ingredientes' || item.name === '6 Ingredientes') {
-                 const fourOrSixIngMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Pollo', 'Lomito', 'Vacuno', 'Lechuga'];
-                 return fourOrSixIngMods.filter(m => !['lechuga'].includes(m)).includes(mod);
+                 const fourOrSixIngMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Pollo', 'Lomito', 'Vacuno'];
+                 return fourOrSixIngMods.includes(mod);
             }
              if (item.name === 'Golosasa') {
                 return fajitaSpecificBaseMods.filter(m => !modsToRemoveFromFajitas.includes(m)).includes(mod);
             }
              if (item.name === 'Italiana') {
-                return italianaFajitaModifications.filter(m => !modsToRemoveFromFajitas.includes(m)).includes(mod);
+                return italianaFajitaModificationsBase.filter(m => !modsToRemoveFromFajitas.includes(m)).includes(mod);
             }
              if (item.name === 'Americana' || item.name === 'Brasileño' || item.name === 'Chacarero') {
                 return fajitaSpecificBaseMods.filter(m => !modsToRemoveFromFajitas.includes(m)).includes(mod);
