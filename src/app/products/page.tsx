@@ -72,6 +72,20 @@ const ProductsManagementPage = () => {
     setIsMenuInitialized(true);
   }, []);
 
+  // Effect to listen for menu updates from other components (e.g., table detail page saving changes)
+  useEffect(() => {
+    const handleMenuUpdate = () => {
+      console.log('ProductsManagementPage: Detected menu update. Reloading menu data.');
+      setMenu(loadMenuData());
+    };
+
+    window.addEventListener('menuUpdated', handleMenuUpdate);
+
+    return () => {
+      window.removeEventListener('menuUpdated', handleMenuUpdate);
+    };
+  }, []);
+
 
   const handleSaveChanges = () => {
     if (!isMenuInitialized) {
@@ -147,6 +161,7 @@ const ProductsManagementPage = () => {
         setCurrentIngredients(prev => [...prev, newIngredient.trim()]);
         setNewIngredient('');
     } else {
+        // Add an empty field to allow direct editing if user clicks add without typing
         setCurrentIngredients(prev => [...prev, '']);
     }
   };
@@ -357,7 +372,7 @@ const ProductsManagementPage = () => {
                 <TableRow>
                   <TableHead>Producto</TableHead>
                   <TableHead>Categoría</TableHead>
-                  <TableHead>Ingredientes</TableHead>
+                  <TableHead>Promo</TableHead> {/* Changed from Ingredientes to Promo */}
                   <TableHead>Modificaciones Base</TableHead>
                   <TableHead className="text-right">Precio Base</TableHead>
                   <TableHead className="text-center w-56">Acciones</TableHead>
