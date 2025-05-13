@@ -81,75 +81,79 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
   // Filter out specific modifications based on category and item name
     const availableModifications = item.modifications?.filter(mod => {
         const standardMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso'];
-        const dinamicoVienesaRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta']; // For Completos Vienesas Dinamico
-        const dinamicoAsRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta']; // For Completos As Dinamico
-        const chacareroAsSpecificIngredientMods = ['sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño']; // For Completos As Chacarero
-        const napolitanoAsRestrictedOptions = ['sin queso', 'sin tomate', 'sin oregano', 'sin aceituna']; // For Completos As Napolitano
-        const quesoChampiñonAsMods = ['Sin Queso', 'Sin Champiñon', 'Sin Tocino']; // For Completos As Queso Champiñon
-        const promoChacareroMods = ['sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño']; // For Promo Churrasco Chacarero
-        const promoMechadaDinamicoOptions = ['sin americana', 'sin chucrut', 'sin palta', 'Papa Personal']; // For Promo Mechada Dinamico
+        const dinamicoVienesaRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta'];
+        const dinamicoAsRestrictedOptions = ['sin americana', 'sin chucrut', 'sin palta'];
+        const chacareroAsSpecificIngredientMods = ['sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño'];
+        const napolitanoAsRestrictedOptions = ['sin queso', 'sin tomate', 'sin oregano', 'sin aceituna'];
+        const quesoChampiñonAsMods = ['Sin Queso', 'Sin Champiñon', 'Sin Tocino'];
+        const promoChacareroMods = ['sin tomate', 'sin aji oro', 'sin poroto verde', 'sin aji jalapeño'];
+        const promoMechadaDinamicoOptions = ['sin americana', 'sin chucrut', 'sin palta', 'Papa Personal'];
         
         const chorrillanaMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Quitar Huevos', 'Agregado Huevos', 'Agregado Tocino', 'Agregado Cheddar'];
 
-        // For 'Completos Vienesas' and specific item names 'Dinamico Grande' or 'Dinamico Normal'
+        // Specific list for Primavera in Promo Fajitas
+        const primaveraPromoFajitasMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Pollo', 'Lomito', 'Vacuno', 'aceituna'];
+
         if (item.category === 'Completos Vienesas' && (item.name === 'Dinamico Grande' || item.name === 'Dinamico Normal')) {
             const allowedMods = [...standardMods, ...dinamicoVienesaRestrictedOptions];
             return allowedMods.includes(mod);
         }
-        // For 'Completos As' and item name 'Dinamico Normal' or 'Dinamico Grande'
         else if (item.category === 'Completos As' && (item.name === 'Dinamico Grande' || item.name === 'Dinamico Normal')) {
             const allowedMods = [...standardMods, ...dinamicoAsRestrictedOptions];
             return allowedMods.includes(mod);
         }
-        // For 'Completos As' and item name 'Chacarero Normal' or 'Chacarero Grande'
         else if (item.category === 'Completos As' && (item.name === 'Chacarero Normal' || item.name === 'Chacarero Grande')) {
             const allowedChacareroMods = [...standardMods, ...chacareroAsSpecificIngredientMods];
             return allowedChacareroMods.includes(mod);
         }
-        // For 'Completos As' and specific item names 'Napolitano Normal' or 'Napolitano Grande'
         else if (item.category === 'Completos As' && (item.name === 'Napolitano Normal' || item.name === 'Napolitano Grande')) {
             const allowedMods = [...standardMods, ...napolitanoAsRestrictedOptions];
             return allowedMods.includes(mod);
         }
-        // For 'Completos As' and specific item names 'Queso Champiñon Normal' or 'Queso Champiñon Grande'
         else if (item.category === 'Completos As' && (item.name.includes('Queso Champiñon Normal') || item.name.includes('Queso Champiñon Grande'))) {
             const allowedQuesoChampiñonMods = [...standardMods, ...quesoChampiñonAsMods];
             return allowedQuesoChampiñonMods.includes(mod);
         }
-         // For 'Promo Churrasco' and item name 'Chacarero'
         else if (item.category === 'Promo Churrasco' && item.name === 'Chacarero') {
              const allowedPromoChacareroMods = [...standardMods, ...promoChacareroMods];
             return allowedPromoChacareroMods.includes(mod);
         }
-        // For 'Promo Mechada' and item name 'Dinamico'
         else if (item.category === 'Promo Mechada' && item.name === 'Dinamico') {
              const allowedPromoMechadaDinamicoMods = [...standardMods, ...promoMechadaDinamicoOptions];
             return allowedPromoMechadaDinamicoMods.includes(mod);
         }
-        // Standard filter for other Completos Vienesas (excluding dynamic ones)
         else if (item.category === 'Completos Vienesas') {
            return standardMods.includes(mod);
         }
-         // Standard mods for other categories like Completos As (not specifically handled above), Promo Churrasco (not Chacarero), etc.
         else if (['Completos As', 'Promo Churrasco', 'Promo Mechada', 'Promociones', 'Promo Hamburguesas', 'Churrascos'].includes(item.category)) {
             return standardMods.includes(mod);
         }
-        // Specific modifications for Chorrillana 2 and Chorrillana 4
+        
         if (item.category === 'Papas Fritas' && (item.name === 'Chorrillana 2' || item.name === 'Chorrillana 4')) {
             return chorrillanaMods.includes(mod);
         }
+        
+        if (item.category === 'Promo Fajitas' && item.name === 'Primavera') {
+             return primaveraPromoFajitasMods.includes(mod);
+        }
+        else if (item.category === 'Promo Fajitas' && (item.name === '4 Ingredientes' || item.name === '6 Ingredientes' || item.name === 'Americana' || item.name === 'Brasileño' || item.name === 'Chacarero' || item.name === 'Golosasa' || item.name === 'Italiana')) {
+            // Use the standardMods for these fajita items, or specific ones if defined
+            const fajitaSpecificBaseMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Pollo', 'Lomito', 'Vacuno', 'aceituna'];
+            if (item.name === '4 Ingredientes' || item.name === '6 Ingredientes') {
+                 const fourOrSixIngMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Pollo', 'Lomito', 'Vacuno'];
+                 return fourOrSixIngMods.includes(mod);
+            }
+            return fajitaSpecificBaseMods.includes(mod);
+        }
 
-        // Categories without modifications (unless specifically handled above, like Chorrillanas)
+
         if (item.category === 'Papas Fritas' && !['Chorrillana 2', 'Chorrillana 4'].includes(item.name)) {
             return false;
         }
         if (['Bebidas', 'Colaciones'].includes(item.category)) {
             return false;
         }
-        // Note: For 'Promo Fajitas', item.modifications is pre-filtered by menuUtils.ts.
-        // So, we don't need a specific Promo Fajitas block here; the default behavior will show what's in item.modifications.
 
-        // If we reach here, it means the mod is in item.modifications and no specific category rule above excluded it.
         return true;
   }) ?? [];
 
