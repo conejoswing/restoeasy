@@ -93,6 +93,8 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
 
         // Specific list for Primavera in Promo Fajitas
         const primaveraPromoFajitasMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Pollo', 'Lomito', 'Vacuno', 'aceituna'];
+        const modsToRemoveFromFajitas = ['tocino', 'lechuga', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'];
+
 
         if (item.category === 'Completos Vienesas' && (item.name === 'Dinamico Grande' || item.name === 'Dinamico Normal')) {
             const allowedMods = [...standardMods, ...dinamicoVienesaRestrictedOptions];
@@ -134,16 +136,19 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
         }
         
         if (item.category === 'Promo Fajitas' && item.name === 'Primavera') {
-             return primaveraPromoFajitasMods.includes(mod);
+             return primaveraPromoFajitasMods.filter(m => !modsToRemoveFromFajitas.includes(m)).includes(mod);
         }
         else if (item.category === 'Promo Fajitas' && (item.name === '4 Ingredientes' || item.name === '6 Ingredientes' || item.name === 'Americana' || item.name === 'Brasileño' || item.name === 'Chacarero' || item.name === 'Golosasa' || item.name === 'Italiana')) {
             // Use the standardMods for these fajita items, or specific ones if defined
-            const fajitaSpecificBaseMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Pollo', 'Lomito', 'Vacuno', 'aceituna'];
+            const fajitaSpecificBaseMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Pollo', 'Lomito', 'Vacuno']; // Removed aceituna
             if (item.name === '4 Ingredientes' || item.name === '6 Ingredientes') {
                  const fourOrSixIngMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Pollo', 'Lomito', 'Vacuno'];
-                 return fourOrSixIngMods.includes(mod);
+                 return fourOrSixIngMods.filter(m => !modsToRemoveFromFajitas.includes(m)).includes(mod);
             }
-            return fajitaSpecificBaseMods.includes(mod);
+             if (item.name === 'Golosasa') {
+                return fajitaSpecificBaseMods.filter(m => !modsToRemoveFromFajitas.includes(m)).includes(mod);
+            }
+            return fajitaSpecificBaseMods.filter(m => !modsToRemoveFromFajitas.includes(m)).includes(mod);
         }
 
 
