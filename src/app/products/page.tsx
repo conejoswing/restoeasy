@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { useState, useEffect, useMemo } from 'react';
-import { Edit, PlusCircle, Trash2, ListPlus, Tags, Pencil, ListChecks } from 'lucide-react';
+import { Edit, PlusCircle, Trash2, ListPlus, Tags, Pencil, ListChecks, Save } from 'lucide-react'; // Added Save icon
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
 import { Button } from '@/components/ui/button';
@@ -72,16 +72,31 @@ const ProductsManagementPage = () => {
     setIsMenuInitialized(true);
   }, []);
 
-  useEffect(() => {
-    if (isMenuInitialized && menu.length > 0) {
-      try {
-        localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(menu));
-      } catch (e) {
-        console.error("Error saving menu to localStorage:", e);
-        toast({title: "Error", description: "No se pudo guardar el menú.", variant: "destructive"});
-      }
+  // Removed useEffect for automatic saving. Saving will be handled by a manual button.
+  // useEffect(() => {
+  //   if (isMenuInitialized && menu.length > 0) {
+  //     try {
+  //       localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(menu));
+  //     } catch (e) {
+  //       console.error("Error saving menu to localStorage:", e);
+  //       toast({title: "Error", description: "No se pudo guardar el menú.", variant: "destructive"});
+  //     }
+  //   }
+  // }, [menu, isMenuInitialized, toast]);
+
+  const handleSaveChanges = () => {
+    if (!isMenuInitialized) {
+      toast({ title: "Error", description: "El menú aún no se ha inicializado.", variant: "destructive" });
+      return;
     }
-  }, [menu, isMenuInitialized, toast]);
+    try {
+      localStorage.setItem(MENU_STORAGE_KEY, JSON.stringify(menu));
+      toast({ title: "Cambios Guardados", description: "Los cambios en el menú se han guardado exitosamente." });
+    } catch (e) {
+      console.error("Error saving menu to localStorage:", e);
+      toast({ title: "Error al Guardar", description: "No se pudieron guardar los cambios en el menú.", variant: "destructive" });
+    }
+  };
 
 
   const filteredProducts = menu.filter(product =>
@@ -330,13 +345,19 @@ const ProductsManagementPage = () => {
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Lista de Productos</h1>
-        <Input
-           type="text"
-           placeholder="Buscar producto o categoría..."
-           value={searchTerm}
-           onChange={(e) => setSearchTerm(e.target.value)}
-           className="max-w-sm"
-         />
+         <div className="flex items-center gap-4">
+            <Input
+              type="text"
+              placeholder="Buscar producto o categoría..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="max-w-sm"
+            />
+            <Button onClick={handleSaveChanges}>
+              <Save className="mr-2 h-4 w-4" />
+              Guardar Cambios
+            </Button>
+         </div>
       </div>
 
        <Card>
