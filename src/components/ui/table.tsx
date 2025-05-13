@@ -28,12 +28,12 @@ TableHeader.displayName = "TableHeader"
 const TableBody = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
->(({ className, ...props }, ref) => (
+>(({ className, children, ...props }, ref) => ( // Added children explicitly for clarity
   <tbody
     ref={ref}
     className={cn("[&_tr:last-child]:border-0", className)}
     {...props}
-  />
+  >{children}</tbody> // Render children directly
 ))
 TableBody.displayName = "TableBody"
 
@@ -84,12 +84,12 @@ TableHead.displayName = "TableHead"
 const TableCell = React.forwardRef<
   HTMLTableCellElement,
   React.TdHTMLAttributes<HTMLTableCellElement>
->(({ className, ...props }, ref) => (
+>(({ className, children, ...props }, ref) => ( // Added children explicitly for clarity
   <td
     ref={ref}
     className={cn("p-4 align-middle [&:has([role=checkbox])]:pr-0", className)}
     {...props}
-  />
+  >{children}</td> // Render children directly
 ))
 TableCell.displayName = "TableCell"
 
@@ -115,4 +115,3 @@ export {
   TableCell,
   TableCaption,
 }
-
