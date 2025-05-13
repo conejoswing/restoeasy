@@ -92,8 +92,8 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
         const chorrillanaMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Quitar Huevos', 'Agregado Huevos', 'Agregado Tocino', 'Agregado Cheddar'];
 
         // Specific list for Primavera in Promo Fajitas
-        const primaveraPromoFajitasMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Pollo', 'Lomito', 'Vacuno', 'aceituna'];
-        const modsToRemoveFromFajitas = ['tocino', 'lechuga', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo'];
+        const primaveraPromoFajitasMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Pollo', 'Lomito', 'Vacuno'];
+        const modsToRemoveFromFajitas = ['tocino', 'lechuga', 'palta', 'queso cheddar', 'cebolla', 'tomate', 'poroto verde', 'queso amarillo', 'choclo', 'cebolla caramelizada', 'champiñón', 'papas hilo', 'aceituna'];
 
 
         if (item.category === 'Completos Vienesas' && (item.name === 'Dinamico Grande' || item.name === 'Dinamico Normal')) {
@@ -140,14 +140,21 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
         }
         else if (item.category === 'Promo Fajitas' && (item.name === '4 Ingredientes' || item.name === '6 Ingredientes' || item.name === 'Americana' || item.name === 'Brasileño' || item.name === 'Chacarero' || item.name === 'Golosasa' || item.name === 'Italiana')) {
             // Use the standardMods for these fajita items, or specific ones if defined
-            const fajitaSpecificBaseMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Pollo', 'Lomito', 'Vacuno']; // Removed aceituna
+            const fajitaSpecificBaseMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Pollo', 'Lomito', 'Vacuno'];
             if (item.name === '4 Ingredientes' || item.name === '6 Ingredientes') {
-                 const fourOrSixIngMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Pollo', 'Lomito', 'Vacuno'];
-                 return fourOrSixIngMods.filter(m => !modsToRemoveFromFajitas.includes(m)).includes(mod);
+                 const fourOrSixIngMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Pollo', 'Lomito', 'Vacuno', ...additionalIngredientMods];
+                 return fourOrSixIngMods.filter(m => !['lechuga'].includes(m)).includes(mod);
             }
              if (item.name === 'Golosasa') {
                 return fajitaSpecificBaseMods.filter(m => !modsToRemoveFromFajitas.includes(m)).includes(mod);
             }
+             if (item.name === 'Italiana') {
+                return italianaFajitaModifications.filter(m => !modsToRemoveFromFajitas.includes(m)).includes(mod);
+            }
+             if (item.name === 'Americana' || item.name === 'Brasileño' || item.name === 'Chacarero') {
+                return fajitaSpecificBaseMods.filter(m => !modsToRemoveFromFajitas.includes(m)).includes(mod);
+            }
+
             return fajitaSpecificBaseMods.filter(m => !modsToRemoveFromFajitas.includes(m)).includes(mod);
         }
 
@@ -234,3 +241,4 @@ const ModificationDialog: React.FC<ModificationDialogProps> = ({
 };
 
 export default ModificationDialog;
+
