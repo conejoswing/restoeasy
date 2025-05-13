@@ -60,8 +60,8 @@ export const formatKitchenOrderReceipt = (
                 ${categoryLine}
                 ${itemNameLine}
                 ${modificationsLine}
-                ${ingredientsLines}
                 ${observationLine}
+                ${ingredientsLines}
             </div>
         `;
     });
@@ -87,6 +87,7 @@ export const formatKitchenOrderReceipt = (
           width: 70mm; /* Standard thermal printer width */
           color: #000;
           background-color: #fff;
+          font-weight: bold;
         }
         h1 { /* COMANDA - MESA X - ORDEN #XXX */
             font-size: 14pt;
@@ -119,6 +120,7 @@ export const formatKitchenOrderReceipt = (
             margin: 0;
             padding: 0;
             line-height: 1.3; /* Adjusted for better readability and closer to image */
+            font-weight: bold;
         }
         .delivery-info { 
             margin-top: 15px; 
@@ -150,7 +152,7 @@ export const formatCustomerReceipt = (
     paymentMethod: string,
     tableIdentifier: string, // This will be tableDisplayName
     orderNumber: number,
-    deliveryInfo?: DeliveryInfo | null, // Keep for other potential uses or internal logic
+    deliveryInfo?: DeliveryInfo | null, 
     tipAmount?: number
 ): string => {
     const isDelivery = tableIdentifier.toLowerCase().startsWith('delivery');
@@ -160,9 +162,6 @@ export const formatCustomerReceipt = (
 
     let receiptOrderIdentifier = `${tableIdentifier} - Orden #${String(orderNumber).padStart(3, '0')}`;
     
-    // Remove delivery details from being displayed on the customer receipt
-    // const deliveryDetailsHtml = ''; // Removed the original conditional block
-
     let subtotal = 0;
     let itemsHtml = '';
     orderItems.forEach(item => {
@@ -237,7 +236,6 @@ export const formatCustomerReceipt = (
          strong { font-weight: bold; }
          small { font-size: 8pt; font-weight: bold; }
          .right { text-align: right; font-weight: bold; }
-         /* Removed .delivery-details style as it's no longer used for display */
       </style>
     </head>
     <body>
@@ -246,7 +244,7 @@ export const formatCustomerReceipt = (
         ${time}<br>
         ${receiptOrderIdentifier}
       </div>
-      ${isDelivery ? '<hr>' : ''} {/* Add hr if it was a delivery, but not showing details */}
+      ${isDelivery ? '<hr>' : ''}
       <table>
         <thead>
           <tr>
@@ -311,9 +309,17 @@ export const formatCashClosingReceipt = (
         salesDetails.forEach(sale => {
             let saleDesc = sale.description;
 
+            // Remove tip from description for display in sales details, if it exists
+            const tipMatchForDisplay = saleDesc.match(/\(Propina: [^)]+\)/);
+            if (tipMatchForDisplay) {
+                saleDesc = saleDesc.replace(tipMatchForDisplay[0], '').trim();
+            }
+            
+            // Truncate description if too long
             if (saleDesc.length > 25) {
                 saleDesc = saleDesc.substring(0, 22) + "...";
             }
+
             salesHtml += `
               <tr>
                 <td style="font-weight: bold; max-width: 35mm; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${saleDesc}</td>
@@ -330,9 +336,10 @@ export const formatCashClosingReceipt = (
                   </tr>
                 `;
             }
+            // Extract tip from the original description for individual display if needed for the sum, but not for the line item itself
             const tipMatch = sale.description.match(/Propina: (?:CLP)?\$?([\d.]+)/);
             if (tipMatch && tipMatch[1]) {
-                const tipString = tipMatch[1].replace(/\./g, ''); // Remove dots for parsing
+                const tipString = tipMatch[1].replace(/\./g, ''); 
                 const parsedTip = parseInt(tipString, 10);
                 if (!isNaN(parsedTip) && parsedTip > 0) {
                      salesHtml += `
@@ -529,4 +536,3 @@ export const printHtml = (htmlContent: string): void => {
         }
     }
 };
-
