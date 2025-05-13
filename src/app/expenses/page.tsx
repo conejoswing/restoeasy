@@ -52,7 +52,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { PaymentMethod } from '@/app/tables/[tableId]/page';
 import { formatCashClosingReceipt, printHtml } from '@/lib/printUtils';
-
+import type { InventoryItem } from '@/app/inventory/page'; // Import InventoryItem type
 
 export interface CashMovement {
   id: number;
@@ -67,11 +67,16 @@ export interface CashMovement {
 const movementCategories = ['Ingreso Venta', 'Suministros', 'Mantenimiento', 'Servicios', 'Alquiler', 'Salarios', 'Marketing', 'Otros Egresos', 'Otros Ingresos'];
 
 const initialMovements: CashMovement[] = [];
+const initialInventory: InventoryItem[] = [];
+
 
 const CASH_MOVEMENTS_STORAGE_KEY = 'cashMovements';
+const INVENTORY_STORAGE_KEY = 'restaurantInventory';
+
 
 export default function CashRegisterPage() {
   const [cashMovements, setCashMovements] = useState<CashMovement[]>([]);
+  const [inventory, setInventory] = useState<InventoryItem[]>([]); // State for inventory
   const [isInitialized, setIsInitialized] = useState(false);
   const [newMovement, setNewMovement] = useState<{
     date: Date | undefined;
@@ -87,7 +92,8 @@ export default function CashRegisterPage() {
   useEffect(() => {
     if (isInitialized) return;
 
-    console.log("Initializing cash movements from storage...");
+    console.log("Initializing cash movements and inventory from storage...");
+    // Load cash movements
     const storedMovements = sessionStorage.getItem(CASH_MOVEMENTS_STORAGE_KEY);
     let loadedMovements: CashMovement[] = [];
 
@@ -96,7 +102,7 @@ export default function CashRegisterPage() {
         const parsed = JSON.parse(storedMovements);
         if (Array.isArray(parsed)) {
           loadedMovements = parsed.filter(
-            (m: any): m is Partial<CashMovement> => // Type guard
+            (m: any): m is Partial<CashMovement> =>
               m &&
               typeof m === 'object' &&
               typeof m.id !== 'undefined' &&
@@ -104,9 +110,9 @@ export default function CashRegisterPage() {
               typeof m.category !== 'undefined' &&
               typeof m.description !== 'undefined' &&
               typeof m.amount !== 'undefined'
-          ).map((mValidated: Partial<CashMovement>) => ({ // Now mValidated is known to be an object with these properties
+          ).map((mValidated: Partial<CashMovement>) => ({
             id: Number(mValidated.id),
-            date: new Date(mValidated.date!), // Non-null assertion as it's checked
+            date: new Date(mValidated.date!),
             category: String(mValidated.category),
             description: String(mValidated.description),
             amount: Number(mValidated.amount),
@@ -126,11 +132,45 @@ export default function CashRegisterPage() {
       console.log("No cash movements found in storage, using initial data.");
       loadedMovements = initialMovements;
     }
-
     loadedMovements.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     setCashMovements(loadedMovements);
+
+    // Load inventory
+    const storedInventory = localStorage.getItem(INVENTORY_STORAGE_KEY);
+    let loadedInventory: InventoryItem[] = [];
+    if (storedInventory) {
+      try {
+        const parsedInventory = JSON.parse(storedInventory);
+        if (Array.isArray(parsedInventory)) {
+          loadedInventory = parsedInventory.filter(
+            (item: any): item is Partial<InventoryItem> =>
+              item &&
+              typeof item === 'object' &&
+              typeof item.name === 'string' &&
+              typeof item.stock === 'number'
+          ).map((itemValidated: Partial<InventoryItem>) => ({
+            id: typeof itemValidated.id === 'number' ? itemValidated.id : Date.now() + Math.random(), // Ensure ID exists
+            name: itemValidated.name!,
+            stock: itemValidated.stock!,
+          })).sort((a,b) => a.name.localeCompare(b.name));
+           console.log("Loaded inventory for closing receipt:", loadedInventory);
+        } else {
+          console.warn("Invalid inventory data found in localStorage for closing receipt, using empty inventory.");
+          loadedInventory = initialInventory;
+        }
+      } catch (error) {
+        console.error("Failed to parse stored inventory for closing receipt:", error);
+        loadedInventory = initialInventory;
+      }
+    } else {
+      console.log("No inventory found in localStorage for closing receipt, using empty inventory.");
+      loadedInventory = initialInventory;
+    }
+    setInventory(loadedInventory);
+
+
     setIsInitialized(true);
-    console.log("Cash movements initialization complete.");
+    console.log("Cash movements and inventory initialization complete.");
 
   }, [isInitialized]);
 
@@ -180,14 +220,15 @@ export default function CashRegisterPage() {
                         case 'Tarjeta Débito': debit += movement.amount; break;
                         case 'Tarjeta Crédito': credit += movement.amount; break;
                         case 'Transferencia': transfer += movement.amount; break;
-                        default: cash += movement.amount;
+                        default: cash += movement.amount; // Default to cash if method is undefined
                     }
                     if (movement.deliveryFee && movement.deliveryFee > 0) {
                          deliveryFees += movement.deliveryFee;
                     }
+                    // Extract tip from description if present
                     const tipMatch = movement.description.match(/Propina: (?:CLP)?\$?(\d{1,3}(?:\.\d{3})*)/);
                     if (tipMatch && tipMatch[1]) {
-                        const tipString = tipMatch[1].replace(/\./g, '');
+                        const tipString = tipMatch[1].replace(/\./g, ''); // Remove dots for parsing
                         const parsedTip = parseInt(tipString, 10);
                         if (!isNaN(parsedTip)) {
                             tips += parsedTip;
@@ -195,7 +236,7 @@ export default function CashRegisterPage() {
                     }
 
                 } else if (movement.amount > 0 && movement.category === 'Otros Ingresos') {
-                    cash += movement.amount;
+                    cash += movement.amount; // Assuming "Otros Ingresos" are cash by default
                 }
                  else if (movement.amount < 0) {
                     expenses += Math.abs(movement.amount);
@@ -204,7 +245,7 @@ export default function CashRegisterPage() {
         });
 
         const totalIncome = cash + debit + credit + transfer;
-        const grossTotal = totalIncome + deliveryFees + tips;
+        const grossTotal = totalIncome + deliveryFees + tips; // Include delivery fees and tips in gross total
 
         return {
             dailyCashIncome: cash,
@@ -291,7 +332,7 @@ export default function CashRegisterPage() {
      const closingDate = format(new Date(), 'dd/MM/yyyy');
      const totals = {
          dailyCashIncome, dailyDebitCardIncome, dailyCreditCardIncome, dailyTransferIncome,
-         dailyDeliveryFees, dailyTipsTotal, dailyTotalIncome, dailyExpenses, dailyNetTotal
+         dailyDeliveryFees, dailyTipsTotal, dailyTotalIncome, dailyExpenses, dailyNetTotal, dailyGrossTotal
      };
 
      const salesDetailsForReceipt = cashMovements.filter(movement => {
@@ -300,7 +341,8 @@ export default function CashRegisterPage() {
      });
      salesDetailsForReceipt.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-     const closingReceiptHtml = formatCashClosingReceipt(closingDate, totals, salesDetailsForReceipt);
+     // Pass inventory to the formatting function
+     const closingReceiptHtml = formatCashClosingReceipt(closingDate, totals, salesDetailsForReceipt, inventory);
 
      printHtml(closingReceiptHtml);
      console.log("Imprimiendo resumen de cierre de caja...");
@@ -549,6 +591,12 @@ export default function CashRegisterPage() {
                               {formatCurrency(dailyNetTotal)}
                           </span>
                       </div>
+                       <div className="flex justify-between font-semibold">
+                          <span>Total General (Bruto):</span>
+                          <span className={cn(dailyGrossTotal >= 0 ? "text-green-600" : "text-red-600")}>
+                              {formatCurrency(dailyGrossTotal)}
+                          </span>
+                      </div>
                   </div>
                   <AlertDialogFooter className="mt-6">
                       <AlertDialogCancel>Cancelar</AlertDialogCancel>
@@ -630,3 +678,4 @@ export default function CashRegisterPage() {
     </div>
   );
 }
+

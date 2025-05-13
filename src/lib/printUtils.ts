@@ -5,6 +5,7 @@
 import type { OrderItem, PaymentMethod } from '@/app/tables/[tableId]/page';
 import type { DeliveryInfo } from '@/components/app/delivery-dialog';
 import type { CashMovement } from '@/app/expenses/page'; // Import CashMovement type
+import type { InventoryItem } from '@/app/inventory/page'; // Import InventoryItem type
 
 // Helper to format currency (consistent with other parts of the app)
 export const formatCurrency = (amount: number): string => {
@@ -306,7 +307,8 @@ export const formatCashClosingReceipt = (
         dailyNetTotal: number;
         dailyGrossTotal?: number; 
     },
-    salesDetails: CashMovement[]
+    salesDetails: CashMovement[],
+    inventoryDetails: InventoryItem[] // Added inventory details parameter
 ): string => {
     const {
         dailyCashIncome, dailyDebitCardIncome, dailyCreditCardIncome, dailyTransferIncome,
@@ -377,11 +379,43 @@ export const formatCashClosingReceipt = (
     
     const grossTotalHtml = dailyGrossTotal !== undefined ? `
           <tr class="total-row">
-             <td class="label">TOTAL GENERAL:</td>
+             <td class="label">TOTAL GENERAL (BRUTO):</td>
              <td class="amount">${formatCurrency(dailyGrossTotal)}</td>
           </tr>
           <tr><td colspan="2"><hr></td></tr>
     ` : '';
+
+    let inventoryHtml = '';
+    if (inventoryDetails.length > 0) {
+        inventoryDetails.forEach(item => {
+            inventoryHtml += `
+              <tr>
+                <td style="font-weight: bold; max-width: 45mm; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.name}</td>
+                <td style="text-align: right; font-weight: bold;">${item.stock}</td>
+              </tr>
+            `;
+        });
+    } else {
+        inventoryHtml = '<tr><td colspan="2" style="text-align: center; font-style: italic; font-weight: bold;">No hay datos de inventario.</td></tr>';
+    }
+
+    const inventorySection = `
+        <hr>
+        <div class="inventory-section" style="margin-top: 10px;">
+          <h3 style="text-align: center; font-size: 11pt; margin-bottom: 5px; font-weight: bold;">STOCK DE INVENTARIO</h3>
+          <table style="width: 100%; font-size: 8pt;">
+            <thead>
+              <tr>
+                <th style="text-align: left; font-weight: bold; width: 70%;">Producto</th>
+                <th style="text-align: right; font-weight: bold; width: 30%;">Stock</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${inventoryHtml}
+            </tbody>
+          </table>
+        </div>
+    `;
 
 
     return `
@@ -407,6 +441,9 @@ export const formatCashClosingReceipt = (
          hr { border: none; border-top: 1px dashed #000; margin: 10px 0; }
          strong { font-weight: bold; }
          .sales-details-section table th, .sales-details-section table td {
+            padding: 1px 0;
+         }
+         .inventory-section table th, .inventory-section table td {
             padding: 1px 0;
          }
       </style>
@@ -439,6 +476,7 @@ export const formatCashClosingReceipt = (
         </tbody>
       </table>
       ${salesDetailsSection}
+      ${inventorySection}
     </body>
     </html>
   `;
@@ -500,3 +538,4 @@ export const printHtml = (htmlContent: string): void => {
         }
     }
 };
+
