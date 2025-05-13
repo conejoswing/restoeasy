@@ -9,7 +9,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table'; // Reverted to aliased path
+} from '@/components/ui/table'; // Changed import path
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -372,7 +372,7 @@ const ProductsManagementPage = () => {
                 <TableRow>
                   <TableHead>Producto</TableHead>
                   <TableHead>Categoría</TableHead>
-                  <TableHead>Promo</TableHead> {/* Changed from Ingredientes to Promo */}
+                  <TableHead>Promo</TableHead>
                   <TableHead>Modificaciones Base</TableHead>
                   <TableHead className="text-right">Precio Base</TableHead>
                   <TableHead className="text-center w-56">Acciones</TableHead>
@@ -407,7 +407,7 @@ const ProductsManagementPage = () => {
                         </TableCell>
                         <TableCell className="text-right font-mono">{printUtilsFormatCurrency(item.price)}</TableCell>
                         <TableCell className="text-center">
-                            <div className="flex justify-center gap-1"> {/* Reduced gap for more buttons */}
+                            <div className="flex justify-center gap-1">
                                 <Button variant="outline" size="icon" onClick={() => openEditProductNameDialog(item)} className="h-8 w-8" title="Editar Nombre Producto">
                                     <Pencil className="h-4 w-4" />
                                     <span className="sr-only">Editar Nombre Producto</span>
@@ -421,7 +421,7 @@ const ProductsManagementPage = () => {
                                     <span className="sr-only">Editar Ingredientes</span>
                                 </Button>
                                  <Button variant="outline" size="icon" onClick={() => openEditBaseModificationsDialog(item)} className="h-8 w-8" title="Editar Modificaciones Base">
-                                    <ListChecks className="h-4 w-4" /> {/* New Icon for Base Modifications */}
+                                    <ListChecks className="h-4 w-4" />
                                     <span className="sr-only">Editar Modificaciones Base</span>
                                 </Button>
                                 <Button variant="outline" size="icon" onClick={() => openEditCategoryDialog(item)} className="h-8 w-8" title="Editar Categoría">
@@ -666,3 +666,5 @@ export default function ProductsPage() {
     return <ProductsPageContent />;
 }
 
+
+    
