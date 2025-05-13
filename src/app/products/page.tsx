@@ -182,7 +182,7 @@ const ProductsManagementPage = () => {
       return sortMenu(updatedMenu);
     });
     
-    toast({ title: "Ingredientes Actualizados", description: `Los ingredientes de ${editingIngredientsProduct.name} han sido actualizados.`});
+    toast({ title: "Promo Actualizada", description: `La promo de ${editingIngredientsProduct.name} ha sido actualizada.`});
     setIsEditIngredientsDialogOpen(false);
     setEditingIngredientsProduct(null);
     setCurrentIngredients([]);
@@ -372,7 +372,7 @@ const ProductsManagementPage = () => {
                 <TableRow>
                   <TableHead>Producto</TableHead>
                   <TableHead>Categoría</TableHead>
-                  <TableHead>Promo</TableHead>
+                  <TableHead>Incluye</TableHead>
                   <TableHead>Modificaciones Base</TableHead>
                   <TableHead className="text-right">Precio Base</TableHead>
                   <TableHead className="text-center w-56">Acciones</TableHead>
@@ -416,9 +416,9 @@ const ProductsManagementPage = () => {
                                     <Edit className="h-4 w-4" />
                                     <span className="sr-only">Editar Precio</span>
                                 </Button>
-                                <Button variant="outline" size="icon" onClick={() => openEditIngredientsDialog(item)} className="h-8 w-8" title="Editar Promo">
+                                <Button variant="outline" size="icon" onClick={() => openEditIngredientsDialog(item)} className="h-8 w-8" title="Editar Incluye">
                                     <ListPlus className="h-4 w-4" />
-                                    <span className="sr-only">Editar Promo</span>
+                                    <span className="sr-only">Editar Incluye</span>
                                 </Button>
                                  <Button variant="outline" size="icon" onClick={() => openEditBaseModificationsDialog(item)} className="h-8 w-8" title="Editar Modificaciones Base">
                                     <ListChecks className="h-4 w-4" />
@@ -512,9 +512,9 @@ const ProductsManagementPage = () => {
       <ShadDialog open={isEditIngredientsDialogOpen} onOpenChange={setIsEditIngredientsDialogOpen}>
         <ShadDialogContent className="sm:max-w-md">
             <ShadDialogHeader>
-            <ShadDialogTitle>Editar Promo de {editingIngredientsProduct?.name}</ShadDialogTitle>
+            <ShadDialogTitle>Editar Incluye de {editingIngredientsProduct?.name}</ShadDialogTitle>
             <ShadDialogDescription>
-                Añada, modifique o elimine ingredientes para este producto.
+                Añada, modifique o elimine lo que incluye este producto.
             </ShadDialogDescription>
             </ShadDialogHeader>
             <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
@@ -523,12 +523,12 @@ const ProductsManagementPage = () => {
                     <Input
                         value={ingredient}
                         onChange={(e) => handleIngredientTextChange(index, e.target.value)}
-                        placeholder={`Ingrediente ${index + 1}`}
+                        placeholder={`Incluye ${index + 1}`}
                         className="flex-grow"
                     />
                     <Button variant="ghost" size="icon" onClick={() => handleRemoveIngredient(index)} className="text-destructive hover:text-destructive/90">
                         <Trash2 className="h-4 w-4" />
-                        <span className="sr-only">Eliminar ingrediente</span>
+                        <span className="sr-only">Eliminar lo que incluye</span>
                     </Button>
                     </div>
                 ))}
@@ -536,13 +536,13 @@ const ProductsManagementPage = () => {
                      <Input
                          value={newIngredient}
                          onChange={(e) => setNewIngredient(e.target.value)}
-                         placeholder="Nuevo ingrediente"
+                         placeholder="Nuevo incluido"
                          className="flex-grow"
                          onKeyPress={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddNewIngredientField();}}}
                      />
                     <Button onClick={handleAddNewIngredientField} size="icon" variant="outline">
                         <PlusCircle className="h-4 w-4" />
-                        <span className="sr-only">Añadir nuevo ingrediente</span>
+                        <span className="sr-only">Añadir nuevo incluido</span>
                     </Button>
                  </div>
             </div>
@@ -550,7 +550,7 @@ const ProductsManagementPage = () => {
             <ShadDialogClose asChild>
                 <Button type="button" variant="secondary" onClick={() => setIsEditIngredientsDialogOpen(false)}>Cancelar</Button>
             </ShadDialogClose>
-            <Button type="submit" onClick={handleUpdateIngredients}>Guardar Ingredientes</Button>
+            <Button type="submit" onClick={handleUpdateIngredients}>Guardar Incluye</Button>
             </ShadDialogFooter>
         </ShadDialogContent>
       </ShadDialog>
