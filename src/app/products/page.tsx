@@ -4,7 +4,7 @@
 import * as React from 'react';
 import {
   Table,
-  TableBody,
+  TableBody, 
   TableCell,
   TableHead,
   TableHeader,
@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/table'; // Changed import path
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { Badge } from '@/components/ui/badge'; 
 import {
   Dialog as ShadDialog, // Renamed to avoid conflict
   DialogClose as ShadDialogClose, // Renamed
@@ -23,7 +23,7 @@ import {
   DialogTitle as ShadDialogTitle, // Renamed
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react'; 
 import { Edit, PlusCircle, Trash2, ListPlus, Tags, Pencil, ListChecks, Save } from 'lucide-react'; // Added Save icon
 import { useToast } from '@/hooks/use-toast';
 import { formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
