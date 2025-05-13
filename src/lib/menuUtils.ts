@@ -232,12 +232,12 @@ export const mockMenu: MenuItem[] = [
     // --- Promo Fajitas ---
     { id: 104, name: 'Italiana', price: 9500, category: 'Promo Fajitas', modifications: [...promoFajitasBaseModifications], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'palta', 'tomate', 'aceituna', 'bebida lata', 'papa personal'] },
     { id: 105, name: 'Brasileño', price: 9200, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Pollo', 'Lomito', 'Vacuno', 'aceituna'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Palta', 'Queso Amarillo', 'Papas Hilo', 'Aceituna', 'bebida lata', 'papa personal'] },
-    { id: 106, name: 'Chacarero', price: 9800, category: 'Promo Fajitas', modifications: [...promoFajitasBaseModifications], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Poroto Verde', 'Ají Oro', 'Aceituna', 'bebida lata', 'papa personal'] },
+    { id: 106, name: 'Chacarero', price: 9800, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Pollo', 'Lomito', 'Vacuno', 'aceituna'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Tomate', 'Poroto Verde', 'Ají Oro', 'Aceituna', 'bebida lata', 'papa personal'] },
     { id: 107, name: 'Americana', price: 8900, category: 'Promo Fajitas', modifications: ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Pollo', 'Lomito', 'Vacuno', 'aceituna'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'Queso Cheddar', 'Salsa Cheddar', 'Tocino', 'Cebolla Caramelizada', 'Aceituna', 'bebida lata', 'papa personal'] },
     { id: 108, name: 'Primavera', price: 9000, category: 'Promo Fajitas', modifications: [...promoFajitasBaseModifications], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'tomate', 'poroto verde', 'choclo', 'aceituna', 'bebida lata', 'papa personal'] },
     { id: 109, name: 'Golosasa', price: 10500, category: 'Promo Fajitas', modifications: [...promoFajitasBaseModifications], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['Lechuga', 'Pollo', 'Lomito', 'Vacuno', 'tocino', 'champiñón', 'queso amarillo', 'choclo', 'cebolla', 'aceituna', 'papas hilo', 'bebida lata', 'papa personal'] },
-    { id: 110, name: '4 Ingredientes', price: 11000, category: 'Promo Fajitas', modifications: [...fourIngredientsTargetMods, 'Pollo', 'Lomito', 'Vacuno'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['1 bebida lata', '1 papas fritas personal'] },
-    { id: 111, name: '6 Ingredientes', price: 12000, category: 'Promo Fajitas', modifications: [...sixIngredientsTargetMods, 'Pollo', 'Lomito', 'Vacuno', 'Lechuga'], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['1 bebida lata', '1 papas fritas personal'] },
+    { id: 110, name: '4 Ingredientes', price: 11000, category: 'Promo Fajitas', modifications: [...fourIngredientsTargetMods, ...additionalIngredientMods], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['1 bebida lata', '1 papas fritas personal'] },
+    { id: 111, name: '6 Ingredientes', price: 12000, category: 'Promo Fajitas', modifications: [...sixIngredientsTargetMods, ...additionalIngredientMods], modificationPrices: { 'Agregado Queso': 1000 }, ingredients: ['1 bebida lata', '1 papas fritas personal'] },
     // --- Promo Hamburguesas ---
     {
         id: 17,
@@ -677,9 +677,9 @@ export const loadMenuData = (): MenuItem[] => {
 
   finalMenuToLoad = finalMenuToLoad.map(item => {
     const newItem = { ...item };
-    // For most Promo Fajitas (excluding Americana), ensure they have all base modifications.
+    // For most Promo Fajitas (excluding Americana and Chacarero), ensure they have all base modifications.
     if (item.category === 'Promo Fajitas' &&
-        ['Italiana', /*'Brasileño',*/ 'Chacarero', 'Primavera', 'Golosasa'].includes(item.name)) { 
+        ['Italiana', /*'Brasileño',*/ 'Primavera', 'Golosasa'].includes(item.name)) { 
       const existingMods = new Set(newItem.modifications || []);
       promoFajitasBaseModifications.forEach(mod => existingMods.add(mod));
       newItem.modifications = Array.from(existingMods);
@@ -694,19 +694,23 @@ export const loadMenuData = (): MenuItem[] => {
         const brasileiroSpecificMods = ['Mayonesa Casera', 'Mayonesa Envasada', 'Sin Mayo', 'Agregado Queso', 'Pollo', 'Lomito', 'Vacuno', 'aceituna'];
         newItem.modifications = brasileiroSpecificMods;
     }
+    // For 'Promo Fajitas' -> 'Chacarero', ensure specific modifications (already set in mockMenu, so this ensures it's not overwritten by the generic rule above)
+    if (item.category === 'Promo Fajitas' && item.name === 'Chacarero') {
+        // The modifications are already correctly defined in mockMenu for Chacarero
+        // If we wanted to enforce a specific set here, we would do it like for Americana or Brasileño
+        // For now, we trust the mockMenu definition.
+    }
     // Specifically set/ensure modifications for '4 Ingredientes' and '6 Ingredientes'
      if (item.category === 'Promo Fajitas' && item.name === '4 Ingredientes') {
         const currentMods = new Set<string>();
         fourIngredientsTargetMods.forEach(mod => currentMods.add(mod));
-         // Only add 'Pollo', 'Lomito', 'Vacuno' as these are selectable proteins/bases.
-         // Other 'additionalIngredientMods' are for user selection beyond these.
-        ['Pollo', 'Lomito', 'Vacuno'].forEach(mod => currentMods.add(mod));
+        additionalIngredientMods.forEach(mod => currentMods.add(mod)); // Add additional ingredients
         newItem.modifications = Array.from(currentMods);
     }
      if (item.category === 'Promo Fajitas' && item.name === '6 Ingredientes') {
         const currentMods = new Set<string>();
         sixIngredientsTargetMods.forEach(mod => currentMods.add(mod));
-        ['Pollo', 'Lomito', 'Vacuno', 'Lechuga'].forEach(mod => currentMods.add(mod));
+        additionalIngredientMods.forEach(mod => currentMods.add(mod)); // Add additional ingredients
         newItem.modifications = Array.from(currentMods);
     }
     return newItem;
