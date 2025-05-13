@@ -150,7 +150,7 @@ export const formatCustomerReceipt = (
     paymentMethod: string,
     tableIdentifier: string, // This will be tableDisplayName
     orderNumber: number,
-    deliveryInfo?: DeliveryInfo | null,
+    deliveryInfo?: DeliveryInfo | null, // Keep for other potential uses or internal logic
     tipAmount?: number
 ): string => {
     const isDelivery = tableIdentifier.toLowerCase().startsWith('delivery');
@@ -159,20 +159,9 @@ export const formatCustomerReceipt = (
     const time = formatDateTime(new Date());
 
     let receiptOrderIdentifier = `${tableIdentifier} - Orden #${String(orderNumber).padStart(3, '0')}`;
-    let deliveryDetailsHtml = '';
-
-    if (isDelivery && deliveryInfo) {
-        receiptOrderIdentifier = `Delivery - Orden #${String(orderNumber).padStart(3, '0')}`;
-        deliveryDetailsHtml = `
-            <div class="delivery-details" style="margin-bottom: 10px; font-size: 9pt; font-weight:bold;">
-                <strong>Cliente:</strong> ${deliveryInfo.name}<br>
-                <strong>Dirección:</strong> ${deliveryInfo.address}<br>
-                <strong>Teléfono:</strong> ${deliveryInfo.phone}
-            </div>
-            <hr>
-        `;
-    }
-
+    
+    // Remove delivery details from being displayed on the customer receipt
+    // const deliveryDetailsHtml = ''; // Removed the original conditional block
 
     let subtotal = 0;
     let itemsHtml = '';
@@ -184,7 +173,7 @@ export const formatCustomerReceipt = (
             : '';
         
         const observationText = item.observation
-            ? `<br><small style="margin-left: 10px; font-weight: bold; color: #555;">Obs: ${item.observation}</small>` // Observation for customer receipt, less prominent
+            ? `<br><small style="margin-left: 10px; font-weight: bold; color: #555;">Obs: ${item.observation}</small>`
             : '';
 
         itemsHtml += `
@@ -201,6 +190,7 @@ export const formatCustomerReceipt = (
     });
 
     let deliveryFeeHtml = '';
+    // Display delivery fee if it's a delivery order and fee exists
     if (isDelivery && deliveryInfo && deliveryInfo.deliveryFee > 0) {
         deliveryFeeHtml = `
         <tr>
@@ -247,6 +237,7 @@ export const formatCustomerReceipt = (
          strong { font-weight: bold; }
          small { font-size: 8pt; font-weight: bold; }
          .right { text-align: right; font-weight: bold; }
+         /* Removed .delivery-details style as it's no longer used for display */
       </style>
     </head>
     <body>
@@ -255,7 +246,7 @@ export const formatCustomerReceipt = (
         ${time}<br>
         ${receiptOrderIdentifier}
       </div>
-      ${deliveryDetailsHtml}
+      ${isDelivery ? '<hr>' : ''} {/* Add hr if it was a delivery, but not showing details */}
       <table>
         <thead>
           <tr>
