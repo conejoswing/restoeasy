@@ -51,7 +51,7 @@ export const formatKitchenOrderReceipt = (
         }
 
         const observationLine = item.observation
-            ? `<p style="font-size: 10pt; margin-left: 15px; margin-top: 2px; margin-bottom: 0; font-weight: bold; color: #0000FF;">Obs: ${item.observation}</p>`
+            ? `<p style="font-size: 10pt; margin-left: 15px; margin-top: 2px; margin-bottom: 0; font-weight: bold;">Obs: ${item.observation}</p>`
             : '';
 
 
@@ -244,7 +244,7 @@ export const formatCustomerReceipt = (
         ${time}<br>
         ${receiptOrderIdentifier}
       </div>
-      ${isDelivery ? '<hr>' : ''}
+      ${isDelivery && deliveryInfo ? '' : '<hr>'} {/* Conditional HR based on if deliveryInfo is provided */}
       <table>
         <thead>
           <tr>
@@ -536,3 +536,4 @@ export const printHtml = (htmlContent: string): void => {
         }
     }
 };
+
