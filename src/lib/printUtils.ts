@@ -5,6 +5,7 @@ import type { OrderItem, PaymentMethod } from '@/app/tables/[tableId]/page';
 import type { DeliveryInfo } from '@/components/app/delivery-dialog';
 import type { CashMovement } from '@/app/expenses/page'; // Import CashMovement type
 import type { InventoryItem } from '@/app/inventory/page'; // Import InventoryItem type
+import { format, isToday } from 'date-fns'; // Import format and isToday from date-fns
 
 // Helper to format currency (consistent with other parts of the app)
 export const formatCurrency = (amount: number): string => {
@@ -306,7 +307,7 @@ export const formatCashClosingReceipt = (
         dailyNetTotal: number;
         dailyGrossTotal?: number; 
     },
-    salesDetails: CashMovement[],
+    allDailyMovements: CashMovement[], // Changed from salesDetails to allDailyMovements
     inventoryDetails: InventoryItem[] // Added inventory details parameter
 ): string => {
     const {
@@ -318,72 +319,46 @@ export const formatCashClosingReceipt = (
     const formattedClosingDateTime = formatDateTime(closingDateTime, true);
 
 
-    let salesHtml = '';
-    if (salesDetails.length > 0) {
-        salesDetails.forEach(sale => {
-            let saleDesc = sale.description;
-
-            // Remove tip from description for display in sales details, if it exists
-            const tipMatchForDisplay = saleDesc.match(/\(Propina: [^)]+\)/);
-            if (tipMatchForDisplay) {
-                saleDesc = saleDesc.replace(tipMatchForDisplay[0], '').trim();
-            }
+    let movementsHtml = '';
+    if (allDailyMovements.length > 0) {
+        allDailyMovements.forEach(movement => {
+            let movementDesc = movement.description;
             
             // Truncate description if too long
-            if (saleDesc.length > 25) {
-                saleDesc = saleDesc.substring(0, 22) + "...";
+            if (movementDesc.length > 25) {
+                movementDesc = movementDesc.substring(0, 22) + "...";
             }
+            const movementDate = movement.date instanceof Date ? movement.date : new Date(movement.date);
+            const formattedMovementTime = format(movementDate, 'HH:mm');
 
-            salesHtml += `
+            movementsHtml += `
               <tr>
-                <td style="font-weight: bold; max-width: 35mm; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${saleDesc}</td>
-                <td style="text-align: center; font-weight: bold; font-size: 8pt;">${sale.paymentMethod || 'Efectivo'}</td>
-                <td style="text-align: right; font-weight: bold;">${formatCurrency(sale.amount)}</td>
+                <td style="font-weight: bold; font-size: 8pt;">${formattedMovementTime}</td>
+                <td style="font-weight: bold; max-width: 25mm; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 8pt;">${movement.category}</td>
+                <td style="font-weight: bold; max-width: 25mm; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${movementDesc}</td>
+                <td style="text-align: right; font-weight: bold;">${formatCurrency(movement.amount)}</td>
               </tr>
             `;
-             if(sale.deliveryFee && sale.deliveryFee > 0){
-                salesHtml += `
-                  <tr>
-                    <td style="font-weight: bold; max-width: 35mm; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left: 10px; font-size: 8pt;"><em>(Costo Envío)</em></td>
-                    <td style="text-align: center; font-weight: bold; font-size: 8pt;">-</td>
-                    <td style="text-align: right; font-weight: bold;">${formatCurrency(sale.deliveryFee)}</td>
-                  </tr>
-                `;
-            }
-            // Extract tip from the original description for individual display if needed for the sum, but not for the line item itself
-            const tipMatch = sale.description.match(/Propina: (?:CLP)?\$?([\d.]+)/);
-            if (tipMatch && tipMatch[1]) {
-                const tipString = tipMatch[1].replace(/\./g, ''); 
-                const parsedTip = parseInt(tipString, 10);
-                if (!isNaN(parsedTip) && parsedTip > 0) {
-                     salesHtml += `
-                      <tr>
-                        <td style="font-weight: bold; max-width: 35mm; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left: 10px; font-size: 8pt;"><em>(Propina)</em></td>
-                        <td style="text-align: center; font-weight: bold; font-size: 8pt;">-</td>
-                        <td style="text-align: right; font-weight: bold;">${formatCurrency(parsedTip)}</td>
-                      </tr>
-                    `;
-                }
-            }
         });
     } else {
-        salesHtml = '<tr><td colspan="3" style="text-align: center; font-style: italic; font-weight: bold;">No hay ventas registradas.</td></tr>';
+        movementsHtml = '<tr><td colspan="4" style="text-align: center; font-style: italic; font-weight: bold;">No hay movimientos registrados.</td></tr>';
     }
 
-    const salesDetailsSection = `
+    const movementsDetailsSection = `
         <hr>
-        <div class="sales-details-section" style="margin-top: 10px;">
-          <h3 style="text-align: center; font-size: 11pt; margin-bottom: 5px; font-weight: bold;">DETALLE DE VENTAS</h3>
+        <div class="movements-details-section" style="margin-top: 10px;">
+          <h3 style="text-align: center; font-size: 11pt; margin-bottom: 5px; font-weight: bold;">DETALLE DE MOVIMIENTOS</h3>
           <table style="width: 100%; font-size: 8pt;">
             <thead>
               <tr>
-                <th style="text-align: left; font-weight: bold; width: 50%;">Desc.</th>
-                <th style="text-align: center; font-weight: bold; width: 25%;">Método</th>
+                <th style="text-align: left; font-weight: bold; width: 15%;">Hora</th>
+                <th style="text-align: left; font-weight: bold; width: 30%;">Categoría</th>
+                <th style="text-align: left; font-weight: bold; width: 30%;">Desc.</th>
                 <th style="text-align: right; font-weight: bold; width: 25%;">Monto</th>
               </tr>
             </thead>
             <tbody>
-              ${salesHtml}
+              ${movementsHtml}
             </tbody>
           </table>
         </div>
@@ -452,7 +427,7 @@ export const formatCashClosingReceipt = (
          .total-row td { font-weight: bold; border-top: 1px solid #000; padding-top: 5px; }
          hr { border: none; border-top: 1px dashed #000; margin: 10px 0; }
          strong { font-weight: bold; }
-         .sales-details-section table th, .sales-details-section table td {
+         .movements-details-section table th, .movements-details-section table td {
             padding: 1px 0;
          }
          .inventory-section table th, .inventory-section table td {
@@ -487,7 +462,7 @@ export const formatCashClosingReceipt = (
           </tr>
         </tbody>
       </table>
-      ${salesDetailsSection}
+      ${movementsDetailsSection}
       ${inventorySection}
     </body>
     </html>

@@ -335,14 +335,14 @@ export default function CashRegisterPage() {
          dailyDeliveryFees, dailyTipsTotal, dailyTotalIncome, dailyExpenses, dailyNetTotal, dailyGrossTotal
      };
 
-     const salesDetailsForReceipt = cashMovements.filter(movement => {
+     const dailyMovementsForReceipt = cashMovements.filter(movement => {
         const movementDate = movement.date instanceof Date ? movement.date : new Date(movement.date);
-        return movement.category === 'Ingreso Venta' && isToday(movementDate);
+        return isToday(movementDate);
      });
-     salesDetailsForReceipt.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+     dailyMovementsForReceipt.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-     // Pass inventory and the full Date object to the formatting function
-     const closingReceiptHtml = formatCashClosingReceipt(closingDateTime, totals, salesDetailsForReceipt, inventory);
+     // Pass all daily movements and inventory to the formatting function
+     const closingReceiptHtml = formatCashClosingReceipt(closingDateTime, totals, dailyMovementsForReceipt, inventory);
 
      printHtml(closingReceiptHtml);
      console.log("Imprimiendo resumen de cierre de caja...");
