@@ -32,7 +32,8 @@ export const formatKitchenOrderReceipt = (
     orderItems: OrderItem[],
     orderIdentifier: string, // This will be tableDisplayName ("Mesa 1", "Mesón", "Delivery")
     orderNumber: number,
-    deliveryInfo?: DeliveryInfo | null
+    deliveryInfo?: DeliveryInfo | null,
+    generalObservation?: string // Added general observation
 ): string => {
     const time = formatDateTime(new Date());
 
@@ -40,11 +41,11 @@ export const formatKitchenOrderReceipt = (
     orderItems.forEach(item => {
         const categoryLine = `<p style="font-size: 11pt; margin-bottom: 0; margin-top: 8px; font-weight: bold;">- ${item.category.toUpperCase()}</p>`;
         const itemNameLine = `<p style="font-size: 12pt; margin-left: 15px; margin-top: 0; margin-bottom: 0; font-weight: bold;">${item.quantity}x ${item.name}</p>`;
-        
+
         const modificationsLine = item.selectedModifications && item.selectedModifications.length > 0
             ? `<p style="font-size: 10pt; margin-left: 15px; margin-top: 0; margin-bottom: 0; font-weight: bold;">(${item.selectedModifications.join(', ')})</p>`
             : '';
-            
+
         const observationLine = item.observation
             ? `<p style="font-size: 10pt; margin-left: 15px; margin-top: 2px; margin-bottom: 0; font-weight: bold;">Obs: ${item.observation}</p>`
             : '';
@@ -69,7 +70,7 @@ export const formatKitchenOrderReceipt = (
             </div>
         `;
     });
-    
+
     const deliveryHtml = deliveryInfo && orderIdentifier.toLowerCase().startsWith('delivery') ? `
         <div class="delivery-info">
             <strong style="font-weight: bold;">Enviar a:</strong><br>
@@ -78,6 +79,14 @@ export const formatKitchenOrderReceipt = (
             <span style="font-weight: bold;">${deliveryInfo.phone}</span>
         </div>
       ` : '';
+
+    const generalObservationHtml = generalObservation ? `
+        <hr>
+        <div class="general-observation-section" style="margin-top: 10px;">
+          <h3 style="font-size: 11pt; margin-bottom: 3px; font-weight: bold;">OBSERVACIÓN GENERAL:</h3>
+          <p style="font-size: 10pt; font-weight: bold; margin-left: 5px;">${generalObservation}</p>
+        </div>
+    ` : '';
 
     return `
     <html>
@@ -93,28 +102,28 @@ export const formatKitchenOrderReceipt = (
           background-color: #fff;
           font-weight: bold;
         }
-        .order-number-title { 
-            font-size: 28pt; 
+        .order-number-title {
+            font-size: 28pt;
             text-align: center;
-            margin-bottom: 2px; 
+            margin-bottom: 2px;
             font-weight: bold;
         }
-        .comanda-identifier-title { 
-            font-size: 14pt; 
+        .comanda-identifier-title {
+            font-size: 14pt;
             text-align: center;
             margin-bottom: 5px;
             font-weight: bold;
         }
-        .header-date-time { 
+        .header-date-time {
             text-align: center;
             margin-bottom: 10px;
             font-size: 9pt;
             font-weight: bold;
         }
-        .products-title { 
-            font-size: 11pt; 
+        .products-title {
+            font-size: 11pt;
             text-align: left;
-            margin-top: 10px; 
+            margin-top: 10px;
             margin-bottom: 5px;
             font-weight: bold;
         }
@@ -126,18 +135,22 @@ export const formatKitchenOrderReceipt = (
             border-top: 1px dashed #000;
             margin: 10px 0;
         }
-        p { 
+        p {
             margin: 0;
             padding: 0;
-            line-height: 1.3; 
+            line-height: 1.3;
             font-weight: bold;
         }
-        .delivery-info { 
-            margin-top: 15px; 
-            border-top: 1px dashed #000; 
-            padding-top: 10px; 
+        .delivery-info {
+            margin-top: 15px;
+            border-top: 1px dashed #000;
+            padding-top: 10px;
             font-size: 10pt;
             font-weight: bold;
+        }
+        .general-observation-section {
+             font-size: 10pt;
+             font-weight: bold;
         }
       </style>
     </head>
@@ -150,6 +163,7 @@ export const formatKitchenOrderReceipt = (
       <div class="items-section">
         ${itemsHtml}
       </div>
+      ${generalObservationHtml}
       ${deliveryHtml}
     </body>
     </html>
@@ -161,16 +175,16 @@ export const formatCustomerReceipt = (
     orderItems: OrderItem[],
     totalAmount: number, // This is the GRAND TOTAL (including tip and delivery fee if applicable)
     paymentMethod: string,
-    tableIdentifier: string, 
+    tableIdentifier: string,
     orderNumber: number,
-    deliveryInfo?: DeliveryInfo | null, 
+    deliveryInfo?: DeliveryInfo | null,
     tipAmount?: number // Tip amount itself
 ): string => {
     const isDelivery = tableIdentifier.toLowerCase().startsWith('delivery');
     const title = "BOLETA";
     const shopName = "El Bajón de la Cami";
     const time = formatDateTime(new Date());
-    
+
     let subtotalFromItems = 0;
     let itemsHtml = '';
     orderItems.forEach(item => {
@@ -179,7 +193,7 @@ export const formatCustomerReceipt = (
         const modificationsText = item.selectedModifications && item.selectedModifications.length > 0
             ? `<br><small style="margin-left: 10px; font-weight: bold;">(${item.selectedModifications.join(', ')})</small>`
             : '';
-        
+
         const observationText = item.observation
             ? `<br><small style="margin-left: 10px; font-weight: bold; color: #555;">Obs: ${item.observation}</small>`
             : '';
@@ -248,8 +262,8 @@ export const formatCustomerReceipt = (
          .shop-name { font-size: 14pt; text-align: center; margin-bottom: 5px; font-weight: bold; }
          .receipt-title { font-size: 12pt; text-align: center; margin-bottom: 5px; font-weight: bold; }
 
-         .order-number-customer { 
-            font-size: 20pt; 
+         .order-number-customer {
+            font-size: 20pt;
             text-align: center;
             margin-bottom: 1px;
             font-weight: bold;
@@ -281,11 +295,11 @@ export const formatCustomerReceipt = (
     <body>
       <div class="shop-name">${shopName}</div>
       <div class="receipt-title">${title}</div>
-      
+
       <div class="order-number-customer">ORDEN #${String(orderNumber).padStart(3, '0')}</div>
       <div class="table-identifier-customer">${tableIdentifier.toUpperCase()}</div>
       <div class="date-time-customer">${time}</div>
-      
+
       <table>
         <thead>
           <tr>
@@ -305,7 +319,7 @@ export const formatCustomerReceipt = (
                 <td colspan="2" style="font-weight: bold;">SUBTOTAL</td>
                 <td style="text-align: right; font-weight: bold;">${formatCurrency(displaySubtotal)}</td>
             </tr>
-            ${deliveryFeeHtml} 
+            ${deliveryFeeHtml}
             ${tipHtml}
             <tr class="total-row">
               <td colspan="2">TOTAL</td>
@@ -329,7 +343,7 @@ export const formatCustomerReceipt = (
 
 export const formatPendingOrderCopy = (
     orderItems: OrderItem[],
-    tableIdentifier: string, 
+    tableIdentifier: string,
     orderNumber: number,
     deliveryInfo?: DeliveryInfo | null,
     includeTip?: boolean, // New: flag to include tip
@@ -339,7 +353,7 @@ export const formatPendingOrderCopy = (
     const title = "DETALLE PEDIDO (PRE-CUENTA)";
     const shopName = "El Bajón de la Cami";
     const time = formatDateTime(new Date());
-    
+
     let subtotalFromItems = 0;
     let itemsHtml = '';
     orderItems.forEach(item => {
@@ -348,7 +362,7 @@ export const formatPendingOrderCopy = (
         const modificationsText = item.selectedModifications && item.selectedModifications.length > 0
             ? `<br><small style="margin-left: 10px; font-weight: bold;">(${item.selectedModifications.join(', ')})</small>`
             : '';
-        
+
         const observationText = item.observation
             ? `<br><small style="margin-left: 10px; font-weight: bold; color: #555;">Obs: ${item.observation}</small>`
             : '';
@@ -389,7 +403,7 @@ export const formatPendingOrderCopy = (
         </tr>
         `;
     }
-    
+
     let deliveryFeeHtml = '';
      if (deliveryFeeForCopy > 0) {
         deliveryFeeHtml = `
@@ -417,8 +431,8 @@ export const formatPendingOrderCopy = (
          .shop-name { font-size: 14pt; text-align: center; margin-bottom: 5px; font-weight: bold; }
          .receipt-title { font-size: 11pt; text-align: center; margin-bottom: 5px; font-weight: bold; }
 
-         .order-number-customer { 
-            font-size: 20pt; 
+         .order-number-customer {
+            font-size: 20pt;
             text-align: center;
             margin-bottom: 1px;
             font-weight: bold;
@@ -451,11 +465,11 @@ export const formatPendingOrderCopy = (
     <body>
       <div class="shop-name">${shopName}</div>
       <div class="receipt-title">${title}</div>
-      
+
       <div class="order-number-customer">ORDEN #${String(orderNumber).padStart(3, '0')}</div>
       <div class="table-identifier-customer">${tableIdentifier.toUpperCase()}</div>
       <div class="date-time-customer">${time}</div>
-      
+
       <table>
         <thead>
           <tr>
@@ -506,7 +520,7 @@ export const formatCashClosingReceipt = (
         dailyTotalIncome: number;
         dailyExpenses: number;
         dailyNetTotal: number;
-        dailyGrossTotal?: number; 
+        dailyGrossTotal?: number;
     },
     allDailyMovements: CashMovement[],
     inventoryDetails: InventoryItem[]
@@ -523,7 +537,7 @@ export const formatCashClosingReceipt = (
     if (allDailyMovements.length > 0) {
         allDailyMovements.forEach(movement => {
             let movementDesc = movement.description;
-            
+
             if (movementDesc.length > 25) {
                 movementDesc = movementDesc.substring(0, 22) + "...";
             }
@@ -562,7 +576,7 @@ export const formatCashClosingReceipt = (
           </table>
         </div>
     `;
-    
+
     const grossTotalHtml = dailyGrossTotal !== undefined ? `
           <tr class="total-row">
              <td class="label">TOTAL GENERAL (BRUTO):</td>
@@ -724,3 +738,4 @@ export const printHtml = (htmlContent: string): void => {
         }
     }
 };
+
