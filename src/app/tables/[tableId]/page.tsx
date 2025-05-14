@@ -23,19 +23,19 @@ import {
   SheetHeader,
   SheetTitle,
   SheetClose,
-  SheetFooter,
-  SheetTrigger, // Added SheetTrigger import
+  SheetFooter, // Ensure SheetFooter is imported
+  SheetTrigger,
 } from '@/components/ui/sheet';
 import {
-  Dialog as ShadDialog, 
-  DialogClose as ShadDialogClose, 
-  DialogContent as ShadDialogContent, 
-  DialogDescription as ShadDialogDescription, 
-  DialogFooter as ShadDialogFooter, 
-  DialogHeader as ShadDialogHeader, 
-  DialogTitle as ShadDialogTitle, 
-  DialogTrigger as ShadDialogTrigger, 
-} from '@/components/ui/dialog'; 
+  Dialog as ShadDialog,
+  DialogClose as ShadDialogClose,
+  DialogContent as ShadDialogContent,
+  DialogDescription as ShadDialogDescription,
+  DialogFooter as ShadDialogFooter,
+  DialogHeader as ShadDialogHeader,
+  DialogTitle as ShadDialogTitle,
+  DialogTrigger as ShadDialogTrigger,
+} from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 
 import { Utensils, PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard, ChevronRight, Banknote, Landmark, Home, Phone, User, DollarSign, PackageSearch, Edit, Trash2, ListChecks, Tags, Pencil } from 'lucide-react';
@@ -46,7 +46,7 @@ import { isEqual } from 'lodash';
 import { cn } from '@/lib/utils';
 import type { CashMovement } from '@/app/expenses/page';
 import type { DeliveryInfo } from '@/components/app/delivery-dialog';
-import DeliveryDialog from '@/components/app/delivery-dialog'; 
+import DeliveryDialog from '@/components/app/delivery-dialog';
 import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
 import type { MenuItem } from '@/types/menu';
@@ -132,7 +132,7 @@ export default function TableDetailPage() {
 
   const tableDisplayName = useMemo(() => {
     if (isDelivery) return 'Delivery';
-    if (isMeson) return 'Mesón'; // Corrected: 'Mesón' to 'Mesón' (though it was already correct, ensuring consistency)
+    if (isMeson) return 'Mesón';
     if (!isNaN(Number(tableIdParam))) return `Mesa ${tableIdParam}`;
     return decodeURIComponent(tableIdParam).charAt(0).toUpperCase() + decodeURIComponent(tableIdParam).slice(1);
   }, [tableIdParam, isDelivery, isMeson]);
@@ -144,10 +144,8 @@ export default function TableDetailPage() {
 
     console.log(`Initializing TableDetailPage for tableId: ${tableIdParam}`);
 
-    // Load menu using utility function
     setMenu(loadMenuData());
 
-    // Load inventory
     const storedInventory = localStorage.getItem(INVENTORY_STORAGE_KEY);
     if (storedInventory) {
       try {
@@ -160,7 +158,6 @@ export default function TableDetailPage() {
         setInventory([]);
     }
 
-    // Load current order
     const storedCurrentOrder = sessionStorage.getItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${tableIdParam}-currentOrder`);
     if (storedCurrentOrder) {
       try {
@@ -171,13 +168,12 @@ export default function TableDetailPage() {
             basePrice: Number(item.basePrice) || 0,
             finalPrice: Number(item.finalPrice) || 0,
             quantity: Number(item.quantity) || 1,
-            observation: item.observation || undefined, // Load observation
+            observation: item.observation || undefined,
           })));
         }
       } catch (e) { console.error("Error loading current order:", e); }
     }
 
-    // Load pending orders
     const storedPendingOrdersData = sessionStorage.getItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${tableIdParam}-pendingOrders`);
     if (storedPendingOrdersData) {
         try {
@@ -188,11 +184,11 @@ export default function TableDetailPage() {
                         ...group,
                         items: group.items.map((item: any) => ({
                             ...item,
-                            observation: item.observation || undefined, // Load observation for pending items
+                            observation: item.observation || undefined,
                         })),
                     })).sort((a: PendingOrderGroup, b: PendingOrderGroup) => a.timestamp - b.timestamp)
                  );
-             } else if (Array.isArray(parsedData)) { // Legacy support for old format if needed
+             } else if (Array.isArray(parsedData)) {
                  setPendingOrderGroups(
                     parsedData.map((group: PendingOrderGroup) => ({
                         ...group,
@@ -206,7 +202,6 @@ export default function TableDetailPage() {
         } catch (e) { console.error("Error loading pending orders:", e); }
     }
 
-    // Load delivery info if applicable
     if (isDelivery) {
       const storedDeliveryInfo = sessionStorage.getItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`);
       if (storedDeliveryInfo) {
@@ -214,7 +209,6 @@ export default function TableDetailPage() {
           setDeliveryInfo(JSON.parse(storedDeliveryInfo));
         } catch (e) { console.error("Error loading delivery info:", e); }
       }
-      // Open delivery dialog if it's a new delivery, no current order, no pending orders, and no stored info for the current attempt
       if (!storedDeliveryInfo && !currentOrder.length && !pendingOrderGroups.length) {
         setIsDeliveryDialogOpen(true);
       }
@@ -226,21 +220,16 @@ export default function TableDetailPage() {
     setIsInitialized(true);
     console.log(`Initialization complete for ${tableIdParam}.`);
 
-  }, [tableIdParam, isInitialized, isDelivery, currentOrder.length, pendingOrderGroups.length]); // Added dependencies
+  }, [tableIdParam, isInitialized, isDelivery, currentOrder.length, pendingOrderGroups.length]);
 
-  // Effect to listen for menu updates from other components (e.g., ProductsManagementPage)
   useEffect(() => {
     const handleMenuUpdate = () => {
       console.log('TableDetailPage: Detected menu update. Reloading menu data.');
       setMenu(loadMenuData());
     };
-
     window.addEventListener('menuUpdated', handleMenuUpdate);
-
-    return () => {
-      window.removeEventListener('menuUpdated', handleMenuUpdate);
-    };
-  }, []); // Empty dependency array means this runs once on mount and cleans up on unmount
+    return () => window.removeEventListener('menuUpdated', handleMenuUpdate);
+  }, []);
 
 
   // --- Effect to save state changes to sessionStorage and update table status ---
@@ -255,10 +244,9 @@ export default function TableDetailPage() {
       if (deliveryInfo) {
          sessionStorage.setItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`, JSON.stringify(deliveryInfo));
       } else {
-         // Only remove if there are no pending orders for delivery that might still need this info
          const hasPendingDeliveryWithInfo = pendingOrderGroups.some(group => group.deliveryInfo);
          if(!hasPendingDeliveryWithInfo) {
-            sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`); 
+            sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`);
          }
       }
     }
@@ -267,25 +255,34 @@ export default function TableDetailPage() {
     const hasCurrent = currentOrder.length > 0;
     let hasDeliveryInfoForStatus = false;
     if (isDelivery && deliveryInfo) {
-        // Consider occupied if any field in deliveryInfo is truthy (or deliveryFee > 0) for the *current ongoing* delivery process
         hasDeliveryInfoForStatus = !!(deliveryInfo.name || deliveryInfo.address || deliveryInfo.phone || deliveryInfo.deliveryFee > 0);
     } else if (isDelivery && pendingOrderGroups.some(pg => pg.deliveryInfo)){
-        // If any pending group has delivery info, it's also occupied
         hasDeliveryInfoForStatus = true;
     }
 
+    const oldStatus = sessionStorage.getItem(`table-${tableIdParam}-status`);
+    let newStatus: 'available' | 'occupied';
 
     if (hasPending || hasCurrent || (isDelivery && hasDeliveryInfoForStatus)) {
-        sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
+        newStatus = 'occupied';
     } else {
-        sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
-         if(isDelivery) { // Also specifically clear delivery info for this tableId if becoming available
-            sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`); 
+        newStatus = 'available';
+         if(isDelivery) {
+            sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`);
             setDeliveryInfo(null); 
          }
     }
 
-  }, [currentOrder, pendingOrderGroups, deliveryInfo, tableIdParam, isInitialized, isDelivery]);
+    if (oldStatus !== newStatus) {
+        sessionStorage.setItem(`table-${tableIdParam}-status`, newStatus);
+        console.log(`Table ${tableIdParam} status changed to ${newStatus}. Dispatching event.`);
+        window.dispatchEvent(new CustomEvent('tableStatusUpdated'));
+    } else {
+        // Ensure status is set even if it hasn't changed, for consistency.
+        sessionStorage.setItem(`table-${tableIdParam}-status`, newStatus);
+    }
+
+  }, [currentOrder, pendingOrderGroups, deliveryInfo, tableIdParam, isInitialized, isDelivery, setDeliveryInfo]);
 
 
   // --- Item Handling ---
@@ -304,7 +301,7 @@ export default function TableDetailPage() {
           (orderItem) =>
               orderItem.id === item.id &&
               isEqual(orderItem.selectedModifications?.sort(), selectedModifications?.sort()) &&
-              (orderItem.observation === observationText || (!orderItem.observation && !observationText)) // Check observation match
+              (orderItem.observation === observationText || (!orderItem.observation && !observationText))
       );
 
       if (existingItemIndex > -1) {
@@ -321,14 +318,14 @@ export default function TableDetailPage() {
                   selectedModifications: selectedModifications,
                   basePrice: item.price,
                   finalPrice: finalPrice,
-                  ingredients: item.ingredients || [], 
+                  ingredients: item.ingredients || [],
                   category: item.category,
-                  observation: observationText, // Add observation to the order item
+                  observation: observationText,
               },
           ]);
       }
       toast({ title: "Producto Añadido", description: `${item.name} se añadió al pedido actual.` });
-      setIsProductListDialogOpen(false); // Close product list dialog after adding
+      setIsProductListDialogOpen(false);
   };
 
   const handleRemoveItemFromOrder = (orderItemId: string) => {
@@ -384,15 +381,12 @@ export default function TableDetailPage() {
     ].sort((a,b) => a.timestamp - b.timestamp));
 
     setCurrentOrder([]);
-    sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied');
+    // Status will be updated by the useEffect based on new pendingOrderGroups and currentOrder state
     toast({ title: "Comanda Impresa", description: `Pedido #${String(orderNumber).padStart(3,'0')} enviado a cocina y movido a pendientes.` });
 
     if (isDelivery) {
-      // Clear deliveryInfo from state to allow new delivery info for next order
       setDeliveryInfo(null);
-      // But don't remove from sessionStorage yet if there are other pending groups for this delivery tableId
-      // Let the useEffect for saving state handle sessionStorage removal if no pending groups have delivery info.
-      setIsDeliveryDialogOpen(true); // Re-open for next delivery
+      setIsDeliveryDialogOpen(true);
     }
   };
 
@@ -405,7 +399,6 @@ export default function TableDetailPage() {
     setOrderToPay(groupToPay);
 
     let orderTotal = groupToPay.items.reduce((sum, item) => sum + item.finalPrice * item.quantity, 0);
-    // Use the deliveryInfo from the specific group being paid
     if (isDelivery && groupToPay.deliveryInfo && groupToPay.deliveryInfo.deliveryFee > 0) {
       orderTotal += groupToPay.deliveryInfo.deliveryFee;
     }
@@ -429,8 +422,7 @@ export default function TableDetailPage() {
       let quantityToDeduct = orderItem.quantity;
       let inventoryItemName: string | null = null;
 
-       //Completos Vienesas
-      if (orderItem.category === 'Completos Vienesas') {
+      if (orderItem.category === 'Vienesas') {
         if (['completo normal', 'dinamico normal', 'hot dog normal', 'italiano normal', 'palta normal', 'tomate normal'].includes(itemNameLower)) {
           inventoryItemName = 'Pan especial normal';
           const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
@@ -442,12 +434,11 @@ export default function TableDetailPage() {
                      toast({ title: "Advertencia de Stock", description: `El stock de "Vienesas" es ahora ${updatedInventory[vienaIndex].stock}.`, variant: "default"});
                 }
           }
-
         } else if (['completo grande', 'dinamico grande', 'hot dog grande', 'italiano grande', 'palta grande', 'tomate grande'].includes(itemNameLower)) {
           inventoryItemName = 'Pan especial grande';
           const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
            if (vienaIndex !== -1) {
-                const vienesasToDeduct = orderItem.quantity * 2; // 2 vienesas for grande
+                const vienesasToDeduct = orderItem.quantity * 2;
                 updatedInventory[vienaIndex].stock -= vienesasToDeduct;
                 inventoryUpdateOccurred = true;
                  if (updatedInventory[vienaIndex].stock < 0 && vienesasToDeduct > 0) {
@@ -456,15 +447,13 @@ export default function TableDetailPage() {
           }
         }
       }
-      //Completos As
-      if (orderItem.category === 'Completos As') {
+      if (orderItem.category === 'As') {
          if (['completo normal', 'dinamico normal', 'chacarero normal', 'italiano normal', 'palta normal', 'tomate normal', 'napolitano normal', 'queso champiñon normal', 'queso normal', 'solo carne normal'].includes(itemNameLower)) {
             inventoryItemName = 'Pan especial normal';
          } else if (['completo grande', 'dinamico grande', 'chacarero grande', 'italiano grande', 'palta grande', 'tomate grande', 'napolitano grande', 'queso champiñon grande', 'queso grande', 'solo carne grande'].includes(itemNameLower)) {
             inventoryItemName = 'Pan especial grande';
          }
       }
-      //Promo Fajitas
       if (orderItem.category === 'Promo Fajitas') {
         if (['4 ingredientes', '6 ingredientes', 'americana', 'brasileño', 'chacarero', 'golosasa', 'italiana', 'primavera'].includes(itemNameLower)) {
             inventoryItemName = 'Fajita';
@@ -479,13 +468,11 @@ export default function TableDetailPage() {
              }
         }
       }
-      //Churrascos
       if (orderItem.category === 'Churrascos') {
         if (['churrasco campestre', 'churrasco che milico', 'churrasco completo', 'churrasco dinamico', 'churrasco italiano', 'churrasco napolitano', 'churrasco palta', 'churrasco queso', 'churrasco queso champiñon', 'churrasco tomate'].includes(itemNameLower)) {
              inventoryItemName = 'Pan de marraqueta';
         }
       }
-      //Promo Churrasco
       if (orderItem.category === 'Promo Churrasco') {
         if (['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'queso', 'queso champiñon', 'tomate', 'palta'].includes(itemNameLower)) {
           inventoryItemName = 'Pan de marraqueta';
@@ -500,7 +487,6 @@ export default function TableDetailPage() {
              }
         }
       }
-      //Promo Mechada
       if (orderItem.category === 'Promo Mechada') {
           if (['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'queso', 'queso champiñon', 'tomate', 'palta'].includes(itemNameLower)) {
              inventoryItemName = 'Pan de marraqueta';
@@ -515,16 +501,15 @@ export default function TableDetailPage() {
                 }
           }
       }
-      //Promo Hamburguesas
       if (orderItem.category === 'Promo Hamburguesas') {
         if(['big cami', 'italiana', 'simple', 'tapa arteria'].includes(itemNameLower)) {
           inventoryItemName = 'Pan de hamburguesa normal';
            quantityToDeduct = orderItem.quantity * 1;
         } else if (['doble', 'doble italiana', 'super big cami', 'super tapa arteria'].includes(itemNameLower)) {
            inventoryItemName = 'Pan de hamburguesa grande';
-           quantityToDeduct = orderItem.quantity * 1; // Each "doble" or "super" item still uses one bun of its type
+           quantityToDeduct = orderItem.quantity * 1;
         }
-         if (inventoryItemName) { // This inventoryItemName is for the bun
+         if (inventoryItemName) {
             const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
             if (bebidaLataIndex !== -1) {
                 const latasToDeduct = orderItem.quantity;
@@ -536,14 +521,12 @@ export default function TableDetailPage() {
             }
         }
       }
-      //Bebidas
        if (orderItem.category === 'Bebidas') {
            if (itemNameLower === 'bebida 1.5lt') inventoryItemName = 'Bebida 1.5Lt';
            if (itemNameLower === 'lata') inventoryItemName = 'Lata';
            if (itemNameLower === 'cafe chico') inventoryItemName = 'Cafe Chico';
            if (itemNameLower === 'cafe grande') inventoryItemName = 'Cafe Grande';
        }
-      //Promociones
       if (orderItem.category === 'Promociones') {
           const promoNum = parseInt(itemNameLower.replace('promo ', ''), 10);
           if (promoNum === 1 || promoNum === 2) { inventoryItemName = 'Pan de hamburguesa grande'; quantityToDeduct *=1; }
@@ -603,7 +586,6 @@ export default function TableDetailPage() {
                }
            }
       }
-      //Papas Fritas
        if (orderItem.category === 'Papas Fritas') {
             if (itemNameLower === 'box cami') {
                 const empanadaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'empanada');
@@ -627,7 +609,7 @@ export default function TableDetailPage() {
             } else if (itemNameLower === 'salchipapas') {
                 const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
                 if (vienaIndex !== -1) {
-                    const vienesasNeeded = orderItem.quantity * 3; 
+                    const vienesasNeeded = orderItem.quantity * 3;
                     updatedInventory[vienaIndex].stock -= vienesasNeeded;
                     inventoryUpdateOccurred = true;
                      if (updatedInventory[vienaIndex].stock < 0 && vienesasNeeded > 0) {
@@ -697,23 +679,10 @@ export default function TableDetailPage() {
     sessionStorage.setItem(CASH_MOVEMENTS_STORAGE_KEY, JSON.stringify(cashMovements));
 
     setPendingOrderGroups(prevGroups => {
-      const updatedGroups = prevGroups.filter(group => group.orderNumber !== orderToPay.orderNumber);
-      if (updatedGroups.length === 0 && currentOrder.length === 0) {
-          // For non-delivery tables, or delivery tables where current deliveryInfo is cleared
-          if (!isDelivery || !deliveryInfo || (!deliveryInfo.name && !deliveryInfo.address && !deliveryInfo.phone && (deliveryInfo.deliveryFee === 0 || deliveryInfo.deliveryFee === undefined) )) {
-               sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
-               console.log(`Table ${tableIdParam} marked as available after payment.`);
-               if(isDelivery) {
-                   sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`); 
-                   setDeliveryInfo(null); 
-               }
-          } else {
-              sessionStorage.setItem(`table-${tableIdParam}-status`, 'occupied'); 
-              console.log(`Delivery ${tableIdParam} kept as occupied due to existing delivery info.`);
-          }
-      }
+      const updatedGroups = prevGroups.filter(group => group.orderNumber !== orderToPay!.orderNumber);
       return updatedGroups;
     });
+
     setIsPaymentDialogOpen(false);
     setOrderToPay(null);
 
@@ -780,26 +749,25 @@ export default function TableDetailPage() {
     setDeliveryInfo(info);
     setIsDeliveryDialogOpen(false);
     toast({ title: "Datos de Envío Guardados", description: `Enviando a ${info.name}.` });
-    setIsMenuSheetOpen(true); // Open menu sheet after confirming delivery info
+    setIsMenuSheetOpen(true);
   };
 
   const handleDeliveryInfoCancel = () => {
     if (!deliveryInfo && pendingOrderGroups.length === 0 && currentOrder.length === 0) {
-        sessionStorage.setItem(`table-${tableIdParam}-status`, 'available');
+        // No need to directly set status here, useEffect will handle it based on state.
         router.push('/tables');
         toast({ title: "Envío Cancelado", description: "Se canceló el ingreso de datos de envío.", variant: "destructive" });
     } else {
-        setIsDeliveryDialogOpen(false); 
+        setIsDeliveryDialogOpen(false);
     }
   };
 
   const handleCategoryClick = (categoryName: string) => {
     setSelectedCategoryForDialog(categoryName);
     setIsProductListDialogOpen(true);
-    setIsMenuSheetOpen(false); // Close the main menu sheet
+    setIsMenuSheetOpen(false);
   };
 
-  // Handler for the "Ver Menú" button
   const handleOpenMenuOrDeliveryDialog = () => {
     if (isDelivery && !deliveryInfo && currentOrder.length === 0 && pendingOrderGroups.length === 0) {
       setIsDeliveryDialogOpen(true);
@@ -825,7 +793,7 @@ export default function TableDetailPage() {
           Volver a Mesas
         </Button>
         <h1 className="text-3xl font-bold">{tableDisplayName}</h1>
-        <div></div> {/* Empty div for spacing, or for future elements */}
+        <div></div>
       </div>
 
         <div className="flex justify-center mb-6">
@@ -834,7 +802,6 @@ export default function TableDetailPage() {
             </Button>
         </div>
 
-        {/* Main Menu Sheet (Categories) */}
         <Sheet open={isMenuSheetOpen} onOpenChange={setIsMenuSheetOpen}>
             <SheetContent side="left" className="w-full sm:max-w-md md:max-w-lg lg:max-w-xl p-0">
               <SheetHeader className="p-4 border-b">
@@ -861,7 +828,6 @@ export default function TableDetailPage() {
         </Sheet>
 
 
-        {/* Dialog to display products of a selected category */}
         <ShadDialog open={isProductListDialogOpen} onOpenChange={setIsProductListDialogOpen}>
             <ShadDialogContent className="sm:max-w-lg md:max-w-xl lg:max-w-3xl xl:max-w-4xl h-[90vh]">
                 <ShadDialogHeader>
@@ -904,9 +870,9 @@ export default function TableDetailPage() {
                          )}
                     </div>
                 </ScrollArea>
-                <ShadDialogFooter className="p-4 border-t">
+                <SheetFooter className="p-4 border-t">
                      <Button variant="outline" onClick={() => { setIsProductListDialogOpen(false); setIsMenuSheetOpen(true); }}>Volver a Categorías</Button>
-                </ShadDialogFooter>
+                </SheetFooter>
             </ShadDialogContent>
         </ShadDialog>
 
@@ -1077,4 +1043,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-

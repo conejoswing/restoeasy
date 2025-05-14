@@ -2,39 +2,36 @@
 'use client';
 
 import * as React from 'react';
-import {useState, useEffect} from 'react'; // Import useEffect
+import {useState, useEffect, useCallback} from 'react';
 import Link from 'next/link';
 import {Button} from '@/components/ui/button';
 import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card';
 import {cn} from '@/lib/utils';
-import { Store, Truck, Utensils, LogOut } from 'lucide-react'; // Added LogOut, corrected Store icon
-import { useAuth } from '@/context/AuthContext'; // Import useAuth
-import { useRouter } from 'next/navigation'; // Import useRouter
-import type { DeliveryInfo } from '@/components/app/delivery-dialog'; // For checking delivery info type
+import { Store, Truck, Utensils, LogOut } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
+import type { DeliveryInfo } from '@/components/app/delivery-dialog';
 
 interface Table {
-  id: number | string; // Allow string IDs for Meson and Delivery
-  name?: string; // Optional name for special types
+  id: number | string;
+  name?: string;
   status: 'available' | 'occupied';
 }
 
-// Generate 10 numbered tables, all initially available
 const numberedTables: Table[] = Array.from({length: 10}, (_, i) => ({
   id: i + 1,
-  status: 'available', // All tables start as available
+  status: 'available',
 }));
 
-// Add Mesón and Delivery, also initially available
 const specialTables: Table[] = [
-    { id: 'mesón', name: 'Mesón', status: 'available'}, // Counter/Bar - Use Mesón
+    { id: 'mesón', name: 'Mesón', status: 'available'},
     { id: 'delivery', name: 'Delivery', status: 'available' }
 ];
 
 const initialTables: Table[] = [...numberedTables, ...specialTables];
-const PENDING_ORDERS_STORAGE_KEY_PREFIX = 'table-'; // For current and pending orders
-const DELIVERY_INFO_STORAGE_KEY_PREFIX = 'deliveryInfo-'; // For delivery specific info
+const PENDING_ORDERS_STORAGE_KEY_PREFIX = 'table-';
+const DELIVERY_INFO_STORAGE_KEY_PREFIX = 'deliveryInfo-';
 
-// Helper to check if a table ID corresponds to the delivery table
 const isDeliveryTable = (id: string | number): boolean => {
   return String(id).toLowerCase() === 'delivery';
 };
@@ -42,22 +39,13 @@ const isDeliveryTable = (id: string | number): boolean => {
 
 export default function TablesPage() {
   const [tables, setTables] = useState<Table[]>(initialTables);
-  const { logout, isAuthenticated, isLoading } = useAuth(); // Get logout and auth state
-  const [isInitialized, setIsInitialized] = useState(false); // Track initialization
-  const router = useRouter(); // Initialize router
+  const { logout, isAuthenticated, isLoading } = useAuth();
+  const [isInitialized, setIsInitialized] = useState(false);
+  const router = useRouter();
 
-  /**
-   * useEffect hook to initialize table status from sessionStorage on component mount.
-   * It first checks for an explicitly set status (e.g., 'occupied' or 'available').
-   * If not found, it falls back to checking for existing current order, pending orders,
-   * or delivery info for the 'delivery' table to determine occupancy.
-   */
-  useEffect(() => {
-    if (isInitialized) return;
-    console.log("TablesPage: Initializing table statuses from sessionStorage...");
-
+  const updateTableStatuses = useCallback(() => {
+    console.log("TablesPage: Updating table statuses from sessionStorage...");
     const updatedTables = initialTables.map(table => {
-      // Try to get the explicitly set status first
       const explicitStatus = sessionStorage.getItem(`table-${table.id}-status`) as 'available' | 'occupied' | null;
 
       if (explicitStatus === 'occupied' || explicitStatus === 'available') {
@@ -65,7 +53,6 @@ export default function TablesPage() {
         return { ...table, status: explicitStatus };
       }
 
-      // Fallback logic if no explicit status is found
       console.log(`TablesPage: No explicit status for ${table.id}, using fallback logic.`);
       const currentOrderKey = `${PENDING_ORDERS_STORAGE_KEY_PREFIX}${table.id}-currentOrder`;
       const pendingOrdersKey = `${PENDING_ORDERS_STORAGE_KEY_PREFIX}${table.id}-pendingOrders`;
@@ -73,7 +60,6 @@ export default function TablesPage() {
 
       const storedCurrentOrder = sessionStorage.getItem(currentOrderKey);
       const storedPendingOrdersData = sessionStorage.getItem(pendingOrdersKey);
-
       let isOccupied = false;
 
       try {
@@ -95,65 +81,71 @@ export default function TablesPage() {
             if (storedDeliveryInfo) {
                 const parsedDeliveryInfo = JSON.parse(storedDeliveryInfo) as DeliveryInfo | null;
                  if (parsedDeliveryInfo && (parsedDeliveryInfo.name || parsedDeliveryInfo.address || parsedDeliveryInfo.phone || parsedDeliveryInfo.deliveryFee > 0)) {
-                     // For delivery, having any delivery info means it's "in use"
                      isOccupied = true;
                  }
             }
         }
-
         const determinedStatus: 'available' | 'occupied' = isOccupied ? 'occupied' : 'available';
-        // Save the determined status so it becomes the explicit status for next time
         sessionStorage.setItem(`table-${table.id}-status`, determinedStatus);
         console.log(`TablesPage: Fallback determined status for ${table.id}: ${determinedStatus} and saved it.`);
         return { ...table, status: determinedStatus };
-
       } catch (e) {
         console.error(`TablesPage: Error processing stored data for ${table.id} during fallback:`, e);
-        sessionStorage.setItem(`table-${table.id}-status`, 'available'); // Default to available on error
+        sessionStorage.setItem(`table-${table.id}-status`, 'available');
         return { ...table, status: 'available' };
       }
     });
-
     setTables(updatedTables);
-    setIsInitialized(true);
-    console.log("TablesPage: Initialization complete.");
-  }, [isInitialized]);
+  }, []); // initialTables is module-scoped, useCallback ensures stability
+
+  useEffect(() => {
+    if (!isInitialized) {
+      updateTableStatuses();
+      setIsInitialized(true);
+    }
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        console.log("TablesPage: Page became visible, updating table statuses.");
+        updateTableStatuses();
+      }
+    };
+
+    const handleTableStatusUpdateEvent = () => {
+        console.log("TablesPage: Received tableStatusUpdated event, updating table statuses.");
+        updateTableStatuses();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('tableStatusUpdated', handleTableStatusUpdateEvent);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('tableStatusUpdated', handleTableStatusUpdateEvent);
+    };
+  }, [isInitialized, updateTableStatuses]);
 
 
-  /**
-   * getIcon: Returns the appropriate icon component for a given table ID.
-   * @param tableId - The ID of the table (number or string).
-   * @returns The LucideReact icon component.
-   */
   const getIcon = (tableId: number | string) => {
       if (tableId === 'mesón') return <Store className="h-6 w-6 mb-1 mx-auto text-foreground"/>;
       if (tableId === 'delivery') return <Truck className="h-6 w-6 mb-1 mx-auto text-foreground"/>;
-      // Default icon for regular tables
       return <Utensils className="h-6 w-6 mb-1 mx-auto text-foreground"/>;
   }
 
-   /**
-    * handleLogout: Handles the user logout process.
-    * Calls the logout function from the AuthContext.
-    */
    const handleLogout = () => {
      logout();
-     // No need to push to '/login' here, AuthGuard will handle it.
    };
 
 
-  // Wait for auth context and table initialization - Handled by AuthGuard
   if (isLoading || !isInitialized) {
      return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
   }
-  // No auth check needed - Handled by AuthGuard
 
 
   return (
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Gestión de Mesas</h1>
-         {/* Logout button - Only show if authenticated */}
          {isAuthenticated && (
             <Button variant="outline" onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" /> Cerrar Sesión
@@ -163,10 +155,10 @@ export default function TablesPage() {
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
         {tables.map((table) => (
           <Link key={table.id} href={`/tables/${table.id}`} passHref legacyBehavior>
-            <a className="block h-full"> {/* Use legacyBehavior and an <a> tag */}
+            <a className="block h-full">
                 <Card
                   className={cn(
-                    'cursor-pointer transition-all duration-200 hover:shadow-lg flex flex-col justify-between h-full group', // Added group class
+                    'cursor-pointer transition-all duration-200 hover:shadow-lg flex flex-col justify-between h-full group',
                     table.status === 'available'
                       ? 'bg-secondary hover:bg-secondary/90'
                       : 'bg-muted hover:bg-muted/90',
@@ -176,7 +168,7 @@ export default function TablesPage() {
                   <CardHeader className="p-4 flex-grow">
                     {getIcon(table.id)}
                     <CardTitle className="text-center text-lg">
-                      {table.name || `Mesa ${table.id}`} {/* Display name or "Mesa {id}" */}
+                      {table.name || `Mesa ${table.id}`}
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="p-4 pt-0 text-center">
@@ -199,4 +191,3 @@ export default function TablesPage() {
     </div>
   );
 }
-
