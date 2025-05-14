@@ -46,7 +46,6 @@ export const formatKitchenOrderReceipt = (
             : '';
             
         let ingredientsLines = '';
-        // For kitchen receipt, show ingredients if they exist, regardless of promo status for clarity
         if (item.ingredients && item.ingredients.length > 0) {
             const ingredientsLabel = "Ingredientes:";
             ingredientsLines = `
@@ -94,28 +93,28 @@ export const formatKitchenOrderReceipt = (
           background-color: #fff;
           font-weight: bold;
         }
-        .order-number-title { /* Style for ORDEN #XXX */
-            font-size: 28pt; /* Increased font size */
+        .order-number-title { 
+            font-size: 28pt; 
             text-align: center;
-            margin-bottom: 2px; /* Reduced margin */
+            margin-bottom: 2px; 
             font-weight: bold;
         }
-        .comanda-title { /* Style for COMANDA - MESA X */
-            font-size: 14pt; /* Original size */
+        .comanda-identifier-title { 
+            font-size: 14pt; 
             text-align: center;
             margin-bottom: 5px;
             font-weight: bold;
         }
-        .header-info { /* Date/Time */
+        .header-date-time { 
             text-align: center;
             margin-bottom: 10px;
             font-size: 9pt;
             font-weight: bold;
         }
-        .products-title { /* Productos: */
+        .products-title { 
             font-size: 11pt; 
             text-align: left;
-            margin-top: 10px; /* After hr */
+            margin-top: 10px; 
             margin-bottom: 5px;
             font-weight: bold;
         }
@@ -130,7 +129,7 @@ export const formatKitchenOrderReceipt = (
         p { 
             margin: 0;
             padding: 0;
-            line-height: 1.3; /* Adjusted for better readability and closer to image */
+            line-height: 1.3; 
             font-weight: bold;
         }
         .delivery-info { 
@@ -144,8 +143,8 @@ export const formatKitchenOrderReceipt = (
     </head>
     <body>
       <div class="order-number-title">ORDEN #${String(orderNumber).padStart(3, '0')}</div>
-      <div class="comanda-title">COMANDA - ${orderIdentifier.toUpperCase()}</div>
-      <div class="header-info">${time}</div>
+      <div class="comanda-identifier-title">COMANDA - ${orderIdentifier.toUpperCase()}</div>
+      <div class="header-date-time">${time}</div>
       <hr>
       <div class="products-title">Productos:</div>
       <div class="items-section">
@@ -162,7 +161,7 @@ export const formatCustomerReceipt = (
     orderItems: OrderItem[],
     totalAmount: number,
     paymentMethod: string,
-    tableIdentifier: string, // This will be tableDisplayName
+    tableIdentifier: string, 
     orderNumber: number,
     deliveryInfo?: DeliveryInfo | null, 
     tipAmount?: number
@@ -171,8 +170,6 @@ export const formatCustomerReceipt = (
     const title = "BOLETA";
     const shopName = "El Bajón de la Cami";
     const time = formatDateTime(new Date());
-
-    let receiptOrderIdentifier = `${tableIdentifier} - Orden #${String(orderNumber).padStart(3, '0')}`;
     
     let subtotal = 0;
     let itemsHtml = '';
@@ -240,13 +237,31 @@ export const formatCustomerReceipt = (
             background-color: #fff;
             font-weight: bold;
          }
-         h1, h2 { text-align: center; margin: 5px 0; font-weight: bold; }
-         h1 { font-size: 14pt; }
-         h2 { font-size: 12pt; }
+         .shop-name { font-size: 14pt; text-align: center; margin-bottom: 5px; font-weight: bold; }
+         .receipt-title { font-size: 12pt; text-align: center; margin-bottom: 5px; font-weight: bold; }
+
+         .order-number-customer { 
+            font-size: 20pt; 
+            text-align: center;
+            margin-bottom: 1px;
+            font-weight: bold;
+         }
+         .table-identifier-customer {
+            font-size: 11pt;
+            text-align: center;
+            margin-bottom: 3px;
+            font-weight: bold;
+         }
+         .date-time-customer {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 9pt;
+            font-weight: bold;
+         }
+
          table { width: 100%; border-collapse: collapse; margin-top: 10px; }
          th, td { padding: 3px 0; font-weight: bold; }
          th { text-align: left; border-bottom: 1px solid #000; font-weight: bold;}
-         .header-info, .footer-info { text-align: center; margin-bottom: 10px; font-size: 9pt; font-weight: bold; }
          .total-section { margin-top: 10px; padding-top: 5px; border-top: 1px solid #000; }
          .total-row td { font-weight: bold; }
          hr { border: none; border-top: 1px dashed #000; margin: 10px 0; }
@@ -256,11 +271,12 @@ export const formatCustomerReceipt = (
       </style>
     </head>
     <body>
-      <h2>${shopName}</h2>
-      <div class="header-info">
-        ${time}<br>
-        ${receiptOrderIdentifier}
-      </div>
+      <div class="shop-name">${shopName}</div>
+      <div class="receipt-title">${title}</div>
+      
+      <div class="order-number-customer">ORDEN #${String(orderNumber).padStart(3, '0')}</div>
+      <div class="table-identifier-customer">${tableIdentifier.toUpperCase()}</div>
+      <div class="date-time-customer">${time}</div>
       
       <table>
         <thead>
@@ -290,7 +306,7 @@ export const formatCustomerReceipt = (
         </table>
       </div>
       <hr>
-      <div class="footer-info">
+      <div class="footer-info" style="text-align: center; font-size: 9pt; font-weight: bold;">
         ¡Gracias por su preferencia!
       </div>
     </body>
