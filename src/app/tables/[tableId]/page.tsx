@@ -16,7 +16,7 @@ import {
 import {ScrollArea }from '@/components/ui/scroll-area';
 import {Separator }from '@/components/ui/separator';
 // import { Input } from '@/components/ui/input'; // No longer directly used here, moved to ProductsManagementPage
-// import { Badge } from '@/components/ui/badge'; // No longer directly used here
+import { Badge } from '@/components/ui/badge';
 import {
   Sheet,
   SheetContent,
@@ -31,12 +31,12 @@ import {
   DialogClose as ShadDialogClose,
   DialogContent as ShadDialogContent,
   DialogDescription as ShadDialogDescription,
-  DialogFooter as ShadDialogFooter,
-  DialogHeader as ShadDialogHeader,
-  DialogTitle as ShadDialogTitle,
-  DialogTrigger as ShadDialogTrigger,
+  DialogFooter as ShadDialogFooter, // Alias import
+  DialogHeader as ShadDialogHeader,   // Alias import
+  DialogTitle as ShadDialogTitle,     // Alias import
+  DialogTrigger as ShadDialogTrigger, // Alias import
 } from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
+
 
 import { Utensils, PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard, ChevronRight, Banknote, Landmark, Home, Phone, User, DollarSign, PackageSearch, Edit, Trash2, ListChecks, Tags, Pencil } from 'lucide-react';
 import {useToast }from '@/hooks/use-toast';
@@ -46,7 +46,7 @@ import { isEqual } from 'lodash';
 import { cn } from '@/lib/utils';
 import type { CashMovement } from '@/app/expenses/page';
 import type { DeliveryInfo } from '@/components/app/delivery-dialog';
-import DeliveryDialog from '@/components/app/delivery-dialog';
+import DeliveryDialog from '@/components/app/delivery-dialog'; // Corrected import
 import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
 import type { MenuItem } from '@/types/menu';
@@ -188,7 +188,7 @@ export default function TableDetailPage() {
                         })),
                     })).sort((a: PendingOrderGroup, b: PendingOrderGroup) => a.timestamp - b.timestamp)
                  );
-             } else if (Array.isArray(parsedData)) {
+             } else if (Array.isArray(parsedData)) { // Fallback for old format
                  setPendingOrderGroups(
                     parsedData.map((group: PendingOrderGroup) => ({
                         ...group,
@@ -209,7 +209,8 @@ export default function TableDetailPage() {
           setDeliveryInfo(JSON.parse(storedDeliveryInfo));
         } catch (e) { console.error("Error loading delivery info:", e); }
       }
-      if (!storedDeliveryInfo && !currentOrder.length && !pendingOrderGroups.length) {
+      // Open delivery dialog if it's a delivery table, no current delivery info, no current order, and no pending orders.
+      if (!storedDeliveryInfo && currentOrder.length === 0 && pendingOrderGroups.length === 0) {
         setIsDeliveryDialogOpen(true);
       }
     }
@@ -220,7 +221,7 @@ export default function TableDetailPage() {
     setIsInitialized(true);
     console.log(`Initialization complete for ${tableIdParam}.`);
 
-  }, [tableIdParam, isInitialized, isDelivery, currentOrder.length, pendingOrderGroups.length]);
+  }, [tableIdParam, isInitialized, isDelivery]); // Removed currentOrder.length and pendingOrderGroups.length as they might cause re-triggering issues. isInitialized handles the "once" part.
 
   useEffect(() => {
     const handleMenuUpdate = () => {
@@ -236,53 +237,59 @@ export default function TableDetailPage() {
   useEffect(() => {
     if (!isInitialized || !tableIdParam) return;
 
-    console.log(`Saving state for table ${tableIdParam}:`, { currentOrder, pendingOrderGroups, deliveryInfo });
+    // Persist current order and pending orders
     sessionStorage.setItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${tableIdParam}-currentOrder`, JSON.stringify(currentOrder));
     sessionStorage.setItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${tableIdParam}-pendingOrders`, JSON.stringify({ groups: pendingOrderGroups }));
 
+    // Persist delivery info if applicable for the current table instance
     if (isDelivery) {
-      if (deliveryInfo) {
-         sessionStorage.setItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`, JSON.stringify(deliveryInfo));
+      if (deliveryInfo) { // deliveryInfo is the state variable for the *current* delivery interaction
+        sessionStorage.setItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`, JSON.stringify(deliveryInfo));
       } else {
-         const hasPendingDeliveryWithInfo = pendingOrderGroups.some(group => group.deliveryInfo);
-         if(!hasPendingDeliveryWithInfo) {
-            sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`);
-         }
+        // If deliveryInfo state is null, but there are pending orders, one of them might have delivery info.
+        // We should only remove the sessionStorage item if NO pending orders for this delivery slot have info,
+        // and the current deliveryInfo state is also null.
+        const anyPendingGroupHasDeliveryInfo = pendingOrderGroups.some(group => group.deliveryInfo);
+        if (!anyPendingGroupHasDeliveryInfo) {
+             sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`);
+        }
       }
     }
 
+    // Determine table status
     const hasPending = pendingOrderGroups.length > 0;
     const hasCurrent = currentOrder.length > 0;
-    let hasDeliveryInfoForStatus = false;
-    if (isDelivery && deliveryInfo) {
-        hasDeliveryInfoForStatus = !!(deliveryInfo.name || deliveryInfo.address || deliveryInfo.phone || deliveryInfo.deliveryFee > 0);
-    } else if (isDelivery && pendingOrderGroups.some(pg => pg.deliveryInfo)){
-        hasDeliveryInfoForStatus = true;
+
+    // For status determination, consider deliveryInfo from *any* source (current state or pending groups) for a delivery table
+    let isDeliveryEffectivelyOccupied = false;
+    if (isDelivery) {
+        const currentDeliveryInfoProvided = deliveryInfo && (deliveryInfo.name || deliveryInfo.address || deliveryInfo.phone || deliveryInfo.deliveryFee > 0);
+        const pendingDeliveryInfoProvided = pendingOrderGroups.some(pg => pg.deliveryInfo && (pg.deliveryInfo.name || pg.deliveryInfo.address || pg.deliveryInfo.phone || pg.deliveryInfo.deliveryFee > 0));
+        isDeliveryEffectivelyOccupied = !!(currentDeliveryInfoProvided || pendingDeliveryInfoProvided);
+    }
+
+    let newStatus: 'available' | 'occupied';
+    if (hasPending || hasCurrent || isDeliveryEffectivelyOccupied) {
+      newStatus = 'occupied';
+    } else {
+      newStatus = 'available';
+      // If becoming available and it's a delivery table, ensure its specific delivery info is cleared from storage
+      if (isDelivery) {
+        sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`);
+      }
     }
 
     const oldStatus = sessionStorage.getItem(`table-${tableIdParam}-status`);
-    let newStatus: 'available' | 'occupied';
-
-    if (hasPending || hasCurrent || (isDelivery && hasDeliveryInfoForStatus)) {
-        newStatus = 'occupied';
-    } else {
-        newStatus = 'available';
-         if(isDelivery) {
-            sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`);
-            setDeliveryInfo(null); 
-         }
-    }
+    sessionStorage.setItem(`table-${tableIdParam}-status`, newStatus); // Always set the current determined status
 
     if (oldStatus !== newStatus) {
-        sessionStorage.setItem(`table-${tableIdParam}-status`, newStatus);
-        console.log(`Table ${tableIdParam} status changed to ${newStatus}. Dispatching event.`);
-        window.dispatchEvent(new CustomEvent('tableStatusUpdated'));
+      console.log(`Table ${tableIdParam} status changed from ${oldStatus} to ${newStatus}. Dispatching event.`);
+      window.dispatchEvent(new CustomEvent('tableStatusUpdated'));
     } else {
-        // Ensure status is set even if it hasn't changed, for consistency.
-        sessionStorage.setItem(`table-${tableIdParam}-status`, newStatus);
+      console.log(`Table ${tableIdParam} status re-affirmed as ${newStatus}.`);
     }
 
-  }, [currentOrder, pendingOrderGroups, deliveryInfo, tableIdParam, isInitialized, isDelivery, setDeliveryInfo]);
+  }, [currentOrder, pendingOrderGroups, deliveryInfo, tableIdParam, isInitialized, isDelivery]);
 
 
   // --- Item Handling ---
@@ -325,7 +332,7 @@ export default function TableDetailPage() {
           ]);
       }
       toast({ title: "Producto Añadido", description: `${item.name} se añadió al pedido actual.` });
-      setIsProductListDialogOpen(false);
+      setIsProductListDialogOpen(false); // Close product list dialog after adding
   };
 
   const handleRemoveItemFromOrder = (orderItemId: string) => {
@@ -381,12 +388,16 @@ export default function TableDetailPage() {
     ].sort((a,b) => a.timestamp - b.timestamp));
 
     setCurrentOrder([]);
-    // Status will be updated by the useEffect based on new pendingOrderGroups and currentOrder state
     toast({ title: "Comanda Impresa", description: `Pedido #${String(orderNumber).padStart(3,'0')} enviado a cocina y movido a pendientes.` });
 
+    // For delivery, after printing comanda, clear current deliveryInfo to prompt for new details for the *next* delivery on this slot
+    // Only do this if no other current order items exist (which shouldn't be the case if setCurrentOrder([]) just ran)
     if (isDelivery) {
-      setDeliveryInfo(null);
-      setIsDeliveryDialogOpen(true);
+      setDeliveryInfo(null); // Clear local state
+      // The useEffect will handle removing from sessionStorage if no pending orders have info
+      if (currentOrder.length === 0 && pendingOrderGroups.filter(g => g.orderNumber !== orderNumber && g.deliveryInfo).length === 0) {
+        setIsDeliveryDialogOpen(true); // Re-open if slot is now effectively "empty" for a new delivery
+      }
     }
   };
 
@@ -454,12 +465,12 @@ export default function TableDetailPage() {
             inventoryItemName = 'Pan especial grande';
          }
       }
-      if (orderItem.category === 'Promo Fajitas') {
+       if (orderItem.category === 'Promo Fajitas') {
         if (['4 ingredientes', '6 ingredientes', 'americana', 'brasileño', 'chacarero', 'golosasa', 'italiana', 'primavera'].includes(itemNameLower)) {
-            inventoryItemName = 'Fajita';
+            inventoryItemName = 'Fajita'; // Deducts 1 fajita bread
              const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
              if (bebidaLataIndex !== -1) {
-                 const latasToDeduct = orderItem.quantity;
+                 const latasToDeduct = orderItem.quantity; // Each promo includes 1 can
                  updatedInventory[bebidaLataIndex].stock -= latasToDeduct;
                  inventoryUpdateOccurred = true;
                  if (updatedInventory[bebidaLataIndex].stock < 0 && latasToDeduct > 0) {
@@ -475,10 +486,10 @@ export default function TableDetailPage() {
       }
       if (orderItem.category === 'Promo Churrasco') {
         if (['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'queso', 'queso champiñon', 'tomate', 'palta'].includes(itemNameLower)) {
-          inventoryItemName = 'Pan de marraqueta';
+          inventoryItemName = 'Pan de marraqueta'; // Each promo uses 1 pan de marraqueta
              const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
              if (bebidaLataIndex !== -1) {
-                 const latasToDeduct = orderItem.quantity;
+                 const latasToDeduct = orderItem.quantity; // Each promo includes 1 can
                  updatedInventory[bebidaLataIndex].stock -= latasToDeduct;
                  inventoryUpdateOccurred = true;
                   if (updatedInventory[bebidaLataIndex].stock < 0 && latasToDeduct > 0) {
@@ -489,10 +500,10 @@ export default function TableDetailPage() {
       }
       if (orderItem.category === 'Promo Mechada') {
           if (['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'queso', 'queso champiñon', 'tomate', 'palta'].includes(itemNameLower)) {
-             inventoryItemName = 'Pan de marraqueta';
+             inventoryItemName = 'Pan de marraqueta'; // Each promo uses 1 pan de marraqueta
                 const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
                 if (bebidaLataIndex !== -1) {
-                    const latasToDeduct = orderItem.quantity;
+                    const latasToDeduct = orderItem.quantity; // Each promo includes 1 can
                     updatedInventory[bebidaLataIndex].stock -= latasToDeduct;
                     inventoryUpdateOccurred = true;
                     if (updatedInventory[bebidaLataIndex].stock < 0 && latasToDeduct > 0) {
@@ -504,15 +515,15 @@ export default function TableDetailPage() {
       if (orderItem.category === 'Promo Hamburguesas') {
         if(['big cami', 'italiana', 'simple', 'tapa arteria'].includes(itemNameLower)) {
           inventoryItemName = 'Pan de hamburguesa normal';
-           quantityToDeduct = orderItem.quantity * 1;
+           quantityToDeduct = orderItem.quantity * 1; // 1 normal bun
         } else if (['doble', 'doble italiana', 'super big cami', 'super tapa arteria'].includes(itemNameLower)) {
            inventoryItemName = 'Pan de hamburguesa grande';
-           quantityToDeduct = orderItem.quantity * 1;
+           quantityToDeduct = orderItem.quantity * 1; // 1 grande bun (as these are "doble" items implying larger/more)
         }
-         if (inventoryItemName) {
+         if (inventoryItemName) { // If a bun type was determined
             const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
             if (bebidaLataIndex !== -1) {
-                const latasToDeduct = orderItem.quantity;
+                const latasToDeduct = orderItem.quantity; // Each promo includes 1 can
                 updatedInventory[bebidaLataIndex].stock -= latasToDeduct;
                 inventoryUpdateOccurred = true;
                 if (updatedInventory[bebidaLataIndex].stock < 0 && latasToDeduct > 0) {
@@ -529,22 +540,25 @@ export default function TableDetailPage() {
        }
       if (orderItem.category === 'Promociones') {
           const promoNum = parseInt(itemNameLower.replace('promo ', ''), 10);
-          if (promoNum === 1 || promoNum === 2) { inventoryItemName = 'Pan de hamburguesa grande'; quantityToDeduct *=1; }
-          if (promoNum === 3) { inventoryItemName = 'Pan de marraqueta'; quantityToDeduct *= 4; }
-          if (promoNum === 4) { inventoryItemName = 'Pan de marraqueta'; quantityToDeduct *= 2; }
-          if (promoNum === 5) { inventoryItemName = 'Pan especial normal'; quantityToDeduct *= 2; }
-          if (promoNum === 6) { inventoryItemName = 'Pan especial grande'; quantityToDeduct *= 2; }
-          if (promoNum === 7) { inventoryItemName = 'Pan especial normal'; quantityToDeduct *= 2; }
-          if (promoNum === 8) { inventoryItemName = 'Pan especial grande'; quantityToDeduct *= 2; }
-          if (promoNum === 9) { inventoryItemName = 'Pan especial normal'; quantityToDeduct *= 4; }
-          if (promoNum === 10) { inventoryItemName = 'Pan especial grande'; quantityToDeduct *= 4; }
-          if (promoNum === 11) { inventoryItemName = 'Pan especial normal'; quantityToDeduct *= 4; }
-          if (promoNum === 12) { inventoryItemName = 'Pan especial grande'; quantityToDeduct *= 4; }
+          if (promoNum === 1 || promoNum === 2) { inventoryItemName = 'Pan de hamburguesa grande'; quantityToDeduct = orderItem.quantity * 1; } // 1 grande bun per promo item
+          if (promoNum === 3) { inventoryItemName = 'Pan de marraqueta'; quantityToDeduct = orderItem.quantity * 4; } // 4 marraquetas
+          if (promoNum === 4) { inventoryItemName = 'Pan de marraqueta'; quantityToDeduct = orderItem.quantity * 2; } // 2 marraquetas
 
+          if (promoNum === 5) { inventoryItemName = 'Pan especial normal'; quantityToDeduct = orderItem.quantity * 2; } // 2 normal buns
+          if (promoNum === 6) { inventoryItemName = 'Pan especial grande'; quantityToDeduct = orderItem.quantity * 2; } // 2 grande buns
+          if (promoNum === 7) { inventoryItemName = 'Pan especial normal'; quantityToDeduct = orderItem.quantity * 2; } // 2 normal buns for "as"
+          if (promoNum === 8) { inventoryItemName = 'Pan especial grande'; quantityToDeduct = orderItem.quantity * 2; } // 2 grande buns for "as"
+          if (promoNum === 9) { inventoryItemName = 'Pan especial normal'; quantityToDeduct = orderItem.quantity * 4; } // 4 normal buns
+          if (promoNum === 10) { inventoryItemName = 'Pan especial grande'; quantityToDeduct = orderItem.quantity * 4; } // 4 grande buns
+          if (promoNum === 11) { inventoryItemName = 'Pan especial normal'; quantityToDeduct = orderItem.quantity * 4; } // 4 normal buns for "as"
+          if (promoNum === 12) { inventoryItemName = 'Pan especial grande'; quantityToDeduct = orderItem.quantity * 4; } // 4 grande buns for "as"
+
+
+          // Bebida 1.5Lt deductions
           if ([1,2,3,9,10,11,12].includes(promoNum)) {
               const bebidaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'bebida 1.5lt');
               if (bebidaIndex !== -1) {
-                  const bebidasToDeduct = orderItem.quantity;
+                  const bebidasToDeduct = orderItem.quantity; // 1 bottle per promo
                   updatedInventory[bebidaIndex].stock -= bebidasToDeduct;
                   inventoryUpdateOccurred = true;
                   if (updatedInventory[bebidaIndex].stock < 0 && bebidasToDeduct > 0) {
@@ -552,10 +566,11 @@ export default function TableDetailPage() {
                   }
               }
           }
+          // Lata deductions
           if ([5,6,7,8].includes(promoNum)) {
               const lataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
               if (lataIndex !== -1) {
-                  const latasToDeduct = orderItem.quantity * 2;
+                  const latasToDeduct = orderItem.quantity * 2; // 2 cans per promo
                   updatedInventory[lataIndex].stock -= latasToDeduct;
                   inventoryUpdateOccurred = true;
                   if (updatedInventory[lataIndex].stock < 0 && latasToDeduct > 0) {
@@ -563,10 +578,11 @@ export default function TableDetailPage() {
                   }
               }
           }
-           if (promoNum === 5 || promoNum === 9) {
+           // Vienesas deductions for specific Promos
+           if (promoNum === 5 || promoNum === 9) { // Promo 5 (2 completos normales), Promo 9 (4 completos normales)
               const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
                if (vienaIndex !== -1) {
-                  const vienesasNeeded = promoNum === 5 ? orderItem.quantity * 2 : orderItem.quantity * 4;
+                  const vienesasNeeded = promoNum === 5 ? orderItem.quantity * 2 : orderItem.quantity * 4; // 1 viena per completo normal
                   updatedInventory[vienaIndex].stock -= vienesasNeeded;
                   inventoryUpdateOccurred = true;
                    if (updatedInventory[vienaIndex].stock < 0 && vienesasNeeded > 0) {
@@ -574,10 +590,10 @@ export default function TableDetailPage() {
                    }
                }
           }
-           if (promoNum === 6 || promoNum === 10) {
+           if (promoNum === 6 || promoNum === 10) { // Promo 6 (2 completos grandes), Promo 10 (4 completos grandes)
                const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
                if (vienaIndex !== -1) {
-                   const vienesasNeeded = promoNum === 6 ? orderItem.quantity * 4 : orderItem.quantity * 8;
+                   const vienesasNeeded = promoNum === 6 ? orderItem.quantity * 4 : orderItem.quantity * 8; // 2 vienas per completo grande
                    updatedInventory[vienaIndex].stock -= vienesasNeeded;
                    inventoryUpdateOccurred = true;
                     if (updatedInventory[vienaIndex].stock < 0 && vienesasNeeded > 0) {
@@ -590,7 +606,7 @@ export default function TableDetailPage() {
             if (itemNameLower === 'box cami') {
                 const empanadaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'empanada');
                 if (empanadaIndex !== -1) {
-                     const empanadasToDeduct = 8 * orderItem.quantity;
+                     const empanadasToDeduct = 8 * orderItem.quantity; // 8 empanadas per box
                      updatedInventory[empanadaIndex].stock -= empanadasToDeduct;
                      inventoryUpdateOccurred = true;
                      if (updatedInventory[empanadaIndex].stock < 0 && empanadasToDeduct > 0) {
@@ -599,7 +615,7 @@ export default function TableDetailPage() {
                 }
                 const bebidaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'bebida 1.5lt');
                 if (bebidaIndex !== -1) {
-                    const bebidasToDeduct = orderItem.quantity;
+                    const bebidasToDeduct = orderItem.quantity; // 1 bottle per box
                     updatedInventory[bebidaIndex].stock -= bebidasToDeduct;
                     inventoryUpdateOccurred = true;
                      if (updatedInventory[bebidaIndex].stock < 0 && bebidasToDeduct > 0) {
@@ -609,7 +625,7 @@ export default function TableDetailPage() {
             } else if (itemNameLower === 'salchipapas') {
                 const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
                 if (vienaIndex !== -1) {
-                    const vienesasNeeded = orderItem.quantity * 3;
+                    const vienesasNeeded = orderItem.quantity * 3; // 3 vienas per salchipapa
                     updatedInventory[vienaIndex].stock -= vienesasNeeded;
                     inventoryUpdateOccurred = true;
                      if (updatedInventory[vienaIndex].stock < 0 && vienesasNeeded > 0) {
@@ -625,11 +641,11 @@ export default function TableDetailPage() {
         if (itemIndex !== -1) {
           updatedInventory[itemIndex].stock -= quantityToDeduct;
           inventoryUpdateOccurred = true;
-          if (updatedInventory[itemIndex].stock < 0 && quantityToDeduct > 0) {
+          if (updatedInventory[itemIndex].stock < 0 && quantityToDeduct > 0) { // Only toast if actual deduction happened
                toast({
                    title: "Advertencia de Stock",
                    description: `El stock de "${inventoryItemName}" es ahora ${updatedInventory[itemIndex].stock}.`,
-                   variant: "default",
+                   variant: "default", // Use default variant for warnings, or consider a custom "warning" variant
                });
           }
         }
@@ -656,11 +672,11 @@ export default function TableDetailPage() {
         : cashMovementDescription;
 
     const newCashMovement: CashMovement = {
-      id: Date.now(),
+      id: Date.now(), // Use a more robust ID if needed, e.g., UUID
       date: new Date(),
       category: 'Ingreso Venta',
       description: descriptionWithTip,
-      amount: saleAmount,
+      amount: saleAmount, // This is the amount of the sale itself, excluding tip for this line item
       paymentMethod: paymentMethod,
       deliveryFee: deliveryFeeForMovement
     };
@@ -672,19 +688,32 @@ export default function TableDetailPage() {
             const parsedMovements = JSON.parse(storedCashMovements);
             if(Array.isArray(parsedMovements)) cashMovements = parsedMovements;
         } catch {
+            // If parsing fails, start with an empty array
             cashMovements = [];
         }
     }
     cashMovements.push(newCashMovement);
     sessionStorage.setItem(CASH_MOVEMENTS_STORAGE_KEY, JSON.stringify(cashMovements));
 
-    setPendingOrderGroups(prevGroups => {
-      const updatedGroups = prevGroups.filter(group => group.orderNumber !== orderToPay!.orderNumber);
-      return updatedGroups;
-    });
+    // Update pending orders by removing the paid group
+    const updatedPendingOrderGroups = pendingOrderGroups.filter(group => group.orderNumber !== orderToPay!.orderNumber);
+    setPendingOrderGroups(updatedPendingOrderGroups);
+
 
     setIsPaymentDialogOpen(false);
+    const paidOrderInfo = orderToPay; // Capture before setting to null
     setOrderToPay(null);
+
+
+    // If this was a delivery order and it was the last one, reset deliveryInfo state
+    if (isDelivery && paidOrderInfo?.deliveryInfo) {
+        // Check if any *other* pending groups for this delivery slot still exist
+        const remainingDeliveryOrders = updatedPendingOrderGroups.filter(group => group.deliveryInfo);
+        if (remainingDeliveryOrders.length === 0 && currentOrder.length === 0) {
+            console.log("TableDetailPage: Last delivery order paid, and no current order. Clearing current deliveryInfo state.");
+            setDeliveryInfo(null); // This will trigger the useEffect to update sessionStorage and potentially table status
+        }
+    }
 
 
     toast({ title: "Pago Realizado", description: `Pago de ${formatCurrency(finalAmountWithTip)} con ${paymentMethod} registrado.` });
@@ -724,14 +753,15 @@ export default function TableDetailPage() {
       uniqueCategoriesInFilteredMenu.add(item.category);
     });
 
+    // Sort categories based on predefinedOrder, then alphabetically for others
     const finalCategoryOrder = Array.from(uniqueCategoriesInFilteredMenu).sort((a, b) => {
         const indexA = predefinedOrderedCategories.indexOf(a);
         const indexB = predefinedOrderedCategories.indexOf(b);
 
-        if (indexA !== -1 && indexB !== -1) return indexA - indexB;
-        if (indexA !== -1) return -1;
-        if (indexB !== -1) return 1;
-        return a.localeCompare(b);
+        if (indexA !== -1 && indexB !== -1) return indexA - indexB; // Both are predefined
+        if (indexA !== -1) return -1; // A is predefined, B is not
+        if (indexB !== -1) return 1;  // B is predefined, A is not
+        return a.localeCompare(b); // Neither is predefined, sort alphabetically
     });
 
 
@@ -749,33 +779,37 @@ export default function TableDetailPage() {
     setDeliveryInfo(info);
     setIsDeliveryDialogOpen(false);
     toast({ title: "Datos de Envío Guardados", description: `Enviando a ${info.name}.` });
+    // Automatically open menu sheet after delivery info is confirmed
     setIsMenuSheetOpen(true);
   };
 
   const handleDeliveryInfoCancel = () => {
+    // If delivery info was cancelled, and there's no existing delivery info (from pending orders)
+    // and no current order, then navigate back.
     if (!deliveryInfo && pendingOrderGroups.length === 0 && currentOrder.length === 0) {
-        // No need to directly set status here, useEffect will handle it based on state.
         router.push('/tables');
         toast({ title: "Envío Cancelado", description: "Se canceló el ingreso de datos de envío.", variant: "destructive" });
     } else {
-        setIsDeliveryDialogOpen(false);
+        setIsDeliveryDialogOpen(false); // Just close the dialog if there's other state
     }
   };
 
   const handleCategoryClick = (categoryName: string) => {
     setSelectedCategoryForDialog(categoryName);
-    setIsProductListDialogOpen(true);
-    setIsMenuSheetOpen(false);
+    setIsProductListDialogOpen(true); // Open product list dialog
+    setIsMenuSheetOpen(false); // Close category sheet
   };
 
   const handleOpenMenuOrDeliveryDialog = () => {
-    if (isDelivery && !deliveryInfo && currentOrder.length === 0 && pendingOrderGroups.length === 0) {
+    if (isDelivery && !deliveryInfo && currentOrder.length === 0 && pendingOrderGroups.filter(pg => pg.deliveryInfo).length === 0) {
+      // If it's a delivery table, and no delivery info is set for current or pending orders for this slot
       setIsDeliveryDialogOpen(true);
     } else if (isDelivery && !deliveryInfo && currentOrder.length > 0) {
+       // If there's a current order for delivery but no deliveryInfo yet (e.g. user closed dialog before)
        setIsDeliveryDialogOpen(true);
     }
     else {
-      setIsMenuSheetOpen(true);
+      setIsMenuSheetOpen(true); // For non-delivery, or if delivery info already exists
     }
   };
 
@@ -793,21 +827,23 @@ export default function TableDetailPage() {
           Volver a Mesas
         </Button>
         <h1 className="text-3xl font-bold">{tableDisplayName}</h1>
-        <div></div>
+        <div></div> {/* Placeholder for right alignment if needed */}
       </div>
 
+        {/* "Ver Menú" Button - Centered */}
         <div className="flex justify-center mb-6">
              <Button size="lg" className="px-8 py-6 text-lg" onClick={handleOpenMenuOrDeliveryDialog}>
                 <PackageSearch className="mr-2 h-5 w-5"/> Ver Menú
             </Button>
         </div>
 
+        {/* Categories Sheet (Menu Part 1) */}
         <Sheet open={isMenuSheetOpen} onOpenChange={setIsMenuSheetOpen}>
-            <SheetContent side="left" className="w-full sm:max-w-md md:max-w-lg lg:max-w-xl p-0">
+            <SheetContent side="left" className="w-full sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl p-0"> {/* Wider sheet */}
               <SheetHeader className="p-4 border-b">
                 <SheetTitle className="text-2xl">Categorías del Menú</SheetTitle>
               </SheetHeader>
-              <ScrollArea className="h-[calc(100vh-80px)]">
+              <ScrollArea className="h-[calc(100vh-80px)]"> {/* Adjust height */}
                 <div className="p-4 space-y-2">
                   {Object.keys(groupedMenu).length === 0 && (
                     <p className="text-muted-foreground text-center">No se encontraron categorías.</p>
@@ -816,7 +852,7 @@ export default function TableDetailPage() {
                       <Button
                         key={category}
                         variant="outline"
-                        className="w-full justify-start text-lg py-6"
+                        className="w-full justify-start text-lg py-6" // Larger buttons
                         onClick={() => handleCategoryClick(category)}
                       >
                         {category}
@@ -824,26 +860,28 @@ export default function TableDetailPage() {
                   ))}
                 </div>
               </ScrollArea>
+              {/* SheetFooter can be removed if no actions are needed at the bottom of the category list */}
             </SheetContent>
         </Sheet>
 
-
+        {/* Products List Dialog (Menu Part 2) */}
         <ShadDialog open={isProductListDialogOpen} onOpenChange={setIsProductListDialogOpen}>
-            <ShadDialogContent className="sm:max-w-lg md:max-w-xl lg:max-w-3xl xl:max-w-4xl h-[90vh]">
+            <ShadDialogContent className="sm:max-w-lg md:max-w-xl lg:max-w-3xl xl:max-w-4xl h-[90vh]"> {/* Wider and taller dialog */}
                 <ShadDialogHeader>
                     <ShadDialogTitle className="text-2xl">
                         Productos en {selectedCategoryForDialog}
                     </ShadDialogTitle>
+                    {/* Optional: Add a search bar here if needed for products within a category */}
                 </ShadDialogHeader>
-                <ScrollArea className="h-[calc(90vh-150px)] pr-3">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 py-4">
+                <ScrollArea className="h-[calc(90vh-150px)] pr-3"> {/* Adjust height and padding */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 py-4"> {/* Responsive grid */}
                         {selectedCategoryForDialog &&
                             menu
                                 .filter(item => item.category === selectedCategoryForDialog)
                                 .map(item => (
                                     <Card
                                         key={item.id}
-                                        className="cursor-pointer hover:shadow-lg transition-shadow flex flex-col"
+                                        className="cursor-pointer hover:shadow-lg transition-shadow flex flex-col" // Ensure cards can grow
                                         onClick={() =>
                                             (item.modifications && item.modifications.length > 0)
                                                 ? handleOpenModificationDialog(item)
@@ -853,14 +891,14 @@ export default function TableDetailPage() {
                                         <CardHeader className="pb-2 pt-3 px-3">
                                             <CardTitle className="text-base leading-tight font-semibold">{item.name}</CardTitle>
                                         </CardHeader>
-                                        <CardContent className="text-xs text-muted-foreground px-3 pb-2 flex-grow">
+                                        <CardContent className="text-xs text-muted-foreground px-3 pb-2 flex-grow"> {/* flex-grow for content */}
                                             {item.ingredients && item.ingredients.length > 0 && (
                                                 <p className="italic overflow-hidden text-ellipsis whitespace-nowrap">
                                                     ({item.ingredients.join(', ')})
                                                 </p>
                                             )}
                                         </CardContent>
-                                        <CardFooter className="px-3 pb-3 pt-1 mt-auto">
+                                        <CardFooter className="px-3 pb-3 pt-1 mt-auto"> {/* mt-auto pushes footer down */}
                                             <span className="text-sm font-bold text-primary">{formatCurrency(item.price)}</span>
                                         </CardFooter>
                                     </Card>
@@ -870,24 +908,26 @@ export default function TableDetailPage() {
                          )}
                     </div>
                 </ScrollArea>
-                <SheetFooter className="p-4 border-t">
+                <ShadDialogFooter className="p-4 border-t"> {/* Use ShadDialogFooter */}
                      <Button variant="outline" onClick={() => { setIsProductListDialogOpen(false); setIsMenuSheetOpen(true); }}>Volver a Categorías</Button>
-                </SheetFooter>
+                </ShadDialogFooter>
             </ShadDialogContent>
         </ShadDialog>
 
 
+      {/* Main content grid for Current Order and Pending Orders */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Current Order Card */}
         <Card className="flex flex-col">
           <CardHeader>
             <CardTitle>Pedido Actual</CardTitle>
-            {isDelivery && deliveryInfo && (
+            {isDelivery && deliveryInfo && ( // Display delivery info if applicable
                 <CardDescription className="text-sm font-bold">
                     Para: {deliveryInfo.name} ({deliveryInfo.address}) - Envío: {formatCurrency(deliveryInfo.deliveryFee)}
                 </CardDescription>
             )}
           </CardHeader>
-          <ScrollArea className="flex-grow max-h-[calc(100vh-420px)] min-h-[200px] p-1">
+          <ScrollArea className="flex-grow max-h-[calc(100vh-420px)] min-h-[200px] p-1"> {/* Adjusted max-h */}
             <CardContent className="p-4">
                 {currentOrder.length === 0 ? (
                 <p className="text-muted-foreground font-bold">No hay productos en el pedido actual.</p>
@@ -940,7 +980,7 @@ export default function TableDetailPage() {
                 )}
             </CardContent>
           </ScrollArea>
-          <CardFooter className="p-4 border-t flex-col items-stretch gap-3 mt-auto">
+          <CardFooter className="p-4 border-t flex-col items-stretch gap-3 mt-auto"> {/* Ensure footer sticks to bottom */}
             <div className="flex justify-between items-center text-lg font-semibold">
               <span className="font-bold">Total Actual:</span>
               <span className="font-bold">{formatCurrency(currentOrderTotal)}</span>
@@ -951,16 +991,18 @@ export default function TableDetailPage() {
           </CardFooter>
         </Card>
 
+        {/* Pending Orders Card */}
         <Card className="flex flex-col">
           <CardHeader>
             <CardTitle>Pedidos Pendientes de Pago</CardTitle>
           </CardHeader>
-          <ScrollArea className="flex-grow max-h-[calc(100vh-300px)] min-h-[200px] p-1">
+          <ScrollArea className="flex-grow max-h-[calc(100vh-300px)] min-h-[200px] p-1"> {/* Adjusted max-h */}
              <CardContent className="p-4">
                 {pendingOrderGroups.length === 0 ? (
                   <p className="text-muted-foreground font-bold">No hay pedidos pendientes de pago.</p>
                 ) : (
                   pendingOrderGroups.map((group) => {
+                    // Calculate total for this specific group, including its delivery fee if any
                     const groupTotal = group.items.reduce((sum, item) => sum + item.finalPrice * item.quantity, 0) +
                                        (isDelivery && group.deliveryInfo ? group.deliveryInfo.deliveryFee : 0);
                     return (
@@ -969,7 +1011,7 @@ export default function TableDetailPage() {
                            <div className="flex justify-between items-center">
                                 <CardTitle className="text-base font-semibold">
                                     Orden #{String(group.orderNumber).padStart(3, '0')}
-                                    {isDelivery && group.deliveryInfo && (
+                                    {isDelivery && group.deliveryInfo && ( // Show client name for delivery
                                         <span className="text-xs font-normal text-muted-foreground ml-2 font-bold">
                                             ({group.deliveryInfo.name})
                                         </span>
@@ -993,7 +1035,7 @@ export default function TableDetailPage() {
                               <span className="font-bold">{formatCurrency(item.finalPrice * item.quantity)}</span>
                             </div>
                           ))}
-                           {isDelivery && group.deliveryInfo && group.deliveryInfo.deliveryFee > 0 && (
+                           {isDelivery && group.deliveryInfo && group.deliveryInfo.deliveryFee > 0 && ( // Show delivery fee for this specific order
                                <div className="mt-1 pt-1 border-t border-dashed flex justify-between">
                                    <span className="font-bold">Costo Envío:</span>
                                    <span className="font-bold">{formatCurrency(group.deliveryInfo.deliveryFee)}</span>
@@ -1011,9 +1053,11 @@ export default function TableDetailPage() {
                 )}
             </CardContent>
           </ScrollArea>
+          {/* Footer for pending orders can be added if needed, e.g., a "Pay All" button, but not requested */}
         </Card>
       </div>
 
+      {/* Modification Dialog (reused for any item) */}
       <ModificationDialog
         isOpen={isModificationDialogOpen}
         onOpenChange={setIsModificationDialogOpen}
@@ -1022,24 +1066,28 @@ export default function TableDetailPage() {
         onCancel={() => setIsModificationDialogOpen(false)}
       />
 
-      {orderToPay && (
+      {/* Payment Dialog (reused for any pending order) */}
+      {orderToPay && ( // Only render if an order is selected for payment
           <PaymentDialog
             isOpen={isPaymentDialogOpen}
             onOpenChange={setIsPaymentDialogOpen}
-            totalAmount={totalForPayment}
+            totalAmount={totalForPayment} // This will be the total of the specific orderToPay
             onConfirm={handlePaymentConfirm}
           />
       )}
 
+       {/* Delivery Info Dialog (only for delivery table) */}
        {isDelivery && (
            <DeliveryDialog
                isOpen={isDeliveryDialogOpen}
                onOpenChange={setIsDeliveryDialogOpen}
-               initialData={deliveryInfo}
+               initialData={deliveryInfo} // Pass existing data for editing
                onConfirm={handleDeliveryInfoConfirm}
-               onCancel={handleDeliveryInfoCancel}
+               onCancel={handleDeliveryInfoCancel} // Ensure this is wired up
            />
        )}
     </div>
   );
 }
+
+    
