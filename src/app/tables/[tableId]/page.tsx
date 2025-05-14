@@ -24,7 +24,6 @@ import {
   SheetTitle,
   SheetClose,
   SheetFooter, // Ensure SheetFooter is imported
-  SheetTrigger,
 } from '@/components/ui/sheet';
 import {
   Dialog as ShadDialog,
@@ -34,11 +33,10 @@ import {
   DialogFooter as ShadDialogFooter, // Alias import
   DialogHeader as ShadDialogHeader,   // Alias import
   DialogTitle as ShadDialogTitle,     // Alias import
-  DialogTrigger as ShadDialogTrigger, // Alias import
 } from '@/components/ui/dialog';
 
 
-import { Utensils, PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard, ChevronRight, Banknote, Landmark, Home, Phone, User, DollarSign, PackageSearch, Edit, Trash2, ListChecks, Tags, Pencil } from 'lucide-react';
+import { Utensils, PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard, ChevronRight, Banknote, Landmark, Home, Phone, User, DollarSign, PackageSearch, Edit, Trash2, ListChecks, Tags, Pencil, Copy } from 'lucide-react';
 import {useToast }from '@/hooks/use-toast';
 import ModificationDialog from '@/components/app/modification-dialog';
 import PaymentDialog from '@/components/app/payment-dialog';
@@ -47,7 +45,7 @@ import { cn } from '@/lib/utils';
 import type { CashMovement } from '@/app/expenses/page';
 import type { DeliveryInfo } from '@/components/app/delivery-dialog';
 import DeliveryDialog from '@/components/app/delivery-dialog'; // Corrected import
-import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
+import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatPendingOrderCopy, formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
 import type { MenuItem } from '@/types/menu';
 import { loadMenuData, orderedCategories as predefinedOrderedCategories, sortMenu } from '@/lib/menuUtils';
@@ -401,6 +399,16 @@ export default function TableDetailPage() {
     }
   };
 
+
+  const handlePrintCustomerCopy = (groupToCopy: PendingOrderGroup) => {
+    if (!groupToCopy || groupToCopy.items.length === 0) {
+      toast({ title: "Error", description: "No hay pedido seleccionado para imprimir copia o está vacío.", variant: "destructive" });
+      return;
+    }
+    const customerCopyHtml = formatPendingOrderCopy(groupToCopy.items, tableDisplayName, groupToCopy.orderNumber, groupToCopy.deliveryInfo);
+    printHtml(customerCopyHtml);
+    toast({ title: "Copia Impresa", description: `Se imprimió una copia del pedido #${String(groupToCopy.orderNumber).padStart(3,'0')}.`});
+  };
 
   const handleFinalizeAndPaySelectedOrder = (groupToPay: PendingOrderGroup) => {
     if (!groupToPay || groupToPay.items.length === 0) {
@@ -1042,7 +1050,10 @@ export default function TableDetailPage() {
                                </div>
                            )}
                         </CardContent>
-                        <CardFooter className="p-3 border-t">
+                        <CardFooter className="p-3 border-t flex-col gap-2">
+                            <Button onClick={() => handlePrintCustomerCopy(group)} className="w-full" size="sm" variant="outline">
+                                <Copy className="mr-2 h-4 w-4" /> Imprimir Copia Cliente
+                            </Button>
                             <Button onClick={() => handleFinalizeAndPaySelectedOrder(group)} className="w-full" size="sm">
                                 <CreditCard className="mr-2 h-4 w-4" /> Cobrar Pedido #{String(group.orderNumber).padStart(3, '0')}
                             </Button>
@@ -1089,5 +1100,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-
-    

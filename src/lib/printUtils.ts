@@ -45,18 +45,18 @@ export const formatKitchenOrderReceipt = (
             ? `<p style="font-size: 10pt; margin-left: 15px; margin-top: 0; margin-bottom: 0; font-weight: bold;">(${item.selectedModifications.join(', ')})</p>`
             : '';
             
+        const observationLine = item.observation
+            ? `<p style="font-size: 10pt; margin-left: 15px; margin-top: 2px; margin-bottom: 0; font-weight: bold;">Obs: ${item.observation}</p>`
+            : '';
+
         let ingredientsLines = '';
         if (item.ingredients && item.ingredients.length > 0) {
-            const ingredientsLabel = "Ingredientes:";
+            const ingredientsLabel = "Incluye:";
             ingredientsLines = `
                 <p style="font-size: 10pt; margin-left: 15px; margin-top: 2px; margin-bottom: 0; font-weight: bold;">${ingredientsLabel}</p>
                 <p style="font-size: 10pt; margin-left: 25px; margin-top: 0; margin-bottom: 0; font-weight: bold;">${item.ingredients.join(', ')}</p>
             `;
         }
-
-        const observationLine = item.observation
-            ? `<p style="font-size: 10pt; margin-left: 15px; margin-top: 2px; margin-bottom: 0; font-weight: bold;">Obs: ${item.observation}</p>`
-            : '';
 
 
         itemsHtml += `
@@ -159,12 +159,12 @@ export const formatKitchenOrderReceipt = (
 
 export const formatCustomerReceipt = (
     orderItems: OrderItem[],
-    totalAmount: number,
+    totalAmount: number, // This is the GRAND TOTAL (including tip and delivery fee if applicable)
     paymentMethod: string,
     tableIdentifier: string, 
     orderNumber: number,
     deliveryInfo?: DeliveryInfo | null, 
-    tipAmount?: number
+    tipAmount?: number // Tip amount itself
 ): string => {
     const isDelivery = tableIdentifier.toLowerCase().startsWith('delivery');
     const title = "BOLETA";
@@ -308,6 +308,148 @@ export const formatCustomerReceipt = (
       <hr>
       <div class="footer-info" style="text-align: center; font-size: 9pt; font-weight: bold;">
         ¡Gracias por su preferencia!
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+
+export const formatPendingOrderCopy = (
+    orderItems: OrderItem[],
+    tableIdentifier: string, 
+    orderNumber: number,
+    deliveryInfo?: DeliveryInfo | null
+): string => {
+    const isDelivery = tableIdentifier.toLowerCase().startsWith('delivery');
+    const title = "DETALLE PEDIDO (PRE-CUENTA)";
+    const shopName = "El Bajón de la Cami";
+    const time = formatDateTime(new Date());
+    
+    let subtotal = 0;
+    let itemsHtml = '';
+    orderItems.forEach(item => {
+        const itemTotal = item.finalPrice * item.quantity;
+        subtotal += itemTotal;
+        const modificationsText = item.selectedModifications && item.selectedModifications.length > 0
+            ? `<br><small style="margin-left: 10px; font-weight: bold;">(${item.selectedModifications.join(', ')})</small>`
+            : '';
+        
+        const observationText = item.observation
+            ? `<br><small style="margin-left: 10px; font-weight: bold; color: #555;">Obs: ${item.observation}</small>`
+            : '';
+
+        const ingredientsText = item.ingredients && item.ingredients.length > 0 && (item.category.toLowerCase().includes('promo') || item.category.toLowerCase().includes('fajitas'))
+            ? `<br><small style="margin-left: 10px; font-weight: bold; color: #333;"><em>Incluye: ${item.ingredients.join(', ')}</em></small>`
+            : '';
+
+        itemsHtml += `
+      <tr>
+        <td style="font-weight: bold;">${item.quantity}x</td>
+        <td>
+            <span style="font-weight: bold;">${item.name}</span>
+             ${modificationsText}
+             ${ingredientsText}
+             ${observationText}
+        </td>
+        <td style="text-align: right; font-weight: bold;">${formatCurrency(itemTotal)}</td>
+      </tr>
+    `;
+    });
+
+    let deliveryFeeHtml = '';
+    let orderTotal = subtotal;
+    if (isDelivery && deliveryInfo && deliveryInfo.deliveryFee > 0) {
+        orderTotal += deliveryInfo.deliveryFee;
+        deliveryFeeHtml = `
+        <tr>
+            <td colspan="2" style="font-weight: bold;">Costo Envío</td>
+            <td style="text-align: right; font-weight: bold;">${formatCurrency(deliveryInfo.deliveryFee)}</td>
+        </tr>
+        `;
+    }
+
+    return `
+    <html>
+    <head>
+      <title>${title}</title>
+      <style>
+         @page { margin: 5mm; }
+         body {
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 10pt; width: 70mm;
+            color: #000;
+            background-color: #fff;
+            font-weight: bold;
+         }
+         .shop-name { font-size: 14pt; text-align: center; margin-bottom: 5px; font-weight: bold; }
+         .receipt-title { font-size: 11pt; text-align: center; margin-bottom: 5px; font-weight: bold; }
+
+         .order-number-customer { 
+            font-size: 20pt; 
+            text-align: center;
+            margin-bottom: 1px;
+            font-weight: bold;
+         }
+         .table-identifier-customer {
+            font-size: 11pt;
+            text-align: center;
+            margin-bottom: 3px;
+            font-weight: bold;
+         }
+         .date-time-customer {
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 9pt;
+            font-weight: bold;
+         }
+
+         table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+         th, td { padding: 3px 0; font-weight: bold; }
+         th { text-align: left; border-bottom: 1px solid #000; font-weight: bold;}
+         .total-section { margin-top: 10px; padding-top: 5px; border-top: 1px solid #000; }
+         .total-row td { font-weight: bold; }
+         hr { border: none; border-top: 1px dashed #000; margin: 10px 0; }
+         strong { font-weight: bold; }
+         small { font-size: 8pt; font-weight: bold; }
+         .right { text-align: right; font-weight: bold; }
+         .footer-info { text-align: center; font-size: 9pt; font-weight: bold; margin-top: 15px; }
+      </style>
+    </head>
+    <body>
+      <div class="shop-name">${shopName}</div>
+      <div class="receipt-title">${title}</div>
+      
+      <div class="order-number-customer">ORDEN #${String(orderNumber).padStart(3, '0')}</div>
+      <div class="table-identifier-customer">${tableIdentifier.toUpperCase()}</div>
+      <div class="date-time-customer">${time}</div>
+      
+      <table>
+        <thead>
+          <tr>
+            <th>Cant</th>
+            <th>Descripción</th>
+            <th class="right">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itemsHtml}
+          ${deliveryFeeHtml}
+        </tbody>
+      </table>
+      <div class="total-section">
+        <table>
+          <tbody>
+            <tr class="total-row">
+              <td colspan="2">TOTAL A PAGAR</td>
+              <td style="text-align: right;">${formatCurrency(orderTotal)}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <hr>
+      <div class="footer-info">
+        Este documento no es una boleta válida.
       </div>
     </body>
     </html>
@@ -545,4 +687,3 @@ export const printHtml = (htmlContent: string): void => {
         }
     }
 };
-
