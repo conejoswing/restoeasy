@@ -64,6 +64,27 @@ export interface CashMovement {
   deliveryFee?: number;
 }
 
+// Define la estructura para un registro de cierre de caja
+export interface ClosingRecord {
+  id: string;
+  dateTime: string; // ISO string de la fecha y hora del cierre
+  totals: {
+    dailyCashIncome: number;
+    dailyDebitCardIncome: number;
+    dailyCreditCardIncome: number;
+    dailyTransferIncome: number;
+    dailyDeliveryFees: number;
+    dailyTipsTotal: number;
+    dailyTotalIncome: number;
+    dailyExpenses: number;
+    dailyNetTotal: number;
+    dailyGrossTotal?: number;
+  };
+  movements: CashMovement[];
+  inventory: InventoryItem[];
+}
+
+
 const movementCategories = ['Ingreso Venta', 'Suministros', 'Mantenimiento', 'Servicios', 'Alquiler', 'Salarios', 'Marketing', 'Otros Egresos', 'Otros Ingresos'];
 
 const initialMovements: CashMovement[] = [];
@@ -72,6 +93,7 @@ const initialInventory: InventoryItem[] = [];
 
 const CASH_MOVEMENTS_STORAGE_KEY = 'cashMovements';
 const INVENTORY_STORAGE_KEY = 'restaurantInventory';
+const CLOSING_HISTORY_STORAGE_KEY = 'cashClosingHistory';
 
 
 export default function CashRegisterPage() {
@@ -330,7 +352,7 @@ export default function CashRegisterPage() {
 
   const handleConfirmClosing = () => {
      const closingDateTime = new Date(); // Capture current date and time
-     const totals = {
+     const currentTotals = {
          dailyCashIncome, dailyDebitCardIncome, dailyCreditCardIncome, dailyTransferIncome,
          dailyDeliveryFees, dailyTipsTotal, dailyTotalIncome, dailyExpenses, dailyNetTotal, dailyGrossTotal
      };
@@ -338,14 +360,42 @@ export default function CashRegisterPage() {
      const dailyMovementsForReceipt = cashMovements.filter(movement => {
         const movementDate = movement.date instanceof Date ? movement.date : new Date(movement.date);
         return isToday(movementDate);
-     });
+     }).map(m => ({ // Ensure dates are ISO strings for storage consistency
+        ...m,
+        date: m.date instanceof Date ? m.date.toISOString() : m.date
+     }));
      dailyMovementsForReceipt.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
      // Pass all daily movements and inventory to the formatting function
-     const closingReceiptHtml = formatCashClosingReceipt(closingDateTime, totals, dailyMovementsForReceipt, inventory);
+     const closingReceiptHtml = formatCashClosingReceipt(closingDateTime, currentTotals, dailyMovementsForReceipt, inventory);
 
      printHtml(closingReceiptHtml);
      console.log("Imprimiendo resumen de cierre de caja...");
+
+    // Guardar el cierre en el historial
+    const closingRecord: ClosingRecord = {
+        id: closingDateTime.toISOString(),
+        dateTime: closingDateTime.toISOString(),
+        totals: currentTotals,
+        movements: dailyMovementsForReceipt,
+        inventory: inventory // Guardar el estado actual del inventario en el cierre
+    };
+
+    try {
+        const storedHistoryJson = localStorage.getItem(CLOSING_HISTORY_STORAGE_KEY);
+        let history: ClosingRecord[] = [];
+        if (storedHistoryJson) {
+            history = JSON.parse(storedHistoryJson);
+            if (!Array.isArray(history)) history = []; // Reset if format is wrong
+        }
+        history.push(closingRecord);
+        localStorage.setItem(CLOSING_HISTORY_STORAGE_KEY, JSON.stringify(history));
+        console.log("Cierre de caja guardado en el historial.");
+    } catch (error) {
+        console.error("Error al guardar el cierre de caja en el historial:", error);
+        toast({ title: "Error", description: "No se pudo guardar el cierre en el historial.", variant: "destructive" });
+    }
+
 
     setCashMovements([]);
     sessionStorage.removeItem(CASH_MOVEMENTS_STORAGE_KEY);
@@ -650,7 +700,7 @@ export default function CashRegisterPage() {
             <TableBody>
               {cashMovements.map((movement) => (
                 <TableRow key={movement.id}>
-                  <TableCell>{format(new Date(movement.date), 'dd/MM/yyyy HH:mm')}</TableCell>
+                  <TableCell>{movement.date instanceof Date ? format(movement.date, 'dd/MM/yyyy HH:mm') : format(new Date(movement.date), 'dd/MM/yyyy HH:mm')}</TableCell>
                   <TableCell>{movement.category}</TableCell>
                   <TableCell className="font-medium">{movement.description}</TableCell>
                   <TableCell className={cn(
@@ -678,4 +728,3 @@ export default function CashRegisterPage() {
     </div>
   );
 }
-

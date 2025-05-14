@@ -4,7 +4,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { UtensilsCrossed, Package, Receipt, ShoppingBag, LogOut, Users } from 'lucide-react'; // Added Users icon
+import { UtensilsCrossed, Package, Receipt, ShoppingBag, LogOut, Users, History } from 'lucide-react'; // Added History icon
 
 import {
   SidebarContent,
@@ -117,6 +117,17 @@ export default function AppSidebar() {
                    >
                      <Users /> {/* Users icon */}
                      <span className="group-data-[collapsible=icon]:hidden">Usuarios</span> {/* Users text */}
+                   </SidebarMenuButton>
+                 </Link>
+               </SidebarMenuItem>
+                <SidebarMenuItem>
+                 <Link href="/closing-history">
+                   <SidebarMenuButton
+                     isActive={isActive('/closing-history')}
+                     tooltip="Registro Cierres"
+                   >
+                     <History />
+                     <span className="group-data-[collapsible=icon]:hidden">Registro Cierres</span>
                    </SidebarMenuButton>
                  </Link>
                </SidebarMenuItem>
