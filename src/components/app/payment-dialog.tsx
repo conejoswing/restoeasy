@@ -12,10 +12,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-// Removed Checkbox and Percent icon as tip is handled externally
-import { Banknote, CreditCard, Landmark } from 'lucide-react'; 
-import type { PaymentMethod } from '@/app/tables/[tableId]/page'; 
-import { Separator } from '@/components/ui/separator'; 
+import { Input } from '@/components/ui/input'; // Import Input
+import { Banknote, CreditCard, Landmark } from 'lucide-react';
+import type { PaymentMethod } from '@/app/tables/[tableId]/page';
+import { Separator } from '@/components/ui/separator';
+import { cn } from '@/lib/utils';
 
 // Helper to format currency
 const formatCurrency = (amount: number) => {
@@ -32,30 +33,71 @@ const paymentMethods: { name: PaymentMethod; icon: React.ReactNode }[] = [
 interface PaymentDialogProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
-  totalAmount: number; // This is now the FINAL amount to be paid (subtotal + any tip)
-  onConfirm: (method: PaymentMethod, paidAmount: number) => void; // Callback simplified
+  totalAmount: number;
+  onConfirm: (method: PaymentMethod, paidAmount: number) => void;
 }
 
 const PaymentDialog: React.FC<PaymentDialogProps> = ({
   isOpen,
   onOpenChange,
-  totalAmount, // This is the final amount including any tip
+  totalAmount,
   onConfirm,
 }) => {
   const [selectedMethod, setSelectedMethod] = React.useState<PaymentMethod | null>(null);
+  const [cashReceived, setCashReceived] = React.useState<string>('');
+  const [changeDue, setChangeDue] = React.useState<number | null>(null);
 
-  // Reset selection when dialog opens
   React.useEffect(() => {
     if (isOpen) {
       setSelectedMethod(null);
+      setCashReceived('');
+      setChangeDue(null);
     }
   }, [isOpen]);
 
+  React.useEffect(() => {
+    if (selectedMethod === 'Efectivo' && cashReceived) {
+      const received = parseFloat(cashReceived);
+      if (!isNaN(received) && received >= totalAmount) {
+        setChangeDue(received - totalAmount);
+      } else {
+        setChangeDue(null);
+      }
+    } else {
+      setChangeDue(null);
+    }
+  }, [selectedMethod, cashReceived, totalAmount]);
+
+  const handleCashReceivedChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Allow only numbers
+    if (/^\d*$/.test(value)) {
+      setCashReceived(value);
+    }
+  };
+
   const handleConfirmClick = () => {
     if (selectedMethod) {
-      // Pass the selected method and the totalAmount (which is the final amount)
+      if (selectedMethod === 'Efectivo') {
+        const received = parseFloat(cashReceived);
+        if (isNaN(received) || received < totalAmount) {
+          // This case should ideally be prevented by disabling the button,
+          // but as a fallback:
+          alert("El monto recibido es insuficiente o inválido.");
+          return;
+        }
+      }
       onConfirm(selectedMethod, totalAmount);
     }
+  };
+
+  const isConfirmDisabled = () => {
+    if (!selectedMethod) return true;
+    if (selectedMethod === 'Efectivo') {
+      const received = parseFloat(cashReceived);
+      return isNaN(received) || received < totalAmount;
+    }
+    return false;
   };
 
   return (
@@ -68,9 +110,7 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-4">
-          {/* Total Display */}
           <div className="space-y-1 text-sm">
-            {/* Removed subtotal and tip display here, as totalAmount is the final amount */}
              <Separator className="my-2" />
             <div className="flex justify-between text-lg font-semibold">
               <span>Total a Pagar:</span>
@@ -78,12 +118,14 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
             </div>
           </div>
 
-          {/* Tip Checkbox REMOVED */}
-
-          {/* Payment Method Selection */}
           <RadioGroup
             value={selectedMethod ?? ''}
-            onValueChange={(value: PaymentMethod) => setSelectedMethod(value)}
+            onValueChange={(value: PaymentMethod) => {
+              setSelectedMethod(value);
+              if (value !== 'Efectivo') {
+                setCashReceived(''); // Clear cash received if not paying with cash
+              }
+            }}
             className="grid gap-3 pt-2"
           >
             {paymentMethods.map((method) => (
@@ -96,6 +138,32 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
               </div>
             ))}
           </RadioGroup>
+
+          {selectedMethod === 'Efectivo' && (
+            <div className="space-y-3 pt-3 border-t mt-3">
+              <div>
+                <Label htmlFor="cashReceived" className="text-sm font-medium">Monto Recibido (CLP)</Label>
+                <Input
+                  id="cashReceived"
+                  type="text" // Use text to manage non-numeric input via regex
+                  value={cashReceived}
+                  onChange={handleCashReceivedChange}
+                  placeholder="Ingrese monto"
+                  className="mt-1 text-lg"
+                  inputMode="numeric" // Hint for numeric keyboard on mobile
+                />
+              </div>
+              {parseFloat(cashReceived) >= totalAmount && changeDue !== null && (
+                <div className="text-base">
+                  <span className="font-medium">Vuelto: </span>
+                  <span className="font-semibold text-green-600">{formatCurrency(changeDue)}</span>
+                </div>
+              )}
+              {cashReceived && parseFloat(cashReceived) < totalAmount && (
+                 <p className="text-sm text-destructive">Monto recibido es menor al total a pagar.</p>
+              )}
+            </div>
+          )}
         </div>
         <DialogFooter>
           <DialogClose asChild>
@@ -106,7 +174,7 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
           <Button
             type="button"
             onClick={handleConfirmClick}
-            disabled={!selectedMethod}
+            disabled={isConfirmDisabled()}
           >
             Confirmar Pago
           </Button>
