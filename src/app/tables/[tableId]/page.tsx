@@ -380,7 +380,7 @@ export default function TableDetailPage() {
       toast({ title: "Pedido Vacío", description: "Añada productos antes de imprimir la comanda.", variant: "destructive" });
       return;
     }
-     if (isDelivery && !deliveryInfo) {
+     if (isDelivery && !deliveryInfo && pendingOrderGroups.filter(pg => pg.deliveryInfo).length === 0 && currentOrder.length > 0) {
         toast({ title: "Faltan Datos de Envío", description: "Por favor, ingrese los datos de envío antes de imprimir la comanda.", variant: "destructive" });
         setIsDeliveryDialogOpen(true);
         return;
@@ -388,12 +388,15 @@ export default function TableDetailPage() {
     const orderNumber = getNextOrderNumber();
     const orderWithNumber = currentOrder.map(item => ({ ...item, orderNumber }));
 
-    const kitchenReceipt = formatKitchenOrderReceipt(orderWithNumber, tableDisplayName, orderNumber, deliveryInfo);
+    const currentDeliveryInfoToUse = deliveryInfo || pendingOrderGroups.find(pg => pg.deliveryInfo)?.deliveryInfo || null;
+
+
+    const kitchenReceipt = formatKitchenOrderReceipt(orderWithNumber, tableDisplayName, orderNumber, currentDeliveryInfoToUse);
     printHtml(kitchenReceipt);
 
     setPendingOrderGroups(prevGroups => [
         ...prevGroups,
-        { orderNumber, items: orderWithNumber, deliveryInfo: isDelivery ? deliveryInfo : null, timestamp: Date.now() }
+        { orderNumber, items: orderWithNumber, deliveryInfo: isDelivery ? currentDeliveryInfoToUse : null, timestamp: Date.now() }
     ].sort((a,b) => a.timestamp - b.timestamp));
 
     setCurrentOrder([]);
@@ -406,14 +409,36 @@ export default function TableDetailPage() {
 
       if (currentOrder.length === 0 && !otherPendingDeliveryOrdersForThisTable) {
         console.log(`TableDetailPage: Cleared deliveryInfo for ${tableIdParam} after kitchen print, as no other pending delivery orders for this tableId.`);
-        setDeliveryInfo(null); 
-        if(pendingOrderGroups.filter(g => g.orderNumber !== orderNumber).length === 0) {
-            setIsDeliveryDialogOpen(true);
-        }
+        // Do not clear deliveryInfo here to allow multiple orders for the same delivery.
+        // It will be cleared if the user goes back or all orders are paid.
+        // setDeliveryInfo(null); 
+        // if(pendingOrderGroups.filter(g => g.orderNumber !== orderNumber).length === 0) {
+        //     setIsDeliveryDialogOpen(true); // Prompt for new delivery if it was the only one
+        // }
       } else if (currentOrder.length === 0 && otherPendingDeliveryOrdersForThisTable) {
           console.log(`TableDetailPage: Did NOT clear deliveryInfo for ${tableIdParam} as other pending delivery orders exist for this tableId.`);
       }
+      // After sending an order, prompt for new delivery info if no current info exists for a *new* order
+      if (currentOrder.length === 0 && !deliveryInfo && pendingOrderGroups.filter(pg => pg.deliveryInfo).length === 0) {
+         setIsDeliveryDialogOpen(true);
+      }
+
     }
+  };
+
+  const handleReprintKitchenOrder = (groupToReprint: PendingOrderGroup) => {
+    if (!groupToReprint || groupToReprint.items.length === 0) {
+      toast({ title: "Error", description: "No hay pedido para reimprimir o está vacío.", variant: "destructive" });
+      return;
+    }
+    const kitchenReceipt = formatKitchenOrderReceipt(
+      groupToReprint.items,
+      tableDisplayName,
+      groupToReprint.orderNumber,
+      groupToReprint.deliveryInfo
+    );
+    printHtml(kitchenReceipt);
+    toast({ title: "Comanda Reimpresa", description: `Se reimprimió la comanda del pedido #${String(groupToReprint.orderNumber).padStart(3, '0')}.` });
   };
 
 
@@ -1074,6 +1099,9 @@ export default function TableDetailPage() {
                            )}
                         </CardContent>
                         <CardFooter className="p-3 border-t flex-col gap-2">
+                             <Button onClick={() => handleReprintKitchenOrder(group)} className="w-full" size="sm" variant="outline">
+                                <Printer className="mr-2 h-4 w-4" /> Reimprimir Comanda
+                            </Button>
                             <Button onClick={() => handleOpenPrintCustomerCopyDialog(group)} className="w-full" size="sm" variant="outline">
                                 <Copy className="mr-2 h-4 w-4" /> Imprimir Copia Cliente
                             </Button>
@@ -1135,4 +1163,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-
