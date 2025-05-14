@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import type { OrderItem, PaymentMethod } from '@/app/tables/[tableId]/page';
@@ -13,14 +12,17 @@ export const formatCurrency = (amount: number): string => {
 };
 
 // Helper to format date and time
-const formatDateTime = (date: Date): string => {
-    return date.toLocaleString('es-CL', {
+const formatDateTime = (date: Date, includeTime: boolean = true): string => {
+    const options: Intl.DateTimeFormatOptions = {
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-    });
+    };
+    if (includeTime) {
+        options.hour = '2-digit';
+        options.minute = '2-digit';
+    }
+    return date.toLocaleString('es-CL', options);
 };
 
 // --- Receipt Formatting Functions ---
@@ -291,7 +293,7 @@ export const formatCustomerReceipt = (
 
 
 export const formatCashClosingReceipt = (
-    date: string,
+    closingDateTime: Date, // Changed from string to Date
     dailyTotals: {
         dailyCashIncome: number;
         dailyDebitCardIncome: number;
@@ -311,6 +313,10 @@ export const formatCashClosingReceipt = (
         dailyCashIncome, dailyDebitCardIncome, dailyCreditCardIncome, dailyTransferIncome,
         dailyDeliveryFees, dailyTipsTotal, dailyTotalIncome, dailyExpenses, dailyNetTotal, dailyGrossTotal
     } = dailyTotals;
+
+    // Format the date and time for display
+    const formattedClosingDateTime = formatDateTime(closingDateTime, true);
+
 
     let salesHtml = '';
     if (salesDetails.length > 0) {
@@ -456,7 +462,7 @@ export const formatCashClosingReceipt = (
     </head>
     <body>
       <h1>CIERRE DE CAJA</h1>
-      <div class="date">${date}</div>
+      <div class="date">${formattedClosingDateTime}</div>
       <table>
         <tbody>
           <tr><td class="label">Ingresos Efectivo:</td><td class="amount">${formatCurrency(dailyCashIncome)}</td></tr>

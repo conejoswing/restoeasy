@@ -329,7 +329,7 @@ export default function CashRegisterPage() {
   };
 
   const handleConfirmClosing = () => {
-     const closingDate = format(new Date(), 'dd/MM/yyyy');
+     const closingDateTime = new Date(); // Capture current date and time
      const totals = {
          dailyCashIncome, dailyDebitCardIncome, dailyCreditCardIncome, dailyTransferIncome,
          dailyDeliveryFees, dailyTipsTotal, dailyTotalIncome, dailyExpenses, dailyNetTotal, dailyGrossTotal
@@ -341,8 +341,8 @@ export default function CashRegisterPage() {
      });
      salesDetailsForReceipt.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 
-     // Pass inventory to the formatting function
-     const closingReceiptHtml = formatCashClosingReceipt(closingDate, totals, salesDetailsForReceipt, inventory);
+     // Pass inventory and the full Date object to the formatting function
+     const closingReceiptHtml = formatCashClosingReceipt(closingDateTime, totals, salesDetailsForReceipt, inventory);
 
      printHtml(closingReceiptHtml);
      console.log("Imprimiendo resumen de cierre de caja...");
@@ -546,7 +546,7 @@ export default function CashRegisterPage() {
               </AlertDialogTrigger>
               <AlertDialogContent>
                   <AlertDialogHeader>
-                      <AlertDialogTitle>Resumen del Cierre de Caja - {format(new Date(), 'dd/MM/yyyy')}</AlertDialogTitle>
+                      <AlertDialogTitle>Resumen del Cierre de Caja - {format(new Date(), 'dd/MM/yyyy HH:mm')}</AlertDialogTitle>
                       <AlertDialogDescription>
                           Revisa los totales del día antes de confirmar el cierre. Al confirmar, se imprimirán los totales y se borrarán todos los movimientos registrados hoy.
                       </AlertDialogDescription>
