@@ -46,8 +46,9 @@ export const formatKitchenOrderReceipt = (
             : '';
             
         let ingredientsLines = '';
+        // For kitchen receipt, show ingredients if they exist, regardless of promo status for clarity
         if (item.ingredients && item.ingredients.length > 0) {
-            const ingredientsLabel = item.category.toLowerCase().includes('promo') ? "Incluye:" : "Ingredientes:";
+            const ingredientsLabel = "Ingredientes:";
             ingredientsLines = `
                 <p style="font-size: 10pt; margin-left: 15px; margin-top: 2px; margin-bottom: 0; font-weight: bold;">${ingredientsLabel}</p>
                 <p style="font-size: 10pt; margin-left: 25px; margin-top: 0; margin-bottom: 0; font-weight: bold;">${item.ingredients.join(', ')}</p>
@@ -93,8 +94,14 @@ export const formatKitchenOrderReceipt = (
           background-color: #fff;
           font-weight: bold;
         }
-        h1 { /* COMANDA - MESA X - ORDEN #XXX */
-            font-size: 14pt;
+        .order-number-title { /* Style for ORDEN #XXX */
+            font-size: 28pt; /* Increased font size */
+            text-align: center;
+            margin-bottom: 2px; /* Reduced margin */
+            font-weight: bold;
+        }
+        .comanda-title { /* Style for COMANDA - MESA X */
+            font-size: 14pt; /* Original size */
             text-align: center;
             margin-bottom: 5px;
             font-weight: bold;
@@ -136,7 +143,8 @@ export const formatKitchenOrderReceipt = (
       </style>
     </head>
     <body>
-      <h1>COMANDA - ${orderIdentifier.toUpperCase()} - ORDEN #${String(orderNumber).padStart(3, '0')}</h1>
+      <div class="order-number-title">ORDEN #${String(orderNumber).padStart(3, '0')}</div>
+      <div class="comanda-title">COMANDA - ${orderIdentifier.toUpperCase()}</div>
       <div class="header-info">${time}</div>
       <hr>
       <div class="products-title">Productos:</div>
@@ -179,7 +187,6 @@ export const formatCustomerReceipt = (
             ? `<br><small style="margin-left: 10px; font-weight: bold; color: #555;">Obs: ${item.observation}</small>`
             : '';
 
-        // For customer receipt, ingredients are generally part of the promo description.
         const ingredientsText = item.ingredients && item.ingredients.length > 0 && (item.category.toLowerCase().includes('promo') || item.category.toLowerCase().includes('fajitas'))
             ? `<br><small style="margin-left: 10px; font-weight: bold; color: #333;"><em>Incluye: ${item.ingredients.join(', ')}</em></small>`
             : '';
@@ -200,7 +207,6 @@ export const formatCustomerReceipt = (
     });
 
     let deliveryFeeHtml = '';
-    // Display delivery fee if it's a delivery order and fee exists
     if (isDelivery && deliveryInfo && deliveryInfo.deliveryFee > 0) {
         deliveryFeeHtml = `
         <tr>
@@ -294,7 +300,7 @@ export const formatCustomerReceipt = (
 
 
 export const formatCashClosingReceipt = (
-    closingDateTime: Date, // Changed from string to Date
+    closingDateTime: Date,
     dailyTotals: {
         dailyCashIncome: number;
         dailyDebitCardIncome: number;
@@ -307,15 +313,14 @@ export const formatCashClosingReceipt = (
         dailyNetTotal: number;
         dailyGrossTotal?: number; 
     },
-    allDailyMovements: CashMovement[], // Changed from salesDetails to allDailyMovements
-    inventoryDetails: InventoryItem[] // Added inventory details parameter
+    allDailyMovements: CashMovement[],
+    inventoryDetails: InventoryItem[]
 ): string => {
     const {
         dailyCashIncome, dailyDebitCardIncome, dailyCreditCardIncome, dailyTransferIncome,
         dailyDeliveryFees, dailyTipsTotal, dailyTotalIncome, dailyExpenses, dailyNetTotal, dailyGrossTotal
     } = dailyTotals;
 
-    // Format the date and time for display
     const formattedClosingDateTime = formatDateTime(closingDateTime, true);
 
 
@@ -324,7 +329,6 @@ export const formatCashClosingReceipt = (
         allDailyMovements.forEach(movement => {
             let movementDesc = movement.description;
             
-            // Truncate description if too long
             if (movementDesc.length > 25) {
                 movementDesc = movementDesc.substring(0, 22) + "...";
             }
@@ -525,3 +529,4 @@ export const printHtml = (htmlContent: string): void => {
         }
     }
 };
+
