@@ -260,19 +260,18 @@ export default function TableDetailPage() {
  useEffect(() => {
     if (!isInitialized || !tableIdParam) return;
 
-    console.log(`TableDetailPage: Saving state for table ${tableIdParam}`);
+    console.log(`TableDetailPage: useEffect for state saving triggered for table ${tableIdParam}. currentOrder: ${currentOrder.length}, pendingOrderGroups: ${pendingOrderGroups.length}`);
+
     sessionStorage.setItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${tableIdParam}-currentOrder`, JSON.stringify(currentOrder));
     sessionStorage.setItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${tableIdParam}-pendingOrders`, JSON.stringify({ groups: pendingOrderGroups }));
 
     if (isDelivery) {
         if (deliveryInfo) {
             sessionStorage.setItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`, JSON.stringify(deliveryInfo));
-            console.log(`TableDetailPage: Saved deliveryInfo for ${tableIdParam}`);
         } else {
-            const anyPendingGroupHasDeliveryInfo = pendingOrderGroups.some(group => group.deliveryInfo);
-            if (!anyPendingGroupHasDeliveryInfo && currentOrder.length === 0) {
+            const hasOtherPendingDeliveryInfoForThisTable = pendingOrderGroups.some(pg => pg.deliveryInfo);
+            if (!hasOtherPendingDeliveryInfoForThisTable && currentOrder.length === 0) {
                 sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`);
-                console.log(`TableDetailPage: Removed deliveryInfo for ${tableIdParam} as no pending or current orders have it.`);
             }
         }
     }
@@ -285,8 +284,8 @@ export default function TableDetailPage() {
         const currentDeliveryInfoProvided = deliveryInfo && (deliveryInfo.name || deliveryInfo.address || deliveryInfo.phone);
         const pendingDeliveryInfoProvidedForThisTable = pendingOrderGroups.some(pg => pg.deliveryInfo && (pg.deliveryInfo.name || pg.deliveryInfo.address || pg.deliveryInfo.phone));
         isDeliveryEffectivelyOccupied = !!(currentDeliveryInfoProvided || pendingDeliveryInfoProvidedForThisTable);
+        console.log(`TableDetailPage: Delivery check for ${tableIdParam}. currentDeliveryInfoProvided: ${!!currentDeliveryInfoProvided}, pendingDeliveryInfoProvidedForThisTable: ${pendingDeliveryInfoProvidedForThisTable}, isDeliveryEffectivelyOccupied: ${isDeliveryEffectivelyOccupied}`);
     }
-
 
     let newStatus: 'available' | 'occupied';
     if (hasPending || hasCurrent || (isDelivery && isDeliveryEffectivelyOccupied)) {
@@ -295,21 +294,22 @@ export default function TableDetailPage() {
       newStatus = 'available';
       if (isDelivery && !isDeliveryEffectivelyOccupied) {
             sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`);
+            console.log(`TableDetailPage: Delivery table ${tableIdParam} became available, removed its deliveryInfo from session.`);
       }
     }
 
-    const oldStatus = sessionStorage.getItem(`table-${tableIdParam}-status`);
-    // Always set the status in sessionStorage to ensure it reflects the current truth from this page
-    sessionStorage.setItem(`table-${tableIdParam}-status`, newStatus);
+    const storageKey = `table-${tableIdParam}-status`;
+    const oldStatus = sessionStorage.getItem(storageKey) as 'available' | 'occupied' | null;
 
-    if (oldStatus !== newStatus) {
-      console.log(`TableDetailPage: Table ${tableIdParam} status changed from ${oldStatus || 'unset'} to ${newStatus}. Dispatching event.`);
+    sessionStorage.setItem(storageKey, newStatus);
+    console.log(`TableDetailPage: Table ${tableIdParam} new status set to ${newStatus} in sessionStorage. Old status was: ${oldStatus}`);
+
+    if (oldStatus !== newStatus || (oldStatus === null && newStatus === 'occupied')) {
+      console.log(`TableDetailPage: Table ${tableIdParam} status ${oldStatus === null ? 'was unset and now' : 'actually changed from ' + oldStatus + ' to'} ${newStatus}. Dispatching 'tableStatusUpdated' event.`);
       window.dispatchEvent(new CustomEvent('tableStatusUpdated'));
-    } else if (!oldStatus && isInitialized) { // If it was never set, set it now.
-         // This condition might be redundant if we always set above, but good for explicitness
-         console.log(`TableDetailPage: Table ${tableIdParam} initial status set to ${newStatus}.`);
+    } else {
+      console.log(`TableDetailPage: Table ${tableIdParam} status (${newStatus}) did not change from what was in sessionStorage. Event not dispatched.`);
     }
-
 
   }, [currentOrder, pendingOrderGroups, deliveryInfo, tableIdParam, isInitialized, isDelivery]);
 
@@ -404,10 +404,9 @@ export default function TableDetailPage() {
   };
 
   const handleConfirmPrintKitchenOrderWithObservation = () => {
-    // Check currentOrder length again, though it should be checked before opening dialog
     if (currentOrder.length === 0) {
         toast({ title: "Pedido Vacío", description: "Añada productos antes de imprimir la comanda.", variant: "destructive" });
-        setIsGeneralObservationDialogOpen(false); // Close dialog if somehow opened with empty order
+        setIsGeneralObservationDialogOpen(false);
         return;
     }
 
@@ -421,7 +420,7 @@ export default function TableDetailPage() {
         tableDisplayName,
         orderNumber,
         currentDeliveryInfoToUse,
-        currentGeneralObservation // Pass general observation
+        currentGeneralObservation
     );
     printHtml(kitchenReceipt);
 
@@ -432,13 +431,13 @@ export default function TableDetailPage() {
             items: orderWithNumber,
             deliveryInfo: isDelivery ? currentDeliveryInfoToUse : null,
             timestamp: Date.now(),
-            generalObservation: currentGeneralObservation // Store general observation
+            generalObservation: currentGeneralObservation
         }
     ].sort((a,b) => a.timestamp - b.timestamp));
 
     setCurrentOrder([]);
-    setCurrentGeneralObservation(''); // Clear observation after use
-    setIsGeneralObservationDialogOpen(false); // Close dialog
+    setCurrentGeneralObservation('');
+    setIsGeneralObservationDialogOpen(false);
     toast({ title: "Comanda Impresa", description: `Pedido #${String(orderNumber).padStart(3,'0')} enviado a cocina y movido a pendientes.` });
 
     if (isDelivery) {
@@ -448,8 +447,8 @@ export default function TableDetailPage() {
 
       if (currentOrder.length === 0 && !otherPendingDeliveryOrdersForThisTable) {
         console.log(`TableDetailPage: Delivery order ${orderNumber} sent. No other pending orders for this table. Clearing local deliveryInfo and prompting for new.`);
-        setDeliveryInfo(null);
-        setIsDeliveryDialogOpen(true);
+        setDeliveryInfo(null); // Clear local delivery info
+        setIsDeliveryDialogOpen(true); // Prompt for new delivery info if this was the last active delivery for this "table"
       } else {
         console.log(`TableDetailPage: Delivery order ${orderNumber} sent. Other pending orders exist for this table, or current order is not empty. Not clearing local deliveryInfo.`);
       }
@@ -467,7 +466,7 @@ export default function TableDetailPage() {
       tableDisplayName,
       groupToReprint.orderNumber,
       groupToReprint.deliveryInfo,
-      groupToReprint.generalObservation // Include stored general observation
+      groupToReprint.generalObservation
     );
     printHtml(kitchenReceipt);
     toast({ title: "Comanda Reimpresa", description: `Se reimprimió la comanda del pedido #${String(groupToReprint.orderNumber).padStart(3, '0')}.` });
@@ -518,7 +517,6 @@ export default function TableDetailPage() {
       deliveryFeeForThisOrder = groupToPay.deliveryInfo.deliveryFee;
     }
 
-    // Tip is 0 for final payment, as it's not prompted for here anymore
     const finalAmountForDialog = currentSubtotal + deliveryFeeForThisOrder;
     setTotalForPayment(finalAmountForDialog);
 
@@ -533,7 +531,7 @@ export default function TableDetailPage() {
       return;
     }
 
-    const tipForFinalPayment = 0; // Tip is 0 for the final payment
+    const tipForFinalPayment = 0;
 
     const updatedInventory = [...inventory];
     let inventoryUpdateOccurred = false;
@@ -630,10 +628,10 @@ export default function TableDetailPage() {
            inventoryItemName = 'Pan de hamburguesa grande';
            quantityToDeduct = orderItem.quantity * 1;
         }
-         if (inventoryItemName) { // This check was missing, ensure inventoryItemName is set before trying to deduct drinks
+         if (inventoryItemName) {
             const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
             if (bebidaLataIndex !== -1) {
-                const latasToDeduct = orderItem.quantity; // Each hamburguer promo includes one drink
+                const latasToDeduct = orderItem.quantity;
                 updatedInventory[bebidaLataIndex].stock -= latasToDeduct;
                 inventoryUpdateOccurred = true;
                 if (updatedInventory[bebidaLataIndex].stock < 0 && latasToDeduct > 0) {
@@ -1000,9 +998,9 @@ export default function TableDetailPage() {
                          )}
                     </div>
                 </ScrollArea>
-                <ShadDialogFooter className="p-4 border-t">
+                 <ShadDialogFooter className="p-4 border-t">
                      <Button variant="outline" onClick={() => { setIsProductListDialogOpen(false); setIsMenuSheetOpen(true); }}>Volver a Categorías</Button>
-                </ShadDialogFooter>
+                 </ShadDialogFooter>
             </ShadDialogContent>
         </ShadDialog>
 
@@ -1185,7 +1183,6 @@ export default function TableDetailPage() {
         onOpenChange={(isOpen) => {
           setIsGeneralObservationDialogOpen(isOpen);
           if (!isOpen) {
-            // If the dialog is closing for any reason other than confirm, reset observation
             setCurrentGeneralObservation('');
           }
         }}
@@ -1206,11 +1203,11 @@ export default function TableDetailPage() {
                 />
             </div>
             <ShadDialogFooter>
-                <ShadDialogClose asChild>
-                    <Button type="button" variant="secondary"> {/* onClick will be handled by DialogClose to set open=false */}
+                 <ShadDialogClose asChild>
+                    <Button type="button" variant="secondary">
                         Cancelar
                     </Button>
-                </ShadDialogClose>
+                 </ShadDialogClose>
                 <Button type="button" onClick={handleConfirmPrintKitchenOrderWithObservation}>
                     Confirmar e Imprimir Comanda
                 </Button>
@@ -1240,3 +1237,6 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
+
+    

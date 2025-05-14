@@ -29,8 +29,8 @@ const specialTables: Table[] = [
 ];
 
 const initialTables: Table[] = [...numberedTables, ...specialTables];
-const PENDING_ORDERS_STORAGE_KEY_PREFIX = 'table-'; // Not used directly for status logic here anymore
-const DELIVERY_INFO_STORAGE_KEY_PREFIX = 'deliveryInfo-'; // Not used directly for status logic here anymore
+const PENDING_ORDERS_STORAGE_KEY_PREFIX = 'table-';
+const DELIVERY_INFO_STORAGE_KEY_PREFIX = 'deliveryInfo-';
 
 const isDeliveryTable = (id: string | number): boolean => {
   return String(id).toLowerCase() === 'delivery';
@@ -46,18 +46,13 @@ export default function TablesPage() {
   const updateTableStatuses = useCallback(() => {
     console.log("TablesPage: Updating table statuses from sessionStorage...");
     const updatedTables = initialTables.map(table => {
-      // Directly use the status set by TableDetailPage. Default to 'available' if not set or invalid.
       const explicitStatus = sessionStorage.getItem(`table-${table.id}-status`);
-      if (explicitStatus === 'occupied') {
-        return { ...table, status: 'occupied' };
-      }
-      // If not explicitly 'occupied', or if key is missing/invalid, assume 'available'.
-      // TableDetailPage is responsible for setting it to 'occupied' and clearing to 'available'.
-      return { ...table, status: 'available' };
+      const status = explicitStatus === 'occupied' ? 'occupied' : 'available';
+      return { ...table, status: status as 'available' | 'occupied' };
     });
     setTables(updatedTables);
-    console.log("TablesPage: Table statuses updated.", updatedTables.map(t => ({id: t.id, status: t.status})));
-  }, []); // initialTables is module-scoped, stable.
+    console.log("TablesPage: Table statuses updated from sessionStorage.", updatedTables.map(t => ({id: t.id, status: t.status})));
+  }, []);
 
 
   useEffect(() => {
@@ -78,14 +73,22 @@ export default function TablesPage() {
         updateTableStatuses();
     };
 
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    window.addEventListener('tableStatusUpdated', handleTableStatusUpdateEvent); // Listener added
+    const handleFocus = () => {
+        console.log("TablesPage: Window focused, updating table statuses.");
+        updateTableStatuses();
+    };
 
-    return () => { // Cleanup
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('tableStatusUpdated', handleTableStatusUpdateEvent);
+    window.addEventListener('focus', handleFocus);
+
+
+    return () => {
       document.removeEventListener('visibilitychange', handleVisibilityChange);
       window.removeEventListener('tableStatusUpdated', handleTableStatusUpdateEvent);
+      window.removeEventListener('focus', handleFocus);
     };
-  }, [isInitialized, updateTableStatuses]); // updateTableStatuses is a dependency.
+  }, [isInitialized, updateTableStatuses]);
 
 
   const getIcon = (tableId: number | string) => {
@@ -96,11 +99,10 @@ export default function TablesPage() {
 
    const handleLogout = () => {
      logout();
-     // router.push('/login'); // AuthGuard will handle redirection
    };
 
 
-  if (isLoading || !isInitialized) { // Ensure isInitialized is also checked
+  if (isLoading || !isInitialized) {
      return <div className="flex items-center justify-center min-h-screen">Cargando...</div>;
   }
 
@@ -109,7 +111,7 @@ export default function TablesPage() {
     <div className="container mx-auto p-4">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Gestión de Mesas</h1>
-         {isAuthenticated && ( // Only show logout if authenticated
+         {isAuthenticated && (
             <Button variant="outline" onClick={handleLogout}>
               <LogOut className="mr-2 h-4 w-4" /> Cerrar Sesión
             </Button>
@@ -118,29 +120,29 @@ export default function TablesPage() {
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
         {tables.map((table) => (
           <Link key={table.id} href={`/tables/${table.id}`} passHref legacyBehavior>
-            <a className="block h-full"> {/* Ensure anchor takes full height for card */}
+            <a className="block h-full">
                 <Card
                   className={cn(
-                    'cursor-pointer transition-all duration-200 hover:shadow-lg flex flex-col justify-between h-full group', // Added h-full
+                    'cursor-pointer transition-all duration-200 hover:shadow-lg flex flex-col justify-between h-full group',
                     table.status === 'available'
-                      ? 'bg-secondary hover:bg-secondary/90' // Greenish for available
-                      : 'bg-muted hover:bg-muted/90',     // Beigish for occupied (or use primary/destructive)
-                    table.status === 'occupied' ? 'border-primary border-2' : '' // Orange border for occupied
+                      ? 'bg-secondary hover:bg-secondary/90'
+                      : 'bg-muted hover:bg-muted/90',
+                    table.status === 'occupied' ? 'border-primary border-2' : ''
                   )}
                 >
-                  <CardHeader className="p-4 flex-grow"> {/* flex-grow to push content */}
+                  <CardHeader className="p-4 flex-grow">
                     {getIcon(table.id)}
                     <CardTitle className="text-center text-lg">
                       {table.name || `Mesa ${table.id}`}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="p-4 pt-0 text-center"> {/* pt-0 to reduce space if title is long */}
+                  <CardContent className="p-4 pt-0 text-center">
                     <span
                       className={cn(
                         'text-sm font-medium px-2 py-1 rounded-full',
                         table.status === 'available'
                           ? 'bg-green-200 text-green-800'
-                          : 'bg-orange-200 text-orange-800' // Consistent with border-primary
+                          : 'bg-orange-200 text-orange-800'
                       )}
                     >
                       {table.status === 'available' ? 'Disponible' : 'Ocupada'}
@@ -155,3 +157,4 @@ export default function TablesPage() {
   );
 }
 
+    
