@@ -1,3 +1,4 @@
+
 import * as React from 'react';
 import {
   Dialog,
@@ -11,17 +12,10 @@ import {
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox'; // Import Checkbox
-import { Banknote, CreditCard, Landmark, Percent } from 'lucide-react'; // Import icons
-import type { PaymentMethod } from '@/app/tables/[tableId]/page'; // Import PaymentMethod type
-import { Separator } from '@/components/ui/separator'; // Import Separator
-
-interface PaymentDialogProps {
-  isOpen: boolean;
-  onOpenChange: (open: boolean) => void;
-  totalAmount: number; // This is the subtotal before tip
-  onConfirm: (method: PaymentMethod, tipAmount: number, finalAmountWithTip: number) => void; // Updated callback
-}
+// Removed Checkbox and Percent icon as tip is handled externally
+import { Banknote, CreditCard, Landmark } from 'lucide-react'; 
+import type { PaymentMethod } from '@/app/tables/[tableId]/page'; 
+import { Separator } from '@/components/ui/separator'; 
 
 // Helper to format currency
 const formatCurrency = (amount: number) => {
@@ -35,38 +29,32 @@ const paymentMethods: { name: PaymentMethod; icon: React.ReactNode }[] = [
     { name: 'Transferencia', icon: <Landmark className="h-4 w-4 mr-2 text-indigo-600" /> },
 ];
 
+interface PaymentDialogProps {
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  totalAmount: number; // This is now the FINAL amount to be paid (subtotal + any tip)
+  onConfirm: (method: PaymentMethod, paidAmount: number) => void; // Callback simplified
+}
+
 const PaymentDialog: React.FC<PaymentDialogProps> = ({
   isOpen,
   onOpenChange,
-  totalAmount, // This is now subtotal
+  totalAmount, // This is the final amount including any tip
   onConfirm,
 }) => {
   const [selectedMethod, setSelectedMethod] = React.useState<PaymentMethod | null>(null);
-  const [includeTip, setIncludeTip] = React.useState<boolean>(false);
-  const [tipAmount, setTipAmount] = React.useState<number>(0);
-  const [grandTotal, setGrandTotal] = React.useState<number>(totalAmount);
 
-  // Reset selection and tip when dialog opens or totalAmount changes
+  // Reset selection when dialog opens
   React.useEffect(() => {
     if (isOpen) {
       setSelectedMethod(null);
-      setIncludeTip(false); // Default to no tip
     }
   }, [isOpen]);
 
-  // Recalculate tip and grand total when totalAmount or includeTip changes
-  React.useEffect(() => {
-    let currentTip = 0;
-    if (includeTip) {
-      currentTip = Math.round(totalAmount * 0.10); // Calculate 10% tip and round
-    }
-    setTipAmount(currentTip);
-    setGrandTotal(totalAmount + currentTip);
-  }, [totalAmount, includeTip, isOpen]); // Add isOpen to re-calc when dialog becomes visible with new totalAmount
-
   const handleConfirmClick = () => {
     if (selectedMethod) {
-      onConfirm(selectedMethod, tipAmount, grandTotal);
+      // Pass the selected method and the totalAmount (which is the final amount)
+      onConfirm(selectedMethod, totalAmount);
     }
   };
 
@@ -80,37 +68,17 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
           </DialogDescription>
         </DialogHeader>
         <div className="py-4 space-y-4">
-          {/* Totals Display */}
+          {/* Total Display */}
           <div className="space-y-1 text-sm">
-            <div className="flex justify-between">
-              <span>Subtotal:</span>
-              <span className="font-medium">{formatCurrency(totalAmount)}</span>
-            </div>
-            {includeTip && (
-              <div className="flex justify-between text-muted-foreground">
-                <span>Propina (10%):</span>
-                <span className="font-medium">{formatCurrency(tipAmount)}</span>
-              </div>
-            )}
+            {/* Removed subtotal and tip display here, as totalAmount is the final amount */}
              <Separator className="my-2" />
             <div className="flex justify-between text-lg font-semibold">
               <span>Total a Pagar:</span>
-              <span>{formatCurrency(grandTotal)}</span>
+              <span>{formatCurrency(totalAmount)}</span>
             </div>
           </div>
 
-          {/* Tip Checkbox */}
-          <div className="flex items-center space-x-2 pt-2">
-            <Checkbox
-              id="includeTip"
-              checked={includeTip}
-              onCheckedChange={(checked) => setIncludeTip(!!checked)}
-            />
-            <Label htmlFor="includeTip" className="flex items-center cursor-pointer">
-              <Percent className="h-4 w-4 mr-2 text-primary" />
-              Incluir Propina (10%)
-            </Label>
-          </div>
+          {/* Tip Checkbox REMOVED */}
 
           {/* Payment Method Selection */}
           <RadioGroup

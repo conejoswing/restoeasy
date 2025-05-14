@@ -171,11 +171,11 @@ export const formatCustomerReceipt = (
     const shopName = "El Bajón de la Cami";
     const time = formatDateTime(new Date());
     
-    let subtotal = 0;
+    let subtotalFromItems = 0;
     let itemsHtml = '';
     orderItems.forEach(item => {
         const itemTotal = item.finalPrice * item.quantity;
-        subtotal += itemTotal;
+        subtotalFromItems += itemTotal;
         const modificationsText = item.selectedModifications && item.selectedModifications.length > 0
             ? `<br><small style="margin-left: 10px; font-weight: bold;">(${item.selectedModifications.join(', ')})</small>`
             : '';
@@ -203,12 +203,20 @@ export const formatCustomerReceipt = (
     `;
     });
 
-    let deliveryFeeHtml = '';
+    let deliveryFeeForReceipt = 0;
     if (isDelivery && deliveryInfo && deliveryInfo.deliveryFee > 0) {
+        deliveryFeeForReceipt = deliveryInfo.deliveryFee;
+    }
+    // Subtotal for display = sum of items + delivery fee (if any)
+    const displaySubtotal = subtotalFromItems + deliveryFeeForReceipt;
+
+
+    let deliveryFeeHtml = '';
+    if (deliveryFeeForReceipt > 0) {
         deliveryFeeHtml = `
         <tr>
             <td colspan="2" style="font-weight: bold;">Costo Envío</td>
-            <td style="text-align: right; font-weight: bold;">${formatCurrency(deliveryInfo.deliveryFee)}</td>
+            <td style="text-align: right; font-weight: bold;">${formatCurrency(deliveryFeeForReceipt)}</td>
         </tr>
         `;
     }
@@ -288,12 +296,16 @@ export const formatCustomerReceipt = (
         </thead>
         <tbody>
           ${itemsHtml}
-          ${deliveryFeeHtml}
         </tbody>
       </table>
-      <div class="total-section">
+       <div class="total-section">
         <table>
           <tbody>
+            <tr>
+                <td colspan="2" style="font-weight: bold;">SUBTOTAL</td>
+                <td style="text-align: right; font-weight: bold;">${formatCurrency(displaySubtotal)}</td>
+            </tr>
+            ${deliveryFeeHtml} 
             ${tipHtml}
             <tr class="total-row">
               <td colspan="2">TOTAL</td>
@@ -319,18 +331,20 @@ export const formatPendingOrderCopy = (
     orderItems: OrderItem[],
     tableIdentifier: string, 
     orderNumber: number,
-    deliveryInfo?: DeliveryInfo | null
+    deliveryInfo?: DeliveryInfo | null,
+    includeTip?: boolean, // New: flag to include tip
+    tipAmountForCopy?: number // New: tip amount for the copy
 ): string => {
     const isDelivery = tableIdentifier.toLowerCase().startsWith('delivery');
     const title = "DETALLE PEDIDO (PRE-CUENTA)";
     const shopName = "El Bajón de la Cami";
     const time = formatDateTime(new Date());
     
-    let subtotal = 0;
+    let subtotalFromItems = 0;
     let itemsHtml = '';
     orderItems.forEach(item => {
         const itemTotal = item.finalPrice * item.quantity;
-        subtotal += itemTotal;
+        subtotalFromItems += itemTotal;
         const modificationsText = item.selectedModifications && item.selectedModifications.length > 0
             ? `<br><small style="margin-left: 10px; font-weight: bold;">(${item.selectedModifications.join(', ')})</small>`
             : '';
@@ -357,17 +371,35 @@ export const formatPendingOrderCopy = (
     `;
     });
 
-    let deliveryFeeHtml = '';
-    let orderTotal = subtotal;
+    let deliveryFeeForCopy = 0;
     if (isDelivery && deliveryInfo && deliveryInfo.deliveryFee > 0) {
-        orderTotal += deliveryInfo.deliveryFee;
-        deliveryFeeHtml = `
+        deliveryFeeForCopy = deliveryInfo.deliveryFee;
+    }
+    const subtotalWithDelivery = subtotalFromItems + deliveryFeeForCopy;
+
+    let tipHtml = '';
+    let finalTotalForCopy = subtotalWithDelivery;
+
+    if (includeTip && tipAmountForCopy && tipAmountForCopy > 0) {
+        finalTotalForCopy += tipAmountForCopy;
+        tipHtml = `
         <tr>
-            <td colspan="2" style="font-weight: bold;">Costo Envío</td>
-            <td style="text-align: right; font-weight: bold;">${formatCurrency(deliveryInfo.deliveryFee)}</td>
+            <td colspan="2" style="font-weight: bold;">Propina Sugerida (10%)</td>
+            <td style="text-align: right; font-weight: bold;">${formatCurrency(tipAmountForCopy)}</td>
         </tr>
         `;
     }
+    
+    let deliveryFeeHtml = '';
+     if (deliveryFeeForCopy > 0) {
+        deliveryFeeHtml = `
+        <tr>
+            <td colspan="2" style="font-weight: bold;">Costo Envío</td>
+            <td style="text-align: right; font-weight: bold;">${formatCurrency(deliveryFeeForCopy)}</td>
+        </tr>
+        `;
+    }
+
 
     return `
     <html>
@@ -434,15 +466,20 @@ export const formatPendingOrderCopy = (
         </thead>
         <tbody>
           ${itemsHtml}
-          ${deliveryFeeHtml}
         </tbody>
       </table>
       <div class="total-section">
         <table>
           <tbody>
+            <tr>
+                <td colspan="2" style="font-weight: bold;">SUBTOTAL</td>
+                <td style="text-align: right; font-weight: bold;">${formatCurrency(subtotalWithDelivery)}</td>
+            </tr>
+            ${deliveryFeeHtml}
+            ${tipHtml}
             <tr class="total-row">
               <td colspan="2">TOTAL A PAGAR</td>
-              <td style="text-align: right;">${formatCurrency(orderTotal)}</td>
+              <td style="text-align: right;">${formatCurrency(finalTotalForCopy)}</td>
             </tr>
           </tbody>
         </table>
