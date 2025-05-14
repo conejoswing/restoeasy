@@ -26,7 +26,7 @@ import {
 } from '@/components/ui/sheet';
 import {
   Dialog as ShadDialog,
-  DialogClose as ShadDialogClose,
+  DialogClose as ShadDialogClose, // Ensure ShadDialogClose is imported
   DialogContent as ShadDialogContent,
   DialogDescription as ShadDialogDescription,
   DialogFooter as ShadDialogFooter,
@@ -45,7 +45,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { Textarea } from '@/components/ui/textarea'; // Import Textarea
+import { Textarea } from '@/components/ui/textarea';
 
 
 import { Utensils, PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard, ChevronRight, Banknote, Landmark, Home, Phone, User, DollarSign, PackageSearch, Edit, Trash2, ListChecks, Tags, Pencil, Copy, FileText } from 'lucide-react';
@@ -270,7 +270,7 @@ export default function TableDetailPage() {
             console.log(`TableDetailPage: Saved deliveryInfo for ${tableIdParam}`);
         } else {
             const anyPendingGroupHasDeliveryInfo = pendingOrderGroups.some(group => group.deliveryInfo);
-            if (!anyPendingGroupHasDeliveryInfo && currentOrder.length === 0) { 
+            if (!anyPendingGroupHasDeliveryInfo && currentOrder.length === 0) {
                 sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`);
                 console.log(`TableDetailPage: Removed deliveryInfo for ${tableIdParam} as no pending or current orders have it.`);
             }
@@ -299,15 +299,17 @@ export default function TableDetailPage() {
     }
 
     const oldStatus = sessionStorage.getItem(`table-${tableIdParam}-status`);
+    // Always set the status in sessionStorage to ensure it reflects the current truth from this page
+    sessionStorage.setItem(`table-${tableIdParam}-status`, newStatus);
+
     if (oldStatus !== newStatus) {
-      sessionStorage.setItem(`table-${tableIdParam}-status`, newStatus);
       console.log(`TableDetailPage: Table ${tableIdParam} status changed from ${oldStatus || 'unset'} to ${newStatus}. Dispatching event.`);
       window.dispatchEvent(new CustomEvent('tableStatusUpdated'));
-    } else {
-      if (!oldStatus && isInitialized) {
-         sessionStorage.setItem(`table-${tableIdParam}-status`, newStatus); 
-      }
+    } else if (!oldStatus && isInitialized) { // If it was never set, set it now.
+         // This condition might be redundant if we always set above, but good for explicitness
+         console.log(`TableDetailPage: Table ${tableIdParam} initial status set to ${newStatus}.`);
     }
+
 
   }, [currentOrder, pendingOrderGroups, deliveryInfo, tableIdParam, isInitialized, isDelivery]);
 
@@ -402,6 +404,13 @@ export default function TableDetailPage() {
   };
 
   const handleConfirmPrintKitchenOrderWithObservation = () => {
+    // Check currentOrder length again, though it should be checked before opening dialog
+    if (currentOrder.length === 0) {
+        toast({ title: "Pedido Vacío", description: "Añada productos antes de imprimir la comanda.", variant: "destructive" });
+        setIsGeneralObservationDialogOpen(false); // Close dialog if somehow opened with empty order
+        return;
+    }
+
     const orderNumber = getNextOrderNumber();
     const orderWithNumber = currentOrder.map(item => ({ ...item, orderNumber }));
 
@@ -439,8 +448,8 @@ export default function TableDetailPage() {
 
       if (currentOrder.length === 0 && !otherPendingDeliveryOrdersForThisTable) {
         console.log(`TableDetailPage: Delivery order ${orderNumber} sent. No other pending orders for this table. Clearing local deliveryInfo and prompting for new.`);
-        setDeliveryInfo(null); 
-        setIsDeliveryDialogOpen(true); 
+        setDeliveryInfo(null);
+        setIsDeliveryDialogOpen(true);
       } else {
         console.log(`TableDetailPage: Delivery order ${orderNumber} sent. Other pending orders exist for this table, or current order is not empty. Not clearing local deliveryInfo.`);
       }
@@ -621,10 +630,10 @@ export default function TableDetailPage() {
            inventoryItemName = 'Pan de hamburguesa grande';
            quantityToDeduct = orderItem.quantity * 1;
         }
-         if (inventoryItemName) {
+         if (inventoryItemName) { // This check was missing, ensure inventoryItemName is set before trying to deduct drinks
             const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
             if (bebidaLataIndex !== -1) {
-                const latasToDeduct = orderItem.quantity;
+                const latasToDeduct = orderItem.quantity; // Each hamburguer promo includes one drink
                 updatedInventory[bebidaLataIndex].stock -= latasToDeduct;
                 inventoryUpdateOccurred = true;
                 if (updatedInventory[bebidaLataIndex].stock < 0 && latasToDeduct > 0) {
@@ -1171,7 +1180,16 @@ export default function TableDetailPage() {
       </AlertDialog>
 
       {/* General Observation Dialog */}
-      <ShadDialog open={isGeneralObservationDialogOpen} onOpenChange={setIsGeneralObservationDialogOpen}>
+      <ShadDialog
+        open={isGeneralObservationDialogOpen}
+        onOpenChange={(isOpen) => {
+          setIsGeneralObservationDialogOpen(isOpen);
+          if (!isOpen) {
+            // If the dialog is closing for any reason other than confirm, reset observation
+            setCurrentGeneralObservation('');
+          }
+        }}
+      >
         <ShadDialogContent className="sm:max-w-md">
             <ShadDialogHeader>
                 <ShadDialogTitle>Observación General del Pedido</ShadDialogTitle>
@@ -1188,13 +1206,12 @@ export default function TableDetailPage() {
                 />
             </div>
             <ShadDialogFooter>
-                <Button variant="secondary" onClick={() => {
-                    setIsGeneralObservationDialogOpen(false);
-                    setCurrentGeneralObservation('');
-                }}>
-                    Cancelar
-                </Button>
-                <Button onClick={handleConfirmPrintKitchenOrderWithObservation}>
+                <ShadDialogClose asChild>
+                    <Button type="button" variant="secondary"> {/* onClick will be handled by DialogClose to set open=false */}
+                        Cancelar
+                    </Button>
+                </ShadDialogClose>
+                <Button type="button" onClick={handleConfirmPrintKitchenOrderWithObservation}>
                     Confirmar e Imprimir Comanda
                 </Button>
             </ShadDialogFooter>
@@ -1223,4 +1240,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-
