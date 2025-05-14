@@ -152,7 +152,7 @@ export default function TableDetailPage() {
 
   const tableDisplayName = useMemo(() => {
     if (isDelivery) return 'Delivery';
-    if (isMeson) return 'Mesón'; // Corrected 'Meson' to 'Mesón'
+    if (isMeson) return 'Mesón';
     if (!isNaN(Number(tableIdParam))) return `Mesa ${tableIdParam}`;
     return decodeURIComponent(tableIdParam).charAt(0).toUpperCase() + decodeURIComponent(tableIdParam).slice(1);
   }, [tableIdParam, isDelivery, isMeson]);
@@ -270,7 +270,7 @@ export default function TableDetailPage() {
             console.log(`TableDetailPage: Saved deliveryInfo for ${tableIdParam}`);
         } else {
             const anyPendingGroupHasDeliveryInfo = pendingOrderGroups.some(group => group.deliveryInfo);
-            if (!anyPendingGroupHasDeliveryInfo && currentOrder.length === 0) { // Also check currentOrder
+            if (!anyPendingGroupHasDeliveryInfo && currentOrder.length === 0) { 
                 sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`);
                 console.log(`TableDetailPage: Removed deliveryInfo for ${tableIdParam} as no pending or current orders have it.`);
             }
@@ -283,7 +283,6 @@ export default function TableDetailPage() {
     let isDeliveryEffectivelyOccupied = false;
     if (isDelivery) {
         const currentDeliveryInfoProvided = deliveryInfo && (deliveryInfo.name || deliveryInfo.address || deliveryInfo.phone);
-        // Check if *any* pending group for this table has delivery info.
         const pendingDeliveryInfoProvidedForThisTable = pendingOrderGroups.some(pg => pg.deliveryInfo && (pg.deliveryInfo.name || pg.deliveryInfo.address || pg.deliveryInfo.phone));
         isDeliveryEffectivelyOccupied = !!(currentDeliveryInfoProvided || pendingDeliveryInfoProvidedForThisTable);
     }
@@ -305,7 +304,9 @@ export default function TableDetailPage() {
       console.log(`TableDetailPage: Table ${tableIdParam} status changed from ${oldStatus || 'unset'} to ${newStatus}. Dispatching event.`);
       window.dispatchEvent(new CustomEvent('tableStatusUpdated'));
     } else {
-      if (!oldStatus && isInitialized) sessionStorage.setItem(`table-${tableIdParam}-status`, newStatus); // Set if not previously set
+      if (!oldStatus && isInitialized) {
+         sessionStorage.setItem(`table-${tableIdParam}-status`, newStatus); 
+      }
     }
 
   }, [currentOrder, pendingOrderGroups, deliveryInfo, tableIdParam, isInitialized, isDelivery]);
@@ -432,16 +433,14 @@ export default function TableDetailPage() {
     toast({ title: "Comanda Impresa", description: `Pedido #${String(orderNumber).padStart(3,'0')} enviado a cocina y movido a pendientes.` });
 
     if (isDelivery) {
-      // If it's a delivery and this was the first order (no existing pending orders for this *delivery instance*)
-      // and the current order is now empty, prompt for new delivery info
       const otherPendingDeliveryOrdersForThisTable = pendingOrderGroups.filter(
         group => group.orderNumber !== orderNumber && group.deliveryInfo
       ).length > 0;
 
       if (currentOrder.length === 0 && !otherPendingDeliveryOrdersForThisTable) {
         console.log(`TableDetailPage: Delivery order ${orderNumber} sent. No other pending orders for this table. Clearing local deliveryInfo and prompting for new.`);
-        setDeliveryInfo(null); // Clear local deliveryInfo to allow new input for next order for this table
-        setIsDeliveryDialogOpen(true); // Prompt for new delivery info
+        setDeliveryInfo(null); 
+        setIsDeliveryDialogOpen(true); 
       } else {
         console.log(`TableDetailPage: Delivery order ${orderNumber} sent. Other pending orders exist for this table, or current order is not empty. Not clearing local deliveryInfo.`);
       }
