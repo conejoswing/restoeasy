@@ -33,6 +33,7 @@ import {
   DialogFooter as ShadDialogFooter, 
   DialogHeader as ShadDialogHeader,   
   DialogTitle as ShadDialogTitle,     
+  DialogTrigger as ShadDialogTrigger,
 } from '@/components/ui/dialog';
 import {
     AlertDialog,
@@ -56,12 +57,13 @@ import { cn } from '@/lib/utils';
 import type { CashMovement } from '@/app/expenses/page';
 import type { DeliveryInfo } from '@/components/app/delivery-dialog';
 import DeliveryDialog from '@/components/app/delivery-dialog'; 
-import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatPendingOrderCopy, formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
+import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatPendingOrderCopy } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
 import type { MenuItem } from '@/types/menu';
 import { loadMenuData, orderedCategories as predefinedOrderedCategories, sortMenu } from '@/lib/menuUtils';
+import { Label } from '@/components/ui/label'; 
 
-// import { Label } from '@/components/ui/label'; // No longer directly used here
+
 import {
   Accordion,
   AccordionContent,
@@ -125,7 +127,7 @@ export default function TableDetailPage() {
   const [isModificationDialogOpen, setIsModificationDialogOpen] = useState(false);
   const [itemToModify, setItemToModify] = useState<MenuItem | null>(null);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
-  const [totalForPayment, setTotalForPayment] = useState(0); // This will be the FINAL amount for PaymentDialog
+  const [totalForPayment, setTotalForPayment] = useState(0); 
   const [isDeliveryDialogOpen, setIsDeliveryDialogOpen] = useState(false);
   const [deliveryInfo, setDeliveryInfo] = useState<DeliveryInfo | null>(null);
   const [lastOrderNumber, setLastOrderNumber] = useState(0);
@@ -134,11 +136,6 @@ export default function TableDetailPage() {
 
   const [selectedCategoryForDialog, setSelectedCategoryForDialog] = useState<string | null>(null);
   const [isProductListDialogOpen, setIsProductListDialogOpen] = useState(false);
-
-  // State for handling tip decision before final payment
-  const [isConfirmTipDialogOpen, setIsConfirmTipDialogOpen] = useState(false);
-  const [subtotalForPayment, setSubtotalForPayment] = useState<number | null>(null);
-  const [tipForFinalPayment, setTipForFinalPayment] = useState<number | null>(null);
   
   // State for handling tip decision for customer copy
   const [isConfirmTipForCopyDialogOpen, setIsConfirmTipForCopyDialogOpen] = useState(false);
@@ -263,8 +260,6 @@ export default function TableDetailPage() {
             sessionStorage.setItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`, JSON.stringify(deliveryInfo));
             console.log(`TableDetailPage: Saved deliveryInfo for ${tableIdParam}`);
         } else {
-            // Check if there are any pending orders that still have delivery info for THIS tableId.
-            // This is important if multiple delivery orders were taken, and only one is paid.
             const anyPendingGroupHasDeliveryInfo = pendingOrderGroups.some(group => group.deliveryInfo);
             if (!anyPendingGroupHasDeliveryInfo) {
                 sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`);
@@ -276,15 +271,11 @@ export default function TableDetailPage() {
     const hasPending = pendingOrderGroups.length > 0;
     const hasCurrent = currentOrder.length > 0;
 
-    // Determine if this specific delivery instance is effectively occupied
-    // This considers if *any* pending order for *this* delivery still has delivery info
-    // OR if there's current delivery info for the *current* order being built.
     let isDeliveryEffectivelyOccupied = false;
     if (isDelivery) {
         const currentDeliveryInfoProvided = deliveryInfo && (deliveryInfo.name || deliveryInfo.address || deliveryInfo.phone);
         const pendingDeliveryInfoProvidedForThisTable = pendingOrderGroups.some(pg => pg.deliveryInfo && (pg.deliveryInfo.name || pg.deliveryInfo.address || pg.deliveryInfo.phone));
         isDeliveryEffectivelyOccupied = !!(currentDeliveryInfoProvided || pendingDeliveryInfoProvidedForThisTable);
-        console.log(`TableDetailPage (Delivery): currentOrder.length: ${currentOrder.length}, pendingOrderGroups.length: ${pendingOrderGroups.length}, deliveryInfo: ${!!deliveryInfo}, pendingDeliveryInfoForThisTable: ${pendingDeliveryInfoProvidedForThisTable}, isDeliveryEffectivelyOccupied: ${isDeliveryEffectivelyOccupied}`);
     }
 
 
@@ -293,14 +284,8 @@ export default function TableDetailPage() {
       newStatus = 'occupied';
     } else {
       newStatus = 'available';
-      if (isDelivery) {
-        // Only remove the specific deliveryInfo key if the table is now truly available
-        // This was modified to ensure it doesn't get removed if other pending deliveries exist for the same generic 'delivery' table ID.
-        // The logic above (anyPendingGroupHasDeliveryInfo) helps ensure this.
-        if (!isDeliveryEffectivelyOccupied) {
+      if (isDelivery && !isDeliveryEffectivelyOccupied) {
             sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`);
-            console.log(`TableDetailPage: Delivery table ${tableIdParam} is now available, removing its specific deliveryInfo.`);
-        }
       }
     }
 
@@ -310,9 +295,7 @@ export default function TableDetailPage() {
       console.log(`TableDetailPage: Table ${tableIdParam} status changed from ${oldStatus || 'unset'} to ${newStatus}. Dispatching event.`);
       window.dispatchEvent(new CustomEvent('tableStatusUpdated'));
     } else {
-      // Even if status hasn't changed, ensure it's set, especially on initial load if it was unset
       if (!oldStatus) sessionStorage.setItem(`table-${tableIdParam}-status`, newStatus);
-      console.log(`TableDetailPage: Table ${tableIdParam} status re-affirmed/set as ${newStatus}.`);
     }
 
   }, [currentOrder, pendingOrderGroups, deliveryInfo, tableIdParam, isInitialized, isDelivery]);
@@ -417,24 +400,18 @@ export default function TableDetailPage() {
     toast({ title: "Comanda Impresa", description: `Pedido #${String(orderNumber).padStart(3,'0')} enviado a cocina y movido a pendientes.` });
 
     if (isDelivery) {
-      // Do not reset deliveryInfo here if other pending orders exist for this tableId with deliveryInfo
       const otherPendingDeliveryOrdersForThisTable = pendingOrderGroups.filter(
         group => group.orderNumber !== orderNumber && group.deliveryInfo
       ).length > 0;
 
       if (currentOrder.length === 0 && !otherPendingDeliveryOrdersForThisTable) {
-        // Only reset deliveryInfo if no current items AND no other pending delivery orders for *this* tableId
         console.log(`TableDetailPage: Cleared deliveryInfo for ${tableIdParam} after kitchen print, as no other pending delivery orders for this tableId.`);
-        setDeliveryInfo(null);
-        // Consider re-opening delivery dialog only if all orders are cleared and it's a delivery table
+        setDeliveryInfo(null); 
         if(pendingOrderGroups.filter(g => g.orderNumber !== orderNumber).length === 0) {
             setIsDeliveryDialogOpen(true);
         }
       } else if (currentOrder.length === 0 && otherPendingDeliveryOrdersForThisTable) {
           console.log(`TableDetailPage: Did NOT clear deliveryInfo for ${tableIdParam} as other pending delivery orders exist for this tableId.`);
-          // Potentially, you might want to set deliveryInfo to null to force re-entry for the *next* new order,
-          // but retain it for existing pending ones. This part is tricky with a shared 'delivery' table.
-          // For now, let's keep it. If a new order is started, deliveryInfo will be reused if present.
       }
     }
   };
@@ -475,45 +452,31 @@ export default function TableDetailPage() {
         toast({ title: "Error", description: "No hay pedido pendiente seleccionado para pagar o está vacío.", variant: "destructive" });
         return;
     }
-    setOrderToPay(groupToPay); // Store the group that's about to be paid
+    setOrderToPay(groupToPay); 
     
-    // Calculate subtotal of items for the selected group
     const currentSubtotal = groupToPay.items.reduce((sum, item) => sum + item.finalPrice * item.quantity, 0);
-    setSubtotalForPayment(currentSubtotal); // Store subtotal for later use in handlePaymentConfirm
-
-    // Open dialog to confirm tip for final payment
-    setIsConfirmTipDialogOpen(true);
-  };
-
-  const handleConfirmTipForPayment = (includeTip: boolean) => {
-    if (!orderToPay || subtotalForPayment === null) { // subtotalForPayment should be set before this dialog
-        toast({ title: "Error", description: "No se pudo determinar el subtotal para el pago.", variant: "destructive"});
-        setIsConfirmTipDialogOpen(false);
-        return;
-    }
-
-    const currentTip = includeTip ? Math.round(subtotalForPayment * 0.10) : 0;
-    setTipForFinalPayment(currentTip); // Store tip for later use
-
+    
     let deliveryFeeForThisOrder = 0;
-    if (isDelivery && orderToPay.deliveryInfo && orderToPay.deliveryInfo.deliveryFee > 0) {
-      deliveryFeeForThisOrder = orderToPay.deliveryInfo.deliveryFee;
+    if (isDelivery && groupToPay.deliveryInfo && groupToPay.deliveryInfo.deliveryFee > 0) {
+      deliveryFeeForThisOrder = groupToPay.deliveryInfo.deliveryFee;
     }
     
-    const finalAmountForDialog = subtotalForPayment + currentTip + deliveryFeeForThisOrder;
-    setTotalForPayment(finalAmountForDialog); // This is the final amount for PaymentDialog
+    // No tip confirmation dialog, tip is 0 for final payment unless handled elsewhere
+    const finalAmountForDialog = currentSubtotal + deliveryFeeForThisOrder;
+    setTotalForPayment(finalAmountForDialog); 
 
-    setIsConfirmTipDialogOpen(false); // Close tip confirmation dialog
-    setIsPaymentDialogOpen(true);     // Open payment method selection dialog
+    setIsPaymentDialogOpen(true);
   };
 
 
   const handlePaymentConfirm = (paymentMethod: PaymentMethod, paidAmount: number) => {
-    if (!orderToPay || tipForFinalPayment === null) { // Ensure orderToPay and tipForFinalPayment are available
-      toast({ title: "Error", description: "No hay un pedido o información de propina para procesar el pago.", variant: "destructive" });
+    if (!orderToPay ) { 
+      toast({ title: "Error", description: "No hay un pedido para procesar el pago.", variant: "destructive" });
       setIsPaymentDialogOpen(false);
       return;
     }
+
+    const tipForFinalPayment = 0; // Tip is not being prompted for at this stage
 
     const updatedInventory = [...inventory];
     let inventoryUpdateOccurred = false;
@@ -751,7 +714,6 @@ export default function TableDetailPage() {
       ? `Venta Delivery #${String(orderToPay.orderNumber).padStart(3,'0')} a ${orderToPay.deliveryInfo?.name || 'Cliente'}`
       : `${tableDisplayName} - Orden #${String(orderToPay.orderNumber).padStart(3,'0')}`;
 
-    // Calculate saleAmount (paidAmount - tip - deliveryFee of this specific paid order)
     const deliveryFeeOfPaidOrder = isDelivery && orderToPay.deliveryInfo ? orderToPay.deliveryInfo.deliveryFee : 0;
     const saleAmountForMovement = paidAmount - tipForFinalPayment - deliveryFeeOfPaidOrder;
 
@@ -789,8 +751,6 @@ export default function TableDetailPage() {
     setIsPaymentDialogOpen(false);
     const paidOrderInfo = orderToPay; 
     setOrderToPay(null);
-    setSubtotalForPayment(null); // Reset temporary state
-    setTipForFinalPayment(null); // Reset temporary state
 
 
     if (isDelivery && paidOrderInfo?.deliveryInfo) {
@@ -1153,23 +1113,6 @@ export default function TableDetailPage() {
             </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
-      {/* Dialog to confirm tip for FINAL payment */}
-        <AlertDialog open={isConfirmTipDialogOpen} onOpenChange={setIsConfirmTipDialogOpen}>
-            <AlertDialogContent>
-                <AlertDialogHeader>
-                    <AlertDialogTitle>Confirmar Propina para Pago Final</AlertDialogTitle>
-                    <AlertDialogDescription>
-                        ¿Desea incluir una propina del 10% en el pago final?
-                    </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => handleConfirmTipForPayment(false)}>No, Sin Propina</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => handleConfirmTipForPayment(true)}>Sí, Añadir 10% Propina</AlertDialogAction>
-                </AlertDialogFooter>
-            </AlertDialogContent>
-        </AlertDialog>
-
 
       {orderToPay && ( 
           <PaymentDialog
