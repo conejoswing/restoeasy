@@ -130,6 +130,7 @@ export default function TableDetailPage() {
   const [itemToModify, setItemToModify] = useState<MenuItem | null>(null);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [totalForPayment, setTotalForPayment] = useState(0);
+  const [subtotalForPayment, setSubtotalForPayment] = useState<number | null>(null);
   const [tipForFinalPayment, setTipForFinalPayment] = useState(0);
   const [isDeliveryDialogOpen, setIsDeliveryDialogOpen] = useState(false);
   const [deliveryInfo, setDeliveryInfo] = useState<DeliveryInfo | null>(null);
@@ -210,7 +211,7 @@ export default function TableDetailPage() {
                         tipAmountForPayment: group.tipAmountForPayment ?? 0,
                     })).sort((a: PendingOrderGroup, b: PendingOrderGroup) => a.timestamp - b.timestamp)
                  );
-             } else if (Array.isArray(parsedData)) {
+             } else if (Array.isArray(parsedData)) { // Fallback for old format if necessary
                  setPendingOrderGroups(
                     parsedData.map((group: PendingOrderGroup) => ({
                         ...group,
@@ -246,7 +247,7 @@ export default function TableDetailPage() {
     setIsInitialized(true);
     console.log(`Initialization complete for ${tableIdParam}.`);
 
-  }, [tableIdParam, isInitialized, isDelivery, pendingOrderGroups, currentOrder.length]);
+  }, [tableIdParam, isInitialized, isDelivery]); // Removed pendingOrderGroups and currentOrder.length from deps as they are loaded inside
 
   useEffect(() => {
     const handleMenuUpdate = () => {
@@ -270,9 +271,11 @@ export default function TableDetailPage() {
         if (deliveryInfo) {
             sessionStorage.setItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`, JSON.stringify(deliveryInfo));
         } else {
+            // Only remove if there are no pending groups with delivery info and no current order for this specific delivery table
             const hasOtherPendingDeliveryInfoForThisTable = pendingOrderGroups.some(pg => pg.deliveryInfo);
             if (!hasOtherPendingDeliveryInfoForThisTable && currentOrder.length === 0) {
                 sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`);
+                console.log(`TableDetailPage: Delivery table ${tableIdParam} effectively clear, removed its deliveryInfo from session.`);
             }
         }
     }
@@ -282,6 +285,7 @@ export default function TableDetailPage() {
 
     let isDeliveryEffectivelyOccupied = false;
     if (isDelivery) {
+        // Check if ANY pending group for this table has delivery info OR if current deliveryInfo state is set
         const currentDeliveryInfoProvided = deliveryInfo && (deliveryInfo.name || deliveryInfo.address || deliveryInfo.phone);
         const pendingDeliveryInfoProvidedForThisTable = pendingOrderGroups.some(pg => pg.deliveryInfo && (pg.deliveryInfo.name || pg.deliveryInfo.address || pg.deliveryInfo.phone));
         isDeliveryEffectivelyOccupied = !!(currentDeliveryInfoProvided || pendingDeliveryInfoProvidedForThisTable);
@@ -294,17 +298,20 @@ export default function TableDetailPage() {
     } else {
       newStatus = 'available';
       if (isDelivery && !isDeliveryEffectivelyOccupied) {
+            // Explicitly remove delivery info if table becomes available and no groups hold onto delivery data
             sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`);
-            console.log(`TableDetailPage: Delivery table ${tableIdParam} became available, removed its deliveryInfo from session.`);
+            console.log(`TableDetailPage: Delivery table ${tableIdParam} became available AND effectively clear, removed its deliveryInfo from session.`);
       }
     }
 
     const storageKey = `table-${tableIdParam}-status`;
     const oldStatus = sessionStorage.getItem(storageKey) as 'available' | 'occupied' | null;
 
+    // Always write the current status to ensure consistency
     sessionStorage.setItem(storageKey, newStatus);
-    console.log(`TableDetailPage: Table ${tableIdParam} new status set to ${newStatus} in sessionStorage. Old status was: ${oldStatus}`);
+    console.log(`TableDetailPage: Table ${tableIdParam} status set to ${newStatus} in sessionStorage. Old status was: ${oldStatus}`);
 
+    // Dispatch event only if the status has actually changed or was initially set to occupied
     if (oldStatus !== newStatus || (oldStatus === null && newStatus === 'occupied')) {
       console.log(`TableDetailPage: Table ${tableIdParam} status ${oldStatus === null ? 'was unset and now' : 'actually changed from ' + oldStatus + ' to'} ${newStatus}. Dispatching 'tableStatusUpdated' event.`);
       window.dispatchEvent(new CustomEvent('tableStatusUpdated'));
@@ -392,9 +399,15 @@ export default function TableDetailPage() {
       toast({ title: "Pedido Vacío", description: "Añada productos antes de imprimir la comanda.", variant: "destructive" });
       return;
     }
-     if (isDelivery && !deliveryInfo && pendingOrderGroups.filter(pg => pg.deliveryInfo).length === 0 && currentOrder.length > 0) {
+     // For delivery, ensure deliveryInfo is present if there are no PENDING orders with delivery info for this table.
+     // If there are pending orders for this specific delivery "table", their delivery info is already set.
+     // This new order for a delivery "table" should have its own delivery info or reuse an existing one if that's the intended logic.
+     // Current logic: if this delivery "table" is effectively new (no pending, no existing deliveryInfo), prompt for it.
+     const isEffectivelyNewDelivery = isDelivery && !deliveryInfo && !pendingOrderGroups.some(pg => pg.deliveryInfo);
+
+     if (isEffectivelyNewDelivery && currentOrder.length > 0) {
         toast({ title: "Faltan Datos de Envío", description: "Por favor, ingrese los datos de envío antes de imprimir la comanda.", variant: "destructive" });
-        setIsDeliveryDialogOpen(true);
+        setIsDeliveryDialogOpen(true); // Prompt for delivery info
         return;
     }
     setCurrentGeneralObservation('');
@@ -411,7 +424,11 @@ export default function TableDetailPage() {
     const orderNumber = getNextOrderNumber();
     const orderWithNumber = currentOrder.map(item => ({ ...item, orderNumber }));
 
-    const currentDeliveryInfoToUse = deliveryInfo || pendingOrderGroups.find(pg => pg.deliveryInfo)?.deliveryInfo || null;
+    // Use the current deliveryInfo if this is a new delivery order.
+    // If there are existing pending orders for this delivery table, their deliveryInfo is already part of their group.
+    // This new order group will capture the deliveryInfo active at the time of its creation.
+    const currentDeliveryInfoToUse = isDelivery ? deliveryInfo : null;
+
 
     const kitchenReceipt = formatKitchenOrderReceipt(
         orderWithNumber,
@@ -427,10 +444,10 @@ export default function TableDetailPage() {
         {
             orderNumber,
             items: orderWithNumber,
-            deliveryInfo: isDelivery ? currentDeliveryInfoToUse : null,
+            deliveryInfo: currentDeliveryInfoToUse, // Store the delivery info with this specific order group
             timestamp: Date.now(),
             generalObservation: currentGeneralObservation,
-            tipAmountForPayment: 0,
+            tipAmountForPayment: 0, // Initialize tip for this group
         }
     ].sort((a,b) => a.timestamp - b.timestamp));
 
@@ -440,16 +457,20 @@ export default function TableDetailPage() {
     toast({ title: "Comanda Impresa", description: `Pedido #${String(orderNumber).padStart(3,'0')} enviado a cocina y movido a pendientes.` });
 
     if (isDelivery) {
-      const otherPendingDeliveryOrdersForThisTable = pendingOrderGroups.filter(
+      // After sending a delivery order, if there are no other pending orders for THIS delivery table
+      // AND the current order is now empty, prompt for new delivery info.
+      // This implies that the "delivery table" becomes available for a *new* distinct delivery order.
+      const hasOtherPendingOrdersForThisDeliveryTable = pendingOrderGroups.some(
         group => group.orderNumber !== orderNumber && group.deliveryInfo
-      ).length > 0;
+      );
 
-      if (currentOrder.length === 0 && !otherPendingDeliveryOrdersForThisTable) {
-        console.log(`TableDetailPage: Delivery order ${orderNumber} sent. No other pending orders for this table. Clearing local deliveryInfo and prompting for new.`);
-        setDeliveryInfo(null);
-        setIsDeliveryDialogOpen(true);
+      if (currentOrder.length === 0 && !hasOtherPendingOrdersForThisDeliveryTable) {
+        console.log(`TableDetailPage: Delivery order ${orderNumber} sent. No other pending orders for this delivery. Clearing local deliveryInfo state and prompting for new.`);
+        setDeliveryInfo(null); // Clear the main deliveryInfo state for this "table"
+        // The useEffect will handle removing from session if this was the last thing making it occupied
+        setIsDeliveryDialogOpen(true); // Prompt for new delivery info for the next order
       } else {
-        console.log(`TableDetailPage: Delivery order ${orderNumber} sent. Other pending orders exist for this table, or current order is not empty. Not clearing local deliveryInfo.`);
+        console.log(`TableDetailPage: Delivery order ${orderNumber} sent. Other pending orders for this delivery exist, or current order is not empty. Not clearing local deliveryInfo state or re-prompting immediately.`);
       }
     }
   };
@@ -464,7 +485,7 @@ export default function TableDetailPage() {
       groupToReprint.items,
       tableDisplayName,
       groupToReprint.orderNumber,
-      groupToReprint.deliveryInfo,
+      groupToReprint.deliveryInfo, // Use the deliveryInfo stored with the group
       groupToReprint.generalObservation
     );
     printHtml(kitchenReceipt);
@@ -491,16 +512,17 @@ export default function TableDetailPage() {
         orderGroupForCopy.items,
         tableDisplayName,
         orderGroupForCopy.orderNumber,
-        orderGroupForCopy.deliveryInfo,
+        orderGroupForCopy.deliveryInfo, // Pass the delivery info from the group
         includeTipOnCopy,
         tipForCopy
     );
     printHtml(customerCopyHtml);
 
+    // Update the pending order group in state with the decided tip for payment
     setPendingOrderGroups(prevGroups =>
         prevGroups.map(group =>
             group.orderNumber === orderGroupForCopy.orderNumber
-                ? { ...group, tipAmountForPayment: tipForCopy }
+                ? { ...group, tipAmountForPayment: tipForCopy } // Save the tip decision
                 : group
         )
     );
@@ -519,25 +541,28 @@ export default function TableDetailPage() {
     setOrderToPay(groupToPay);
 
     const currentSubtotal = groupToPay.items.reduce((sum, item) => sum + item.finalPrice * item.quantity, 0);
+    setSubtotalForPayment(currentSubtotal); // Store subtotal for later use in cash movement
 
     let deliveryFeeForThisOrder = 0;
+    // Use delivery fee from the specific group being paid
     if (isDelivery && groupToPay.deliveryInfo && groupToPay.deliveryInfo.deliveryFee > 0) {
       deliveryFeeForThisOrder = groupToPay.deliveryInfo.deliveryFee;
     }
 
+    // Use the tip amount that was decided when the copy was printed (or 0 if not applicable)
     const tipForThisPayment = groupToPay.tipAmountForPayment ?? 0;
     setTipForFinalPayment(tipForThisPayment);
 
     const finalAmountForDialog = currentSubtotal + deliveryFeeForThisOrder + tipForThisPayment;
-    setTotalForPayment(finalAmountForDialog);
+    setTotalForPayment(finalAmountForDialog); // This is what PaymentDialog will show
 
     setIsPaymentDialogOpen(true);
   };
 
 
   const handlePaymentConfirm = (paymentMethod: PaymentMethod, paidAmount: number) => {
-    if (!orderToPay ) {
-      toast({ title: "Error", description: "No hay un pedido para procesar el pago.", variant: "destructive" });
+    if (!orderToPay || subtotalForPayment === null) { // Check subtotalForPayment as well
+      toast({ title: "Error", description: "No hay un pedido o subtotal para procesar el pago.", variant: "destructive" });
       setIsPaymentDialogOpen(false);
       return;
     }
@@ -635,9 +660,9 @@ export default function TableDetailPage() {
            quantityToDeduct = orderItem.quantity * 1;
         } else if (['doble', 'doble italiana', 'super big cami', 'super tapa arteria'].includes(itemNameLower)) {
            inventoryItemName = 'Pan de hamburguesa grande';
-           quantityToDeduct = orderItem.quantity * 1;
+           quantityToDeduct = orderItem.quantity * 1; // Assuming 1 large bun per promo
         }
-         if (inventoryItemName) {
+         if (inventoryItemName) { // This check ensures a drink is only deducted if a bun type was matched
             const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
             if (bebidaLataIndex !== -1) {
                 const latasToDeduct = orderItem.quantity;
@@ -778,7 +803,7 @@ export default function TableDetailPage() {
       : `${tableDisplayName} - Orden #${String(orderToPay.orderNumber).padStart(3,'0')}`;
 
     const deliveryFeeOfPaidOrder = isDelivery && orderToPay.deliveryInfo ? orderToPay.deliveryInfo.deliveryFee : 0;
-    const saleAmountForMovement = paidAmount - tipForFinalPayment - deliveryFeeOfPaidOrder;
+    const saleAmountForMovement = subtotalForPayment; // Use the subtotal before tip and delivery fee
 
 
     const descriptionWithTip = tipForFinalPayment > 0
@@ -812,15 +837,24 @@ export default function TableDetailPage() {
     setPendingOrderGroups(updatedPendingOrderGroups);
 
     setIsPaymentDialogOpen(false);
-    const paidOrderInfo = orderToPay;
+    const paidOrderInfo = orderToPay; // Capture for potential deliveryInfo reset
     setOrderToPay(null);
+    setSubtotalForPayment(null);
+    setTipForFinalPayment(0);
 
 
     if (isDelivery && paidOrderInfo?.deliveryInfo) {
-        const remainingDeliveryOrders = updatedPendingOrderGroups.filter(group => group.deliveryInfo);
-        if (remainingDeliveryOrders.length === 0 && currentOrder.length === 0) {
-            console.log("TableDetailPage: Last delivery order paid, and no current order. Clearing current deliveryInfo state.");
-            setDeliveryInfo(null);
+        const remainingDeliveryOrdersForThisTable = updatedPendingOrderGroups.filter(
+            group => group.deliveryInfo && // Check if other groups for THIS table still have delivery info
+                       group.deliveryInfo.name === paidOrderInfo.deliveryInfo?.name &&
+                       group.deliveryInfo.address === paidOrderInfo.deliveryInfo?.address
+        );
+        if (remainingDeliveryOrdersForThisTable.length === 0 && currentOrder.length === 0) {
+            console.log("TableDetailPage: Last delivery order with these specific details paid, and no current order. Clearing current deliveryInfo state IF it matches the paid order's info.");
+            // Only clear if the main deliveryInfo matches the one from the paid order
+            if (deliveryInfo && deliveryInfo.name === paidOrderInfo.deliveryInfo.name && deliveryInfo.address === paidOrderInfo.deliveryInfo.address) {
+                setDeliveryInfo(null);
+            }
         }
     }
 
@@ -838,12 +872,16 @@ export default function TableDetailPage() {
     const updatedGroups = pendingOrderGroups.filter(group => group.orderNumber !== orderNumberToDelete);
     setPendingOrderGroups(updatedGroups);
 
-    // If it was a delivery order and the last one for this "table"
     if (isDelivery && orderToUpdate.deliveryInfo) {
-        const remainingDeliveryOrders = updatedGroups.filter(group => group.deliveryInfo);
-        if (remainingDeliveryOrders.length === 0 && currentOrder.length === 0) {
-            setDeliveryInfo(null); // Clear main delivery info for this table
-            // sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`); // This will be handled by useEffect
+        const remainingDeliveryOrdersWithSameInfo = updatedGroups.filter(
+            group => group.deliveryInfo &&
+                     group.deliveryInfo.name === orderToUpdate.deliveryInfo?.name &&
+                     group.deliveryInfo.address === orderToUpdate.deliveryInfo?.address
+        );
+        if (remainingDeliveryOrdersWithSameInfo.length === 0 && currentOrder.length === 0) {
+             if (deliveryInfo && deliveryInfo.name === orderToUpdate.deliveryInfo.name && deliveryInfo.address === orderToUpdate.deliveryInfo.address) {
+                setDeliveryInfo(null);
+            }
         }
     }
 
@@ -914,11 +952,12 @@ export default function TableDetailPage() {
   };
 
   const handleDeliveryInfoCancel = () => {
-    if (!deliveryInfo && pendingOrderGroups.length === 0 && currentOrder.length === 0) {
+    // If delivery, no current delivery info set, no pending orders, and no current order, then redirect
+    if (isDelivery && !deliveryInfo && pendingOrderGroups.length === 0 && currentOrder.length === 0) {
         router.push('/tables');
         toast({ title: "Envío Cancelado", description: "Se canceló el ingreso de datos de envío.", variant: "destructive" });
     } else {
-        setIsDeliveryDialogOpen(false);
+        setIsDeliveryDialogOpen(false); // Just close dialog if there's other context
     }
   };
 
@@ -929,9 +968,11 @@ export default function TableDetailPage() {
   };
 
   const handleOpenMenuOrDeliveryDialog = () => {
-    if (isDelivery && !deliveryInfo && currentOrder.length === 0 && pendingOrderGroups.filter(pg => pg.deliveryInfo).length === 0) {
+    if (isDelivery && !deliveryInfo && !pendingOrderGroups.some(pg => pg.deliveryInfo) && currentOrder.length === 0) {
       setIsDeliveryDialogOpen(true);
-    } else if (isDelivery && !deliveryInfo && currentOrder.length > 0) {
+    } else if (isDelivery && !deliveryInfo && currentOrder.length > 0 && !pendingOrderGroups.some(pg => pg.deliveryInfo)) {
+       // If there's a current order for delivery but no delivery info yet, prompt for it.
+       // This covers the case where a delivery order was started, then user navigated away and came back.
        setIsDeliveryDialogOpen(true);
     }
     else {
@@ -1134,14 +1175,41 @@ export default function TableDetailPage() {
                       <Card key={group.orderNumber} className="mb-4 shadow-md">
                         <CardHeader className="pb-2 pt-3 px-3 bg-muted/30 rounded-t-lg">
                            <div className="flex justify-between items-center">
-                                <CardTitle className="text-base font-semibold">
-                                    Orden #{String(group.orderNumber).padStart(3, '0')}
+                                <div className="flex items-center">
+                                    <CardTitle className="text-base font-semibold">
+                                        Orden #{String(group.orderNumber).padStart(3, '0')}
+                                    </CardTitle>
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="ghost" size="icon" className="h-6 w-6 text-destructive hover:text-destructive/90 ml-2" title={`Eliminar Orden #${String(group.orderNumber).padStart(3, '0')}`}>
+                                                <XCircle className="h-5 w-5" />
+                                                <span className="sr-only">Eliminar Orden</span>
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    Esta acción no se puede deshacer. Esto eliminará permanentemente el pedido #{String(group.orderNumber).padStart(3,'0')}.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                                <AlertDialogAction
+                                                    onClick={() => handleDeletePendingOrder(group.orderNumber)}
+                                                    className={cn(buttonVariants({ variant: "destructive" }))}
+                                                >
+                                                    Confirmar Eliminación
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
                                     {isDelivery && group.deliveryInfo && (
-                                        <span className="text-xs font-normal text-muted-foreground ml-2 font-bold">
+                                        <span className="text-xs font-normal text-muted-foreground ml-1 font-bold">
                                             ({group.deliveryInfo.name})
                                         </span>
                                     )}
-                                </CardTitle>
+                                </div>
                                 <Badge variant="outline" className="text-sm font-bold">{formatCurrency(groupTotal)}</Badge>
                            </div>
                         </CardHeader>
@@ -1190,31 +1258,6 @@ export default function TableDetailPage() {
                             <Button onClick={() => handleFinalizeAndPaySelectedOrder(group)} className="w-full" size="sm">
                                 <CreditCard className="mr-2 h-4 w-4" /> Cobrar Pedido #{String(group.orderNumber).padStart(3, '0')}
                             </Button>
-                            <AlertDialog>
-                                <AlertDialogTrigger asChild>
-                                    <Button variant="destructive" size="sm" className="w-full">
-                                        <Trash2 className="mr-2 h-4 w-4" />
-                                        Eliminar Pedido
-                                    </Button>
-                                </AlertDialogTrigger>
-                                <AlertDialogContent>
-                                    <AlertDialogHeader>
-                                        <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
-                                        <AlertDialogDescription>
-                                            Esta acción no se puede deshacer. Esto eliminará permanentemente el pedido #{String(group.orderNumber).padStart(3,'0')}.
-                                        </AlertDialogDescription>
-                                    </AlertDialogHeader>
-                                    <AlertDialogFooter>
-                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                        <AlertDialogAction
-                                            onClick={() => handleDeletePendingOrder(group.orderNumber)}
-                                            className={cn(buttonVariants({ variant: "destructive" }))}
-                                        >
-                                            Confirmar Eliminación
-                                        </AlertDialogAction>
-                                    </AlertDialogFooter>
-                                </AlertDialogContent>
-                            </AlertDialog>
                         </CardFooter>
                       </Card>
                     );
@@ -1253,7 +1296,7 @@ export default function TableDetailPage() {
         onOpenChange={(isOpen) => {
           setIsGeneralObservationDialogOpen(isOpen);
           if (!isOpen) {
-            setCurrentGeneralObservation('');
+            setCurrentGeneralObservation(''); // Reset observation if dialog is closed without confirming
           }
         }}
       >
