@@ -57,7 +57,7 @@ import { cn } from '@/lib/utils';
 import type { CashMovement } from '@/app/expenses/page';
 import type { DeliveryInfo } from '@/components/app/delivery-dialog';
 import DeliveryDialog from '@/components/app/delivery-dialog'; // Corrected import
-import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatPendingOrderCopy } from '@/lib/printUtils';
+import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatPendingOrderCopy, formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
 import type { MenuItem } from '@/types/menu';
 import { loadMenuData, orderedCategories as predefinedOrderedCategories, sortMenu } from '@/lib/menuUtils';
@@ -94,6 +94,7 @@ interface PendingOrderGroup {
   deliveryInfo?: DeliveryInfo | null;
   timestamp: number;
   generalObservation?: string; // For general order observation
+  tipAmountForPayment?: number; // Stores the tip amount decided when printing customer copy
 }
 
 interface PendingOrderStorageData {
@@ -129,6 +130,7 @@ export default function TableDetailPage() {
   const [itemToModify, setItemToModify] = useState<MenuItem | null>(null);
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [totalForPayment, setTotalForPayment] = useState(0);
+  const [tipForFinalPayment, setTipForFinalPayment] = useState(0); // State for tip amount in final payment
   const [isDeliveryDialogOpen, setIsDeliveryDialogOpen] = useState(false);
   const [deliveryInfo, setDeliveryInfo] = useState<DeliveryInfo | null>(null);
   const [lastOrderNumber, setLastOrderNumber] = useState(0);
@@ -207,6 +209,7 @@ export default function TableDetailPage() {
                             observation: item.observation || undefined,
                         })),
                         generalObservation: group.generalObservation || undefined,
+                        tipAmountForPayment: group.tipAmountForPayment ?? 0, // Initialize if missing
                     })).sort((a: PendingOrderGroup, b: PendingOrderGroup) => a.timestamp - b.timestamp)
                  );
              } else if (Array.isArray(parsedData)) { // Fallback for old format
@@ -218,6 +221,7 @@ export default function TableDetailPage() {
                             observation: item.observation || undefined,
                         })),
                          generalObservation: group.generalObservation || undefined,
+                         tipAmountForPayment: group.tipAmountForPayment ?? 0, // Initialize if missing
                     })).sort((a: PendingOrderGroup, b: PendingOrderGroup) => a.timestamp - b.timestamp)
                  );
              }
@@ -244,7 +248,7 @@ export default function TableDetailPage() {
     setIsInitialized(true);
     console.log(`Initialization complete for ${tableIdParam}.`);
 
-  }, [tableIdParam, isInitialized, isDelivery, pendingOrderGroups, currentOrder.length]);
+  }, [tableIdParam, isInitialized, isDelivery]); // Removed pendingOrderGroups, currentOrder.length from dependencies
 
   useEffect(() => {
     const handleMenuUpdate = () => {
@@ -301,14 +305,16 @@ export default function TableDetailPage() {
     const storageKey = `table-${tableIdParam}-status`;
     const oldStatus = sessionStorage.getItem(storageKey) as 'available' | 'occupied' | null;
 
+    // Always set the current status
     sessionStorage.setItem(storageKey, newStatus);
     console.log(`TableDetailPage: Table ${tableIdParam} new status set to ${newStatus} in sessionStorage. Old status was: ${oldStatus}`);
 
+    // Dispatch event only if status actually changed or was initially set to occupied
     if (oldStatus !== newStatus || (oldStatus === null && newStatus === 'occupied')) {
       console.log(`TableDetailPage: Table ${tableIdParam} status ${oldStatus === null ? 'was unset and now' : 'actually changed from ' + oldStatus + ' to'} ${newStatus}. Dispatching 'tableStatusUpdated' event.`);
       window.dispatchEvent(new CustomEvent('tableStatusUpdated'));
     } else {
-      console.log(`TableDetailPage: Table ${tableIdParam} status (${newStatus}) did not change from what was in sessionStorage. Event not dispatched.`);
+      console.log(`TableDetailPage: Table ${tableIdParam} status (${newStatus}) did not change from what was in sessionStorage or was already available. Event not dispatched.`);
     }
 
   }, [currentOrder, pendingOrderGroups, deliveryInfo, tableIdParam, isInitialized, isDelivery]);
@@ -431,7 +437,8 @@ export default function TableDetailPage() {
             items: orderWithNumber,
             deliveryInfo: isDelivery ? currentDeliveryInfoToUse : null,
             timestamp: Date.now(),
-            generalObservation: currentGeneralObservation
+            generalObservation: currentGeneralObservation,
+            tipAmountForPayment: 0, // Initialize tip for payment to 0 for new pending orders
         }
     ].sort((a,b) => a.timestamp - b.timestamp));
 
@@ -497,7 +504,17 @@ export default function TableDetailPage() {
         tipForCopy
     );
     printHtml(customerCopyHtml);
-    toast({ title: "Copia Impresa", description: `Se imprimió una copia del pedido #${String(orderGroupForCopy.orderNumber).padStart(3, '0')}.` });
+
+    // Update the pendingOrderGroup with the tip decision
+    setPendingOrderGroups(prevGroups =>
+        prevGroups.map(group =>
+            group.orderNumber === orderGroupForCopy.orderNumber
+                ? { ...group, tipAmountForPayment: tipForCopy }
+                : group
+        )
+    );
+
+    toast({ title: "Copia Impresa", description: `Se imprimió una copia del pedido #${String(orderGroupForCopy.orderNumber).padStart(3, '0')}. Propina decidida: ${formatCurrency(tipForCopy)}` });
     setIsConfirmTipForCopyDialogOpen(false);
     setOrderGroupForCopy(null);
   };
@@ -517,7 +534,11 @@ export default function TableDetailPage() {
       deliveryFeeForThisOrder = groupToPay.deliveryInfo.deliveryFee;
     }
 
-    const finalAmountForDialog = currentSubtotal + deliveryFeeForThisOrder;
+    // Use the tip amount decided when printing the customer copy, or 0 if not set
+    const tipForThisPayment = groupToPay.tipAmountForPayment ?? 0;
+    setTipForFinalPayment(tipForThisPayment); // Set component state for handlePaymentConfirm
+
+    const finalAmountForDialog = currentSubtotal + deliveryFeeForThisOrder + tipForThisPayment;
     setTotalForPayment(finalAmountForDialog);
 
     setIsPaymentDialogOpen(true);
@@ -531,7 +552,8 @@ export default function TableDetailPage() {
       return;
     }
 
-    const tipForFinalPayment = 0; // Propina eliminada del flujo de pago final
+    // tipForFinalPayment is now set by handleFinalizeAndPaySelectedOrder based on PendingOrderGroup
+    // const tipForThisPayment = tipForFinalPayment; // This is now from component state
 
     const updatedInventory = [...inventory];
     let inventoryUpdateOccurred = false;
@@ -575,10 +597,10 @@ export default function TableDetailPage() {
       }
        if (orderItem.category === 'Promo Fajitas') {
         if (['4 ingredientes', '6 ingredientes', 'americana', 'brasileño', 'chacarero', 'golosasa', 'italiana', 'primavera'].includes(itemNameLower)) {
-            inventoryItemName = 'Fajita';
+            inventoryItemName = 'Fajita'; // Deduct 1 Fajita per promo
              const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
              if (bebidaLataIndex !== -1) {
-                 const latasToDeduct = orderItem.quantity;
+                 const latasToDeduct = orderItem.quantity; // Deduct 1 Lata per promo
                  updatedInventory[bebidaLataIndex].stock -= latasToDeduct;
                  inventoryUpdateOccurred = true;
                  if (updatedInventory[bebidaLataIndex].stock < 0 && latasToDeduct > 0) {
@@ -594,10 +616,10 @@ export default function TableDetailPage() {
       }
       if (orderItem.category === 'Promo Churrasco') {
         if (['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'queso', 'queso champiñon', 'tomate', 'palta'].includes(itemNameLower)) {
-          inventoryItemName = 'Pan de marraqueta';
+          inventoryItemName = 'Pan de marraqueta'; // Deduct 1 Pan de marraqueta per promo
              const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
              if (bebidaLataIndex !== -1) {
-                 const latasToDeduct = orderItem.quantity;
+                 const latasToDeduct = orderItem.quantity; // Deduct 1 Lata per promo
                  updatedInventory[bebidaLataIndex].stock -= latasToDeduct;
                  inventoryUpdateOccurred = true;
                   if (updatedInventory[bebidaLataIndex].stock < 0 && latasToDeduct > 0) {
@@ -608,10 +630,10 @@ export default function TableDetailPage() {
       }
       if (orderItem.category === 'Promo Mechada') {
           if (['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'queso', 'queso champiñon', 'tomate', 'palta'].includes(itemNameLower)) {
-             inventoryItemName = 'Pan de marraqueta';
+             inventoryItemName = 'Pan de marraqueta'; // Deduct 1 Pan de marraqueta per promo
                 const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
                 if (bebidaLataIndex !== -1) {
-                    const latasToDeduct = orderItem.quantity;
+                    const latasToDeduct = orderItem.quantity; // Deduct 1 Lata per promo
                     updatedInventory[bebidaLataIndex].stock -= latasToDeduct;
                     inventoryUpdateOccurred = true;
                     if (updatedInventory[bebidaLataIndex].stock < 0 && latasToDeduct > 0) {
@@ -623,15 +645,15 @@ export default function TableDetailPage() {
       if (orderItem.category === 'Promo Hamburguesas') {
         if(['big cami', 'italiana', 'simple', 'tapa arteria'].includes(itemNameLower)) {
           inventoryItemName = 'Pan de hamburguesa normal';
-           quantityToDeduct = orderItem.quantity * 1;
+           quantityToDeduct = orderItem.quantity * 1; // 1 pan normal per promo
         } else if (['doble', 'doble italiana', 'super big cami', 'super tapa arteria'].includes(itemNameLower)) {
            inventoryItemName = 'Pan de hamburguesa grande';
-           quantityToDeduct = orderItem.quantity * 1;
+           quantityToDeduct = orderItem.quantity * 1; // 1 pan grande per promo
         }
-         if (inventoryItemName) {
+         if (inventoryItemName) { // Ensure a pan type was matched
             const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
             if (bebidaLataIndex !== -1) {
-                const latasToDeduct = orderItem.quantity;
+                const latasToDeduct = orderItem.quantity; // Deduct 1 Lata per promo
                 updatedInventory[bebidaLataIndex].stock -= latasToDeduct;
                 inventoryUpdateOccurred = true;
                 if (updatedInventory[bebidaLataIndex].stock < 0 && latasToDeduct > 0) {
@@ -652,14 +674,13 @@ export default function TableDetailPage() {
           if (promoNum === 3) { inventoryItemName = 'Pan de marraqueta'; quantityToDeduct = orderItem.quantity * 4; }
           if (promoNum === 4) { inventoryItemName = 'Pan de marraqueta'; quantityToDeduct = orderItem.quantity * 2; }
 
-          if (promoNum === 5) { inventoryItemName = 'Pan especial normal'; quantityToDeduct = orderItem.quantity * 2; }
-          if (promoNum === 6) { inventoryItemName = 'Pan especial grande'; quantityToDeduct = orderItem.quantity * 2; }
-          if (promoNum === 7) { inventoryItemName = 'Pan especial normal'; quantityToDeduct = orderItem.quantity * 2; }
-          if (promoNum === 8) { inventoryItemName = 'Pan especial grande'; quantityToDeduct = orderItem.quantity * 2; }
-          if (promoNum === 9) { inventoryItemName = 'Pan especial normal'; quantityToDeduct = orderItem.quantity * 4; }
-          if (promoNum === 10) { inventoryItemName = 'Pan especial grande'; quantityToDeduct = orderItem.quantity * 4; }
-          if (promoNum === 11) { inventoryItemName = 'Pan especial normal'; quantityToDeduct = orderItem.quantity * 4; }
-          if (promoNum === 12) { inventoryItemName = 'Pan especial grande'; quantityToDeduct = orderItem.quantity * 4; }
+          if (promoNum === 5 || promoNum === 7 || promoNum === 9 || promoNum === 11) { inventoryItemName = 'Pan especial normal'; }
+          if (promoNum === 6 || promoNum === 8 || promoNum === 10 || promoNum === 12) { inventoryItemName = 'Pan especial grande'; }
+          
+          if (promoNum === 5 || promoNum === 7) quantityToDeduct = orderItem.quantity * 2;
+          if (promoNum === 6 || promoNum === 8) quantityToDeduct = orderItem.quantity * 2;
+          if (promoNum === 9 || promoNum === 11) quantityToDeduct = orderItem.quantity * 4;
+          if (promoNum === 10 || promoNum === 12) quantityToDeduct = orderItem.quantity * 4;
 
 
           if ([1,2,3,9,10,11,12].includes(promoNum)) {
@@ -676,7 +697,7 @@ export default function TableDetailPage() {
           if ([5,6,7,8].includes(promoNum)) {
               const lataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
               if (lataIndex !== -1) {
-                  const latasToDeduct = orderItem.quantity * 2;
+                  const latasToDeduct = orderItem.quantity * 2; // 2 latas per promo
                   updatedInventory[lataIndex].stock -= latasToDeduct;
                   inventoryUpdateOccurred = true;
                   if (updatedInventory[lataIndex].stock < 0 && latasToDeduct > 0) {
@@ -698,7 +719,7 @@ export default function TableDetailPage() {
            if (promoNum === 6 || promoNum === 10) {
                const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
                if (vienaIndex !== -1) {
-                   const vienesasNeeded = promoNum === 6 ? orderItem.quantity * 4 : orderItem.quantity * 8;
+                   const vienesasNeeded = promoNum === 6 ? orderItem.quantity * 4 : orderItem.quantity * 8; // 2 vienesas por pan grande
                    updatedInventory[vienaIndex].stock -= vienesasNeeded;
                    inventoryUpdateOccurred = true;
                     if (updatedInventory[vienaIndex].stock < 0 && vienesasNeeded > 0) {
@@ -730,7 +751,7 @@ export default function TableDetailPage() {
             } else if (itemNameLower === 'salchipapas') {
                 const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
                 if (vienaIndex !== -1) {
-                    const vienesasNeeded = orderItem.quantity * 3;
+                    const vienesasNeeded = orderItem.quantity * 3; // Assuming 3 vienesas per salchipapa
                     updatedInventory[vienaIndex].stock -= vienesasNeeded;
                     inventoryUpdateOccurred = true;
                      if (updatedInventory[vienaIndex].stock < 0 && vienesasNeeded > 0) {
@@ -953,18 +974,23 @@ export default function TableDetailPage() {
                   ))}
                 </div>
               </ScrollArea>
+               <SheetFooter className="p-4 border-t">
+                 <SheetClose asChild>
+                    <Button variant="outline">Cerrar Menú</Button>
+                 </SheetClose>
+               </SheetFooter>
             </SheetContent>
         </Sheet>
 
         <ShadDialog open={isProductListDialogOpen} onOpenChange={setIsProductListDialogOpen}>
-            <ShadDialogContent className="sm:max-w-lg md:max-w-xl lg:max-w-3xl xl:max-w-4xl h-[90vh]">
+            <ShadDialogContent className="sm:max-w-lg md:max-w-xl lg:max-w-3xl xl:max-w-4xl h-[90vh]"> {/* Increased width */}
                 <ShadDialogHeader>
                     <ShadDialogTitle className="text-2xl">
                         Productos en {selectedCategoryForDialog}
                     </ShadDialogTitle>
                 </ShadDialogHeader>
                 <ScrollArea className="h-[calc(90vh-150px)] pr-3">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 py-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 py-4"> {/* Max 4 columns */}
                         {selectedCategoryForDialog &&
                             menu
                                 .filter(item => item.category === selectedCategoryForDialog)
@@ -1015,7 +1041,7 @@ export default function TableDetailPage() {
                 </CardDescription>
             )}
           </CardHeader>
-          <ScrollArea className="flex-grow max-h-[calc(100vh-420px)] min-h-[200px] p-1">
+          <ScrollArea className="flex-grow max-h-[calc(100vh-420px)] min-h-[200px] p-1"> {/* Adjusted max-h */}
             <CardContent className="p-4">
                 {currentOrder.length === 0 ? (
                 <p className="text-muted-foreground font-bold">No hay productos en el pedido actual.</p>
@@ -1083,14 +1109,17 @@ export default function TableDetailPage() {
           <CardHeader>
             <CardTitle>Pedidos Pendientes de Pago</CardTitle>
           </CardHeader>
-          <ScrollArea className="flex-grow max-h-[calc(100vh-300px)] min-h-[200px] p-1">
+          <ScrollArea className="flex-grow max-h-[calc(100vh-300px)] min-h-[200px] p-1"> {/* Adjusted max-h */}
              <CardContent className="p-4">
                 {pendingOrderGroups.length === 0 ? (
                   <p className="text-muted-foreground font-bold">No hay pedidos pendientes de pago.</p>
                 ) : (
                   pendingOrderGroups.map((group) => {
-                    const groupTotal = group.items.reduce((sum, item) => sum + item.finalPrice * item.quantity, 0) +
-                                       (isDelivery && group.deliveryInfo ? group.deliveryInfo.deliveryFee : 0);
+                    const groupItemSubtotal = group.items.reduce((sum, item) => sum + item.finalPrice * item.quantity, 0);
+                    const groupDeliveryFee = isDelivery && group.deliveryInfo ? group.deliveryInfo.deliveryFee : 0;
+                    const groupTipAmount = group.tipAmountForPayment ?? 0;
+                    const groupTotal = groupItemSubtotal + groupDeliveryFee + groupTipAmount;
+
                     return (
                       <Card key={group.orderNumber} className="mb-4 shadow-md">
                         <CardHeader className="pb-2 pt-3 px-3 bg-muted/30 rounded-t-lg">
@@ -1125,6 +1154,12 @@ export default function TableDetailPage() {
                                <div className="mt-1 pt-1 border-t border-dashed flex justify-between">
                                    <span className="font-bold">Costo Envío:</span>
                                    <span className="font-bold">{formatCurrency(group.deliveryInfo.deliveryFee)}</span>
+                               </div>
+                           )}
+                           {group.tipAmountForPayment && group.tipAmountForPayment > 0 && (
+                                <div className="mt-1 pt-1 border-t border-dashed flex justify-between">
+                                   <span className="font-bold">Propina:</span>
+                                   <span className="font-bold">{formatCurrency(group.tipAmountForPayment)}</span>
                                </div>
                            )}
                            {group.generalObservation && (
@@ -1220,7 +1255,7 @@ export default function TableDetailPage() {
           <PaymentDialog
             isOpen={isPaymentDialogOpen}
             onOpenChange={setIsPaymentDialogOpen}
-            totalAmount={totalForPayment}
+            totalAmount={totalForPayment} // This is now the grand total including tip (if any)
             onConfirm={handlePaymentConfirm}
           />
       )}
@@ -1237,3 +1272,5 @@ export default function TableDetailPage() {
     </div>
   );
 }
+
+    
