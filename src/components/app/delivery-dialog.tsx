@@ -32,8 +32,8 @@ interface DeliveryDialogProps {
   onCancel: () => void; // Callback for cancellation
 }
 
-// Storage key for the last used delivery info
-const DELIVERY_INFO_STORAGE_KEY = 'lastDeliveryInfo'; // Use localStorage
+// Storage key for the last used delivery info - REMOVED as per new requirement
+// const DELIVERY_INFO_STORAGE_KEY = 'lastDeliveryInfo';
 
 /**
  * DeliveryDialog: A modal dialog component for collecting delivery information.
@@ -64,32 +64,12 @@ const DeliveryDialog: React.FC<DeliveryDialogProps> = ({
              setDeliveryFee(initialData.deliveryFee.toString());
               console.log("DeliveryDialog: Loaded initialData for editing.");
         } else {
-            // Otherwise, load last used info from localStorage
-            const storedDeliveryInfo = localStorage.getItem(DELIVERY_INFO_STORAGE_KEY);
-            if (storedDeliveryInfo) {
-                try {
-                    const parsedDeliveryInfo = JSON.parse(storedDeliveryInfo) as DeliveryInfo;
-                    setName(parsedDeliveryInfo.name);
-                    setAddress(parsedDeliveryInfo.address);
-                    setPhone(parsedDeliveryInfo.phone);
-                    setDeliveryFee(parsedDeliveryInfo.deliveryFee.toString());
-                     console.log("DeliveryDialog: Loaded last used data from localStorage.");
-                } catch (e) {
-                     console.error("DeliveryDialog: Failed to parse last delivery info from localStorage:", e);
-                      // Clear form if parsing fails
-                      setName('');
-                      setAddress('');
-                      setPhone('');
-                      setDeliveryFee('');
-                }
-            } else {
-                 // If no initial data and nothing in storage, clear form
-                 setName('');
-                 setAddress('');
-                 setPhone('');
-                 setDeliveryFee('');
-                 console.log("DeliveryDialog: No initial or stored data found. Form cleared.");
-            }
+            // If no initial data, clear form. No longer loading from localStorage.
+            setName('');
+            setAddress('');
+            setPhone('');
+            setDeliveryFee('');
+            console.log("DeliveryDialog: No initial data. Form cleared for new entry.");
         }
      }
    }, [isOpen, initialData]);
@@ -126,16 +106,6 @@ const DeliveryDialog: React.FC<DeliveryDialogProps> = ({
         deliveryFee: fee,
     };
 
-     // Save the confirmed delivery info to localStorage as the "last used"
-     try {
-        localStorage.setItem(DELIVERY_INFO_STORAGE_KEY, JSON.stringify(collectedInfo));
-        console.log("DeliveryDialog: Saved current info to localStorage as last used.");
-     } catch (e) {
-        console.error("DeliveryDialog: Failed to save last delivery info to localStorage:", e);
-        // Optionally notify the user, but proceed with onConfirm
-     }
-
-
     // Pass collected info back to the parent component
     onConfirm(collectedInfo);
   };
@@ -143,7 +113,6 @@ const DeliveryDialog: React.FC<DeliveryDialogProps> = ({
 
   const handleCancelClick = () => {
     onCancel(); // Call parent cancel logic
-    // Don't automatically close if fields are empty and no initial data exists (handled in parent)
   };
 
   return (

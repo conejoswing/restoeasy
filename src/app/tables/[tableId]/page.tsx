@@ -104,7 +104,7 @@ interface PendingOrderStorageData {
 const INVENTORY_STORAGE_KEY = 'restaurantInventory';
 const CASH_MOVEMENTS_STORAGE_KEY = 'cashMovements';
 const PENDING_ORDERS_STORAGE_KEY_PREFIX = 'table-';
-const DELIVERY_INFO_STORAGE_KEY_PREFIX = 'deliveryInfo-';
+// const DELIVERY_INFO_STORAGE_KEY_PREFIX = 'deliveryInfo-'; // No longer storing deliveryInfo globally for the "table" in session
 const ORDER_NUMBER_STORAGE_KEY = 'lastOrderNumber';
 
 
@@ -131,9 +131,9 @@ export default function TableDetailPage() {
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [totalForPayment, setTotalForPayment] = useState(0);
   const [subtotalForPayment, setSubtotalForPayment] = useState<number | null>(null);
-  const [tipForFinalPayment, setTipForFinalPayment] = useState(0);
+  const [tipForFinalPayment, setTipForFinalPayment] = useState(0); // This will now be derived from PendingOrderGroup.tipAmountForPayment
   const [isDeliveryDialogOpen, setIsDeliveryDialogOpen] = useState(false);
-  const [deliveryInfo, setDeliveryInfo] = useState<DeliveryInfo | null>(null);
+  const [deliveryInfo, setDeliveryInfo] = useState<DeliveryInfo | null>(null); // Represents delivery info for the CURRENT order being built
   const [lastOrderNumber, setLastOrderNumber] = useState(0);
   const [orderToPay, setOrderToPay] = useState<PendingOrderGroup | null>(null);
   const [isMenuSheetOpen, setIsMenuSheetOpen] = useState(false);
@@ -227,19 +227,12 @@ export default function TableDetailPage() {
         } catch (e) { console.error("Error loading pending orders:", e); }
     }
 
-    if (isDelivery) {
-      const storedDeliveryInfo = sessionStorage.getItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`);
-      if (storedDeliveryInfo) {
-        try {
-          setDeliveryInfo(JSON.parse(storedDeliveryInfo));
-        } catch (e) { console.error("Error loading delivery info:", e); }
-      }
-
-      const hasPendingDeliveryInfo = pendingOrderGroups.some(pg => pg.deliveryInfo);
-      if (!storedDeliveryInfo && currentOrder.length === 0 && !hasPendingDeliveryInfo) {
+    // For delivery, if it's a new session (no current order, no pending orders for this "table instance"),
+    // and no deliveryInfo is set for the *current in-progress order*, prompt for it.
+    if (isDelivery && currentOrder.length === 0 && pendingOrderGroups.length === 0 && !deliveryInfo) {
         setIsDeliveryDialogOpen(true);
-      }
     }
+
 
      const storedOrderNumber = localStorage.getItem(ORDER_NUMBER_STORAGE_KEY);
      setLastOrderNumber(storedOrderNumber ? parseInt(storedOrderNumber, 10) : 0);
@@ -247,7 +240,8 @@ export default function TableDetailPage() {
     setIsInitialized(true);
     console.log(`Initialization complete for ${tableIdParam}.`);
 
-  }, [tableIdParam, isInitialized, isDelivery]); // Removed pendingOrderGroups and currentOrder.length from deps as they are loaded inside
+  }, [tableIdParam, isInitialized, isDelivery, deliveryInfo]); // Added deliveryInfo to deps for the initial dialog open logic
+
 
   useEffect(() => {
     const handleMenuUpdate = () => {
@@ -262,56 +256,36 @@ export default function TableDetailPage() {
  useEffect(() => {
     if (!isInitialized || !tableIdParam) return;
 
-    console.log(`TableDetailPage: useEffect for state saving triggered for table ${tableIdParam}. currentOrder: ${currentOrder.length}, pendingOrderGroups: ${pendingOrderGroups.length}`);
+    console.log(`TableDetailPage: useEffect for state saving triggered for table ${tableIdParam}. currentOrder: ${currentOrder.length}, pendingOrderGroups: ${pendingOrderGroups.length}, deliveryInfo (for current order): ${deliveryInfo ? 'Set' : 'Not Set'}`);
 
     sessionStorage.setItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${tableIdParam}-currentOrder`, JSON.stringify(currentOrder));
     sessionStorage.setItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${tableIdParam}-pendingOrders`, JSON.stringify({ groups: pendingOrderGroups }));
 
-    if (isDelivery) {
-        if (deliveryInfo) {
-            sessionStorage.setItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`, JSON.stringify(deliveryInfo));
-        } else {
-            // Only remove if there are no pending groups with delivery info and no current order for this specific delivery table
-            const hasOtherPendingDeliveryInfoForThisTable = pendingOrderGroups.some(pg => pg.deliveryInfo);
-            if (!hasOtherPendingDeliveryInfoForThisTable && currentOrder.length === 0) {
-                sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`);
-                console.log(`TableDetailPage: Delivery table ${tableIdParam} effectively clear, removed its deliveryInfo from session.`);
-            }
-        }
-    }
 
     const hasPending = pendingOrderGroups.length > 0;
     const hasCurrent = currentOrder.length > 0;
 
-    let isDeliveryEffectivelyOccupied = false;
+    let isEffectivelyOccupied = false;
     if (isDelivery) {
-        // Check if ANY pending group for this table has delivery info OR if current deliveryInfo state is set
-        const currentDeliveryInfoProvided = deliveryInfo && (deliveryInfo.name || deliveryInfo.address || deliveryInfo.phone);
-        const pendingDeliveryInfoProvidedForThisTable = pendingOrderGroups.some(pg => pg.deliveryInfo && (pg.deliveryInfo.name || pg.deliveryInfo.address || pg.deliveryInfo.phone));
-        isDeliveryEffectivelyOccupied = !!(currentDeliveryInfoProvided || pendingDeliveryInfoProvidedForThisTable);
-        console.log(`TableDetailPage: Delivery check for ${tableIdParam}. currentDeliveryInfoProvided: ${!!currentDeliveryInfoProvided}, pendingDeliveryInfoProvidedForThisTable: ${pendingDeliveryInfoProvidedForThisTable}, isDeliveryEffectivelyOccupied: ${isDeliveryEffectivelyOccupied}`);
+        // A delivery "table" is occupied if there's a current order being built (which implies deliveryInfo will be set or prompted for),
+        // OR if there are pending orders for this table ID (each will have its own deliveryInfo).
+        isEffectivelyOccupied = hasCurrent || hasPending;
+        console.log(`TableDetailPage: Delivery check for ${tableIdParam}. hasCurrent: ${hasCurrent}, hasPending: ${hasPending}, isDeliveryEffectivelyOccupied: ${isEffectivelyOccupied}`);
     }
 
     let newStatus: 'available' | 'occupied';
-    if (hasPending || hasCurrent || (isDelivery && isDeliveryEffectivelyOccupied)) {
+    if (hasPending || hasCurrent || (isDelivery && isEffectivelyOccupied)) {
       newStatus = 'occupied';
     } else {
       newStatus = 'available';
-      if (isDelivery && !isDeliveryEffectivelyOccupied) {
-            // Explicitly remove delivery info if table becomes available and no groups hold onto delivery data
-            sessionStorage.removeItem(`${DELIVERY_INFO_STORAGE_KEY_PREFIX}${tableIdParam}`);
-            console.log(`TableDetailPage: Delivery table ${tableIdParam} became available AND effectively clear, removed its deliveryInfo from session.`);
-      }
     }
 
     const storageKey = `table-${tableIdParam}-status`;
     const oldStatus = sessionStorage.getItem(storageKey) as 'available' | 'occupied' | null;
 
-    // Always write the current status to ensure consistency
     sessionStorage.setItem(storageKey, newStatus);
     console.log(`TableDetailPage: Table ${tableIdParam} status set to ${newStatus} in sessionStorage. Old status was: ${oldStatus}`);
 
-    // Dispatch event only if the status has actually changed or was initially set to occupied
     if (oldStatus !== newStatus || (oldStatus === null && newStatus === 'occupied')) {
       console.log(`TableDetailPage: Table ${tableIdParam} status ${oldStatus === null ? 'was unset and now' : 'actually changed from ' + oldStatus + ' to'} ${newStatus}. Dispatching 'tableStatusUpdated' event.`);
       window.dispatchEvent(new CustomEvent('tableStatusUpdated'));
@@ -399,14 +373,10 @@ export default function TableDetailPage() {
       toast({ title: "Pedido Vacío", description: "Añada productos antes de imprimir la comanda.", variant: "destructive" });
       return;
     }
-     // For delivery, ensure deliveryInfo is present if there are no PENDING orders with delivery info for this table.
-     // If there are pending orders for this specific delivery "table", their delivery info is already set.
-     // This new order for a delivery "table" should have its own delivery info or reuse an existing one if that's the intended logic.
-     // Current logic: if this delivery "table" is effectively new (no pending, no existing deliveryInfo), prompt for it.
-     const isEffectivelyNewDelivery = isDelivery && !deliveryInfo && !pendingOrderGroups.some(pg => pg.deliveryInfo);
-
-     if (isEffectivelyNewDelivery && currentOrder.length > 0) {
-        toast({ title: "Faltan Datos de Envío", description: "Por favor, ingrese los datos de envío antes de imprimir la comanda.", variant: "destructive" });
+     // For delivery, if a new order is being created (currentOrder.length > 0)
+     // and no deliveryInfo is yet associated with this *current* order, prompt for it.
+     if (isDelivery && currentOrder.length > 0 && !deliveryInfo) {
+        toast({ title: "Faltan Datos de Envío", description: "Por favor, ingrese los datos de envío para este pedido.", variant: "destructive" });
         setIsDeliveryDialogOpen(true); // Prompt for delivery info
         return;
     }
@@ -424,9 +394,7 @@ export default function TableDetailPage() {
     const orderNumber = getNextOrderNumber();
     const orderWithNumber = currentOrder.map(item => ({ ...item, orderNumber }));
 
-    // Use the current deliveryInfo if this is a new delivery order.
-    // If there are existing pending orders for this delivery table, their deliveryInfo is already part of their group.
-    // This new order group will capture the deliveryInfo active at the time of its creation.
+    // Use the current deliveryInfo (from component state) for this specific order group being created.
     const currentDeliveryInfoToUse = isDelivery ? deliveryInfo : null;
 
 
@@ -457,21 +425,12 @@ export default function TableDetailPage() {
     toast({ title: "Comanda Impresa", description: `Pedido #${String(orderNumber).padStart(3,'0')} enviado a cocina y movido a pendientes.` });
 
     if (isDelivery) {
-      // After sending a delivery order, if there are no other pending orders for THIS delivery table
-      // AND the current order is now empty, prompt for new delivery info.
-      // This implies that the "delivery table" becomes available for a *new* distinct delivery order.
-      const hasOtherPendingOrdersForThisDeliveryTable = pendingOrderGroups.some(
-        group => group.orderNumber !== orderNumber && group.deliveryInfo
-      );
-
-      if (currentOrder.length === 0 && !hasOtherPendingOrdersForThisDeliveryTable) {
-        console.log(`TableDetailPage: Delivery order ${orderNumber} sent. No other pending orders for this delivery. Clearing local deliveryInfo state and prompting for new.`);
-        setDeliveryInfo(null); // Clear the main deliveryInfo state for this "table"
-        // The useEffect will handle removing from session if this was the last thing making it occupied
-        setIsDeliveryDialogOpen(true); // Prompt for new delivery info for the next order
-      } else {
-        console.log(`TableDetailPage: Delivery order ${orderNumber} sent. Other pending orders for this delivery exist, or current order is not empty. Not clearing local deliveryInfo state or re-prompting immediately.`);
-      }
+      // After sending a delivery order, clear the deliveryInfo for the *next* new order.
+      // This ensures that if the user starts another order on the "Delivery" table, they'll be prompted for new details.
+      console.log(`TableDetailPage: Delivery order ${orderNumber} sent. Clearing local deliveryInfo state to prompt for new info for the next order on this 'Delivery' table.`);
+      setDeliveryInfo(null);
+      // Now that the current order is cleared and deliveryInfo is cleared,
+      // if the user clicks "Ver Menú" again, they will be prompted by handleOpenMenuOrDeliveryDialog.
     }
   };
 
@@ -837,25 +796,17 @@ export default function TableDetailPage() {
     setPendingOrderGroups(updatedPendingOrderGroups);
 
     setIsPaymentDialogOpen(false);
-    const paidOrderInfo = orderToPay; // Capture for potential deliveryInfo reset
+    // const paidOrderInfo = orderToPay; // Capture for potential deliveryInfo reset
     setOrderToPay(null);
     setSubtotalForPayment(null);
     setTipForFinalPayment(0);
 
 
-    if (isDelivery && paidOrderInfo?.deliveryInfo) {
-        const remainingDeliveryOrdersForThisTable = updatedPendingOrderGroups.filter(
-            group => group.deliveryInfo && // Check if other groups for THIS table still have delivery info
-                       group.deliveryInfo.name === paidOrderInfo.deliveryInfo?.name &&
-                       group.deliveryInfo.address === paidOrderInfo.deliveryInfo?.address
-        );
-        if (remainingDeliveryOrdersForThisTable.length === 0 && currentOrder.length === 0) {
-            console.log("TableDetailPage: Last delivery order with these specific details paid, and no current order. Clearing current deliveryInfo state IF it matches the paid order's info.");
-            // Only clear if the main deliveryInfo matches the one from the paid order
-            if (deliveryInfo && deliveryInfo.name === paidOrderInfo.deliveryInfo.name && deliveryInfo.address === paidOrderInfo.deliveryInfo.address) {
-                setDeliveryInfo(null);
-            }
-        }
+    if (isDelivery && updatedPendingOrderGroups.length === 0 && currentOrder.length === 0) {
+      // If it was a delivery, and now there are no pending orders and no current order for this "Delivery" table instance,
+      // clear the main deliveryInfo state to prompt for new info for the next distinct delivery.
+      console.log("TableDetailPage: Last delivery order paid, no current order, and no other pending delivery orders for this table instance. Clearing main deliveryInfo state.");
+      setDeliveryInfo(null);
     }
 
 
@@ -879,8 +830,10 @@ export default function TableDetailPage() {
                      group.deliveryInfo.address === orderToUpdate.deliveryInfo?.address
         );
         if (remainingDeliveryOrdersWithSameInfo.length === 0 && currentOrder.length === 0) {
+             // If the main deliveryInfo matches the one from the deleted order, clear it.
              if (deliveryInfo && deliveryInfo.name === orderToUpdate.deliveryInfo.name && deliveryInfo.address === orderToUpdate.deliveryInfo.address) {
                 setDeliveryInfo(null);
+                 console.log("TableDetailPage: Deleted the last pending order with specific delivery details, and current order is empty. Clearing main deliveryInfo.");
             }
         }
     }
@@ -945,19 +898,20 @@ export default function TableDetailPage() {
 
 
   const handleDeliveryInfoConfirm = (info: DeliveryInfo) => {
-    setDeliveryInfo(info);
+    setDeliveryInfo(info); // Set for the current order being built
     setIsDeliveryDialogOpen(false);
     toast({ title: "Datos de Envío Guardados", description: `Enviando a ${info.name}.` });
-    setIsMenuSheetOpen(true);
+    setIsMenuSheetOpen(true); // Open menu after confirming delivery info
   };
 
   const handleDeliveryInfoCancel = () => {
-    // If delivery, no current delivery info set, no pending orders, and no current order, then redirect
-    if (isDelivery && !deliveryInfo && pendingOrderGroups.length === 0 && currentOrder.length === 0) {
+    // If delivery, and this was the initial prompt (no current order, no pending orders),
+    // then canceling means going back to tables page.
+    if (isDelivery && currentOrder.length === 0 && pendingOrderGroups.length === 0) {
         router.push('/tables');
         toast({ title: "Envío Cancelado", description: "Se canceló el ingreso de datos de envío.", variant: "destructive" });
     } else {
-        setIsDeliveryDialogOpen(false); // Just close dialog if there's other context
+        setIsDeliveryDialogOpen(false); // Just close dialog if there's other context (e.g., an order was already being built)
     }
   };
 
@@ -968,14 +922,11 @@ export default function TableDetailPage() {
   };
 
   const handleOpenMenuOrDeliveryDialog = () => {
-    if (isDelivery && !deliveryInfo && !pendingOrderGroups.some(pg => pg.deliveryInfo) && currentOrder.length === 0) {
+    // If it's a delivery table, AND there's no deliveryInfo set for the *current order being built*,
+    // AND there's no current order yet (or we are about to start one), prompt for delivery info first.
+    if (isDelivery && !deliveryInfo && currentOrder.length === 0) {
       setIsDeliveryDialogOpen(true);
-    } else if (isDelivery && !deliveryInfo && currentOrder.length > 0 && !pendingOrderGroups.some(pg => pg.deliveryInfo)) {
-       // If there's a current order for delivery but no delivery info yet, prompt for it.
-       // This covers the case where a delivery order was started, then user navigated away and came back.
-       setIsDeliveryDialogOpen(true);
-    }
-    else {
+    } else {
       setIsMenuSheetOpen(true);
     }
   };
@@ -1342,7 +1293,7 @@ export default function TableDetailPage() {
            <DeliveryDialog
                isOpen={isDeliveryDialogOpen}
                onOpenChange={setIsDeliveryDialogOpen}
-               initialData={deliveryInfo}
+               initialData={deliveryInfo} // Pass current order's delivery info if editing, null otherwise
                onConfirm={handleDeliveryInfoConfirm}
                onCancel={handleDeliveryInfoCancel}
            />
