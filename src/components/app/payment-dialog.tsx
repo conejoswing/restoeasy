@@ -26,7 +26,7 @@ const formatCurrency = (amount: number) => {
 const paymentMethods: { name: PaymentMethod; icon: React.ReactNode }[] = [
     { name: 'Efectivo', icon: <Banknote className="h-4 w-4 mr-2 text-green-600" /> },
     { name: 'Tarjeta Débito', icon: <CreditCard className="h-4 w-4 mr-2 text-blue-600" /> },
-    { name: 'Tarjeta Crédito', icon: <CreditCard className="h-4 w-4 mr-2 text-purple-600" /> },
+    // { name: 'Tarjeta Crédito', icon: <CreditCard className="h-4 w-4 mr-2 text-purple-600" /> }, // Removido
     { name: 'Transferencia', icon: <Landmark className="h-4 w-4 mr-2 text-indigo-600" /> },
 ];
 
@@ -185,3 +185,6 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
 };
 
 export default PaymentDialog;
+
+
+    

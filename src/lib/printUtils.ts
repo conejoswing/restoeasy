@@ -513,7 +513,7 @@ export const formatCashClosingReceipt = (
     dailyTotals: {
         dailyCashIncome: number;
         dailyDebitCardIncome: number;
-        dailyCreditCardIncome: number;
+        // dailyCreditCardIncome: number; // Removido
         dailyTransferIncome: number;
         dailyDeliveryFees: number;
         dailyTipsTotal: number;
@@ -526,7 +526,7 @@ export const formatCashClosingReceipt = (
     inventoryDetails: InventoryItem[]
 ): string => {
     const {
-        dailyCashIncome, dailyDebitCardIncome, dailyCreditCardIncome, dailyTransferIncome,
+        dailyCashIncome, dailyDebitCardIncome, /* dailyCreditCardIncome, */ dailyTransferIncome, // Removido dailyCreditCardIncome
         dailyDeliveryFees, dailyTipsTotal, dailyTotalIncome, dailyExpenses, dailyNetTotal, dailyGrossTotal
     } = dailyTotals;
 
@@ -655,7 +655,7 @@ export const formatCashClosingReceipt = (
         <tbody>
           <tr><td class="label">Ingresos Efectivo:</td><td class="amount">${formatCurrency(dailyCashIncome)}</td></tr>
           <tr><td class="label">Ingresos T. Débito:</td><td class="amount">${formatCurrency(dailyDebitCardIncome)}</td></tr>
-          <tr><td class="label">Ingresos T. Crédito:</td><td class="amount">${formatCurrency(dailyCreditCardIncome)}</td></tr>
+          {/* Ingresos T. Crédito Removido */}
           <tr><td class="label">Ingresos Transfer.:</td><td class="amount">${formatCurrency(dailyTransferIncome)}</td></tr>
           <tr><td colspan="2"><hr></td></tr>
           <tr class="total-row">
@@ -739,3 +739,5 @@ export const printHtml = (htmlContent: string): void => {
     }
 };
 
+
+    

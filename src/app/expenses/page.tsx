@@ -71,7 +71,7 @@ export interface ClosingRecord {
   totals: {
     dailyCashIncome: number;
     dailyDebitCardIncome: number;
-    dailyCreditCardIncome: number;
+    // dailyCreditCardIncome: number; // Removido
     dailyTransferIncome: number;
     dailyDeliveryFees: number;
     dailyTipsTotal: number;
@@ -215,7 +215,7 @@ export default function CashRegisterPage() {
    const {
        dailyCashIncome,
        dailyDebitCardIncome,
-       dailyCreditCardIncome,
+       // dailyCreditCardIncome, // Removido
        dailyTransferIncome,
        dailyDeliveryFees,
        dailyTipsTotal,
@@ -227,7 +227,7 @@ export default function CashRegisterPage() {
         const today = startOfDay(new Date());
         let cash = 0;
         let debit = 0;
-        let credit = 0;
+        // let credit = 0; // Removido
         let transfer = 0;
         let deliveryFees = 0;
         let tips = 0;
@@ -240,7 +240,7 @@ export default function CashRegisterPage() {
                     switch(movement.paymentMethod) {
                         case 'Efectivo': cash += movement.amount; break;
                         case 'Tarjeta Débito': debit += movement.amount; break;
-                        case 'Tarjeta Crédito': credit += movement.amount; break;
+                        // case 'Tarjeta Crédito': credit += movement.amount; break; // Removido
                         case 'Transferencia': transfer += movement.amount; break;
                         default: cash += movement.amount; // Default to cash if method is undefined
                     }
@@ -266,13 +266,13 @@ export default function CashRegisterPage() {
             }
         });
 
-        const totalIncome = cash + debit + credit + transfer;
+        const totalIncome = cash + debit + transfer; // Removido credit
         const grossTotal = totalIncome + deliveryFees + tips; // Include delivery fees and tips in gross total
 
         return {
             dailyCashIncome: cash,
             dailyDebitCardIncome: debit,
-            dailyCreditCardIncome: credit,
+            // dailyCreditCardIncome: credit, // Removido
             dailyTransferIncome: transfer,
             dailyDeliveryFees: deliveryFees,
             dailyTipsTotal: tips,
@@ -284,7 +284,7 @@ export default function CashRegisterPage() {
    }, [cashMovements]);
 
 
-  const formatCurrency = (amount: number) => {
+  const formatCurrencyDisplay = (amount: number) => {
     return new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(amount);
   };
 
@@ -347,13 +347,13 @@ export default function CashRegisterPage() {
 
     setNewMovement({ date: undefined, category: '', description: '', amount: '', type: 'expense' });
     setIsAddDialogOpen(false);
-    toast({ title: "Éxito", description: `Movimiento de ${formatCurrency(addedMovement.amount)} registrado.` });
+    toast({ title: "Éxito", description: `Movimiento de ${formatCurrencyDisplay(addedMovement.amount)} registrado.` });
   };
 
   const handleConfirmClosing = () => {
      const closingDateTime = new Date(); // Capture current date and time
      const currentTotals = {
-         dailyCashIncome, dailyDebitCardIncome, dailyCreditCardIncome, dailyTransferIncome,
+         dailyCashIncome, dailyDebitCardIncome, /* dailyCreditCardIncome, */ dailyTransferIncome, // Removido dailyCreditCardIncome
          dailyDeliveryFees, dailyTipsTotal, dailyTotalIncome, dailyExpenses, dailyNetTotal, dailyGrossTotal
      };
 
@@ -529,14 +529,14 @@ export default function CashRegisterPage() {
             </Dialog>
         </div>
 
-         <div className="md:col-span-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
+         <div className="md:col-span-2 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2"> {/* Ajustado a 5 columnas */}
              <Card className="text-center">
                  <CardHeader className="p-2 pb-0 flex flex-row items-center justify-center space-x-2">
                     <Banknote className="h-4 w-4 text-muted-foreground" />
                     <CardTitle className="text-xs font-medium">Efectivo</CardTitle>
                  </CardHeader>
                  <CardContent className="p-2 pt-0">
-                     <p className="text-lg font-bold text-green-600">{formatCurrency(dailyCashIncome)}</p>
+                     <p className="text-lg font-bold text-green-600">{formatCurrencyDisplay(dailyCashIncome)}</p>
                  </CardContent>
              </Card>
              <Card className="text-center">
@@ -545,25 +545,17 @@ export default function CashRegisterPage() {
                     <CardTitle className="text-xs font-medium">T. Débito</CardTitle>
                  </CardHeader>
                  <CardContent className="p-2 pt-0">
-                     <p className="text-lg font-bold text-blue-600">{formatCurrency(dailyDebitCardIncome)}</p>
+                     <p className="text-lg font-bold text-blue-600">{formatCurrencyDisplay(dailyDebitCardIncome)}</p>
                  </CardContent>
              </Card>
-             <Card className="text-center">
-                 <CardHeader className="p-2 pb-0 flex flex-row items-center justify-center space-x-2">
-                     <CreditCard className="h-4 w-4 text-muted-foreground" />
-                     <CardTitle className="text-xs font-medium">T. Crédito</CardTitle>
-                 </CardHeader>
-                 <CardContent className="p-2 pt-0">
-                     <p className="text-lg font-bold text-purple-600">{formatCurrency(dailyCreditCardIncome)}</p>
-                 </CardContent>
-             </Card>
+             {/* Tarjeta de Crédito Removida */}
              <Card className="text-center">
                   <CardHeader className="p-2 pb-0 flex flex-row items-center justify-center space-x-2">
                      <Landmark className="h-4 w-4 text-muted-foreground" />
                      <CardTitle className="text-xs font-medium">Transfer.</CardTitle>
                   </CardHeader>
                   <CardContent className="p-2 pt-0">
-                      <p className="text-lg font-bold text-indigo-600">{formatCurrency(dailyTransferIncome)}</p>
+                      <p className="text-lg font-bold text-indigo-600">{formatCurrencyDisplay(dailyTransferIncome)}</p>
                   </CardContent>
              </Card>
               <Card className="text-center">
@@ -572,7 +564,7 @@ export default function CashRegisterPage() {
                       <CardTitle className="text-xs font-medium">Costo Envío</CardTitle>
                    </CardHeader>
                    <CardContent className="p-2 pt-0">
-                       <p className="text-lg font-bold text-orange-600">{formatCurrency(dailyDeliveryFees)}</p>
+                       <p className="text-lg font-bold text-orange-600">{formatCurrencyDisplay(dailyDeliveryFees)}</p>
                    </CardContent>
               </Card>
               <Card className="text-center">
@@ -581,7 +573,7 @@ export default function CashRegisterPage() {
                       <CardTitle className="text-xs font-medium">Propina</CardTitle>
                    </CardHeader>
                    <CardContent className="p-2 pt-0">
-                       <p className="text-lg font-bold text-pink-600">{formatCurrency(dailyTipsTotal)}</p>
+                       <p className="text-lg font-bold text-pink-600">{formatCurrencyDisplay(dailyTipsTotal)}</p>
                    </CardContent>
               </Card>
          </div>
@@ -604,47 +596,44 @@ export default function CashRegisterPage() {
                   <div className="grid gap-2 text-sm mt-4">
                      <div className="flex justify-between">
                          <span>Total Ingresos (Efectivo):</span>
-                         <span className="font-medium text-green-600">{formatCurrency(dailyCashIncome)}</span>
+                         <span className="font-medium text-green-600">{formatCurrencyDisplay(dailyCashIncome)}</span>
                      </div>
                       <div className="flex justify-between">
                          <span>Total Ingresos (T. Débito):</span>
-                         <span className="font-medium text-blue-600">{formatCurrency(dailyDebitCardIncome)}</span>
+                         <span className="font-medium text-blue-600">{formatCurrencyDisplay(dailyDebitCardIncome)}</span>
                      </div>
-                      <div className="flex justify-between">
-                         <span>Total Ingresos (T. Crédito):</span>
-                         <span className="font-medium text-purple-600">{formatCurrency(dailyCreditCardIncome)}</span>
-                     </div>
+                      {/* Total Ingresos (T. Crédito) Removido */}
                       <div className="flex justify-between">
                          <span>Total Ingresos (Transferencia):</span>
-                         <span className="font-medium text-indigo-600">{formatCurrency(dailyTransferIncome)}</span>
+                         <span className="font-medium text-indigo-600">{formatCurrencyDisplay(dailyTransferIncome)}</span>
                      </div>
                       <div className="flex justify-between">
                          <span>Total Costo Envío:</span>
-                         <span className="font-medium text-orange-600">{formatCurrency(dailyDeliveryFees)}</span>
+                         <span className="font-medium text-orange-600">{formatCurrencyDisplay(dailyDeliveryFees)}</span>
                      </div>
                       <div className="flex justify-between">
                          <span>Total Propinas:</span>
-                         <span className="font-medium text-pink-600">{formatCurrency(dailyTipsTotal)}</span>
+                         <span className="font-medium text-pink-600">{formatCurrencyDisplay(dailyTipsTotal)}</span>
                      </div>
                      <div className="flex justify-between font-semibold">
                          <span>Total Ingresos (General):</span>
-                         <span className="font-medium text-green-600">{formatCurrency(dailyTotalIncome)}</span>
+                         <span className="font-medium text-green-600">{formatCurrencyDisplay(dailyTotalIncome)}</span>
                      </div>
                      <div className="flex justify-between">
                          <span>Total Egresos:</span>
-                         <span className="font-medium text-red-600">{formatCurrency(dailyExpenses)}</span>
+                         <span className="font-medium text-red-600">{formatCurrencyDisplay(dailyExpenses)}</span>
                      </div>
                       <hr className="my-2"/>
                       <div className="flex justify-between font-semibold">
                           <span>Total Neto:</span>
                           <span className={cn(dailyNetTotal >= 0 ? "text-green-600" : "text-red-600")}>
-                              {formatCurrency(dailyNetTotal)}
+                              {formatCurrencyDisplay(dailyNetTotal)}
                           </span>
                       </div>
                        <div className="flex justify-between font-semibold">
                           <span>Total General (Bruto):</span>
-                          <span className={cn(dailyGrossTotal >= 0 ? "text-green-600" : "text-red-600")}>
-                              {formatCurrency(dailyGrossTotal)}
+                          <span className={cn(dailyGrossTotal ?? 0 >= 0 ? "text-green-600" : "text-red-600")}> {/* Asegurar que dailyGrossTotal no sea undefined */}
+                              {formatCurrencyDisplay(dailyGrossTotal ?? 0)}
                           </span>
                       </div>
                   </div>
@@ -663,7 +652,7 @@ export default function CashRegisterPage() {
                     </CardHeader>
                     <CardContent className="p-2 pt-0">
                         <p className="text-xl font-bold text-green-600">
-                            {formatCurrency(dailyGrossTotal)}
+                            {formatCurrencyDisplay(dailyGrossTotal ?? 0)}
                         </p>
                     </CardContent>
                 </Card>
@@ -677,7 +666,7 @@ export default function CashRegisterPage() {
                             "text-xl font-bold",
                              dailyNetTotal >= 0 ? "text-green-600" : "text-red-600"
                          )}>
-                             {formatCurrency(dailyNetTotal)}
+                             {formatCurrencyDisplay(dailyNetTotal)}
                          </p>
                      </CardContent>
                </Card>
@@ -707,7 +696,7 @@ export default function CashRegisterPage() {
                     "text-right font-mono",
                     movement.amount >= 0 ? "text-green-600" : "text-red-600"
                   )}>
-                    {formatCurrency(movement.amount)}
+                    {formatCurrencyDisplay(movement.amount)}
                   </TableCell>
                    <TableCell className="text-right text-xs text-muted-foreground">
                        {movement.category === 'Ingreso Venta' ? (movement.paymentMethod ?? 'Efectivo') : '-'}
@@ -728,3 +717,6 @@ export default function CashRegisterPage() {
     </div>
   );
 }
+
+
+    
