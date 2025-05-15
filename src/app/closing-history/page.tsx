@@ -12,15 +12,26 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Printer } from 'lucide-react';
+import { ArrowLeft, Printer, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/context/AuthContext';
 import type { ClosingRecord, CashMovement } from '@/app/expenses/page'; // Import ClosingRecord
-import type { InventoryItem } from '@/app/inventory/page';
 import { formatCashClosingReceipt, printHtml, formatCurrency } from '@/lib/printUtils';
 import { format as formatDateFns } from 'date-fns'; // For consistent date formatting
+import { cn } from '@/lib/utils';
 
 const CLOSING_HISTORY_STORAGE_KEY = 'cashClosingHistory';
 
@@ -87,6 +98,13 @@ export default function ClosingHistoryPage() {
     }
   };
 
+  const handleDeleteClosingRecord = (recordId: string) => {
+    const updatedRecords = closingRecords.filter(record => record.id !== recordId);
+    setClosingRecords(updatedRecords);
+    localStorage.setItem(CLOSING_HISTORY_STORAGE_KEY, JSON.stringify(updatedRecords));
+    toast({ title: "Registro Eliminado", description: "El cierre de caja ha sido eliminado del historial.", variant: "destructive" });
+  };
+
   if (isLoading || !isHistoryInitialized) {
     return <div className="flex items-center justify-center min-h-screen">Cargando Historial de Cierres...</div>;
   }
@@ -141,17 +159,44 @@ export default function ClosingHistoryPage() {
                         {formatCurrency(record.totals.dailyNetTotal)}
                     </TableCell>
                      <TableCell className="text-right font-mono">
-                        {formatCurrency(record.totals.dailyGrossTotal ?? record.totals.dailyTotalIncome)} 
+                        {formatCurrency(record.totals.dailyGrossTotal ?? record.totals.dailyTotalIncome)}
                     </TableCell>
                     <TableCell className="text-right">
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleReprintClosing(record)}
-                    >
-                        <Printer className="mr-2 h-4 w-4" />
-                        Reimprimir
-                    </Button>
+                        <div className="flex justify-end gap-2">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handleReprintClosing(record)}
+                            >
+                                <Printer className="mr-2 h-4 w-4" />
+                                Reimprimir
+                            </Button>
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="destructive" size="sm">
+                                        <Trash2 className="mr-2 h-4 w-4" />
+                                        Eliminar
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            Esta acción no se puede deshacer. Esto eliminará permanentemente el registro del cierre del <strong className="font-semibold">{formatDateFns(new Date(record.dateTime), 'dd/MM/yyyy HH:mm')}</strong>.
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                        <AlertDialogAction
+                                            onClick={() => handleDeleteClosingRecord(record.id)}
+                                            className={cn(buttonVariants({ variant: "destructive" }))}
+                                        >
+                                            Confirmar Eliminación
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </div>
                     </TableCell>
                 </TableRow>
                 ))}
@@ -162,3 +207,4 @@ export default function ClosingHistoryPage() {
     </div>
   );
 }
+
