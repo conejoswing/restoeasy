@@ -84,10 +84,9 @@ export default function ClosingHistoryPage() {
             date: new Date(m.date) // Convert ISO string back to Date
         }));
         
-        // Ensure dailyCreditCardIncome is handled if missing (for older records)
         const totalsForReprint = {
             ...record.totals,
-            // dailyCreditCardIncome: record.totals.dailyCreditCardIncome || 0, // Removido
+            dailyCardIncome: record.totals.dailyCardIncome || 0, // Use dailyCardIncome
         };
 
         const receiptHtml = formatCashClosingReceipt(
@@ -213,6 +212,3 @@ export default function ClosingHistoryPage() {
     </div>
   );
 }
-
-
-    

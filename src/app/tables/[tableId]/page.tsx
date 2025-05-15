@@ -57,7 +57,7 @@ import { cn } from '@/lib/utils';
 import type { CashMovement } from '@/app/expenses/page';
 import type { DeliveryInfo } from '@/components/app/delivery-dialog';
 import DeliveryDialog from '@/components/app/delivery-dialog'; // Corrected import
-import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatPendingOrderCopy } from '@/lib/printUtils'; // formatCurrency removed from direct import
+import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatPendingOrderCopy } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
 import type { MenuItem } from '@/types/menu';
 import { loadMenuData, orderedCategories as predefinedOrderedCategories, sortMenu } from '@/lib/menuUtils';
@@ -86,7 +86,7 @@ export interface OrderItem extends Omit<MenuItem, 'price' | 'modificationPrices'
 }
 
 
-export type PaymentMethod = 'Efectivo' | 'Tarjeta Débito' /* | 'Tarjeta Crédito' */ | 'Transferencia'; // Tarjeta Crédito Removida
+export type PaymentMethod = 'Efectivo' | 'Tarjeta' | 'Transferencia';
 
 interface PendingOrderGroup {
   orderNumber: number;
@@ -1237,6 +1237,3 @@ export default function TableDetailPage() {
     </div>
   );
 }
-
-
-    

@@ -70,8 +70,7 @@ export interface ClosingRecord {
   dateTime: string; // ISO string de la fecha y hora del cierre
   totals: {
     dailyCashIncome: number;
-    dailyDebitCardIncome: number;
-    // dailyCreditCardIncome: number; // Removido
+    dailyCardIncome: number;
     dailyTransferIncome: number;
     dailyDeliveryFees: number;
     dailyTipsTotal: number;
@@ -214,8 +213,7 @@ export default function CashRegisterPage() {
 
    const {
        dailyCashIncome,
-       dailyDebitCardIncome,
-       // dailyCreditCardIncome, // Removido
+       dailyCardIncome,
        dailyTransferIncome,
        dailyDeliveryFees,
        dailyTipsTotal,
@@ -226,8 +224,7 @@ export default function CashRegisterPage() {
     } = useMemo(() => {
         const today = startOfDay(new Date());
         let cash = 0;
-        let debit = 0;
-        // let credit = 0; // Removido
+        let card = 0;
         let transfer = 0;
         let deliveryFees = 0;
         let tips = 0;
@@ -239,8 +236,7 @@ export default function CashRegisterPage() {
                 if (movement.amount > 0 && movement.category === 'Ingreso Venta') {
                     switch(movement.paymentMethod) {
                         case 'Efectivo': cash += movement.amount; break;
-                        case 'Tarjeta Débito': debit += movement.amount; break;
-                        // case 'Tarjeta Crédito': credit += movement.amount; break; // Removido
+                        case 'Tarjeta': card += movement.amount; break;
                         case 'Transferencia': transfer += movement.amount; break;
                         default: cash += movement.amount; // Default to cash if method is undefined
                     }
@@ -266,13 +262,12 @@ export default function CashRegisterPage() {
             }
         });
 
-        const totalIncome = cash + debit + transfer; // Removido credit
+        const totalIncome = cash + card + transfer;
         const grossTotal = totalIncome + deliveryFees + tips; // Include delivery fees and tips in gross total
 
         return {
             dailyCashIncome: cash,
-            dailyDebitCardIncome: debit,
-            // dailyCreditCardIncome: credit, // Removido
+            dailyCardIncome: card,
             dailyTransferIncome: transfer,
             dailyDeliveryFees: deliveryFees,
             dailyTipsTotal: tips,
@@ -353,7 +348,7 @@ export default function CashRegisterPage() {
   const handleConfirmClosing = () => {
      const closingDateTime = new Date(); // Capture current date and time
      const currentTotals = {
-         dailyCashIncome, dailyDebitCardIncome, /* dailyCreditCardIncome, */ dailyTransferIncome, // Removido dailyCreditCardIncome
+         dailyCashIncome, dailyCardIncome, dailyTransferIncome,
          dailyDeliveryFees, dailyTipsTotal, dailyTotalIncome, dailyExpenses, dailyNetTotal, dailyGrossTotal
      };
 
@@ -542,13 +537,12 @@ export default function CashRegisterPage() {
              <Card className="text-center">
                  <CardHeader className="p-2 pb-0 flex flex-row items-center justify-center space-x-2">
                     <CreditCard className="h-4 w-4 text-muted-foreground" />
-                    <CardTitle className="text-xs font-medium">T. Débito</CardTitle>
+                    <CardTitle className="text-xs font-medium">Tarjeta</CardTitle>
                  </CardHeader>
                  <CardContent className="p-2 pt-0">
-                     <p className="text-lg font-bold text-blue-600">{formatCurrencyDisplay(dailyDebitCardIncome)}</p>
+                     <p className="text-lg font-bold text-blue-600">{formatCurrencyDisplay(dailyCardIncome)}</p>
                  </CardContent>
              </Card>
-             {/* Tarjeta de Crédito Removida */}
              <Card className="text-center">
                   <CardHeader className="p-2 pb-0 flex flex-row items-center justify-center space-x-2">
                      <Landmark className="h-4 w-4 text-muted-foreground" />
@@ -599,10 +593,9 @@ export default function CashRegisterPage() {
                          <span className="font-medium text-green-600">{formatCurrencyDisplay(dailyCashIncome)}</span>
                      </div>
                       <div className="flex justify-between">
-                         <span>Total Ingresos (T. Débito):</span>
-                         <span className="font-medium text-blue-600">{formatCurrencyDisplay(dailyDebitCardIncome)}</span>
+                         <span>Total Ingresos (Tarjeta):</span>
+                         <span className="font-medium text-blue-600">{formatCurrencyDisplay(dailyCardIncome)}</span>
                      </div>
-                      {/* Total Ingresos (T. Crédito) Removido */}
                       <div className="flex justify-between">
                          <span>Total Ingresos (Transferencia):</span>
                          <span className="font-medium text-indigo-600">{formatCurrencyDisplay(dailyTransferIncome)}</span>
@@ -717,6 +710,3 @@ export default function CashRegisterPage() {
     </div>
   );
 }
-
-
-    
