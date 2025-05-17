@@ -21,8 +21,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetClose,
-  SheetFooter, // Keep for potential explicit close if needed, but not used for main menu anymore
-  SheetTrigger,
+  SheetFooter,
 } from '@/components/ui/sheet';
 import {
   Dialog as ShadDialog,
@@ -130,9 +129,6 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
   const [orderToPay, setOrderToPay] = useState<PendingOrderGroup | null>(null);
   const [isMenuSheetOpen, setIsMenuSheetOpen] = useState(false);
 
-  const [selectedCategoryForDialog, setSelectedCategoryForDialog] = useState<string | null>(null);
-  const [isProductListDialogOpen, setIsProductListDialogOpen] = useState(false);
-
   const [isConfirmTipForCopyDialogOpen, setIsConfirmTipForCopyDialogOpen] = useState(false);
   const [orderGroupForCopy, setOrderGroupForCopy] = useState<PendingOrderGroup | null>(null);
 
@@ -203,7 +199,6 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
                     })).sort((a: PendingOrderGroup, b: PendingOrderGroup) => a.timestamp - b.timestamp)
                  );
              } else if (Array.isArray(parsedData)) {
-                 // Fallback for old format if needed, though current logic saves it as { groups: [...] }
                  setPendingOrderGroups(
                     parsedData.map((group: PendingOrderGroup) => ({
                         ...group,
@@ -241,8 +236,6 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
  useEffect(() => {
     if (!isInitialized || !tableIdParam) return;
 
-    console.log(`TableDetailPage: useEffect for state saving triggered for table ${tableIdParam}. currentOrder: ${currentOrder.length}, pendingOrderGroups: ${pendingOrderGroups.length}`);
-
     sessionStorage.setItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${tableIdParam}-currentOrder`, JSON.stringify(currentOrder));
     sessionStorage.setItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${tableIdParam}-pendingOrders`, JSON.stringify({ groups: pendingOrderGroups }));
 
@@ -252,11 +245,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
 
     let isEffectivelyOccupied = false;
     if (isDelivery) {
-        // For delivery, it's occupied if there's a current order OR any pending delivery orders.
-        // The `deliveryInfo` state on the component is for the *current* order being built.
-        // Pending orders for delivery will have their own `deliveryInfo` within the group.
         isEffectivelyOccupied = hasCurrent || pendingOrderGroups.some(pg => !!pg.deliveryInfo);
-        console.log(`TableDetailPage: Delivery check for ${tableIdParam}. hasCurrent: ${hasCurrent}, hasPendingDeliveryOrders: ${pendingOrderGroups.some(pg => !!pg.deliveryInfo)}, isDeliveryEffectivelyOccupied: ${isEffectivelyOccupied}`);
     }
 
     let newStatus: 'available' | 'occupied';
@@ -269,16 +258,11 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     const storageKey = `table-${tableIdParam}-status`;
     const oldStatus = sessionStorage.getItem(storageKey) as 'available' | 'occupied' | null;
 
-    // Always set the status in sessionStorage, even if it hasn't changed from what was read,
-    // to ensure this page is the source of truth for its own status.
     sessionStorage.setItem(storageKey, newStatus);
-    console.log(`TableDetailPage: Table ${tableIdParam} status set to ${newStatus} in sessionStorage.`);
 
     if (oldStatus !== newStatus || (oldStatus === null && newStatus === 'occupied')) {
       console.log(`TableDetailPage: Table ${tableIdParam} status ${oldStatus === null ? 'was unset and now' : 'actually changed from ' + (oldStatus ?? 'unset') + ' to'} ${newStatus}. Dispatching 'tableStatusUpdated' event.`);
       window.dispatchEvent(new CustomEvent('tableStatusUpdated'));
-    } else {
-      console.log(`TableDetailPage: Table ${tableIdParam} status (${newStatus}) did not change from what was in sessionStorage or was already available. Event not dispatched.`);
     }
 
   }, [currentOrder, pendingOrderGroups, tableIdParam, isInitialized, isDelivery]);
@@ -330,7 +314,6 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
           ]);
       }
       toast({ title: "Producto Añadido", description: `${item.name} se añadió al pedido actual.` });
-      // Note: setIsProductListDialogOpen(false) will be called by the component that invokes handleAddItemToOrder
   };
 
   const handleRemoveItemFromOrder = (orderItemId: string) => {
@@ -380,7 +363,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
   const handleConfirmPrintKitchenOrderWithObservation = () => {
     if (currentOrder.length === 0) {
         toast({ title: "Pedido Vacío", description: "Añada productos antes de imprimir la comanda.", variant: "destructive" });
-        setIsGeneralObservationDialogOpen(false); // Close dialog even if empty
+        setIsGeneralObservationDialogOpen(false);
         return;
     }
 
@@ -407,18 +390,17 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
             deliveryInfo: currentDeliveryInfoToUse,
             timestamp: Date.now(),
             generalObservation: currentGeneralObservation,
-            tipAmountForPayment: 0, // Initialize tip for this group
+            tipAmountForPayment: 0,
         }
     ].sort((a,b) => a.timestamp - b.timestamp));
 
     setCurrentOrder([]);
-    setCurrentGeneralObservation(''); // Reset observation for next order
-    setIsGeneralObservationDialogOpen(false); // Close dialog
+    setCurrentGeneralObservation('');
+    setIsGeneralObservationDialogOpen(false);
     toast({ title: "Comanda Impresa", description: `Pedido #${String(orderNumber).padStart(3,'0')} enviado a cocina y movido a pendientes.` });
 
     if (isDelivery) {
-      console.log(`TableDetailPage: Delivery order ${orderNumber} sent. Clearing local deliveryInfo state.`);
-      setDeliveryInfo(null); // Clear delivery info after associating it with the pending order
+      setDeliveryInfo(null);
     }
   };
 
@@ -465,7 +447,6 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     );
     printHtml(customerCopyHtml);
 
-    // Save the tip decision with the pending order group
     setPendingOrderGroups(prevGroups =>
         prevGroups.map(group =>
             group.orderNumber === orderGroupForCopy.orderNumber
@@ -488,21 +469,20 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     setOrderToPay(groupToPay);
 
     const currentSubtotal = groupToPay.items.reduce((sum, item) => sum + item.finalPrice * item.quantity, 0);
-    setSubtotalForPayment(currentSubtotal); // Store subtotal for cash movement registration
+    setSubtotalForPayment(currentSubtotal);
 
     let deliveryFeeForThisOrder = 0;
     if (isDelivery && groupToPay.deliveryInfo && groupToPay.deliveryInfo.deliveryFee > 0) {
       deliveryFeeForThisOrder = groupToPay.deliveryInfo.deliveryFee;
     }
 
-    // Use the tipAmountForPayment stored in the group (decided when printing copy)
     const tipForThisPayment = groupToPay.tipAmountForPayment ?? 0;
-    setTipForFinalPayment(tipForThisPayment); // Store tip for cash movement and receipt
+    setTipForFinalPayment(tipForThisPayment);
 
     const finalAmountForDialog = currentSubtotal + deliveryFeeForThisOrder + tipForThisPayment;
-    setTotalForPayment(finalAmountForDialog); // This is what PaymentDialog will use
+    setTotalForPayment(finalAmountForDialog);
 
-    setIsPaymentDialogOpen(true); // Open payment dialog without asking for tip again
+    setIsPaymentDialogOpen(true);
   };
 
  const handleDeletePendingOrder = (orderNumberToDelete: number) => {
@@ -511,8 +491,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
         if (isDelivery) {
             const remainingDeliveryOrders = updatedGroups.some(group => group.deliveryInfo);
             if (!remainingDeliveryOrders && currentOrder.length === 0) {
-                console.log(`TableDetailPage: Deleted last pending delivery order for ${tableIdParam}. Clearing local deliveryInfo.`);
-                setDeliveryInfo(null); // This will trigger useEffect to update table status if it becomes available
+                setDeliveryInfo(null);
             }
         }
         return updatedGroups;
@@ -522,7 +501,6 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
 
 
   const handlePaymentConfirm = (paymentMethod: PaymentMethod, paidAmount: number) => {
-    // paidAmount is the totalAmount which already includes the tip (if any)
     if (!orderToPay || subtotalForPayment === null) {
       toast({ title: "Error", description: "No hay un pedido o subtotal para procesar el pago.", variant: "destructive" });
       setIsPaymentDialogOpen(false);
@@ -537,7 +515,6 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
       let quantityToDeduct = orderItem.quantity;
       let inventoryItemName: string | null = null;
 
-      // VIENESAS
       if (orderItem.category === 'Vienesas') {
         if (['completo normal', 'dinamico normal', 'hot dog normal', 'italiano normal', 'palta normal', 'tomate normal'].includes(itemNameLower)) {
           inventoryItemName = 'Pan especial normal';
@@ -563,7 +540,6 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
           }
         }
       }
-      // AS
       if (orderItem.category === 'As') {
          if (['completo normal', 'dinamico normal', 'chacarero normal', 'italiano normal', 'palta normal', 'tomate normal', 'napolitano normal', 'queso champiñon normal', 'queso normal', 'solo carne normal'].includes(itemNameLower)) {
             inventoryItemName = 'Pan especial normal';
@@ -571,7 +547,6 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
             inventoryItemName = 'Pan especial grande';
          }
       }
-      // PROMO FAJITAS
        if (orderItem.category === 'Promo Fajitas') {
         if (['4 ingredientes', '6 ingredientes', 'americana', 'brasileño', 'chacarero', 'golosasa', 'italiana', 'primavera'].includes(itemNameLower)) {
             inventoryItemName = 'Fajita';
@@ -586,13 +561,11 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
              }
         }
       }
-      // CHURRASCOS
       if (orderItem.category === 'Churrascos') {
         if (['churrasco campestre', 'churrasco che milico', 'churrasco completo', 'churrasco dinamico', 'churrasco italiano', 'churrasco napolitano', 'churrasco palta', 'churrasco queso', 'churrasco queso champiñon', 'churrasco tomate'].includes(itemNameLower)) {
              inventoryItemName = 'Pan de marraqueta';
         }
       }
-      // PROMO CHURRASCO
       if (orderItem.category === 'Promo Churrasco') {
         if (['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'queso', 'queso champiñon', 'tomate', 'palta'].includes(itemNameLower)) {
           inventoryItemName = 'Pan de marraqueta';
@@ -607,7 +580,6 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
              }
         }
       }
-      // PROMO MECHADA
       if (orderItem.category === 'Promo Mechada') {
           if (['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'queso', 'queso champiñon', 'tomate', 'palta'].includes(itemNameLower)) {
              inventoryItemName = 'Pan de marraqueta';
@@ -622,7 +594,6 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
                 }
           }
       }
-      // PROMO HAMBURGUESAS
       if (orderItem.category === 'Promo Hamburguesas') {
         if(['big cami', 'italiana', 'simple', 'tapa arteria'].includes(itemNameLower)) {
           inventoryItemName = 'Pan de hamburguesa normal';
@@ -643,31 +614,28 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
             }
         }
       }
-      // BEBIDAS
        if (orderItem.category === 'Bebidas') {
            if (itemNameLower === 'bebida 1.5lt') inventoryItemName = 'Bebida 1.5Lt';
            if (itemNameLower === 'lata') inventoryItemName = 'Lata';
            if (itemNameLower === 'cafe chico') inventoryItemName = 'Cafe Chico';
            if (itemNameLower === 'cafe grande') inventoryItemName = 'Cafe Grande';
        }
-      // PROMOCIONES (General)
       if (orderItem.category === 'Promociones') {
           const promoNum = parseInt(itemNameLower.replace('promo ', ''), 10);
           if (promoNum === 1 || promoNum === 2) { inventoryItemName = 'Pan de hamburguesa grande'; quantityToDeduct = orderItem.quantity * 1; }
-          if (promoNum === 3) { inventoryItemName = 'Pan de marraqueta'; quantityToDeduct = orderItem.quantity * 4; } // 4 Churrascos
-          if (promoNum === 4) { inventoryItemName = 'Pan de marraqueta'; quantityToDeduct = orderItem.quantity * 2; } // 2 Churrascos Lomito
+          if (promoNum === 3) { inventoryItemName = 'Pan de marraqueta'; quantityToDeduct = orderItem.quantity * 4; }
+          if (promoNum === 4) { inventoryItemName = 'Pan de marraqueta'; quantityToDeduct = orderItem.quantity * 2; }
 
-          if (promoNum === 5 || promoNum === 7) { inventoryItemName = 'Pan especial normal'; quantityToDeduct = orderItem.quantity * 2; } // 2 Completo Vienesas/As Normal
-          if (promoNum === 6 || promoNum === 8) { inventoryItemName = 'Pan especial grande'; quantityToDeduct = orderItem.quantity * 2; } // 2 Completo Vienesas/As Grande
-          if (promoNum === 9 || promoNum === 11) { inventoryItemName = 'Pan especial normal'; quantityToDeduct = orderItem.quantity * 4; } // 4 Completo Vienesas/As Normal
-          if (promoNum === 10 || promoNum === 12) { inventoryItemName = 'Pan especial grande'; quantityToDeduct = orderItem.quantity * 4; } // 4 Completo Vienesas/As Grande
+          if (promoNum === 5 || promoNum === 7) { inventoryItemName = 'Pan especial normal'; quantityToDeduct = orderItem.quantity * 2; }
+          if (promoNum === 6 || promoNum === 8) { inventoryItemName = 'Pan especial grande'; quantityToDeduct = orderItem.quantity * 2; }
+          if (promoNum === 9 || promoNum === 11) { inventoryItemName = 'Pan especial normal'; quantityToDeduct = orderItem.quantity * 4; }
+          if (promoNum === 10 || promoNum === 12) { inventoryItemName = 'Pan especial grande'; quantityToDeduct = orderItem.quantity * 4; }
 
 
-          // Bebidas for Promociones
           if ([1,2,3,9,10,11,12].includes(promoNum)) {
               const bebida15Index = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'bebida 1.5lt');
               if (bebida15Index !== -1) {
-                const bebidasToDeduct = orderItem.quantity; // 1 Bebida 1.5Lt per promo
+                const bebidasToDeduct = orderItem.quantity;
                 updatedInventory[bebida15Index].stock -= bebidasToDeduct;
                 inventoryUpdateOccurred = true;
                 if (updatedInventory[bebida15Index].stock < 0 && bebidasToDeduct > 0) {
@@ -675,10 +643,10 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
                 }
               }
           }
-          if ([5, 6, 7, 8].includes(promoNum)) { // Promos with 2 Latas
+          if ([5, 6, 7, 8].includes(promoNum)) {
               const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
               if (bebidaLataIndex !== -1) {
-                const latasToDeduct = orderItem.quantity * 2; // 2 Latas per promo
+                const latasToDeduct = orderItem.quantity * 2;
                 updatedInventory[bebidaLataIndex].stock -= latasToDeduct;
                 inventoryUpdateOccurred = true;
                 if (updatedInventory[bebidaLataIndex].stock < 0 && latasToDeduct > 0) {
@@ -687,26 +655,24 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
               }
           }
 
-          // Vienesas for Promociones
-          if (promoNum === 5) { // 2 Completo Vienesas Normal
+          if (promoNum === 5) {
              const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
-             if (vienaIndex !== -1) { updatedInventory[vienaIndex].stock -= orderItem.quantity * 2; inventoryUpdateOccurred = true; } // 1 vienesa per completo normal * 2
+             if (vienaIndex !== -1) { updatedInventory[vienaIndex].stock -= orderItem.quantity * 2; inventoryUpdateOccurred = true; }
           }
-          if (promoNum === 6) { // 2 Completo Vienesas Grande
+          if (promoNum === 6) {
              const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
-             if (vienaIndex !== -1) { updatedInventory[vienaIndex].stock -= orderItem.quantity * 4; inventoryUpdateOccurred = true; } // 2 vienesas per completo grande * 2
+             if (vienaIndex !== -1) { updatedInventory[vienaIndex].stock -= orderItem.quantity * 4; inventoryUpdateOccurred = true; }
           }
-          if (promoNum === 9) { // 4 Completo Vienesas Normal
+          if (promoNum === 9) {
              const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
-             if (vienaIndex !== -1) { updatedInventory[vienaIndex].stock -= orderItem.quantity * 4; inventoryUpdateOccurred = true; } // 1 vienesa per completo normal * 4
+             if (vienaIndex !== -1) { updatedInventory[vienaIndex].stock -= orderItem.quantity * 4; inventoryUpdateOccurred = true; }
           }
-          if (promoNum === 10) { // 4 Completo Vienesas Grande
+          if (promoNum === 10) {
              const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
-             if (vienaIndex !== -1) { updatedInventory[vienaIndex].stock -= orderItem.quantity * 8; inventoryUpdateOccurred = true; } // 2 vienesas per completo grande * 4
+             if (vienaIndex !== -1) { updatedInventory[vienaIndex].stock -= orderItem.quantity * 8; inventoryUpdateOccurred = true; }
           }
-        } // This brace closes `if (orderItem.category === 'Promociones')`
+        }
 
-      // PAPAS FRITAS (Box Cami)
       if (orderItem.category === 'Papas Fritas' && itemNameLower === 'box cami') {
           const empanadaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'empanada');
           if (empanadaIndex !== -1) { updatedInventory[empanadaIndex].stock -= orderItem.quantity * 8; inventoryUpdateOccurred = true; }
@@ -715,14 +681,12 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
           if (bebida15Index !== -1) { updatedInventory[bebida15Index].stock -= orderItem.quantity * 1; inventoryUpdateOccurred = true; }
       }
 
-      // PAPAS FRITAS (Salchipapas)
       if (orderItem.category === 'Papas Fritas' && itemNameLower === 'salchipapas') {
           const vienaIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'vienesas');
           if (vienaIndex !== -1) { updatedInventory[vienaIndex].stock -= orderItem.quantity * 3; inventoryUpdateOccurred = true; }
       }
 
 
-      // General inventory item deduction
       if (inventoryItemName) {
         const itemIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === inventoryItemName.toLowerCase());
         if (itemIndex !== -1) {
@@ -740,29 +704,25 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     if (inventoryUpdateOccurred) {
       setInventory(updatedInventory);
       localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify(updatedInventory));
-      console.log("Inventory updated after payment.");
     }
 
-    // Use tipForFinalPayment (from state, decided during "copy" or "pay" initiation) for the receipt
     const customerReceiptHtml = formatCustomerReceipt(
       orderToPay.items,
-      paidAmount, // This is the total amount (subtotal + delivery + tip)
+      paidAmount,
       paymentMethod,
       tableDisplayName,
       orderToPay.orderNumber,
       orderToPay.deliveryInfo,
-      tipForFinalPayment // Pass the actual tip amount for display
+      tipForFinalPayment
     );
     printHtml(customerReceiptHtml);
 
-    // For CashMovement, amount should be the subtotal (excluding tip for income registration)
-    // Tip is usually handled separately or noted in description
     const cashMovement: CashMovement = {
       id: Date.now(),
       date: new Date(),
       category: 'Ingreso Venta',
       description: `Venta ${tableDisplayName} - Orden #${String(orderToPay.orderNumber).padStart(3, '0')}${tipForFinalPayment > 0 ? ` (Propina: ${printUtilsFormatCurrency(tipForFinalPayment)})` : ''}`,
-      amount: subtotalForPayment, // Use subtotal for actual sale amount
+      amount: subtotalForPayment,
       paymentMethod: paymentMethod,
       deliveryFee: (isDelivery && orderToPay.deliveryInfo && orderToPay.deliveryInfo.deliveryFee > 0) ? orderToPay.deliveryInfo.deliveryFee : undefined,
     };
@@ -777,13 +737,11 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     toast({ title: "Pago Registrado", description: `Pago de ${printUtilsFormatCurrency(paidAmount)} para la orden #${String(orderToPay.orderNumber).padStart(3, '0')} registrado.` });
     setIsPaymentDialogOpen(false);
     setOrderToPay(null);
-    setSubtotalForPayment(null); // Reset subtotal
-    setTipForFinalPayment(0); // Reset tip
+    setSubtotalForPayment(null);
+    setTipForFinalPayment(0);
 
-    // If this was a delivery order and it was the last one pending for this "table session"
     if (isDelivery && pendingOrderGroups.filter(pg => pg.orderNumber !== orderToPay.orderNumber && pg.deliveryInfo).length === 0 && currentOrder.length === 0) {
-        console.log(`TableDetailPage: Last delivery order for ${tableIdParam} paid or all delivery orders cleared. Clearing local deliveryInfo.`);
-        setDeliveryInfo(null); // This should allow the table to become available if no current order
+        setDeliveryInfo(null);
     }
   };
 
@@ -827,9 +785,69 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
       </div>
 
       <div className="flex justify-center mb-6">
-        <Button size="lg" className="px-8 py-6 text-lg" onClick={handleOpenMenuOrDeliveryDialog}>
-            <PackageSearch className="mr-2 h-5 w-5"/> Ver Menú
-        </Button>
+        <Sheet open={isMenuSheetOpen} onOpenChange={setIsMenuSheetOpen}>
+            <Button size="lg" className="px-8 py-6 text-lg" onClick={handleOpenMenuOrDeliveryDialog}>
+                <PackageSearch className="mr-2 h-5 w-5"/> Ver Menú
+            </Button>
+            <SheetContent side="left" className="w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl p-0 flex flex-col">
+                <SheetHeader className="p-4 border-b sticky top-0 bg-background z-10">
+                    <SheetTitle className="text-2xl text-center">Menú</SheetTitle>
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => setIsMenuSheetOpen(false)}
+                        className="absolute right-4 top-3"
+                        aria-label="Cerrar menú"
+                    >
+                        <XCircle className="h-6 w-6" />
+                    </Button>
+                </SheetHeader>
+                <ScrollArea className="flex-grow h-[calc(100vh-80px)]">
+                    <Accordion type="multiple" className="w-full p-4">
+                        {groupedMenu.map((categoryGroup) => (
+                            <AccordionItem value={categoryGroup.name} key={categoryGroup.name} className="border-b-0 mb-2">
+                                <AccordionTrigger className="text-lg font-semibold hover:bg-muted/50 px-4 py-3 rounded-md hover:no-underline bg-card border shadow-sm">
+                                    {categoryGroup.name}
+                                </AccordionTrigger>
+                                <AccordionContent className="pt-2 pb-0">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-2">
+                                        {categoryGroup.items.map((item) => (
+                                            <Card key={item.id} className="shadow-sm hover:shadow-md transition-shadow">
+                                                <CardContent className="p-3">
+                                                    <div className="flex justify-between items-start mb-1">
+                                                        <p className="font-semibold text-base">{item.name}</p>
+                                                        <p className="font-mono text-base">{globalFormatCurrency(item.price)}</p>
+                                                    </div>
+                                                    {item.ingredients && item.ingredients.length > 0 && (
+                                                        <p className="text-xs text-muted-foreground mb-2">
+                                                            Incluye: {item.ingredients.join(', ')}
+                                                        </p>
+                                                    )}
+                                                    <Button
+                                                        size="sm"
+                                                        className="w-full"
+                                                        onClick={() => {
+                                                        if (item.modifications && item.modifications.length > 0) {
+                                                            setItemToModify(item);
+                                                            setIsModificationDialogOpen(true);
+                                                        } else {
+                                                            handleAddItemToOrder(item);
+                                                        }
+                                                        }}
+                                                    >
+                                                        Añadir al Pedido
+                                                    </Button>
+                                                </CardContent>
+                                            </Card>
+                                        ))}
+                                    </div>
+                                </AccordionContent>
+                            </AccordionItem>
+                        ))}
+                    </Accordion>
+                </ScrollArea>
+            </SheetContent>
+        </Sheet>
       </div>
 
 
@@ -904,7 +922,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
                 pendingOrderGroups.map((group) => {
                   const groupSubtotal = group.items.reduce((sum, item) => sum + item.finalPrice * item.quantity, 0);
                   const groupDeliveryFee = (isDelivery && group.deliveryInfo?.deliveryFee) ? group.deliveryInfo.deliveryFee : 0;
-                  const groupTip = group.tipAmountForPayment ?? 0; // Use stored tip
+                  const groupTip = group.tipAmountForPayment ?? 0;
                   const groupTotal = groupSubtotal + groupDeliveryFee + groupTip;
 
                   return (
@@ -983,102 +1001,8 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
         </Card>
       </div>
 
-      {/* Main Menu Sheet */}
-      <Sheet open={isMenuSheetOpen} onOpenChange={setIsMenuSheetOpen}>
-        <SheetContent side="left" className="w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl p-0 flex flex-col">
-          <SheetHeader className="p-4 border-b sticky top-0 bg-background z-10">
-            <SheetTitle className="text-2xl text-center">Menú</SheetTitle>
-             <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setIsMenuSheetOpen(false)}
-                className="absolute right-4 top-3"
-                aria-label="Cerrar menú"
-            >
-                <XCircle className="h-6 w-6" />
-            </Button>
-          </SheetHeader>
-          <ScrollArea className="flex-grow h-[calc(100vh-80px)]"> {/* Adjusted height */}
-             <div className="flex flex-col gap-3 p-4">
-                {groupedMenu.map((categoryGroup) => (
-                    <Button
-                        key={categoryGroup.name}
-                        variant="outline"
-                        className="w-full justify-start text-lg py-6 hover:bg-accent hover:text-accent-foreground"
-                        onClick={() => {
-                            setSelectedCategoryForDialog(categoryGroup.name);
-                            setIsProductListDialogOpen(true);
-                        }}
-                    >
-                        {categoryGroup.name}
-                    </Button>
-                ))}
-            </div>
-          </ScrollArea>
-          {/* Removed SheetFooter with Confirmar button from main menu sheet */}
-        </SheetContent>
-      </Sheet>
 
-      {/* Product List Dialog (New) */}
-      <ShadDialog open={isProductListDialogOpen} onOpenChange={setIsProductListDialogOpen}>
-        <ShadDialogContent className="sm:max-w-2xl md:max-w-3xl lg:max-w-4xl">
-            <ShadDialogHeader>
-                <ShadDialogTitle>
-                    {selectedCategoryForDialog ? `Productos en ${selectedCategoryForDialog}` : "Seleccione Categoría"}
-                </ShadDialogTitle>
-                 <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setIsProductListDialogOpen(false)}
-                    className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
-                    aria-label="Cerrar"
-                >
-                    <XCircle className="h-5 w-5" />
-                </Button>
-            </ShadDialogHeader>
-            <ScrollArea className="max-h-[70vh] p-1">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-2">
-                    {selectedCategoryForDialog && menu
-                        .filter(item => item.category === selectedCategoryForDialog)
-                        .sort((a,b) => a.name.localeCompare(b.name))
-                        .map((item) => (
-                            <Card key={item.id} className="shadow-sm hover:shadow-md transition-shadow">
-                                <CardContent className="p-3">
-                                    <div className="flex justify-between items-start mb-1">
-                                        <p className="font-semibold text-base">{item.name}</p>
-                                        <p className="font-mono text-base">{globalFormatCurrency(item.price)}</p>
-                                    </div>
-                                     {item.ingredients && item.ingredients.length > 0 && (
-                                        <p className="text-xs text-muted-foreground mb-2">
-                                            Incluye: {item.ingredients.join(', ')}
-                                        </p>
-                                    )}
-                                    <Button
-                                        size="sm"
-                                        className="w-full"
-                                        onClick={() => {
-                                            if (item.modifications && item.modifications.length > 0) {
-                                                setItemToModify(item);
-                                                setIsModificationDialogOpen(true);
-                                                // Product list dialog remains open in background
-                                            } else {
-                                                handleAddItemToOrder(item);
-                                                setIsProductListDialogOpen(false); // Close product list if no mods
-                                            }
-                                        }}
-                                    >
-                                        Añadir al Pedido
-                                    </Button>
-                                </CardContent>
-                            </Card>
-                        ))}
-                 </div>
-            </ScrollArea>
-        </ShadDialogContent>
-      </ShadDialog>
-
-
-      {/* Existing Modification Dialog */}
+      {/* Modification Dialog */}
       {itemToModify && (
         <ModificationDialog
           isOpen={isModificationDialogOpen}
@@ -1090,12 +1014,10 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
             }
             setIsModificationDialogOpen(false);
             setItemToModify(null);
-            setIsProductListDialogOpen(false); // Close product list dialog after modification is confirmed
           }}
           onCancel={() => {
             setIsModificationDialogOpen(false);
             setItemToModify(null);
-            // Do not close product list dialog on cancel, user returns to it
           }}
         />
       )}
@@ -1111,24 +1033,18 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
            <DeliveryDialog
                isOpen={isDeliveryDialogOpen}
                onOpenChange={setIsDeliveryDialogOpen}
-               initialData={deliveryInfo} // Pass current order's delivery info for editing if exists
+               initialData={deliveryInfo}
                onConfirm={(info) => {
                    setDeliveryInfo(info);
                    setIsDeliveryDialogOpen(false);
-                   // If menu wasn't open and we just got delivery info, open menu
-                   if (!isMenuSheetOpen && !isProductListDialogOpen) {
+                   if (!isMenuSheetOpen) { // Only open menu if it wasn't already triggered by button
                        setIsMenuSheetOpen(true);
                    }
                }}
                onCancel={() => {
                    setIsDeliveryDialogOpen(false);
-                   // If it's a new delivery order and they cancel adding info,
-                   // and there are no pending delivery orders or current order,
-                   // potentially redirect or show a message.
                    if (currentOrder.length === 0 && pendingOrderGroups.filter(pg=> pg.deliveryInfo).length === 0) {
                         toast({ title: "Datos de Envío Requeridos", description: "Debe ingresar los datos de envío para continuar con un pedido de delivery.", variant: "destructive"});
-                        // Consider if redirection to /tables is needed if they cancel initial delivery setup
-                        // router.push('/tables');
                    }
                }}
            />
@@ -1156,7 +1072,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
       {/* Dialog for General Observation */}
       <ShadDialog open={isGeneralObservationDialogOpen} onOpenChange={(isOpen) => {
           setIsGeneralObservationDialogOpen(isOpen);
-          if (!isOpen) setCurrentGeneralObservation(''); // Reset if closed without confirm
+          if (!isOpen) setCurrentGeneralObservation('');
       }}>
         <ShadDialogContent className="sm:max-w-md">
             <ShadDialogHeader>
@@ -1189,3 +1105,4 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
   );
 }
 
+    
