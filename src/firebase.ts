@@ -10,7 +10,7 @@ const firebaseConfig = {
   projectId: "restoeasy-n3y17",
   storageBucket: "restoeasy-n3y17.firebasestorage.app",
   messagingSenderId: "709741771801",
-  appId: "1:709741771801:web:047c618a56210e9e0b3e88"
+  appId: "1:709741771801:web:4fcb2d527a2d0c080b3e88"
 };
 
 // Initialize Firebase
