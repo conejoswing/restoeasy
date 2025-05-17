@@ -223,6 +223,7 @@ export default function CashRegisterPage() {
        dailyGrossTotal
     } = useMemo(() => {
         const today = startOfDay(new Date());
+        let cash = 0;
         let card = 0;
         let transfer = 0;
         let deliveryFees = 0;
