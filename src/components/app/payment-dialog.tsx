@@ -16,7 +16,6 @@ import { Input } from '@/components/ui/input'; // Import Input
 import { Banknote, CreditCard, Landmark } from 'lucide-react';
 import type { PaymentMethod } from '@/app/tables/[tableId]/page';
 import { Separator } from '@/components/ui/separator';
-import { cn } from '@/lib/utils';
 
 // Helper to format currency
 const formatCurrency = (amount: number) => {

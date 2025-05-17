@@ -10,7 +10,6 @@ import {cn} from '@/lib/utils';
 import { Store, Truck, Utensils, LogOut } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import type { DeliveryInfo } from '@/components/app/delivery-dialog';
 
 interface Table {
   id: number | string;
@@ -24,18 +23,12 @@ const numberedTables: Table[] = Array.from({length: 10}, (_, i) => ({
 }));
 
 const specialTables: Table[] = [
-    { id: 'mesón', name: 'Mesón', status: 'available'},
-    { id: 'delivery', name: 'Delivery', status: 'available' }
+  { id: 'mesón', name: 'Mesón', status: 'available'},
+  { id: 'delivery', name: 'Delivery', status: 'available' },
 ];
 
+// Define initialTables by combining numbered and special tables
 const initialTables: Table[] = [...numberedTables, ...specialTables];
-const PENDING_ORDERS_STORAGE_KEY_PREFIX = 'table-';
-const DELIVERY_INFO_STORAGE_KEY_PREFIX = 'deliveryInfo-';
-
-const isDeliveryTable = (id: string | number): boolean => {
-  return String(id).toLowerCase() === 'delivery';
-};
-
 
 export default function TablesPage() {
   const [tables, setTables] = useState<Table[]>(initialTables);
@@ -48,7 +41,9 @@ export default function TablesPage() {
     const updatedTables = initialTables.map(table => {
       const explicitStatus = sessionStorage.getItem(`table-${table.id}-status`);
       const status = explicitStatus === 'occupied' ? 'occupied' : 'available';
-      return { ...table, status: status as 'available' | 'occupied' };
+      // Ensure name is preserved for special tables
+      const currentTableDefinition = initialTables.find(it => it.id === table.id);
+      return { ...table, name: currentTableDefinition?.name, status: status as 'available' | 'occupied' };
     });
     setTables(updatedTables);
     console.log("TablesPage: Table statuses updated from sessionStorage.", updatedTables.map(t => ({id: t.id, status: t.status})));
@@ -156,5 +151,3 @@ export default function TablesPage() {
     </div>
   );
 }
-
-    

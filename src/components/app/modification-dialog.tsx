@@ -14,7 +14,7 @@ import { Checkbox } from '@/components/ui/checkbox'; // Import Checkbox
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Textarea } from '@/components/ui/textarea'; // Import Textarea
-import { italianaFajitaModificationsBase, promoFajitasBaseModifications, fourIngredientsTargetMods, sixIngredientsTargetMods, additionalIngredientMods } from '@/lib/menuUtils'; // Added import
+import { italianaFajitaModificationsBase } from '@/lib/menuUtils'; // Added import
 
 interface MenuItem {
   id: number;

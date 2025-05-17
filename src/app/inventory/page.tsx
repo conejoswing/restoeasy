@@ -89,7 +89,7 @@ export default function InventoryPage() {
       try {
         const parsed = JSON.parse(storedInventory);
         if (Array.isArray(parsed)) {
-          loadedInventory = parsed.filter(
+          loadedInventory = parsed.filter
             (item: any): item is Partial<InventoryItem> =>
               item &&
               typeof item === 'object' &&

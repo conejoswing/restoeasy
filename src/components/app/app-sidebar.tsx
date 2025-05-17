@@ -20,7 +20,6 @@ import { useAuth } from '@/context/AuthContext';
 export default function AppSidebar() {
   const pathname = usePathname();
   const { isAuthenticated, userRole, logout } = useAuth();
-  const router = useRouter();
 
   const isActive = (path: string) => pathname === path || pathname.startsWith(path + '/');
 

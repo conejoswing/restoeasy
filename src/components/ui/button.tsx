@@ -42,7 +42,7 @@ export interface ButtonProps
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant, size, asChild = false, children, ...props }, ref) => {
-    const Comp = asChild ? Slot : "button";
+    const Comp = asChild ? Slot : "button"
 
     // Wrap potential icon children with a span having data-slot="icon"
     const childrenWithIconSlot = React.Children.map(children, (child) => {

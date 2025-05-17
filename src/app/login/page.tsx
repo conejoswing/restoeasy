@@ -3,7 +3,6 @@
 
 import * as React from 'react';
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -20,17 +19,16 @@ import { LogIn } from 'lucide-react';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [password, setPassword] = useState(''); // Use state to manage password input
   const { login, isLoading } = useAuth(); // Get login function and loading state from AuthContext
   const [isLoggingIn, setIsLoggingIn] = useState(false); // Local state to disable button during submission
-  const router = useRouter();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (isLoggingIn || isLoading) return; // Prevent multiple submissions if already logging in or context is loading
 
     setIsLoggingIn(true);
-    const success = login(username, password); // Call login from context
+    login(username, password); // Call login from context
     setIsLoggingIn(false);
 
     // Redirection is handled by AuthGuard based on isAuthenticated state change

@@ -14,7 +14,6 @@ import {
   CardFooter,
 } from '@/components/ui/card';
 import {ScrollArea }from '@/components/ui/scroll-area';
-import {Separator }from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import {
   Sheet,
@@ -32,12 +31,9 @@ import {
   DialogFooter as ShadDialogFooter,
   DialogHeader as ShadDialogHeader,
   DialogTitle as ShadDialogTitle,
-  DialogTrigger as ShadDialogTrigger,
 } from '@/components/ui/dialog';
 import {
     AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
     AlertDialogContent,
     AlertDialogDescription,
     AlertDialogFooter,
@@ -48,30 +44,17 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 
 
-import { Utensils, PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard, ChevronRight, Banknote, Landmark, Home, Phone, User, DollarSign, PackageSearch, Edit, Trash2, ListChecks, Tags, Pencil, Copy, FileText } from 'lucide-react';
+import { PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard, PackageSearch, Copy } from 'lucide-react';
 import {useToast }from '@/hooks/use-toast';
-import ModificationDialog from '@/components/app/modification-dialog';
-import PaymentDialog from '@/components/app/payment-dialog';
+import ModificationDialog from '@/components/app/modification-dialog';import PaymentDialog from '@/components/app/payment-dialog';
 import { isEqual } from 'lodash';
 import { cn } from '@/lib/utils';
 import type { CashMovement } from '@/app/expenses/page';
 import type { DeliveryInfo } from '@/components/app/delivery-dialog';
-import DeliveryDialog from '@/components/app/delivery-dialog';
-import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatPendingOrderCopy, formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
-import type { InventoryItem } from '@/app/inventory/page';
-import type { MenuItem } from '@/types/menu';
-import { loadMenuData, orderedCategories as predefinedOrderedCategories, sortMenu } from '@/lib/menuUtils';
-import { Label } from '@/components/ui/label';
-
-
+import DeliveryDialog from '@/components/app/delivery-dialog';import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatPendingOrderCopy, formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';import type { InventoryItem } from '@/app/inventory/page';import type { MenuItem } from '@/types/menu';import { loadMenuData, orderedCategories as predefinedOrderedCategories, sortMenu } from '@/lib/menuUtils';import { Label } from '@/components/ui/label';
 import {
   Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
 } from "@/components/ui/accordion"
-
-
 // OrderItem interface specific to this page
 export interface OrderItem extends Omit<MenuItem, 'price' | 'modificationPrices' | 'modifications'> {
   orderItemId: string;
@@ -97,10 +80,6 @@ interface PendingOrderGroup {
   tipAmountForPayment?: number;
 }
 
-interface PendingOrderStorageData {
-    groups: PendingOrderGroup[];
-}
-
 const INVENTORY_STORAGE_KEY = 'restaurantInventory';
 const CASH_MOVEMENTS_STORAGE_KEY = 'cashMovements';
 const PENDING_ORDERS_STORAGE_KEY_PREFIX = 'table-';
@@ -123,7 +102,6 @@ export default function TableDetailPage() {
   const [isInitialized, setIsInitialized] = useState(false);
   const [menu, setMenu] = useState<MenuItem[]>([]);
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
-  const [searchTerm, setSearchTerm] = useState('');
   const [currentOrder, setCurrentOrder] = useState<OrderItem[]>([]);
   const [pendingOrderGroups, setPendingOrderGroups] = useState<PendingOrderGroup[]>([]);
   const [isModificationDialogOpen, setIsModificationDialogOpen] = useState(false);
@@ -184,7 +162,7 @@ export default function TableDetailPage() {
       try {
         const parsedOrder = JSON.parse(storedCurrentOrder);
         if (Array.isArray(parsedOrder)) {
-          setCurrentOrder(parsedOrder.map((item: any) => ({
+          setCurrentOrder(parsedOrder.map((item: unknown) => ({
             ...item,
             basePrice: Number(item.basePrice) || 0,
             finalPrice: Number(item.finalPrice) || 0,
@@ -215,7 +193,7 @@ export default function TableDetailPage() {
                  setPendingOrderGroups(
                     parsedData.map((group: PendingOrderGroup) => ({
                         ...group,
-                        items: group.items.map((item: any) => ({
+                        items: group.items.map((item: unknown) => ({
                             ...item,
                             observation: item.observation || undefined,
                         })),
@@ -861,8 +839,7 @@ export default function TableDetailPage() {
 
   const groupedMenu = useMemo(() => {
     const filteredMenu = menu.filter(item =>
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.category.toLowerCase().includes(searchTerm.toLowerCase())
+      item.category !== null && item.category !== undefined // Filter out items with null or undefined category
     );
 
     const groups: { [key: string]: MenuItem[] } = {};
@@ -894,7 +871,7 @@ export default function TableDetailPage() {
         return acc;
     }, {} as { [key: string]: MenuItem[] });
 
-  }, [menu, searchTerm]);
+  }, [menu]);
 
 
   const handleDeliveryInfoConfirm = (info: DeliveryInfo) => {

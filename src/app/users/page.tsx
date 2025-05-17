@@ -22,7 +22,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-  DialogClose,
 } from '@/components/ui/dialog';
 import {
     AlertDialog,
@@ -72,7 +71,7 @@ export default function UsersPage() {
     password?: string;
   }>({ name: '', username: '', role: 'worker', password: '' });
   const { toast } = useToast();
-  const { users, updatePasswordForUser, deleteUser, addUser, isLoading, isAuthenticated, userRole } = useAuth();
+  const { users, updatePasswordForUser, deleteUser, addUser, isLoading, userRole } = useAuth();
   const router = useRouter();
 
 

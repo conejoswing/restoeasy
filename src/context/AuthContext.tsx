@@ -17,6 +17,7 @@ type UserRole = 'admin' | 'worker' | null;
 
 // Interface for stored user data (excluding sensitive info like plain text passwords if using hashing)
 interface StoredUser extends StaffMember {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   passwordHash: string; // Store password hash or placeholder
 }
 

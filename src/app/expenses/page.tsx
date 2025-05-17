@@ -124,7 +124,7 @@ export default function CashRegisterPage() {
         if (Array.isArray(parsed)) {
           loadedMovements = parsed.filter(
             (m: any): m is Partial<CashMovement> =>
-              m &&
+              m !== null && m !== undefined && // Add null/undefined check
               typeof m === 'object' &&
               typeof m.id !== 'undefined' &&
               typeof m.date !== 'undefined' &&
@@ -164,7 +164,7 @@ export default function CashRegisterPage() {
         const parsedInventory = JSON.parse(storedInventory);
         if (Array.isArray(parsedInventory)) {
           loadedInventory = parsedInventory.filter(
-            (item: any): item is Partial<InventoryItem> =>
+            (item: unknown): item is Partial<InventoryItem> =>
               item &&
               typeof item === 'object' &&
               typeof item.name === 'string' &&
@@ -223,7 +223,6 @@ export default function CashRegisterPage() {
        dailyGrossTotal
     } = useMemo(() => {
         const today = startOfDay(new Date());
-        let cash = 0;
         let card = 0;
         let transfer = 0;
         let deliveryFees = 0;
