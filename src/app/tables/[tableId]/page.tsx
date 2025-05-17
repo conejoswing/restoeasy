@@ -34,6 +34,8 @@ import {
 } from '@/components/ui/dialog';
 import {
     AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
     AlertDialogContent,
     AlertDialogDescription,
     AlertDialogFooter,
@@ -51,9 +53,17 @@ import { isEqual } from 'lodash';
 import { cn } from '@/lib/utils';
 import type { CashMovement } from '@/app/expenses/page';
 import type { DeliveryInfo } from '@/components/app/delivery-dialog';
-import DeliveryDialog from '@/components/app/delivery-dialog';import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatPendingOrderCopy, formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';import type { InventoryItem } from '@/app/inventory/page';import type { MenuItem } from '@/types/menu';import { loadMenuData, orderedCategories as predefinedOrderedCategories, sortMenu } from '@/lib/menuUtils';import { Label } from '@/components/ui/label';
+import DeliveryDialog from '@/components/app/delivery-dialog';
+import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatPendingOrderCopy, formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
+import type { InventoryItem } from '@/app/inventory/page';
+import type { MenuItem } from '@/types/menu';
+import { loadMenuData, orderedCategories as predefinedOrderedCategories, sortMenu } from '@/lib/menuUtils';
+import { Label } from '@/components/ui/label';
 import {
   Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
 } from "@/components/ui/accordion"
 // OrderItem interface specific to this page
 export interface OrderItem extends Omit<MenuItem, 'price' | 'modificationPrices' | 'modifications'> {
@@ -162,13 +172,13 @@ export default function TableDetailPage() {
       try {
         const parsedOrder = JSON.parse(storedCurrentOrder);
         if (Array.isArray(parsedOrder)) {
-          setCurrentOrder(parsedOrder.map((item: unknown) => ({
+          setCurrentOrder(parsedOrder.map((item: any) => ({ // Ensure type safety here
             ...item,
             basePrice: Number(item.basePrice) || 0,
             finalPrice: Number(item.finalPrice) || 0,
             quantity: Number(item.quantity) || 1,
             observation: item.observation || undefined,
-          })));
+          } as OrderItem)));
         }
       } catch (e) { console.error("Error loading current order:", e); }
     }
@@ -181,10 +191,10 @@ export default function TableDetailPage() {
                  setPendingOrderGroups(
                     parsedData.groups.map((group: PendingOrderGroup) => ({
                         ...group,
-                        items: group.items.map((item: any) => ({
+                        items: group.items.map((item: any) => ({ // Ensure type safety here
                             ...item,
                             observation: item.observation || undefined,
-                        })),
+                        } as OrderItem)),
                         generalObservation: group.generalObservation || undefined,
                         tipAmountForPayment: group.tipAmountForPayment ?? 0,
                     })).sort((a: PendingOrderGroup, b: PendingOrderGroup) => a.timestamp - b.timestamp)
@@ -193,10 +203,10 @@ export default function TableDetailPage() {
                  setPendingOrderGroups(
                     parsedData.map((group: PendingOrderGroup) => ({
                         ...group,
-                        items: group.items.map((item: unknown) => ({
+                        items: group.items.map((item: any) => ({ // Ensure type safety here
                             ...item,
                             observation: item.observation || undefined,
-                        })),
+                        } as OrderItem)),
                          generalObservation: group.generalObservation || undefined,
                          tipAmountForPayment: group.tipAmountForPayment ?? 0,
                     })).sort((a: PendingOrderGroup, b: PendingOrderGroup) => a.timestamp - b.timestamp)
@@ -218,7 +228,7 @@ export default function TableDetailPage() {
     setIsInitialized(true);
     console.log(`Initialization complete for ${tableIdParam}.`);
 
-  }, [tableIdParam, isInitialized, isDelivery, deliveryInfo]); // Added deliveryInfo to deps for the initial dialog open logic
+  }, [tableIdParam, isInitialized, isDelivery, deliveryInfo, currentOrder.length, pendingOrderGroups.length]); // Added currentOrder.length and pendingOrderGroups.length
 
 
   useEffect(() => {
@@ -265,7 +275,7 @@ export default function TableDetailPage() {
     console.log(`TableDetailPage: Table ${tableIdParam} status set to ${newStatus} in sessionStorage. Old status was: ${oldStatus}`);
 
     if (oldStatus !== newStatus || (oldStatus === null && newStatus === 'occupied')) {
-      console.log(`TableDetailPage: Table ${tableIdParam} status ${oldStatus === null ? 'was unset and now' : 'actually changed from ' + oldStatus + ' to'} ${newStatus}. Dispatching 'tableStatusUpdated' event.`);
+      console.log(`TableDetailPage: Table ${tableIdParam} status ${oldStatus === null ? 'was unset and now' : 'actually changed from ' + (oldStatus ?? 'unset') + ' to'} ${newStatus}. Dispatching 'tableStatusUpdated' event.`);
       window.dispatchEvent(new CustomEvent('tableStatusUpdated'));
     } else {
       console.log(`TableDetailPage: Table ${tableIdParam} status (${newStatus}) did not change from what was in sessionStorage or was already available. Event not dispatched.`);
