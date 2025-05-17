@@ -21,7 +21,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetClose,
-  SheetFooter,
+  SheetFooter, // Keep for potential explicit close if needed, but not used for main menu anymore
   SheetTrigger,
 } from '@/components/ui/sheet';
 import {
@@ -56,7 +56,8 @@ import { cn } from '@/lib/utils';
 import type { CashMovement } from '@/app/expenses/page';
 import type { DeliveryInfo } from '@/components/app/delivery-dialog';
 import DeliveryDialog from '@/components/app/delivery-dialog';
-import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatPendingOrderCopy, formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
+import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatPendingOrderCopy } from '@/lib/printUtils';
+import { formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
 import type { MenuItem } from '@/types/menu';
 import { loadMenuData, orderedCategories as predefinedOrderedCategories, sortMenu } from '@/lib/menuUtils';
@@ -202,6 +203,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
                     })).sort((a: PendingOrderGroup, b: PendingOrderGroup) => a.timestamp - b.timestamp)
                  );
              } else if (Array.isArray(parsedData)) {
+                 // Fallback for old format if needed, though current logic saves it as { groups: [...] }
                  setPendingOrderGroups(
                     parsedData.map((group: PendingOrderGroup) => ({
                         ...group,
@@ -239,7 +241,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
  useEffect(() => {
     if (!isInitialized || !tableIdParam) return;
 
-    console.log(`TableDetailPage: useEffect for state saving triggered for table ${tableIdParam}. currentOrder: ${currentOrder.length}, pendingOrderGroups: ${pendingOrderGroups.length}, deliveryInfo (for current order): ${deliveryInfo ? 'Set' : 'Not Set'}`);
+    console.log(`TableDetailPage: useEffect for state saving triggered for table ${tableIdParam}. currentOrder: ${currentOrder.length}, pendingOrderGroups: ${pendingOrderGroups.length}`);
 
     sessionStorage.setItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${tableIdParam}-currentOrder`, JSON.stringify(currentOrder));
     sessionStorage.setItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${tableIdParam}-pendingOrders`, JSON.stringify({ groups: pendingOrderGroups }));
@@ -250,8 +252,11 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
 
     let isEffectivelyOccupied = false;
     if (isDelivery) {
-        isEffectivelyOccupied = hasCurrent || hasPending;
-        console.log(`TableDetailPage: Delivery check for ${tableIdParam}. hasCurrent: ${hasCurrent}, hasPending: ${hasPending}, isDeliveryEffectivelyOccupied: ${isEffectivelyOccupied}`);
+        // For delivery, it's occupied if there's a current order OR any pending delivery orders.
+        // The `deliveryInfo` state on the component is for the *current* order being built.
+        // Pending orders for delivery will have their own `deliveryInfo` within the group.
+        isEffectivelyOccupied = hasCurrent || pendingOrderGroups.some(pg => !!pg.deliveryInfo);
+        console.log(`TableDetailPage: Delivery check for ${tableIdParam}. hasCurrent: ${hasCurrent}, hasPendingDeliveryOrders: ${pendingOrderGroups.some(pg => !!pg.deliveryInfo)}, isDeliveryEffectivelyOccupied: ${isEffectivelyOccupied}`);
     }
 
     let newStatus: 'available' | 'occupied';
@@ -264,8 +269,10 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     const storageKey = `table-${tableIdParam}-status`;
     const oldStatus = sessionStorage.getItem(storageKey) as 'available' | 'occupied' | null;
 
+    // Always set the status in sessionStorage, even if it hasn't changed from what was read,
+    // to ensure this page is the source of truth for its own status.
     sessionStorage.setItem(storageKey, newStatus);
-    console.log(`TableDetailPage: Table ${tableIdParam} status set to ${newStatus} in sessionStorage. Old status was: ${oldStatus}`);
+    console.log(`TableDetailPage: Table ${tableIdParam} status set to ${newStatus} in sessionStorage.`);
 
     if (oldStatus !== newStatus || (oldStatus === null && newStatus === 'occupied')) {
       console.log(`TableDetailPage: Table ${tableIdParam} status ${oldStatus === null ? 'was unset and now' : 'actually changed from ' + (oldStatus ?? 'unset') + ' to'} ${newStatus}. Dispatching 'tableStatusUpdated' event.`);
@@ -274,10 +281,10 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
       console.log(`TableDetailPage: Table ${tableIdParam} status (${newStatus}) did not change from what was in sessionStorage or was already available. Event not dispatched.`);
     }
 
-  }, [currentOrder, pendingOrderGroups, deliveryInfo, tableIdParam, isInitialized, isDelivery]);
+  }, [currentOrder, pendingOrderGroups, tableIdParam, isInitialized, isDelivery]);
 
   const handleOpenMenuOrDeliveryDialog = () => {
-    if (isDelivery && !deliveryInfo && currentOrder.length === 0 && pendingOrderGroups.length === 0) {
+    if (isDelivery && !deliveryInfo && currentOrder.length === 0 && pendingOrderGroups.filter(pg => pg.deliveryInfo).length === 0) {
         setIsDeliveryDialogOpen(true);
     } else {
         setIsMenuSheetOpen(true);
@@ -323,7 +330,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
           ]);
       }
       toast({ title: "Producto Añadido", description: `${item.name} se añadió al pedido actual.` });
-      setIsProductListDialogOpen(false);
+      // Note: setIsProductListDialogOpen(false) will be called by the component that invokes handleAddItemToOrder
   };
 
   const handleRemoveItemFromOrder = (orderItemId: string) => {
@@ -373,7 +380,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
   const handleConfirmPrintKitchenOrderWithObservation = () => {
     if (currentOrder.length === 0) {
         toast({ title: "Pedido Vacío", description: "Añada productos antes de imprimir la comanda.", variant: "destructive" });
-        setIsGeneralObservationDialogOpen(false);
+        setIsGeneralObservationDialogOpen(false); // Close dialog even if empty
         return;
     }
 
@@ -400,18 +407,18 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
             deliveryInfo: currentDeliveryInfoToUse,
             timestamp: Date.now(),
             generalObservation: currentGeneralObservation,
-            tipAmountForPayment: 0,
+            tipAmountForPayment: 0, // Initialize tip for this group
         }
     ].sort((a,b) => a.timestamp - b.timestamp));
 
     setCurrentOrder([]);
-    setCurrentGeneralObservation('');
-    setIsGeneralObservationDialogOpen(false);
+    setCurrentGeneralObservation(''); // Reset observation for next order
+    setIsGeneralObservationDialogOpen(false); // Close dialog
     toast({ title: "Comanda Impresa", description: `Pedido #${String(orderNumber).padStart(3,'0')} enviado a cocina y movido a pendientes.` });
 
     if (isDelivery) {
       console.log(`TableDetailPage: Delivery order ${orderNumber} sent. Clearing local deliveryInfo state.`);
-      setDeliveryInfo(null);
+      setDeliveryInfo(null); // Clear delivery info after associating it with the pending order
     }
   };
 
@@ -458,6 +465,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     );
     printHtml(customerCopyHtml);
 
+    // Save the tip decision with the pending order group
     setPendingOrderGroups(prevGroups =>
         prevGroups.map(group =>
             group.orderNumber === orderGroupForCopy.orderNumber
@@ -480,20 +488,21 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     setOrderToPay(groupToPay);
 
     const currentSubtotal = groupToPay.items.reduce((sum, item) => sum + item.finalPrice * item.quantity, 0);
-    setSubtotalForPayment(currentSubtotal);
+    setSubtotalForPayment(currentSubtotal); // Store subtotal for cash movement registration
 
     let deliveryFeeForThisOrder = 0;
     if (isDelivery && groupToPay.deliveryInfo && groupToPay.deliveryInfo.deliveryFee > 0) {
       deliveryFeeForThisOrder = groupToPay.deliveryInfo.deliveryFee;
     }
 
+    // Use the tipAmountForPayment stored in the group (decided when printing copy)
     const tipForThisPayment = groupToPay.tipAmountForPayment ?? 0;
-    setTipForFinalPayment(tipForThisPayment);
+    setTipForFinalPayment(tipForThisPayment); // Store tip for cash movement and receipt
 
     const finalAmountForDialog = currentSubtotal + deliveryFeeForThisOrder + tipForThisPayment;
-    setTotalForPayment(finalAmountForDialog);
+    setTotalForPayment(finalAmountForDialog); // This is what PaymentDialog will use
 
-    setIsPaymentDialogOpen(true);
+    setIsPaymentDialogOpen(true); // Open payment dialog without asking for tip again
   };
 
  const handleDeletePendingOrder = (orderNumberToDelete: number) => {
@@ -503,7 +512,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
             const remainingDeliveryOrders = updatedGroups.some(group => group.deliveryInfo);
             if (!remainingDeliveryOrders && currentOrder.length === 0) {
                 console.log(`TableDetailPage: Deleted last pending delivery order for ${tableIdParam}. Clearing local deliveryInfo.`);
-                setDeliveryInfo(null);
+                setDeliveryInfo(null); // This will trigger useEffect to update table status if it becomes available
             }
         }
         return updatedGroups;
@@ -513,6 +522,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
 
 
   const handlePaymentConfirm = (paymentMethod: PaymentMethod, paidAmount: number) => {
+    // paidAmount is the totalAmount which already includes the tip (if any)
     if (!orderToPay || subtotalForPayment === null) {
       toast({ title: "Error", description: "No hay un pedido o subtotal para procesar el pago.", variant: "destructive" });
       setIsPaymentDialogOpen(false);
@@ -561,7 +571,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
             inventoryItemName = 'Pan especial grande';
          }
       }
-      // FAJITAS (PROMO FAJITAS)
+      // PROMO FAJITAS
        if (orderItem.category === 'Promo Fajitas') {
         if (['4 ingredientes', '6 ingredientes', 'americana', 'brasileño', 'chacarero', 'golosasa', 'italiana', 'primavera'].includes(itemNameLower)) {
             inventoryItemName = 'Fajita';
@@ -733,23 +743,26 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
       console.log("Inventory updated after payment.");
     }
 
+    // Use tipForFinalPayment (from state, decided during "copy" or "pay" initiation) for the receipt
     const customerReceiptHtml = formatCustomerReceipt(
       orderToPay.items,
-      totalForPayment,
+      paidAmount, // This is the total amount (subtotal + delivery + tip)
       paymentMethod,
       tableDisplayName,
       orderToPay.orderNumber,
       orderToPay.deliveryInfo,
-      tipForFinalPayment
+      tipForFinalPayment // Pass the actual tip amount for display
     );
     printHtml(customerReceiptHtml);
 
+    // For CashMovement, amount should be the subtotal (excluding tip for income registration)
+    // Tip is usually handled separately or noted in description
     const cashMovement: CashMovement = {
       id: Date.now(),
       date: new Date(),
       category: 'Ingreso Venta',
       description: `Venta ${tableDisplayName} - Orden #${String(orderToPay.orderNumber).padStart(3, '0')}${tipForFinalPayment > 0 ? ` (Propina: ${printUtilsFormatCurrency(tipForFinalPayment)})` : ''}`,
-      amount: subtotalForPayment,
+      amount: subtotalForPayment, // Use subtotal for actual sale amount
       paymentMethod: paymentMethod,
       deliveryFee: (isDelivery && orderToPay.deliveryInfo && orderToPay.deliveryInfo.deliveryFee > 0) ? orderToPay.deliveryInfo.deliveryFee : undefined,
     };
@@ -761,15 +774,16 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
 
     setPendingOrderGroups(prevGroups => prevGroups.filter(group => group.orderNumber !== orderToPay!.orderNumber));
 
-    toast({ title: "Pago Registrado", description: `Pago de ${printUtilsFormatCurrency(totalForPayment)} para la orden #${String(orderToPay.orderNumber).padStart(3, '0')} registrado.` });
+    toast({ title: "Pago Registrado", description: `Pago de ${printUtilsFormatCurrency(paidAmount)} para la orden #${String(orderToPay.orderNumber).padStart(3, '0')} registrado.` });
     setIsPaymentDialogOpen(false);
     setOrderToPay(null);
-    setSubtotalForPayment(null);
-    setTipForFinalPayment(0);
+    setSubtotalForPayment(null); // Reset subtotal
+    setTipForFinalPayment(0); // Reset tip
 
+    // If this was a delivery order and it was the last one pending for this "table session"
     if (isDelivery && pendingOrderGroups.filter(pg => pg.orderNumber !== orderToPay.orderNumber && pg.deliveryInfo).length === 0 && currentOrder.length === 0) {
         console.log(`TableDetailPage: Last delivery order for ${tableIdParam} paid or all delivery orders cleared. Clearing local deliveryInfo.`);
-        setDeliveryInfo(null);
+        setDeliveryInfo(null); // This should allow the table to become available if no current order
     }
   };
 
@@ -890,7 +904,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
                 pendingOrderGroups.map((group) => {
                   const groupSubtotal = group.items.reduce((sum, item) => sum + item.finalPrice * item.quantity, 0);
                   const groupDeliveryFee = (isDelivery && group.deliveryInfo?.deliveryFee) ? group.deliveryInfo.deliveryFee : 0;
-                  const groupTip = group.tipAmountForPayment ?? 0;
+                  const groupTip = group.tipAmountForPayment ?? 0; // Use stored tip
                   const groupTotal = groupSubtotal + groupDeliveryFee + groupTip;
 
                   return (
@@ -969,6 +983,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
         </Card>
       </div>
 
+      {/* Main Menu Sheet */}
       <Sheet open={isMenuSheetOpen} onOpenChange={setIsMenuSheetOpen}>
         <SheetContent side="left" className="w-full sm:max-w-2xl md:max-w-3xl lg:max-w-4xl p-0 flex flex-col">
           <SheetHeader className="p-4 border-b sticky top-0 bg-background z-10">
@@ -983,58 +998,87 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
                 <XCircle className="h-6 w-6" />
             </Button>
           </SheetHeader>
-          <ScrollArea className="flex-grow h-[calc(100vh-140px)]">
-            <Accordion type="multiple" className="w-full p-4" defaultValue={predefinedOrderedCategories}>
+          <ScrollArea className="flex-grow h-[calc(100vh-80px)]"> {/* Adjusted height */}
+             <div className="flex flex-col gap-3 p-4">
                 {groupedMenu.map((categoryGroup) => (
-                    <AccordionItem value={categoryGroup.name} key={categoryGroup.name} className="border-b-0 mb-2 last:mb-0">
-                        <AccordionTrigger className="text-xl font-semibold hover:bg-muted/50 px-4 py-3 rounded-md hover:no-underline data-[state=open]:bg-accent data-[state=open]:text-accent-foreground">
-                           {categoryGroup.name}
-                        </AccordionTrigger>
-                        <AccordionContent className="pt-1 pb-0">
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-2">
-                                {categoryGroup.items.map((item) => (
-                                    <Card key={item.id} className="shadow-sm hover:shadow-md transition-shadow">
-                                        <CardContent className="p-3">
-                                            <div className="flex justify-between items-start mb-1">
-                                                <p className="font-semibold text-base">{item.name}</p>
-                                                <p className="font-mono text-base">{globalFormatCurrency(item.price)}</p>
-                                            </div>
-                                             {item.ingredients && item.ingredients.length > 0 && (
-                                                <p className="text-xs text-muted-foreground mb-2">
-                                                    Incluye: {item.ingredients.join(', ')}
-                                                </p>
-                                            )}
-                                            <Button
-                                                size="sm"
-                                                className="w-full"
-                                                onClick={() => {
-                                                    if (item.modifications && item.modifications.length > 0) {
-                                                        setItemToModify(item);
-                                                        setIsModificationDialogOpen(true);
-                                                    } else {
-                                                        handleAddItemToOrder(item);
-                                                    }
-                                                }}
-                                            >
-                                                Añadir al Pedido
-                                            </Button>
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-                        </AccordionContent>
-                    </AccordionItem>
+                    <Button
+                        key={categoryGroup.name}
+                        variant="outline"
+                        className="w-full justify-start text-lg py-6 hover:bg-accent hover:text-accent-foreground"
+                        onClick={() => {
+                            setSelectedCategoryForDialog(categoryGroup.name);
+                            setIsProductListDialogOpen(true);
+                        }}
+                    >
+                        {categoryGroup.name}
+                    </Button>
                 ))}
-            </Accordion>
+            </div>
           </ScrollArea>
-          <SheetFooter className="p-4 border-t sticky bottom-0 bg-background z-10">
-            <SheetClose asChild>
-                <Button>Confirmar</Button>
-            </SheetClose>
-          </SheetFooter>
+          {/* Removed SheetFooter with Confirmar button from main menu sheet */}
         </SheetContent>
       </Sheet>
 
+      {/* Product List Dialog (New) */}
+      <ShadDialog open={isProductListDialogOpen} onOpenChange={setIsProductListDialogOpen}>
+        <ShadDialogContent className="sm:max-w-2xl md:max-w-3xl lg:max-w-4xl">
+            <ShadDialogHeader>
+                <ShadDialogTitle>
+                    {selectedCategoryForDialog ? `Productos en ${selectedCategoryForDialog}` : "Seleccione Categoría"}
+                </ShadDialogTitle>
+                 <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => setIsProductListDialogOpen(false)}
+                    className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                    aria-label="Cerrar"
+                >
+                    <XCircle className="h-5 w-5" />
+                </Button>
+            </ShadDialogHeader>
+            <ScrollArea className="max-h-[70vh] p-1">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-2">
+                    {selectedCategoryForDialog && menu
+                        .filter(item => item.category === selectedCategoryForDialog)
+                        .sort((a,b) => a.name.localeCompare(b.name))
+                        .map((item) => (
+                            <Card key={item.id} className="shadow-sm hover:shadow-md transition-shadow">
+                                <CardContent className="p-3">
+                                    <div className="flex justify-between items-start mb-1">
+                                        <p className="font-semibold text-base">{item.name}</p>
+                                        <p className="font-mono text-base">{globalFormatCurrency(item.price)}</p>
+                                    </div>
+                                     {item.ingredients && item.ingredients.length > 0 && (
+                                        <p className="text-xs text-muted-foreground mb-2">
+                                            Incluye: {item.ingredients.join(', ')}
+                                        </p>
+                                    )}
+                                    <Button
+                                        size="sm"
+                                        className="w-full"
+                                        onClick={() => {
+                                            if (item.modifications && item.modifications.length > 0) {
+                                                setItemToModify(item);
+                                                setIsModificationDialogOpen(true);
+                                                // Product list dialog remains open in background
+                                            } else {
+                                                handleAddItemToOrder(item);
+                                                setIsProductListDialogOpen(false); // Close product list if no mods
+                                            }
+                                        }}
+                                    >
+                                        Añadir al Pedido
+                                    </Button>
+                                </CardContent>
+                            </Card>
+                        ))}
+                 </div>
+            </ScrollArea>
+        </ShadDialogContent>
+      </ShadDialog>
+
+
+      {/* Existing Modification Dialog */}
       {itemToModify && (
         <ModificationDialog
           isOpen={isModificationDialogOpen}
@@ -1046,10 +1090,12 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
             }
             setIsModificationDialogOpen(false);
             setItemToModify(null);
+            setIsProductListDialogOpen(false); // Close product list dialog after modification is confirmed
           }}
           onCancel={() => {
             setIsModificationDialogOpen(false);
             setItemToModify(null);
+            // Do not close product list dialog on cancel, user returns to it
           }}
         />
       )}
@@ -1065,23 +1111,30 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
            <DeliveryDialog
                isOpen={isDeliveryDialogOpen}
                onOpenChange={setIsDeliveryDialogOpen}
-               initialData={deliveryInfo}
+               initialData={deliveryInfo} // Pass current order's delivery info for editing if exists
                onConfirm={(info) => {
                    setDeliveryInfo(info);
                    setIsDeliveryDialogOpen(false);
-                   if (!isMenuSheetOpen) {
+                   // If menu wasn't open and we just got delivery info, open menu
+                   if (!isMenuSheetOpen && !isProductListDialogOpen) {
                        setIsMenuSheetOpen(true);
                    }
                }}
                onCancel={() => {
                    setIsDeliveryDialogOpen(false);
-                   if (currentOrder.length === 0 && pendingOrderGroups.length === 0) {
+                   // If it's a new delivery order and they cancel adding info,
+                   // and there are no pending delivery orders or current order,
+                   // potentially redirect or show a message.
+                   if (currentOrder.length === 0 && pendingOrderGroups.filter(pg=> pg.deliveryInfo).length === 0) {
                         toast({ title: "Datos de Envío Requeridos", description: "Debe ingresar los datos de envío para continuar con un pedido de delivery.", variant: "destructive"});
+                        // Consider if redirection to /tables is needed if they cancel initial delivery setup
+                        // router.push('/tables');
                    }
                }}
            />
        )}
 
+        {/* Dialog for Confirming Tip on Customer Copy */}
         {orderGroupForCopy && (
              <AlertDialog open={isConfirmTipForCopyDialogOpen} onOpenChange={setIsConfirmTipForCopyDialogOpen}>
                 <AlertDialogContent>
@@ -1100,9 +1153,10 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
             </AlertDialog>
         )}
 
+      {/* Dialog for General Observation */}
       <ShadDialog open={isGeneralObservationDialogOpen} onOpenChange={(isOpen) => {
           setIsGeneralObservationDialogOpen(isOpen);
-          if (!isOpen) setCurrentGeneralObservation('');
+          if (!isOpen) setCurrentGeneralObservation(''); // Reset if closed without confirm
       }}>
         <ShadDialogContent className="sm:max-w-md">
             <ShadDialogHeader>
@@ -1134,3 +1188,4 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     </div>
   );
 }
+
