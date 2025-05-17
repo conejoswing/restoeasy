@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   Dialog,
@@ -39,7 +39,6 @@ import { PlusCircle, Trash2, MinusCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Card } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { buttonVariants } from '@/components/ui/button';
 
 export interface InventoryItem {
   id: number;
@@ -59,16 +58,27 @@ const predefinedItemNames: string[] = [
   'Cafe Grande',
   'Vienesas',
   'Fajita',
-  'Empanada', // Added Empanada for Box Cami
+  'Empanada',
 ];
 
+// This will be populated from localStorage or defaults
 const initialInventory: InventoryItem[] = predefinedItemNames.map((name, index) => ({
-  id: index + 1, // Initial IDs, will be re-evaluated if loading from storage
+  id: Date.now() + index + Math.random() * 1000, // More unique initial IDs
   name: name,
   stock: 0,
 }));
 
+
 const INVENTORY_STORAGE_KEY = 'restaurantInventory';
+
+// Type guard for validating the shape of items from localStorage
+const isValidInventoryItemData = (item: any): item is { name: string; stock: number; id?: number } => {
+  return item &&
+    typeof item === 'object' &&
+    item !== null && // ensure item is not null
+    typeof item.name === 'string' &&
+    typeof item.stock === 'number';
+};
 
 
 export default function InventoryPage() {
@@ -89,25 +99,21 @@ export default function InventoryPage() {
       try {
         const parsed = JSON.parse(storedInventory);
         if (Array.isArray(parsed)) {
-          loadedInventory = parsed.filter
-            (item: any): item is Partial<InventoryItem> =>
-              item &&
-              typeof item === 'object' &&
-              typeof item.name === 'string' &&
-              typeof item.stock === 'number'
-          ).map((itemValidated: Partial<InventoryItem>) => ({
-            id: typeof itemValidated.id === 'number' ? itemValidated.id : 0,
-            name: itemValidated.name!,
-            stock: itemValidated.stock!,
-          }));
+          loadedInventory = parsed
+            .filter(isValidInventoryItemData) // Use the type guard here
+            .map((itemValidated) => ({
+              id: typeof itemValidated.id === 'number' ? itemValidated.id : Date.now() + Math.random(), // Ensure ID for items from old storage
+              name: itemValidated.name,
+              stock: itemValidated.stock,
+            }));
 
            const storedNames = new Set(loadedInventory.map(item => item.name.toLowerCase()));
            predefinedItemNames.forEach((name) => {
                if (!storedNames.has(name.toLowerCase())) {
-                    const maxId = loadedInventory.reduce((max, item) => Math.max(max, item.id || 0), 0);
-                    const newId = maxId + 1;
+                    const maxIdInCurrent = loadedInventory.reduce((max, item) => Math.max(max, typeof item.id === 'number' ? item.id : 0), 0);
+                    const newId = maxIdInCurrent + 1 + loadedInventory.length + Math.random();
                    loadedInventory.push({ id: newId, name: name, stock: 0 });
-                   console.log(`Added missing predefined item: ${name}`);
+                   console.log(`Added missing predefined item: ${name} with ID ${newId}`);
                }
            });
           console.log("Loaded and merged inventory:", loadedInventory);
@@ -126,13 +132,14 @@ export default function InventoryPage() {
 
     const finalInventory = loadedInventory.map((item, index) => ({
       ...item,
-      id: typeof item.id === 'number' && item.id > 0 ? item.id : Date.now() + index + 1
+      id: (typeof item.id === 'number' && item.id !== 0 && !isNaN(item.id)) ? item.id : (Date.now() + index + Math.random() * 10000)
     }));
+
 
     finalInventory.sort((a, b) => a.name.localeCompare(b.name));
     setInventory(finalInventory);
     setIsInventoryInitialized(true);
-    console.log("Inventory initialization complete.");
+    console.log("Inventory initialization complete with final inventory:", finalInventory.map(i => ({id: i.id, name: i.name})));
 
   }, [isInventoryInitialized]);
 
@@ -142,7 +149,7 @@ export default function InventoryPage() {
     console.log("Saving inventory to localStorage...");
     try {
       localStorage.setItem(INVENTORY_STORAGE_KEY, JSON.stringify(inventory));
-      console.log("Inventory saved:", inventory);
+      console.log("Inventory saved:", inventory.map(i => ({id: i.id, name: i.name, stock: i.stock})));
     } catch (error) {
       console.error("Failed to save inventory to localStorage:", error);
       toast({ title: "Error", description: "No se pudo guardar el inventario.", variant: "destructive" });
@@ -165,7 +172,7 @@ export default function InventoryPage() {
      }
 
      const stockValue = parseInt(newProductData.stock, 10);
-     if (isNaN(stockValue)) { // Allow negative initial stock if needed, though typically starts at 0 or positive
+     if (isNaN(stockValue)) {
        toast({ title: "Error", description: "La cantidad debe ser un número válido.", variant: "destructive" });
        return;
      }
@@ -177,7 +184,7 @@ export default function InventoryPage() {
      }
 
      const maxId = inventory.reduce((max, item) => Math.max(max, item.id || 0), 0);
-     const newId = maxId + 1;
+     const newId = maxId + 1 + Math.random();
 
      const newProduct: InventoryItem = {
        id: newId,
@@ -205,7 +212,7 @@ export default function InventoryPage() {
         setInventory(prevInventory =>
             prevInventory.map(item =>
                 item.id === id
-                    ? { ...item, stock: item.stock + amount } // Removed Math.max(0, ...)
+                    ? { ...item, stock: item.stock + amount }
                     : item
             ).sort((a, b) => a.name.localeCompare(b.name))
         );
