@@ -932,8 +932,8 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
           <CardHeader>
             <CardTitle className="text-center text-xl">Pedido Actual</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col flex-grow p-3">
-            <ScrollArea className="flex-grow min-h-0 pr-3"> 
+          <CardContent className="flex flex-col flex-grow p-3 overflow-hidden"> {/* Updated */}
+            <ScrollArea className="h-full pr-3">  {/* Updated */}
               {currentOrder.length === 0 ? (
                 <p className="text-muted-foreground text-center py-10">No hay productos en el pedido actual.</p>
               ) : (
@@ -991,8 +991,8 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
           <CardHeader>
             <CardTitle className="text-center text-xl">Pedidos Pendientes de Pago</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col flex-grow p-3">
-            <ScrollArea className="flex-grow min-h-0 pr-3"> 
+          <CardContent className="flex flex-col flex-grow p-3 overflow-hidden"> {/* Updated */}
+            <ScrollArea className="h-full pr-3">  {/* Updated */}
               {pendingOrderGroups.length === 0 ? (
                 <p className="text-muted-foreground text-center py-10">No hay pedidos pendientes de pago.</p>
               ) : (
@@ -1184,4 +1184,5 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     </div>
   );
 }
+
 
