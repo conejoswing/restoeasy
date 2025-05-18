@@ -240,7 +240,9 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
  useEffect(() => {
     if (!isInitialized || !tableIdParam) return;
 
+    console.log(`TableDetailPage: Saving currentOrder for ${tableIdParam}`, currentOrder);
     sessionStorage.setItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${tableIdParam}-currentOrder`, JSON.stringify(currentOrder));
+    console.log(`TableDetailPage: Saving pendingOrderGroups for ${tableIdParam}`, pendingOrderGroups);
     sessionStorage.setItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${tableIdParam}-pendingOrders`, JSON.stringify({ groups: pendingOrderGroups }));
 
 
@@ -249,8 +251,6 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
 
     let isEffectivelyOccupied = false;
     if (isDelivery) {
-        // A delivery "table" is occupied if there's a current order being built OR any pending delivery orders.
-        // The `deliveryInfo` state of the component itself is for the *current* order being built.
         isEffectivelyOccupied = hasCurrent || pendingOrderGroups.some(pg => !!pg.deliveryInfo);
     }
 
@@ -264,10 +264,9 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     const storageKey = `table-${tableIdParam}-status`;
     const oldStatus = sessionStorage.getItem(storageKey) as 'available' | 'occupied' | null;
 
-    sessionStorage.setItem(storageKey, newStatus); // Always write current calculated status
-    console.log(`TableDetailPage: Table ${tableIdParam} status in sessionStorage set to ${newStatus}. Old was: ${oldStatus}.`);
+    sessionStorage.setItem(storageKey, newStatus);
+    console.log(`TableDetailPage: Table ${tableIdParam} status in sessionStorage set to ${newStatus}. Old was: ${oldStatus}. hasPending: ${hasPending}, hasCurrent: ${hasCurrent}, isDeliveryOccupied: ${isEffectivelyOccupied}`);
 
-    // Dispatch event only if the status actually changes or if it was initially null and now occupied
     if (oldStatus !== newStatus || (oldStatus === null && newStatus === 'occupied')) {
       console.log(`TableDetailPage: Table ${tableIdParam} status ${oldStatus === null ? 'was unset and now' : 'actually changed from ' + (oldStatus ?? 'unset') + ' to'} ${newStatus}. Dispatching 'tableStatusUpdated' event.`);
       window.dispatchEvent(new CustomEvent('tableStatusUpdated'));
@@ -898,21 +897,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
                         Incluye: {item.ingredients.join(', ')}
                       </p>
                     )}
-                    <Button
-                      size="sm"
-                      className="w-full"
-                      onClick={() => {
-                        if (item.modifications && item.modifications.length > 0) {
-                          setItemToModify(item);
-                          setIsModificationDialogOpen(true);
-                          // No cerrar el ProductListDialog aquí, se cerrará después de la confirmación/cancelación de modificaciones
-                        } else {
-                          handleAddItemToOrder(item); // Esto ya cierra el ProductListDialog
-                        }
-                      }}
-                    >
-                      Añadir al Pedido
-                    </Button>
+                    {/* Removed "Añadir al Pedido" button */}
                   </CardContent>
                 </Card>
               ))}
@@ -1188,3 +1173,4 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     </div>
   );
 }
+
