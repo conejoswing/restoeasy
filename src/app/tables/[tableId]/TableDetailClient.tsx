@@ -21,7 +21,7 @@ import {
   SheetHeader,
   SheetTitle,
   SheetClose,
-  SheetTrigger,
+  SheetTrigger, // Added SheetTrigger back
 } from '@/components/ui/sheet';
 import {
   AlertDialog,
@@ -58,7 +58,7 @@ import {
   DialogFooter as ShadDialogFooter,
   DialogHeader as ShadDialogHeader,
   DialogTitle as ShadDialogTitle,
-  DialogClose as ShadDialogClose, 
+  DialogClose as ShadDialogClose,
 } from '@/components/ui/dialog';
 
 
@@ -266,6 +266,9 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
         // If the status in storage doesn't match the newly calculated status, update it, but only dispatch if it changed from oldStatus.
         console.log(`TableDetailClient: Table ${safeTableId} status in sessionStorage (${sessionStorage.getItem(storageKey)}) differs from calculated (${newStatus}). Updating sessionStorage.`);
         sessionStorage.setItem(storageKey, newStatus);
+        if (oldStatus !== newStatus) { // Only dispatch if the effective status changed
+          window.dispatchEvent(new CustomEvent('tableStatusUpdated'));
+        }
     }
 
 
@@ -853,7 +856,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
         if (indexA !== -1 && indexB !== -1) return indexA - indexB;
         if (indexA !== -1) return -1;
         if (indexB !== -1) return 1;
-        return a.name.localeCompare(b.name);
+        return a.localeCompare(b);
     });
 
     return sortedCategoryNames.map(categoryName => ({
@@ -894,7 +897,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
             Volver
         </Button>
         <h1 className="text-2xl font-bold text-center flex-grow">{tableDisplayName}</h1>
-        <div></div>
+        <div></div> {/* Placeholder for alignment if needed */}
       </div>
 
       <div className="flex justify-center mb-6">
@@ -936,7 +939,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
       </div>
 
       <ShadDialog open={isProductListDialogOpen} onOpenChange={setIsProductListDialogOpen}>
-        <ShadDialogContent className="sm:max-w-2xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl max-h-[90vh] flex flex-col">
+        <ShadDialogContent className="sm:max-w-2xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl 2xl:max-w-6xl max-h-[90vh] flex flex-col overflow-hidden">
           <ShadDialogHeader>
             <ShadDialogTitle className="text-2xl text-center">
               {selectedCategoryForDialog ? `Productos en ${selectedCategoryForDialog}` : "Productos"}
@@ -1103,7 +1106,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
                                         <Utensils className="inline h-3 w-3 mr-1"/>{group.deliveryInfo.name} - {group.deliveryInfo.address}
                                     </p>
                                )}
-                               {!group.deliveryInfo && <div/>}
+                               {!group.deliveryInfo && <div/>} {/* Placeholder to maintain layout if no deliveryInfo */}
                            </div>
                            {group.generalObservation && (
                                 <p className="text-xs text-amber-700 font-bold mt-1">Obs. General: {group.generalObservation}</p>
@@ -1256,3 +1259,4 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     </div>
   );
 }
+
