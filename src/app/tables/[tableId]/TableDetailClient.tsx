@@ -330,6 +330,16 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
       setIsProductListDialogOpen(false); // Close product list dialog after adding item
   };
 
+  const handleProductCardClick = (item: MenuItem) => {
+    if (item.modifications && item.modifications.length > 0) {
+      setItemToModify(item);
+      setIsModificationDialogOpen(true);
+    } else {
+      handleAddItemToOrder(item); // Add directly if no modifications
+    }
+  };
+
+
   const handleRemoveItemFromOrder = (orderItemId: string) => {
     setCurrentOrder((prevOrder) => prevOrder.filter((item) => item.orderItemId !== orderItemId));
     toast({ title: "Producto Eliminado", description: "El producto se eliminó del pedido actual.", variant: "destructive" });
@@ -884,24 +894,27 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
             </Button>
           </ShadDialogHeader>
           <ScrollArea className="flex-grow overflow-y-auto pr-2">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4">
-              {productsForSelectedCategory.map((item) => (
-                <Card key={item.id} className="shadow-sm hover:shadow-md transition-shadow">
-                  <CardContent className="p-3">
-                    <div className="flex justify-between items-start mb-1">
-                      <p className="font-semibold text-base">{item.name}</p>
-                      <p className="font-mono text-base">{globalFormatCurrency(item.price)}</p>
-                    </div>
-                    {item.ingredients && item.ingredients.length > 0 && (
-                      <p className="text-xs text-muted-foreground mb-2">
-                        Incluye: {item.ingredients.join(', ')}
-                      </p>
-                    )}
-                    {/* Removed "Añadir al Pedido" button */}
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
+                {productsForSelectedCategory.map((item) => (
+                  <Card
+                    key={item.id}
+                    className="shadow-sm hover:shadow-md transition-shadow cursor-pointer flex flex-col"
+                    onClick={() => handleProductCardClick(item)}
+                  >
+                    <CardHeader className="p-3 pb-1 flex-grow">
+                      <CardTitle className="text-base font-semibold text-center">{item.name}</CardTitle>
+                    </CardHeader>
+                    <CardContent className="p-3 pt-0 text-center">
+                      <p className="font-mono text-sm">{globalFormatCurrency(item.price)}</p>
+                       {item.ingredients && item.ingredients.length > 0 && (
+                        <p className="text-xs text-muted-foreground mt-1 truncate" title={item.ingredients.join(', ')}>
+                           {item.ingredients.join(', ').length > 30 ? item.ingredients.join(', ').substring(0, 27) + '...' : item.ingredients.join(', ')}
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
           </ScrollArea>
           <ShadDialogFooter className="p-4 border-t mt-auto">
             <ShadDialogClose asChild>
@@ -1075,7 +1088,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
           onConfirm={(selectedMods, obsText) => {
             if (itemToModify) {
               handleAddItemToOrder(itemToModify, selectedMods, obsText);
-              setIsProductListDialogOpen(false); // Cierra también el diálogo de lista de productos
+              setIsProductListDialogOpen(false); 
             }
             setIsModificationDialogOpen(false);
             setItemToModify(null);
@@ -1083,7 +1096,6 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
           onCancel={() => {
             setIsModificationDialogOpen(false);
             setItemToModify(null);
-            // No cerrar el ProductListDialog aquí, permitir que el usuario siga en él
           }}
         />
       )}
@@ -1173,4 +1185,3 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     </div>
   );
 }
-
