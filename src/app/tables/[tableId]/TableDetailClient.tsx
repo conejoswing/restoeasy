@@ -139,7 +139,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
 
   const tableDisplayName = useMemo(() => {
     if (isDelivery) return 'Delivery';
-    if (isMeson) return 'Mesón';
+    if (isMeson) return 'Mesón'; // Corrected to use 'Mesón'
     if (!isNaN(Number(tableIdParam))) return `Mesa ${tableIdParam}`;
     const decodedId = decodeURIComponent(tableIdParam);
     return decodedId.charAt(0).toUpperCase() + decodedId.slice(1);
@@ -216,18 +216,16 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
      const storedOrderNumber = localStorage.getItem(ORDER_NUMBER_STORAGE_KEY);
      setLastOrderNumber(storedOrderNumber ? parseInt(storedOrderNumber, 10) : 0);
 
-    // For delivery, if there's no current order being formed and no pending orders,
-    // we don't need to preload any specific deliveryInfo here.
-    // deliveryInfo state is for the *current* order being built.
     if (isDelivery && currentOrder.length === 0 && !pendingOrderGroups.some(pg => pg.deliveryInfo)) {
-        // setDeliveryInfo(null); // Ensure it's null if no active delivery context
+        // For a fresh delivery "table", ensure deliveryInfo state for current order is null
+        // setDeliveryInfo(null); // This line can be removed if initial state is already null
     }
 
 
     setIsInitialized(true);
     console.log(`Initialization complete for ${tableIdParam}.`);
 
-  }, [tableIdParam, isInitialized, isDelivery, currentOrder.length, pendingOrderGroups]);
+  }, [tableIdParam, isInitialized, isDelivery]); // Removed currentOrder.length and pendingOrderGroups as per previous request
 
 
   useEffect(() => {
@@ -254,9 +252,6 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     const hasCurrent = currentOrder.length > 0;
 
 
-    // Determine if the "table" (physical or logical like Delivery/Meson) is occupied.
-    // For Delivery, it's occupied if there's a current order OR any pending delivery orders.
-    // For other tables, it's occupied if there's a current order OR any pending orders.
     let isEffectivelyOccupied = false;
     if (isDelivery) {
         isEffectivelyOccupied = hasCurrent || pendingOrderGroups.some(pg => !!pg.deliveryInfo);
@@ -265,14 +260,11 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     }
 
     let newStatus: 'available' | 'occupied' = isEffectivelyOccupied ? 'occupied' : 'available';
-
     const storageKey = `table-${tableIdParam}-status`;
     const oldStatus = sessionStorage.getItem(storageKey) as 'available' | 'occupied' | null;
 
-    // Always set the current status
     sessionStorage.setItem(storageKey, newStatus);
 
-    // Dispatch event only if the status actually changes or was initially unset and now occupied
     if (oldStatus !== newStatus || (oldStatus === null && newStatus === 'occupied')) {
       console.log(`TableDetailClient: Table ${tableIdParam} status in sessionStorage ${oldStatus === null ? 'was unset and now' : 'actually changed from ' + (oldStatus ?? 'unset') + ' to'} ${newStatus}. Dispatching 'tableStatusUpdated' event. hasPending: ${hasPending}, hasCurrent: ${hasCurrent}, isDeliveryOccupied: ${isEffectivelyOccupied}`);
       window.dispatchEvent(new CustomEvent('tableStatusUpdated'));
@@ -284,12 +276,9 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
   }, [currentOrder, pendingOrderGroups, tableIdParam, isInitialized, isDelivery]);
 
   const handleOpenMenuOrDeliveryDialog = () => {
-    // If it's delivery, and there's no current deliveryInfo for the order being built,
-    // prompt for delivery info FIRST.
-    if (isDelivery && !deliveryInfo) {
+    if (isDelivery && !deliveryInfo && currentOrder.length === 0 && !pendingOrderGroups.some(pg => pg.deliveryInfo)) {
         setIsDeliveryDialogOpen(true);
     } else {
-        // Otherwise (not delivery, or delivery info already provided for current order), open menu.
         setIsMenuSheetOpen(true);
     }
   };
@@ -297,7 +286,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
   const handleCategorySelect = (categoryName: string) => {
     setSelectedCategoryForDialog(categoryName);
     setIsProductListDialogOpen(true);
-    setIsMenuSheetOpen(false); // Close the category selection sheet
+    setIsMenuSheetOpen(false);
   };
 
   const handleAddItemToOrder = (item: MenuItem, selectedModifications?: string[], observationText?: string) => {
@@ -339,19 +328,17 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
           ]);
       }
       toast({ title: "Producto Añadido", description: `${item.name} se añadió al pedido actual.` });
-      setIsProductListDialogOpen(false); // Close product list dialog after adding
-      setItemToModify(null); // Clear item to modify
-      setIsModificationDialogOpen(false); // Ensure modification dialog is also closed
+      setIsProductListDialogOpen(false);
+      setItemToModify(null);
+      setIsModificationDialogOpen(false);
   };
 
   const handleProductCardClick = (item: MenuItem) => {
     if (item.modifications && item.modifications.length > 0) {
-      setItemToModify(item); // Set item for modification dialog
-      setIsModificationDialogOpen(true); // Open modification dialog
-      // Do not close product list dialog here, let modification dialog handle it
+      setItemToModify(item);
+      setIsModificationDialogOpen(true);
     } else {
-      handleAddItemToOrder(item); // Add directly if no modifications
-      // setIsProductListDialogOpen(false); // Close product list if added directly - handleAddItemToOrder does this
+      handleAddItemToOrder(item);
     }
   };
 
@@ -393,7 +380,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     }
      if (isDelivery && currentOrder.length > 0 && !deliveryInfo) {
         toast({ title: "Faltan Datos de Envío", description: "Por favor, ingrese los datos de envío para este pedido.", variant: "destructive" });
-        setIsDeliveryDialogOpen(true);
+        setIsDeliveryDialogOpen(true); // Re-open delivery dialog if info is missing for a delivery order
         return;
     }
     setCurrentGeneralObservation('');
@@ -430,7 +417,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
             deliveryInfo: currentDeliveryInfoToUse,
             timestamp: Date.now(),
             generalObservation: currentGeneralObservation,
-            tipAmountForPayment: 0,
+            tipAmountForPayment: 0, // Initialize tip for this group
         }
     ].sort((a,b) => a.timestamp - b.timestamp));
 
@@ -440,7 +427,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     toast({ title: "Comanda Impresa", description: `Pedido #${String(orderNumber).padStart(3,'0')} enviado a cocina y movido a pendientes.` });
 
     if (isDelivery) {
-      setDeliveryInfo(null); // Clear component's deliveryInfo after current delivery order is finalized
+      setDeliveryInfo(null);
     }
   };
 
@@ -517,7 +504,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
       deliveryFeeForThisOrder = groupToPay.deliveryInfo.deliveryFee;
     }
 
-    const tipForThisPayment = groupToPay.tipAmountForPayment ?? 0;
+    const tipForThisPayment = groupToPay.tipAmountForPayment ?? 0; // Use the tip decided at "Imprimir Copia Cliente"
     setTipForFinalPayment(tipForThisPayment);
 
     const finalAmountForDialog = currentSubtotal + deliveryFeeForThisOrder + tipForThisPayment;
@@ -532,7 +519,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
         if (isDelivery) {
             const remainingDeliveryOrders = updatedGroups.some(group => group.deliveryInfo);
             if (!remainingDeliveryOrders && currentOrder.length === 0) {
-                // setDeliveryInfo(null); // DeliveryInfo is for current order, not global state of the table anymore
+                // deliveryInfo is for current order, not global state of the table anymore
             }
         }
         return updatedGroups;
@@ -622,6 +609,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
       if (orderItem.category === 'Promo Churrasco') {
         if (['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'queso', 'queso champiñon', 'tomate', 'palta'].includes(itemNameLower)) {
           inventoryItemName = 'Pan de marraqueta';
+             quantityToDeduct = orderItem.quantity *1; // Each promo item uses 1 pan de marraqueta
 
              const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
              if (bebidaLataIndex !== -1) {
@@ -638,6 +626,8 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
       if (orderItem.category === 'Promo Mechada') {
           if (['brasileño', 'campestre', 'chacarero', 'che milico', 'completo', 'dinamico', 'italiano', 'queso', 'queso champiñon', 'tomate', 'palta'].includes(itemNameLower)) {
              inventoryItemName = 'Pan de marraqueta';
+             quantityToDeduct = orderItem.quantity *1; // Each promo item uses 1 pan de marraqueta
+
 
                 const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
                 if (bebidaLataIndex !== -1) {
@@ -656,11 +646,11 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
           inventoryItemName = 'Pan de hamburguesa normal';
            quantityToDeduct = orderItem.quantity * 1;
         } else if (['doble', 'doble italiana', 'super big cami', 'super tapa arteria'].includes(itemNameLower)) {
-           inventoryItemName = 'Pan de hamburguesa grande';
-           quantityToDeduct = orderItem.quantity * 1;
+           inventoryItemName = 'Pan de hamburguesa normal'; // Changed to Pan de hamburguesa normal
+           quantityToDeduct = orderItem.quantity * 2; // Assumes double uses two normal buns or two meat patties with normal buns
         }
 
-         if (inventoryItemName) {
+         if (inventoryItemName) { // Only deduct drink if a burger type was matched
             const bebidaLataIndex = updatedInventory.findIndex(invItem => invItem.name.toLowerCase() === 'lata');
             if (bebidaLataIndex !== -1) {
                 const latasToDeduct = orderItem.quantity;
@@ -955,7 +945,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
           <CardHeader>
             <CardTitle className="text-center text-xl">Pedido Actual</CardTitle>
           </CardHeader>
-            <ScrollArea className="flex-grow p-3 min-h-0">
+            <ScrollArea className="flex-grow min-h-0">
                 <div className="p-3">
                   {currentOrder.length === 0 ? (
                     <p className="text-muted-foreground text-center py-10">No hay productos en el pedido actual.</p>
@@ -996,7 +986,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
                   )}
                 </div>
             </ScrollArea>
-          <CardFooter className="p-3 border-t mt-auto">
+          <CardFooter className="p-3 border-t">
             <div className="w-full">
               <div className="flex justify-between items-center text-lg mb-3">
                 <span className="font-bold">Total Actual:</span>
@@ -1014,7 +1004,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
           <CardHeader>
             <CardTitle className="text-center text-xl">Pedidos Pendientes de Pago</CardTitle>
           </CardHeader>
-          <ScrollArea className="flex-grow p-3 min-h-0">
+          <ScrollArea className="flex-grow min-h-0">
             <div className="p-3">
               {pendingOrderGroups.length === 0 ? (
                 <p className="text-muted-foreground text-center py-10">No hay pedidos pendientes de pago.</p>
@@ -1029,7 +1019,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
                     <Card key={group.orderNumber} className="mb-3 shadow-md">
                        <CardHeader className="p-3 pb-1">
                            <div className="flex justify-between items-center">
-                                <div className="flex items-center gap-2"> {/* Contenedor para X y Orden */}
+                                <div className="flex items-center gap-2">
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
                                             <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive/80 h-7 w-7 p-0">
@@ -1061,7 +1051,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
                                         <Utensils className="inline h-3 w-3 mr-1"/>{group.deliveryInfo.name} - {group.deliveryInfo.address}
                                     </p>
                                )}
-                               {!group.deliveryInfo && <div/>} {/* Placeholder if no delivery info */}
+                               {!group.deliveryInfo && <div/>}
                            </div>
                            {group.generalObservation && (
                                 <p className="text-xs text-amber-700 font-bold mt-1">Obs. General: {group.generalObservation}</p>
@@ -1156,7 +1146,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
                onCancel={() => {
                    setIsDeliveryDialogOpen(false);
                    if (currentOrder.length === 0 && !pendingOrderGroups.some(pg=> pg.deliveryInfo)) {
-                        // No action needed here, as deliveryInfo is for the *current* order being built
+                       // No action needed here, as deliveryInfo is for the *current* order being built
                    }
                }}
            />
@@ -1219,4 +1209,3 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     </div>
   );
 }
-
