@@ -140,8 +140,8 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
   const tableDisplayName = useMemo(() => {
     if (isDelivery) return 'Delivery';
     if (isMeson) return 'Mesón';
-    if (!isNaN(Number(tableIdParam))) return `Mesa ${tableIdParam}`;
-    const decodedId = decodeURIComponent(tableIdParam);
+    const decodedId = decodeURIComponent(tableIdParam); // Decode for display
+    if (!isNaN(Number(decodedId))) return `Mesa ${decodedId}`;
     return decodedId.charAt(0).toUpperCase() + decodedId.slice(1);
   }, [tableIdParam, isDelivery, isMeson]);
 
@@ -165,7 +165,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
         setInventory([]);
     }
 
-    const storedCurrentOrder = sessionStorage.getItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${tableIdParam}-currentOrder`);
+    const storedCurrentOrder = sessionStorage.getItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${decodeURIComponent(tableIdParam)}-currentOrder`);
     if (storedCurrentOrder) {
       try {
         const parsedOrder = JSON.parse(storedCurrentOrder);
@@ -181,7 +181,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
       } catch (e) { console.error("Error loading current order:", e); }
     }
 
-    const storedPendingOrdersData = sessionStorage.getItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${tableIdParam}-pendingOrders`);
+    const storedPendingOrdersData = sessionStorage.getItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${decodeURIComponent(tableIdParam)}-pendingOrders`);
     if (storedPendingOrdersData) {
         try {
             const parsedData = JSON.parse(storedPendingOrdersData);
@@ -217,7 +217,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
      setLastOrderNumber(storedOrderNumber ? parseInt(storedOrderNumber, 10) : 0);
 
     setIsInitialized(true);
-    console.log(`Initialization complete for ${tableIdParam}.`);
+    console.log(`Initialization complete for ${decodeURIComponent(tableIdParam)}.`);
 
   }, [tableIdParam, isInitialized]);
 
@@ -234,12 +234,13 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
 
  useEffect(() => {
     if (!isInitialized || !tableIdParam) return;
+    const safeTableId = decodeURIComponent(tableIdParam);
 
-    console.log(`TableDetailClient: Saving currentOrder for ${tableIdParam}`, currentOrder);
-    sessionStorage.setItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${tableIdParam}-currentOrder`, JSON.stringify(currentOrder));
+    console.log(`TableDetailClient: Saving currentOrder for ${safeTableId}`, currentOrder);
+    sessionStorage.setItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${safeTableId}-currentOrder`, JSON.stringify(currentOrder));
 
-    console.log(`TableDetailClient: Saving pendingOrderGroups for ${tableIdParam}`, pendingOrderGroups);
-    sessionStorage.setItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${tableIdParam}-pendingOrders`, JSON.stringify({ groups: pendingOrderGroups }));
+    console.log(`TableDetailClient: Saving pendingOrderGroups for ${safeTableId}`, pendingOrderGroups);
+    sessionStorage.setItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${safeTableId}-pendingOrders`, JSON.stringify({ groups: pendingOrderGroups }));
 
 
     const hasPending = pendingOrderGroups.length > 0;
@@ -254,14 +255,17 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     }
 
     let newStatus: 'available' | 'occupied' = isEffectivelyOccupied ? 'occupied' : 'available';
-    const storageKey = `table-${tableIdParam}-status`;
+    const storageKey = `table-${safeTableId}-status`;
     const oldStatus = sessionStorage.getItem(storageKey) as 'available' | 'occupied' | null;
 
-    sessionStorage.setItem(storageKey, newStatus);
-
     if (oldStatus !== newStatus || (oldStatus === null && newStatus === 'occupied')) {
-      console.log(`TableDetailClient: Table ${tableIdParam} status in sessionStorage ${oldStatus === null ? 'was unset and now' : 'actually changed from ' + (oldStatus ?? 'unset') + ' to'} ${newStatus}. Dispatching 'tableStatusUpdated' event. hasPending: ${hasPending}, hasCurrent: ${hasCurrent}, isDeliveryOccupied: ${isEffectivelyOccupied}`);
+      console.log(`TableDetailClient: Table ${safeTableId} status in sessionStorage actually changed from ${oldStatus ?? 'unset'} to ${newStatus}. Dispatching 'tableStatusUpdated' event. hasPending: ${hasPending}, hasCurrent: ${hasCurrent}, isDeliveryOccupied: ${isEffectivelyOccupied}`);
+      sessionStorage.setItem(storageKey, newStatus);
       window.dispatchEvent(new CustomEvent('tableStatusUpdated'));
+    } else if (sessionStorage.getItem(storageKey) !== newStatus) {
+        // If the status in storage doesn't match the newly calculated status, update it, but only dispatch if it changed from oldStatus.
+        console.log(`TableDetailClient: Table ${safeTableId} status in sessionStorage (${sessionStorage.getItem(storageKey)}) differs from calculated (${newStatus}). Updating sessionStorage.`);
+        sessionStorage.setItem(storageKey, newStatus);
     }
 
 
@@ -272,6 +276,8 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
         console.log("TableDetailClient: Opening delivery dialog for new delivery order.");
         setIsDeliveryDialogOpen(true);
     } else if (isDelivery && currentOrder.length > 0 && !deliveryInfo) {
+        // This case might indicate a delivery order was started, then info was cleared or page reloaded.
+        // Re-prompt for delivery info.
         console.log("TableDetailClient: Delivery order in progress but info missing, opening delivery dialog.");
         setIsDeliveryDialogOpen(true);
     }
@@ -284,7 +290,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
   const handleCategorySelect = (categoryName: string) => {
     setSelectedCategoryForDialog(categoryName);
     setIsProductListDialogOpen(true);
-    setIsMenuSheetOpen(false);
+    setIsMenuSheetOpen(false); // Close the category sheet
   };
 
   const handleAddItemToOrder = (item: MenuItem, selectedModifications?: string[], observationText?: string) => {
@@ -326,9 +332,9 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
           ]);
       }
       toast({ title: "Producto Añadido", description: `${item.name} se añadió al pedido actual.` });
-      setIsProductListDialogOpen(false);
-      setItemToModify(null);
-      setIsModificationDialogOpen(false);
+      setIsProductListDialogOpen(false); // Close product list dialog after adding
+      setItemToModify(null); // Reset item to modify
+      setIsModificationDialogOpen(false); // Ensure modification dialog is closed
   };
 
   const handleProductCardClick = (item: MenuItem) => {
@@ -378,17 +384,18 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     }
      if (isDelivery && currentOrder.length > 0 && !deliveryInfo) {
         toast({ title: "Faltan Datos de Envío", description: "Por favor, ingrese los datos de envío para este pedido.", variant: "destructive" });
-        setIsDeliveryDialogOpen(true);
+        setIsDeliveryDialogOpen(true); // Open delivery dialog if info is missing for delivery
         return;
     }
-    setCurrentGeneralObservation('');
+    // Open general observation dialog first
+    setCurrentGeneralObservation(''); // Clear previous observation
     setIsGeneralObservationDialogOpen(true);
   };
 
   const handleConfirmPrintKitchenOrderWithObservation = () => {
     if (currentOrder.length === 0) {
         toast({ title: "Pedido Vacío", description: "Añada productos antes de imprimir la comanda.", variant: "destructive" });
-        setIsGeneralObservationDialogOpen(false);
+        setIsGeneralObservationDialogOpen(false); // Close dialog even if empty
         return;
     }
 
@@ -403,7 +410,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
         tableDisplayName,
         orderNumber,
         currentDeliveryInfoToUse,
-        currentGeneralObservation
+        currentGeneralObservation // Pass the observation from state
     );
     printHtml(kitchenReceipt);
 
@@ -414,18 +421,19 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
             items: orderWithNumber,
             deliveryInfo: currentDeliveryInfoToUse,
             timestamp: Date.now(),
-            generalObservation: currentGeneralObservation,
-            tipAmountForPayment: 0, // Initialize tipAmountForPayment for the new group
+            generalObservation: currentGeneralObservation, // Save observation with the group
+            tipAmountForPayment: 0, // Initialize tip for this new group
         }
     ].sort((a,b) => a.timestamp - b.timestamp));
 
     setCurrentOrder([]);
-    setCurrentGeneralObservation('');
-    setIsGeneralObservationDialogOpen(false);
+    setCurrentGeneralObservation(''); // Clear observation from state
+    setIsGeneralObservationDialogOpen(false); // Close the dialog
     toast({ title: "Comanda Impresa", description: `Pedido #${String(orderNumber).padStart(3,'0')} enviado a cocina y movido a pendientes.` });
 
+    // If it was a delivery order, clear deliveryInfo for the next new delivery order
     if (isDelivery) {
-      setDeliveryInfo(null); // Clear delivery info for the next delivery order
+      setDeliveryInfo(null);
     }
   };
 
@@ -435,12 +443,13 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
       toast({ title: "Error", description: "No hay pedido para reimprimir o está vacío.", variant: "destructive" });
       return;
     }
+    // Use the stored generalObservation for reprinting
     const kitchenReceipt = formatKitchenOrderReceipt(
       groupToReprint.items,
       tableDisplayName,
       groupToReprint.orderNumber,
       groupToReprint.deliveryInfo,
-      groupToReprint.generalObservation
+      groupToReprint.generalObservation // Pass stored observation
     );
     printHtml(kitchenReceipt);
     toast({ title: "Comanda Reimpresa", description: `Se reimprimió la comanda del pedido #${String(groupToReprint.orderNumber).padStart(3, '0')}.` });
@@ -449,11 +458,11 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
 
   const handleOpenPrintCustomerCopyDialog = (groupToCopy: PendingOrderGroup) => {
     setOrderGroupForCopy(groupToCopy);
-    setIsConfirmTipForCopyDialogOpen(true);
+    setIsConfirmTipForCopyDialogOpen(true); // Open dialog to ask about tip for the copy
   };
 
   const handleConfirmPrintCustomerCopy = (includeTipOnCopy: boolean, group?: PendingOrderGroup | null) => {
-    const groupToUse = group || orderGroupForCopy;
+    const groupToUse = group || orderGroupForCopy; // Use passed group or state
     if (!groupToUse) {
         console.error("No order group found for printing customer copy.");
         toast({ title: "Error", description: "No se encontró el pedido para imprimir la copia.", variant: "destructive"});
@@ -465,6 +474,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     const subtotalForCopy = groupToUse.items.reduce((sum, item) => sum + item.finalPrice * item.quantity, 0);
 
     if (includeTipOnCopy) {
+        // Calculate 10% tip based on subtotal
         tipForCopy = Math.round(subtotalForCopy * 0.10);
     }
 
@@ -473,24 +483,24 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
         tableDisplayName,
         groupToUse.orderNumber,
         groupToUse.deliveryInfo,
-        includeTipOnCopy,
-        tipForCopy
+        includeTipOnCopy, // Pass whether to include tip
+        tipForCopy // Pass the calculated tip amount
     );
     printHtml(customerCopyHtml);
 
 
-    // Update the specific pending order group with the tip decision
+    // Update the specific pending order group with the tip decision for *payment*
     setPendingOrderGroups(prevGroups =>
         prevGroups.map(pg =>
             pg.orderNumber === groupToUse.orderNumber
-                ? { ...pg, tipAmountForPayment: tipForCopy }
+                ? { ...pg, tipAmountForPayment: tipForCopy } // Store the tip amount for final payment
                 : pg
         )
     );
 
     toast({ title: "Copia Impresa", description: `Se imprimió una copia del pedido #${String(groupToUse.orderNumber).padStart(3, '0')}. Propina decidida: ${globalFormatCurrency(tipForCopy)}` });
-    setIsConfirmTipForCopyDialogOpen(false);
-    setOrderGroupForCopy(null);
+    setIsConfirmTipForCopyDialogOpen(false); // Close the dialog
+    setOrderGroupForCopy(null); // Clear the state
   };
 
 
@@ -499,24 +509,24 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
         toast({ title: "Error", description: "No hay pedido pendiente seleccionado para pagar o está vacío.", variant: "destructive" });
         return;
     }
-    setOrderToPay(groupToPay);
+    setOrderToPay(groupToPay); // Set the order group that is being paid
 
     const currentSubtotal = groupToPay.items.reduce((sum, item) => sum + item.finalPrice * item.quantity, 0);
-    setSubtotalForPayment(currentSubtotal);
+    setSubtotalForPayment(currentSubtotal); // Store subtotal for cash movement record
 
     let deliveryFeeForThisOrder = 0;
     if (isDelivery && groupToPay.deliveryInfo && groupToPay.deliveryInfo.deliveryFee > 0) {
       deliveryFeeForThisOrder = groupToPay.deliveryInfo.deliveryFee;
     }
 
-    // Use the tipAmountForPayment stored in the group
+    // Use the tipAmountForPayment stored in the group (decided when printing customer copy or default 0)
     const tipForThisPayment = groupToPay.tipAmountForPayment ?? 0;
-    setTipForFinalPayment(tipForThisPayment);
+    setTipForFinalPayment(tipForThisPayment); // Store tip for cash movement and receipt
 
     const finalAmountForDialog = currentSubtotal + deliveryFeeForThisOrder + tipForThisPayment;
-    setTotalForPayment(finalAmountForDialog);
+    setTotalForPayment(finalAmountForDialog); // This is the grand total for PaymentDialog
 
-    setIsPaymentDialogOpen(true);
+    setIsPaymentDialogOpen(true); // Open payment dialog
   };
 
  const handleDeletePendingOrder = (orderNumberToDelete: number) => {
@@ -538,7 +548,9 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
 
 
   const handlePaymentConfirm = (paymentMethod: PaymentMethod, paidAmount: number) => {
+    // paidAmount here is the grand total (subtotal + delivery + tip)
     if (!orderToPay || subtotalForPayment === null) {
+      // subtotalForPayment is the sum of item prices only
       toast({ title: "Error", description: "No hay un pedido o subtotal para procesar el pago.", variant: "destructive" });
       setIsPaymentDialogOpen(false);
       return;
@@ -841,7 +853,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
         if (indexA !== -1 && indexB !== -1) return indexA - indexB;
         if (indexA !== -1) return -1;
         if (indexB !== -1) return 1;
-        return a.localeCompare(b);
+        return a.name.localeCompare(b.name);
     });
 
     return sortedCategoryNames.map(categoryName => ({
@@ -905,7 +917,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
                         <XCircle className="h-6 w-6" />
                     </Button>
                 </SheetHeader>
-                <ScrollArea className="flex-grow h-[calc(100vh-80px)]">
+                <ScrollArea className="flex-grow h-[calc(100vh-80px)]"> {/* Adjust height if needed */}
                   <div className="grid grid-cols-1 gap-3 p-4">
                     {groupedMenu.map((categoryGroup) => (
                       <Button
@@ -937,10 +949,10 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
                 aria-label="Cerrar lista de productos"
             >
                 <XCircle className="h-6 w-6" />
-            </Button>
+ </Button>
           </ShadDialogHeader>
-          <ScrollArea className="flex-grow min-h-0 pr-2">
-             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
+          <ScrollArea className="flex-grow min-h-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
                 {productsForSelectedCategory.map((item) => (
                   <Card
                     key={item.id}
@@ -984,53 +996,54 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
           <CardHeader>
             <CardTitle className="text-center text-xl">Pedido Actual</CardTitle>
           </CardHeader>
-            <ScrollArea className="flex-grow min-h-0">
-                <div className="p-3">
-                  {currentOrder.length === 0 ? (
-                    <p className="text-muted-foreground text-center py-10">No hay productos en el pedido actual.</p>
-                  ) : (
-                    currentOrder.map((item) => (
-                      <Card key={item.orderItemId} className="mb-3 shadow-sm">
-                        <CardContent className="p-3">
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="font-semibold text-base">{item.name}</p>
-                              {item.category && <p className="text-xs text-muted-foreground font-bold">{item.category}</p>}
-                              {item.selectedModifications && item.selectedModifications.length > 0 && (
-                                <p className="text-xs text-muted-foreground font-bold">({item.selectedModifications.join(', ')})</p>
-                              )}
-                              {item.observation && (
-                                 <p className="text-xs text-amber-700 font-bold">Obs: {item.observation}</p>
-                              )}
-                            </div>
-                            <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive/80 h-7 w-7" onClick={() => handleRemoveItemFromOrder(item.orderItemId)}>
-                              <XCircle className="h-5 w-5" />
-                            </Button>
-                          </div>
-                          <div className="flex justify-between items-center mt-2">
-                            <div className="flex items-center gap-2">
-                              <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => handleDecreaseQuantity(item.orderItemId)}>
-                                <MinusCircle className="h-4 w-4" />
-                              </Button>
-                              <span className="font-bold text-sm w-5 text-center">{item.quantity}</span>
-                              <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => handleIncreaseQuantity(item.orderItemId)}>
-                                <PlusCircle className="h-4 w-4" />
-                              </Button>
-                            </div>
-                            <p className="font-semibold text-base">{globalFormatCurrency(item.finalPrice * item.quantity)}</p>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))
-                  )}
-                </div>
-            </ScrollArea>
+          <ScrollArea className="flex-grow min-h-0">
+            <div className="p-3">
+            {currentOrder.length === 0 ? (
+              <p className="text-muted-foreground text-center py-10">No hay productos en el pedido actual.</p>
+            ) : (
+              currentOrder.map((item) => (
+                <Card key={item.orderItemId} className="mb-3 shadow-sm">
+                  <CardContent className="p-3">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-semibold text-base">{item.name}</p>
+                        {item.category && <p className="text-xs text-muted-foreground font-bold">{item.category}</p>}
+                        {item.selectedModifications && item.selectedModifications.length > 0 && (
+                          <p className="text-xs text-muted-foreground font-bold">({item.selectedModifications.join(', ')})</p>
+                        )}
+                        {item.observation && (
+                           <p className="text-xs text-amber-700 font-bold">Obs: {item.observation}</p>
+                        )}
+                      </div>
+                      <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive/80 h-7 w-7" onClick={() => handleRemoveItemFromOrder(item.orderItemId)}>
+                        <XCircle className="h-5 w-5" />
+                      </Button>
+                    </div>
+                    <div className="flex justify-between items-center mt-2">
+                      <div className="flex items-center gap-2">
+                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => handleDecreaseQuantity(item.orderItemId)}>
+                          <MinusCircle className="h-4 w-4" />
+                        </Button>
+                        <span className="font-bold text-sm w-5 text-center">{item.quantity}</span>
+                        <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => handleIncreaseQuantity(item.orderItemId)}>
+                          <PlusCircle className="h-4 w-4" />
+                        </Button>
+                      </div>
+                      <p className="font-semibold text-base">{globalFormatCurrency(item.finalPrice * item.quantity)}</p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
+            </div>
+          </ScrollArea>
           <CardFooter className="p-3 border-t">
             <div className="w-full">
               <div className="flex justify-between items-center text-lg mb-3">
                 <span className="font-bold">Total Actual:</span>
                 <span className="font-bold">{globalFormatCurrency(currentOrderTotal)}</span>
-              </div>
+
+                          </div>
               <Button onClick={handlePrintKitchenOrder} className="w-full" disabled={currentOrder.length === 0}>
                 <Printer className="mr-2 h-4 w-4" /> Imprimir Comanda
               </Button>
@@ -1178,20 +1191,13 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
                onConfirm={(info) => {
                    setDeliveryInfo(info);
                    setIsDeliveryDialogOpen(false);
-                   // Only open menu sheet if it wasn't already open (e.g., from delivery info missing mid-order)
-                   // and if the product list dialog is not already open.
                    if (!isMenuSheetOpen && !isProductListDialogOpen) {
                        console.log("DeliveryDialog confirmed, opening menu sheet.");
-                       setIsMenuSheetOpen(true); // Proceed to menu selection after delivery info
+                       setIsMenuSheetOpen(true);
                    }
                }}
                onCancel={() => {
                    setIsDeliveryDialogOpen(false);
-                    // If canceling and no order is in progress & no pending delivery orders for this "session",
-                    // it's safe to navigate back or allow user to pick another table type.
-                    if (currentOrder.length === 0 && !pendingOrderGroups.some(pg => pg.deliveryInfo)) {
-                        // Consider router.back() or similar if appropriate UX
-                    }
                }}
            />
        )}
@@ -1218,7 +1224,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
 
       <ShadDialog open={isGeneralObservationDialogOpen} onOpenChange={(isOpen) => {
           setIsGeneralObservationDialogOpen(isOpen);
-          if (!isOpen) setCurrentGeneralObservation(''); // Clear observation if dialog is closed for any reason
+          if (!isOpen) setCurrentGeneralObservation('');
       }}>
         <ShadDialogContent className="sm:max-w-md">
             <ShadDialogHeader>
@@ -1250,4 +1256,3 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     </div>
   );
 }
-
