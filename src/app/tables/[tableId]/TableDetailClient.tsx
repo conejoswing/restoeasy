@@ -505,7 +505,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
       deliveryFeeForThisOrder = groupToPay.deliveryInfo.deliveryFee;
     }
 
-    const tipForThisPayment = groupToPay.tipAmountForPayment ?? 0;
+    const tipForThisPayment = groupToPay.tipAmountForPayment ?? 0; // Use the tip amount decided during "Print Customer Copy"
     setTipForFinalPayment(tipForThisPayment);
 
     const finalAmountForDialog = currentSubtotal + deliveryFeeForThisOrder + tipForThisPayment;
@@ -915,7 +915,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
                     key={item.id}
                     className={cn(
                         "shadow-sm hover:shadow-md transition-shadow cursor-pointer flex flex-col",
-                        "bg-secondary" // Apply secondary background color (light green)
+                        "bg-accent" // Apply accent background color (lighter soft green)
                     )}
                     onClick={() => handleProductCardClick(item)}
                   >
@@ -925,7 +925,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
                     <CardContent className="p-3 pt-0 text-center">
                       <p className={cn(
                           "font-mono text-sm",
-                          "text-primary" // Apply primary text color (orange)
+                          "text-foreground" // Apply foreground text color (near black)
                       )}>
                           {globalFormatCurrency(item.price)}
                       </p>
@@ -954,7 +954,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
             <CardTitle className="text-center text-xl">Pedido Actual</CardTitle>
           </CardHeader>
             <ScrollArea className="flex-grow min-h-0">
-                 <div className="p-3">
+                <div className="p-3">
                   {currentOrder.length === 0 ? (
                     <p className="text-muted-foreground text-center py-10">No hay productos en el pedido actual.</p>
                   ) : (
@@ -1220,4 +1220,5 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     </div>
   );
 }
+
 
