@@ -503,13 +503,13 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     }
 
     
-    const tipForThisPayment = groupToPay.tipAmountForPayment ?? 0; // Use the tip amount decided during "Print Copy"
+    const tipForThisPayment = groupToPay.tipAmountForPayment ?? 0; 
     setTipForFinalPayment(tipForThisPayment);
 
     const finalAmountForDialog = currentSubtotal + deliveryFeeForThisOrder + tipForThisPayment;
     setTotalForPayment(finalAmountForDialog);
 
-    setIsPaymentDialogOpen(true); // Directly open payment dialog
+    setIsPaymentDialogOpen(true); 
   };
 
  const handleDeletePendingOrder = (orderNumberToDelete: number) => {
@@ -1186,6 +1186,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     </div>
   );
 }
+
 
 
 
