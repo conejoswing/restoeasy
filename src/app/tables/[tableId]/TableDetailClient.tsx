@@ -21,13 +21,12 @@ import {
   SheetHeader,
   SheetTitle,
   SheetClose,
-  SheetFooter, // Import SheetFooter
-  SheetTrigger,
+  SheetFooter,
 } from '@/components/ui/sheet';
 import {
   AlertDialog,
   AlertDialogAction,
-  AlertDialogCancel, // Ensure AlertDialogCancel is imported
+  AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
@@ -117,7 +116,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
   const [isPaymentDialogOpen, setIsPaymentDialogOpen] = useState(false);
   const [totalForPayment, setTotalForPayment] = useState(0);
   const [subtotalForPayment, setSubtotalForPayment] = useState<number | null>(null);
-  const [tipForFinalPayment, setTipForFinalPayment] = useState(0); // Renamed from tipAmount
+  const [tipForFinalPayment, setTipForFinalPayment] = useState(0);
   const [isDeliveryDialogOpen, setIsDeliveryDialogOpen] = useState(false);
   const [deliveryInfo, setDeliveryInfo] = useState<DeliveryInfo | null>(null);
   const [lastOrderNumber, setLastOrderNumber] = useState(0);
@@ -140,7 +139,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
 
   const tableDisplayName = useMemo(() => {
     if (isDelivery) return 'Delivery';
-    if (isMeson) return 'Mesón'; // Corrected from "Meson"
+    if (isMeson) return 'Mesón';
     if (!isNaN(Number(tableIdParam))) return `Mesa ${tableIdParam}`;
     const decodedId = decodeURIComponent(tableIdParam);
     return decodedId.charAt(0).toUpperCase() + decodedId.slice(1);
@@ -150,7 +149,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
   useEffect(() => {
     if (!tableIdParam || isInitialized) return;
 
-    console.log(`Initializing TableDetailPage for tableId: ${tableIdParam}`);
+    console.log(`Initializing TableDetailClient for tableId: ${tableIdParam}`);
 
     setMenu(loadMenuData());
 
@@ -198,7 +197,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
                         tipAmountForPayment: group.tipAmountForPayment ?? 0,
                     })).sort((a: PendingOrderGroup, b: PendingOrderGroup) => a.timestamp - b.timestamp)
                  );
-             } else if (Array.isArray(parsedData)) { // Fallback for old structure
+             } else if (Array.isArray(parsedData)) { 
                  setPendingOrderGroups(
                     parsedData.map((group: PendingOrderGroup) => ({
                         ...group,
@@ -225,7 +224,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
 
   useEffect(() => {
     const handleMenuUpdate = () => {
-      console.log('TableDetailPage: Detected menu update. Reloading menu data.');
+      console.log('TableDetailClient: Detected menu update. Reloading menu data.');
       setMenu(loadMenuData());
     };
     window.addEventListener('menuUpdated', handleMenuUpdate);
@@ -236,9 +235,9 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
  useEffect(() => {
     if (!isInitialized || !tableIdParam) return;
 
-    console.log(`TableDetailPage: Saving currentOrder for ${tableIdParam}`, currentOrder);
+    console.log(`TableDetailClient: Saving currentOrder for ${tableIdParam}`, currentOrder);
     sessionStorage.setItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${tableIdParam}-currentOrder`, JSON.stringify(currentOrder));
-    console.log(`TableDetailPage: Saving pendingOrderGroups for ${tableIdParam}`, pendingOrderGroups);
+    console.log(`TableDetailClient: Saving pendingOrderGroups for ${tableIdParam}`, pendingOrderGroups);
     sessionStorage.setItem(`${PENDING_ORDERS_STORAGE_KEY_PREFIX}${tableIdParam}-pendingOrders`, JSON.stringify({ groups: pendingOrderGroups }));
 
 
@@ -261,10 +260,10 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     const oldStatus = sessionStorage.getItem(storageKey) as 'available' | 'occupied' | null;
 
     sessionStorage.setItem(storageKey, newStatus);
-    console.log(`TableDetailPage: Table ${tableIdParam} status in sessionStorage set to ${newStatus}. Old was: ${oldStatus}. hasPending: ${hasPending}, hasCurrent: ${hasCurrent}, isDeliveryOccupied: ${isEffectivelyOccupied}`);
+    console.log(`TableDetailClient: Table ${tableIdParam} status in sessionStorage set to ${newStatus}. Old was: ${oldStatus}. hasPending: ${hasPending}, hasCurrent: ${hasCurrent}, isDeliveryOccupied: ${isEffectivelyOccupied}`);
 
     if (oldStatus !== newStatus || (oldStatus === null && newStatus === 'occupied')) {
-      console.log(`TableDetailPage: Table ${tableIdParam} status ${oldStatus === null ? 'was unset and now' : 'actually changed from ' + (oldStatus ?? 'unset') + ' to'} ${newStatus}. Dispatching 'tableStatusUpdated' event.`);
+      console.log(`TableDetailClient: Table ${tableIdParam} status ${oldStatus === null ? 'was unset and now' : 'actually changed from ' + (oldStatus ?? 'unset') + ' to'} ${newStatus}. Dispatching 'tableStatusUpdated' event.`);
       window.dispatchEvent(new CustomEvent('tableStatusUpdated'));
     }
 
@@ -281,7 +280,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
   const handleCategorySelect = (categoryName: string) => {
     setSelectedCategoryForDialog(categoryName);
     setIsProductListDialogOpen(true);
-    setIsMenuSheetOpen(false);
+    setIsMenuSheetOpen(false); 
   };
 
   const handleAddItemToOrder = (item: MenuItem, selectedModifications?: string[], observationText?: string) => {
@@ -323,7 +322,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
           ]);
       }
       toast({ title: "Producto Añadido", description: `${item.name} se añadió al pedido actual.` });
-      setIsProductListDialogOpen(false);
+      setIsProductListDialogOpen(false); 
   };
 
   const handleProductCardClick = (item: MenuItem) => {
@@ -333,7 +332,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     } else {
       handleAddItemToOrder(item);
     }
-    setIsProductListDialogOpen(false);
+    setIsProductListDialogOpen(false); 
   };
 
 
@@ -411,7 +410,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
             deliveryInfo: currentDeliveryInfoToUse,
             timestamp: Date.now(),
             generalObservation: currentGeneralObservation,
-            tipAmountForPayment: 0,
+            tipAmountForPayment: 0, 
         }
     ].sort((a,b) => a.timestamp - b.timestamp));
 
@@ -500,7 +499,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     }
 
 
-    const tipForThisPayment = groupToPay.tipAmountForPayment ?? 0;
+    const tipForThisPayment = groupToPay.tipAmountForPayment ?? 0; 
     setTipForFinalPayment(tipForThisPayment);
 
     const finalAmountForDialog = currentSubtotal + deliveryFeeForThisOrder + tipForThisPayment;
@@ -932,7 +931,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
             <CardTitle className="text-center text-xl">Pedido Actual</CardTitle>
           </CardHeader>
           <ScrollArea className="flex-grow min-h-0">
-            <div className="p-3">
+             <div className="p-3">
               {currentOrder.length === 0 ? (
                 <p className="text-muted-foreground text-center py-10">No hay productos en el pedido actual.</p>
               ) : (
@@ -972,7 +971,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
               )}
             </div>
           </ScrollArea>
-          <CardFooter className="p-3 border-t">
+          <CardFooter className="p-3 border-t mt-auto">
             <div className="w-full">
               <div className="flex justify-between items-center text-lg mb-3">
                 <span className="font-bold">Total Actual:</span>
@@ -1056,12 +1055,24 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
                         ))}
                       </CardContent>
                       <CardFooter className="p-3 pt-2 flex flex-col gap-2">
-                         <Button variant="outline" size="sm" className="w-full" onClick={() => handleReprintKitchenOrder(group)}>
-                            <Printer className="mr-2 h-3 w-3"/> Reimprimir Comanda
-                         </Button>
-                         <Button variant="outline" size="sm" className="w-full" onClick={() => handleOpenPrintCustomerCopyDialog(group)}>
-                            <Copy className="mr-2 h-3 w-3"/> Imprimir Copia Cliente
-                         </Button>
+                         <div className="flex gap-2 w-full">
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1"
+                                onClick={() => handleReprintKitchenOrder(group)}
+                            >
+                                <Printer className="mr-2 h-3 w-3"/> Reimprimir Comanda
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="sm"
+                                className="flex-1"
+                                onClick={() => handleOpenPrintCustomerCopyDialog(group)}
+                            >
+                                <Copy className="mr-2 h-3 w-3"/> Imprimir Copia Cliente
+                            </Button>
+                         </div>
                          <Button onClick={() => handleFinalizeAndPaySelectedOrder(group)} className="w-full" size="sm">
                             <CreditCard className="mr-2 h-3 w-3" /> Cobrar Pedido
                          </Button>
@@ -1149,7 +1160,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
 
       <ShadDialog open={isGeneralObservationDialogOpen} onOpenChange={(isOpen) => {
           setIsGeneralObservationDialogOpen(isOpen);
-          if (!isOpen) setCurrentGeneralObservation('');
+          if (!isOpen) setCurrentGeneralObservation(''); 
       }}>
         <ShadDialogContent className="sm:max-w-md">
             <ShadDialogHeader>
@@ -1181,3 +1192,4 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     </div>
   );
 }
+
