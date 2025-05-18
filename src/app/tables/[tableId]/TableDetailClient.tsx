@@ -55,8 +55,7 @@ import { cn } from '@/lib/utils';
 import type { CashMovement } from '@/app/expenses/page';
 import type { DeliveryInfo } from '@/components/app/delivery-dialog';
 import DeliveryDialog from '@/components/app/delivery-dialog';
-import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatPendingOrderCopy } from '@/lib/printUtils';
-import { formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
+import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatPendingOrderCopy, formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
 import type { MenuItem } from '@/types/menu';
 import { loadMenuData, orderedCategories as predefinedOrderedCategories, sortMenu } from '@/lib/menuUtils';
@@ -264,7 +263,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     const storageKey = `table-${tableIdParam}-status`;
     const oldStatus = sessionStorage.getItem(storageKey) as 'available' | 'occupied' | null;
 
-    sessionStorage.setItem(storageKey, newStatus);
+    sessionStorage.setItem(storageKey, newStatus); // Always write the current determined status
     console.log(`TableDetailPage: Table ${tableIdParam} status in sessionStorage set to ${newStatus}. Old was: ${oldStatus}. hasPending: ${hasPending}, hasCurrent: ${hasCurrent}, isDeliveryOccupied: ${isEffectivelyOccupied}`);
 
     if (oldStatus !== newStatus || (oldStatus === null && newStatus === 'occupied')) {
@@ -842,9 +841,11 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
 
       <div className="flex justify-center mb-6">
         <Sheet open={isMenuSheetOpen} onOpenChange={setIsMenuSheetOpen}>
+            {/* <SheetTrigger asChild> */}
              <Button size="lg" className="px-8 py-6 text-lg" onClick={handleOpenMenuOrDeliveryDialog}>
                 <PackageSearch className="mr-2 h-5 w-5"/> Ver Menú
             </Button>
+            {/* </SheetTrigger> */}
             <SheetContent side="left" className="w-full sm:max-w-md md:max-w-lg lg:max-w-xl p-0 flex flex-col"> 
                 <SheetHeader className="p-4 border-b sticky top-0 bg-background z-10">
                     <SheetTitle className="text-2xl text-center">Categorías del Menú</SheetTitle>
@@ -858,13 +859,13 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
                         <XCircle className="h-6 w-6" />
                     </Button>
                 </SheetHeader>
-                <ScrollArea className="flex-grow h-[calc(100vh-80px)]">
+                <ScrollArea className="flex-grow h-[calc(100vh-80px)]"> {/* Adjust height as needed */}
                   <div className="grid grid-cols-1 gap-3 p-4">
                     {groupedMenu.map((categoryGroup) => (
                       <Button
                         key={categoryGroup.name}
                         variant="outline"
-                        className="w-full justify-start text-left py-6 text-lg"
+                        className="w-full justify-start text-left py-6 text-lg" // Increased padding and text size
                         onClick={() => handleCategorySelect(categoryGroup.name)}
                       >
                         {categoryGroup.name}
@@ -893,15 +894,15 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
                 <XCircle className="h-6 w-6" />
             </Button>
           </ShadDialogHeader>
-          <ScrollArea className="flex-grow overflow-y-auto pr-2">
+          <ScrollArea className="flex-grow overflow-y-auto pr-2"> {/* Added pr-2 for scrollbar spacing */}
              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 p-4">
                 {productsForSelectedCategory.map((item) => (
                   <Card
                     key={item.id}
-                    className="shadow-sm hover:shadow-md transition-shadow cursor-pointer flex flex-col"
+                    className="shadow-sm hover:shadow-md transition-shadow cursor-pointer flex flex-col" // Added flex flex-col
                     onClick={() => handleProductCardClick(item)}
                   >
-                    <CardHeader className="p-3 pb-1 flex-grow">
+                    <CardHeader className="p-3 pb-1 flex-grow"> {/* Added flex-grow */}
                       <CardTitle className="text-base font-semibold text-center">{item.name}</CardTitle>
                     </CardHeader>
                     <CardContent className="p-3 pt-0 text-center">
@@ -916,7 +917,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
                 ))}
               </div>
           </ScrollArea>
-          <ShadDialogFooter className="p-4 border-t mt-auto">
+          <ShadDialogFooter className="p-4 border-t mt-auto"> {/* Ensure footer is at bottom */}
             <ShadDialogClose asChild>
               <Button variant="outline">Cerrar</Button>
             </ShadDialogClose>
@@ -932,8 +933,8 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
           <CardHeader>
             <CardTitle className="text-center text-xl">Pedido Actual</CardTitle>
           </CardHeader>
-          <CardContent className="flex-grow p-3">
-            <ScrollArea className="h-[calc(100vh-400px)] sm:h-[calc(100%-150px)] pr-3"> 
+          <CardContent className="flex flex-col flex-grow p-3">
+            <ScrollArea className="flex-grow pr-3"> 
               {currentOrder.length === 0 ? (
                 <p className="text-muted-foreground text-center py-10">No hay productos en el pedido actual.</p>
               ) : (
@@ -991,8 +992,8 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
           <CardHeader>
             <CardTitle className="text-center text-xl">Pedidos Pendientes de Pago</CardTitle>
           </CardHeader>
-          <CardContent className="flex-grow p-3">
-            <ScrollArea className="h-[calc(100vh-400px)] sm:h-[calc(100%-80px)] pr-3"> 
+          <CardContent className="flex flex-col flex-grow p-3">
+            <ScrollArea className="flex-grow pr-3"> 
               {pendingOrderGroups.length === 0 ? (
                 <p className="text-muted-foreground text-center py-10">No hay pedidos pendientes de pago.</p>
               ) : (
@@ -1185,3 +1186,4 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     </div>
   );
 }
+
