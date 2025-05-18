@@ -55,17 +55,11 @@ import { cn } from '@/lib/utils';
 import type { CashMovement } from '@/app/expenses/page';
 import type { DeliveryInfo } from '@/components/app/delivery-dialog';
 import DeliveryDialog from '@/components/app/delivery-dialog';
-import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatPendingOrderCopy, formatCurrency as printUtilsFormatCurrency } from '@/lib/printUtils';
+import { formatKitchenOrderReceipt, formatCustomerReceipt, printHtml, formatPendingOrderCopy } from '@/lib/printUtils';
 import type { InventoryItem } from '@/app/inventory/page';
 import type { MenuItem } from '@/types/menu';
 import { loadMenuData, orderedCategories as predefinedOrderedCategories, sortMenu } from '@/lib/menuUtils';
-// import { Label } from '@/components/ui/label';
-// import {
-//   Accordion,
-//   AccordionContent,
-//   AccordionItem,
-//   AccordionTrigger,
-// } from "@/components/ui/accordion";
+
 
 export interface OrderItem extends Omit<MenuItem, 'price' | 'modificationPrices' | 'modifications'> {
   orderItemId: string;
@@ -481,7 +475,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
         )
     );
 
-    toast({ title: "Copia Impresa", description: `Se imprimió una copia del pedido #${String(orderGroupForCopy.orderNumber).padStart(3, '0')}. Propina decidida: ${printUtilsFormatCurrency(tipForCopy)}` });
+    toast({ title: "Copia Impresa", description: `Se imprimió una copia del pedido #${String(orderGroupForCopy.orderNumber).padStart(3, '0')}. Propina decidida: ${globalFormatCurrency(tipForCopy)}` });
     setIsConfirmTipForCopyDialogOpen(false);
     setOrderGroupForCopy(null);
   };
@@ -770,7 +764,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
       id: Date.now(), 
       date: new Date(),
       category: 'Ingreso Venta',
-      description: `Venta ${tableDisplayName} - Orden #${String(orderToPay.orderNumber).padStart(3, '0')}${tipForFinalPayment > 0 ? ` (Propina: ${printUtilsFormatCurrency(tipForFinalPayment)})` : ''}`,
+      description: `Venta ${tableDisplayName} - Orden #${String(orderToPay.orderNumber).padStart(3, '0')}${tipForFinalPayment > 0 ? ` (Propina: ${globalFormatCurrency(tipForFinalPayment)})` : ''}`,
       amount: subtotalForPayment, 
       paymentMethod: paymentMethod,
       deliveryFee: (isDelivery && orderToPay.deliveryInfo && orderToPay.deliveryInfo.deliveryFee > 0) ? orderToPay.deliveryInfo.deliveryFee : undefined,
@@ -783,7 +777,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
 
     setPendingOrderGroups(prevGroups => prevGroups.filter(group => group.orderNumber !== orderToPay!.orderNumber));
 
-    toast({ title: "Pago Registrado", description: `Pago de ${printUtilsFormatCurrency(paidAmount)} para la orden #${String(orderToPay.orderNumber).padStart(3, '0')} registrado.` });
+    toast({ title: "Pago Registrado", description: `Pago de ${globalFormatCurrency(paidAmount)} para la orden #${String(orderToPay.orderNumber).padStart(3, '0')} registrado.` });
     setIsPaymentDialogOpen(false);
     setOrderToPay(null);
     setSubtotalForPayment(null);
@@ -932,8 +926,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
           <CardHeader>
             <CardTitle className="text-center text-xl">Pedido Actual</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col flex-grow p-3 overflow-hidden"> {/* Updated */}
-            <ScrollArea className="h-full pr-3">  {/* Updated */}
+          <ScrollArea className="flex-grow p-3 min-h-0">
               {currentOrder.length === 0 ? (
                 <p className="text-muted-foreground text-center py-10">No hay productos en el pedido actual.</p>
               ) : (
@@ -971,8 +964,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
                   </Card>
                 ))
               )}
-            </ScrollArea>
-          </CardContent>
+          </ScrollArea>
           <CardFooter className="p-3 border-t mt-auto">
             <div className="w-full">
               <div className="flex justify-between items-center text-lg mb-3">
@@ -991,8 +983,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
           <CardHeader>
             <CardTitle className="text-center text-xl">Pedidos Pendientes de Pago</CardTitle>
           </CardHeader>
-          <CardContent className="flex flex-col flex-grow p-3 overflow-hidden"> {/* Updated */}
-            <ScrollArea className="h-full pr-3">  {/* Updated */}
+          <ScrollArea className="flex-grow p-3 min-h-0">
               {pendingOrderGroups.length === 0 ? (
                 <p className="text-muted-foreground text-center py-10">No hay pedidos pendientes de pago.</p>
               ) : (
@@ -1073,8 +1064,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
                   );
                 })
               )}
-            </ScrollArea>
-          </CardContent>
+          </ScrollArea>
         </Card>
       </div>
 
@@ -1184,5 +1174,6 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     </div>
   );
 }
+
 
 
