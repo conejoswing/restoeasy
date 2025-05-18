@@ -22,6 +22,7 @@ import {
   SheetTitle,
   SheetClose,
   SheetFooter,
+  SheetTrigger,
 } from '@/components/ui/sheet';
 import {
   Dialog as ShadDialog,
@@ -44,6 +45,7 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { Textarea } from '@/components/ui/textarea';
+import { Input } from '@/components/ui/input';
 
 
 import { PlusCircle, MinusCircle, XCircle, Printer, ArrowLeft, CreditCard, PackageSearch, Copy, Utensils } from 'lucide-react';
@@ -140,7 +142,8 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     if (isDelivery) return 'Delivery';
     if (isMeson) return 'Mesón';
     if (!isNaN(Number(tableIdParam))) return `Mesa ${tableIdParam}`;
-    return decodeURIComponent(tableIdParam).charAt(0).toUpperCase() + decodeURIComponent(tableIdParam).slice(1);
+    const decodedId = decodeURIComponent(tableIdParam);
+    return decodedId.charAt(0).toUpperCase() + decodedId.slice(1);
   }, [tableIdParam, isDelivery, isMeson]);
 
 
@@ -244,6 +247,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
 
     let isEffectivelyOccupied = false;
     if (isDelivery) {
+        // For delivery, occupied if there's a current order being built OR if there are pending orders with delivery info.
         isEffectivelyOccupied = hasCurrent || pendingOrderGroups.some(pg => !!pg.deliveryInfo);
     }
 
@@ -257,9 +261,11 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     const storageKey = `table-${tableIdParam}-status`;
     const oldStatus = sessionStorage.getItem(storageKey) as 'available' | 'occupied' | null;
 
+    // Always write the current calculated status to sessionStorage
     sessionStorage.setItem(storageKey, newStatus);
     console.log(`TableDetailPage: Table ${tableIdParam} status in sessionStorage set to ${newStatus}. Old was: ${oldStatus}. hasPending: ${hasPending}, hasCurrent: ${hasCurrent}, isDeliveryOccupied: ${isEffectivelyOccupied}`);
 
+    // Dispatch event only if the status actually changed or was newly set to occupied
     if (oldStatus !== newStatus || (oldStatus === null && newStatus === 'occupied')) {
       console.log(`TableDetailPage: Table ${tableIdParam} status ${oldStatus === null ? 'was unset and now' : 'actually changed from ' + (oldStatus ?? 'unset') + ' to'} ${newStatus}. Dispatching 'tableStatusUpdated' event.`);
       window.dispatchEvent(new CustomEvent('tableStatusUpdated'));
@@ -497,13 +503,13 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     }
 
     
-    const tipForThisPayment = groupToPay.tipAmountForPayment ?? 0;
+    const tipForThisPayment = groupToPay.tipAmountForPayment ?? 0; // Use the tip amount decided during "Print Copy"
     setTipForFinalPayment(tipForThisPayment);
 
     const finalAmountForDialog = currentSubtotal + deliveryFeeForThisOrder + tipForThisPayment;
     setTotalForPayment(finalAmountForDialog);
 
-    setIsPaymentDialogOpen(true);
+    setIsPaymentDialogOpen(true); // Directly open payment dialog
   };
 
  const handleDeletePendingOrder = (orderNumberToDelete: number) => {
@@ -836,9 +842,11 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
 
       <div className="flex justify-center mb-6">
         <Sheet open={isMenuSheetOpen} onOpenChange={setIsMenuSheetOpen}>
-             <Button size="lg" className="px-8 py-6 text-lg" onClick={handleOpenMenuOrDeliveryDialog}>
-                <PackageSearch className="mr-2 h-5 w-5"/> Ver Menú
-            </Button>
+            <SheetTrigger asChild>
+                <Button size="lg" className="px-8 py-6 text-lg" onClick={handleOpenMenuOrDeliveryDialog}>
+                    <PackageSearch className="mr-2 h-5 w-5"/> Ver Menú
+                </Button>
+            </SheetTrigger>
             <SheetContent side="left" className="w-full sm:max-w-md md:max-w-lg lg:max-w-xl p-0 flex flex-col"> 
                 <SheetHeader className="p-4 border-b sticky top-0 bg-background z-10">
                     <SheetTitle className="text-2xl text-center">Categorías del Menú</SheetTitle>
@@ -922,11 +930,12 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
       
       <div className="grid md:grid-cols-2 gap-6 flex-grow">
         
-        <Card className="flex flex-col">
+        <Card className="flex flex-col h-full">
           <CardHeader>
             <CardTitle className="text-center text-xl">Pedido Actual</CardTitle>
           </CardHeader>
-          <ScrollArea className="flex-grow p-3 min-h-0">
+          <ScrollArea className="flex-grow min-h-0">
+            <div className="p-3">
               {currentOrder.length === 0 ? (
                 <p className="text-muted-foreground text-center py-10">No hay productos en el pedido actual.</p>
               ) : (
@@ -964,8 +973,9 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
                   </Card>
                 ))
               )}
+            </div>
           </ScrollArea>
-          <CardFooter className="p-3 border-t mt-auto">
+          <CardFooter className="p-3 border-t">
             <div className="w-full">
               <div className="flex justify-between items-center text-lg mb-3">
                 <span className="font-bold">Total Actual:</span>
@@ -979,11 +989,12 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
         </Card>
 
         
-        <Card className="flex flex-col">
+        <Card className="flex flex-col h-full">
           <CardHeader>
             <CardTitle className="text-center text-xl">Pedidos Pendientes de Pago</CardTitle>
           </CardHeader>
-          <ScrollArea className="flex-grow p-3 min-h-0">
+          <ScrollArea className="flex-grow min-h-0">
+            <div className="p-3">
               {pendingOrderGroups.length === 0 ? (
                 <p className="text-muted-foreground text-center py-10">No hay pedidos pendientes de pago.</p>
               ) : (
@@ -1064,6 +1075,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
                   );
                 })
               )}
+            </div>
           </ScrollArea>
         </Card>
       </div>
@@ -1174,6 +1186,7 @@ export default function TableDetailClient({ tableId }: TableDetailClientProps) {
     </div>
   );
 }
+
 
 
 
